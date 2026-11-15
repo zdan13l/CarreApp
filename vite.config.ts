@@ -14,8 +14,8 @@ export default defineConfig({
         short_name: 'CarreApp',
         description: 'Gestión en vivo de la Carrera de inducción',
         lang: 'es',
-        theme_color: '#1f5a9e',
-        background_color: '#edf7fb',
+        theme_color: '#0b0f17',
+        background_color: '#0b0f17',
         display: 'standalone',
         start_url: '/',
         icons: [
