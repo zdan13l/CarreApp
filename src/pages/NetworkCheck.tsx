@@ -23,7 +23,7 @@ export default function NetworkCheck() {
     const url = import.meta.env.VITE_SUPABASE_URL
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY
     const checks: Promise<Result>[] = [
-      timedFetch('Esta app (hosting)', window.location.origin + '/icon.svg'),
+      timedFetch('Esta app (hosting)', window.location.origin + '/favicon.png'),
       timedFetch('Mapa OpenStreetMap', 'https://tile.openstreetmap.org/0/0/0.png', { mode: 'no-cors' }),
     ]
     if (url && key) {
@@ -49,6 +49,7 @@ export default function NetworkCheck() {
 
   return (
     <main className="page">
+      <img src="/logo.png" alt="Logo de CarreApp" className="logo" />
       <h1>CarreApp</h1>
       <p className="muted">Bloque 0 · Prueba de red y dispositivo</p>
 
