@@ -3,6 +3,7 @@ import RequireRole from './components/RequireRole'
 import { AuthProvider, homePathForRole, useAuth } from './lib/auth'
 import AdminLayout from './pages/admin/AdminLayout'
 import Bases from './pages/admin/Bases'
+import Cruces from './pages/admin/Cruces'
 import Grupos from './pages/admin/Grupos'
 import Resumen from './pages/admin/Resumen'
 import Usuarios from './pages/admin/Usuarios'
@@ -30,6 +31,7 @@ export default function App() {
             <Route index element={<Resumen />} />
             <Route path="grupos" element={<Grupos />} />
             <Route path="bases" element={<Bases />} />
+            <Route path="cruces" element={<Cruces />} />
             <Route path="usuarios" element={<Usuarios />} />
           </Route>
           <Route path="/base" element={<RequireRole role="base"><BaseHome /></RequireRole>} />
