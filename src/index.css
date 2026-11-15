@@ -184,3 +184,14 @@ details summary { cursor: pointer; font-weight: 700; min-height: 44px; display: 
 .rank li { display: flex; align-items: center; gap: .75rem; background: var(--surface-2); border-radius: 12px; padding: .6rem .8rem; }
 .rank .pos { width: 2rem; height: 2rem; border-radius: 50%; background: var(--orange); color: #1a1206; display: grid; place-items: center; font-weight: 800; }
 .audit { align-items: flex-start; }
+.result.voided { background: var(--surface-2); color: var(--text-muted); }
+.versus.small { margin: .4rem 0 0; }
+.versus.small .face img, .versus.small .face > span { width: 56px; height: 56px; }
+.next h3 { margin: 0; color: var(--text-muted); }
+.next { opacity: .9; }
+
+.pager { margin-top: 1rem; }
+.pager-nav { display: grid; grid-template-columns: auto 1fr auto; gap: .6rem; align-items: center; }
+.pager-title { display: grid; text-align: center; }
+.check { display: flex; align-items: center; gap: .6rem; margin-top: .75rem; font-weight: 600; min-height: 44px; }
+.check input { width: 24px; height: 24px; min-height: 0; padding: 0; }
