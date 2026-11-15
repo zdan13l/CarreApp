@@ -31,7 +31,7 @@ Ver la [Bitácora](Bitacora) para el detalle. Hoja de ruta:
 | 2 | Panel admin: grupos, bases (foto, información, 3 preguntas), corredores y usuarios | Hecho y validado |
 | 3 | Cronograma, rotación y validación anti-repetición | Hecho |
 | 4 | Vista de base (calificar) | Código listo, falta probar en campo |
-| 5 | Ranking en vivo y vista del corredor | Pendiente |
+| 5 | Ranking en vivo y vista del corredor | Hecho, falta probar con corredores reales |
 | 6 | Mapa y GPS | Pendiente |
 | 7 | Alertas de demora | Pendiente |
 | 8 | Carga masiva (plantilla Word/Excel) | Pendiente |
