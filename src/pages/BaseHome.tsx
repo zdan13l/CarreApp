@@ -1,5 +1,7 @@
+import '../ranking.css'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell'
+import BottomNav, { type NavTab } from '../components/BottomNav'
 import { useAuth } from '../lib/auth'
 import { useRealtimeReload } from '../lib/realtime'
 import PhotoField from '../components/PhotoField'
@@ -10,7 +12,9 @@ import {
   ITEM_LABEL,
   SCORE_ITEMS,
   STATUS_LABEL,
+  infoOf,
   type BaseQuestion,
+  type InfoEmbed,
   type MatchScore,
   type MatchStatus,
   type ScoreItem,
@@ -21,7 +25,7 @@ interface MyBase {
   id: string
   name: string
   location_photo_path: string | null
-  info: string | null
+  base_details: InfoEmbed
   event_id: string
   base_questions: BaseQuestion[]
 }
@@ -42,8 +46,17 @@ interface Team {
   photo_path: string | null
 }
 
+type Tab = 'base' | 'ronda' | 'top' | 'terminados'
+const TABS: NavTab<Tab>[] = [
+  { id: 'base', label: 'Mi base', icon: '📍' },
+  { id: 'ronda', label: 'Ronda', icon: '⚽' },
+  { id: 'top', label: 'Top', icon: '🏆' },
+  { id: 'terminados', label: 'Terminados', icon: '✅' },
+]
+
 export default function BaseHome() {
   const { profile } = useAuth()
+  const [tab, setTab] = useState<Tab>('ronda')
   const [base, setBase] = useState<MyBase | null>(null)
   const [matches, setMatches] = useState<BaseMatch[]>([])
   const [teams, setTeams] = useState<Map<string, Team>>(new Map())
@@ -58,7 +71,7 @@ export default function BaseHome() {
     const { data: b } = await supabase
       .from('bases')
       .select(
-        'id, name, location_photo_path, info, event_id, base_questions(position, question), base_staff!inner(user_id), events!inner(is_active)',
+        'id, name, location_photo_path, event_id, base_details(info), base_questions(position, question), base_staff!inner(user_id), events!inner(is_active)',
       )
       .eq('base_staff.user_id', userId)
       .eq('events.is_active', true)
@@ -84,7 +97,7 @@ export default function BaseHome() {
   }, [load])
 
   // Live refresh when scores change (another inductor of the same base, or a correction).
-  useRealtimeReload(['match_scores', 'matches'], load)
+  useRealtimeReload(['match_scores', 'matches', 'bases'], load)
 
   const current = useMemo(() => matches.find((m) => m.status !== 'finished'), [matches])
   const next = current ? matches.find((m) => m.round_number > current.round_number && m.status !== 'finished') : undefined
@@ -100,28 +113,38 @@ export default function BaseHome() {
         </section>
       ) : (
         <>
-          <BaseInfoCard base={base} onChanged={load} />
-          <h2 className="section-title">{current ? `Ronda ${current.round_number}: ahora` : 'Cruces'}</h2>
-          {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
-          {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} />}
-          {next && (
-            <section className="card next">
-              <h3>Próxima ronda ({next.round_number})</h3>
-              <div className="versus small">
-                <TeamFace team={teams.get(next.team_a)} />
-                <span className="vs">vs</span>
-                <TeamFace team={teams.get(next.team_b)} />
-              </div>
+          {tab === 'base' && <BaseInfoCard base={base} onChanged={load} />}
+
+          {tab === 'ronda' && (
+            <>
+              <h2 className="section-title">{current ? `Ronda ${current.round_number}: ahora` : 'Ronda actual'}</h2>
+              {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
+              {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} />}
+              {next && (
+                <section className="card next">
+                  <h3>Próxima ronda ({next.round_number})</h3>
+                  <div className="versus small">
+                    <TeamFace team={teams.get(next.team_a)} />
+                    <span className="vs">vs</span>
+                    <TeamFace team={teams.get(next.team_b)} />
+                  </div>
+                </section>
+              )}
+              {current === undefined && matches.length > 0 && <p className="ok-box">Todos los cruces de tu base terminaron. ¡Gracias!</p>}
+            </>
+          )}
+
+          {tab === 'top' && (
+            <section className="card">
+              <h2>Top equipos</h2>
+              <Ranking rows={standings} />
             </section>
           )}
-          {current === undefined && matches.length > 0 && <p className="ok-box">Todos los cruces de tu base terminaron. ¡Gracias!</p>}
-          <details className="card">
-            <summary>Top equipos</summary>
-            <Ranking rows={standings} />
-          </details>
-          {finished.length > 0 && (
-            <details className="card">
-              <summary>Cruces terminados ({finished.length})</summary>
+
+          {tab === 'terminados' && (
+            <section className="card">
+              <h2>Cruces terminados ({finished.length})</h2>
+              {finished.length === 0 && <p className="muted">Todavía no has terminado ningún cruce.</p>}
               <ul className="list">
                 {finished.map((m) => (
                   <li key={m.id}>
@@ -133,8 +156,10 @@ export default function BaseHome() {
                   </li>
                 ))}
               </ul>
-            </details>
+            </section>
           )}
+
+          <BottomNav tabs={TABS} active={tab} onChange={setTab} />
         </>
       )}
     </AppShell>
@@ -169,13 +194,12 @@ function BaseInfoCard({ base, onChanged }: { base: MyBase; onChanged: () => Prom
       <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
       <p className="muted">¿La base se movió? Cambia la foto para que los grupos la encuentren.</p>
       {error && <p className="error">{error}</p>}
-      <details>
-        <summary>Información y preguntas</summary>
-        <p className="pre">{base.info}</p>
-        <ol>
-          {questions.map((q) => <li key={q.position}>{q.question}</li>)}
-        </ol>
-      </details>
+      <h3>Información que se da</h3>
+      <p className="pre">{infoOf(base.base_details) ?? 'Sin información.'}</p>
+      <h3>Posibles preguntas</h3>
+      <ol>
+        {questions.map((q) => <li key={q.position}>{q.question}</li>)}
+      </ol>
     </section>
   )
 }

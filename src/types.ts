@@ -26,6 +26,14 @@ export interface TeamRow {
   team_runners: TeamRunner[]
 }
 
+// PostgREST returns a one-to-one embed as an object (or an array in some versions).
+export type InfoEmbed = { info: string | null } | { info: string | null }[] | null
+
+export function infoOf(d: InfoEmbed | undefined): string | null {
+  if (!d) return null
+  return Array.isArray(d) ? (d[0]?.info ?? null) : d.info
+}
+
 export interface BaseQuestion {
   position: number
   question: string
@@ -35,7 +43,7 @@ export interface BaseRow {
   id: string
   name: string
   location_photo_path: string | null
-  info: string | null
+  base_details: InfoEmbed // private info: only admin and the base's inductors can read it
   sort_order: number
   base_questions: BaseQuestion[]
   base_staff: { user_id: string }[]
