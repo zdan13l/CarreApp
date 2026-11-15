@@ -3,7 +3,7 @@
 ## Servicios
 | Servicio | Para qué | Plan | Dónde |
 |---|---|---|---|
-| GitHub | Código y wiki | Gratis | `zdan13l/CarrerApp` |
+| GitHub | Código y wiki | Gratis | `zdan13l/CarreApp` |
 | Vercel | Hosting de la PWA y de `/api/users` | Gratis (Hobby) | Proyecto `carreapp` · https://carreapp.vercel.app |
 | Supabase | Base de datos, login, tiempo real y fotos | Gratis | Proyecto `CarrerApp` |
 

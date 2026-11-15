@@ -1,6 +1,6 @@
 # Modelo de datos
 
-Definido en [`supabase/migrations/0001_initial_schema.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0001_initial_schema.sql).
+Definido en [`supabase/migrations/0001_initial_schema.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0001_initial_schema.sql).
 
 ## Diagrama entidad-relación
 
