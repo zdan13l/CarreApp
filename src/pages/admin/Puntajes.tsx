@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useRealtimeReload } from '../../lib/realtime'
 import { supabase } from '../../lib/supabase'
 import {
   ITEM_LABEL,
@@ -73,6 +74,9 @@ export default function Puntajes() {
   useEffect(() => {
     void load()
   }, [load])
+
+  // The coordinator sees scores arrive live, without reloading.
+  useRealtimeReload(['match_scores', 'matches'], load)
 
   const teamName = useMemo(() => new Map(teams.map((t) => [t.id, t.name])), [teams])
   const baseName = useMemo(() => new Map(bases.map((x) => [x.id, x.name])), [bases])

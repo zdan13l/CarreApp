@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell'
 import { useAuth } from '../lib/auth'
+import { useRealtimeReload } from '../lib/realtime'
 import { photoUrl } from '../lib/storage'
 import { supabase } from '../lib/supabase'
 import {
@@ -75,21 +76,11 @@ export default function BaseHome() {
     void load().finally(() => setLoading(false))
   }, [load])
 
-  // Live refresh when scores change (e.g. another inductor of the same base, or a correction).
-  useEffect(() => {
-    if (!supabase || !base) return
-    const channel = supabase
-      .channel(`base-${base.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'match_scores' }, () => void load())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => void load())
-      .subscribe()
-    return () => {
-      void supabase?.removeChannel(channel)
-    }
-  }, [base, load])
+  // Live refresh when scores change (another inductor of the same base, or a correction).
+  useRealtimeReload(['match_scores', 'matches'], load)
 
   const current = useMemo(() => matches.find((m) => m.status !== 'finished'), [matches])
-  const others = matches.filter((m) => m.id !== current?.id)
+  const finished = matches.filter((m) => m.status === 'finished')
 
   return (
     <AppShell title="Mi base">
@@ -106,10 +97,22 @@ export default function BaseHome() {
           {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
           {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} />}
           {current === undefined && matches.length > 0 && <p className="ok-box">Todos los cruces de tu base terminaron. ¡Gracias!</p>}
-          {others.length > 0 && <h2 className="section-title">Demás rondas</h2>}
-          {others.map((m) => (
-            <MatchCard key={m.id} match={m} teams={teams} onSent={load} compact />
-          ))}
+          {finished.length > 0 && (
+            <details className="card">
+              <summary>Cruces terminados ({finished.length})</summary>
+              <ul className="list">
+                {finished.map((m) => (
+                  <li key={m.id}>
+                    <span className="grow">
+                      Ronda {m.round_number}: {teams.get(m.team_a)?.name} {m.match_scores.filter((x) => x.winner_team_id === m.team_a).length}
+                      {' – '}
+                      {m.match_scores.filter((x) => x.winner_team_id === m.team_b).length} {teams.get(m.team_b)?.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
         </>
       )}
     </AppShell>
@@ -150,12 +153,10 @@ function MatchCard({
   match,
   teams,
   onSent,
-  compact = false,
 }: {
   match: BaseMatch
   teams: Map<string, Team>
   onSent: () => Promise<void>
-  compact?: boolean
 }) {
   const [picks, setPicks] = useState<Partial<Record<ScoreItem, Pick>>>({})
   const [busy, setBusy] = useState(false)
@@ -186,7 +187,9 @@ function MatchCard({
     )
     if (err) {
       setError(
-        /duplicate|unique/i.test(err.message)
+        /ronda anterior/i.test(err.message)
+          ? 'Primero termina de calificar la ronda anterior.'
+          : /duplicate|unique/i.test(err.message)
           ? 'Alguien ya registró uno de esos ítems. Se actualizó la pantalla.'
           : 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.',
       )
@@ -198,7 +201,7 @@ function MatchCard({
   }
 
   return (
-    <section className={`card match${compact ? ' compact' : ''}`}>
+    <section className="card match">
       <div className="match-head">
         <span>Ronda {match.round_number}</span>
         <span className={`badge ${match.status === 'finished' ? 'ok' : 'idle'}`}>{STATUS_LABEL[match.status]}</span>

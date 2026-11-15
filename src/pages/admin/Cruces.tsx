@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { analyzeSchedule, generateSchedule, matchErrorMessage, type PlannedMatch } from '../../lib/schedule'
+import { useRealtimeReload } from '../../lib/realtime'
 import { supabase } from '../../lib/supabase'
 import { STATUS_LABEL, type MatchRow } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
@@ -41,6 +42,8 @@ export default function Cruces() {
   useEffect(() => {
     void load()
   }, [load])
+
+  useRealtimeReload(['matches'], load)
 
   const teamName = useMemo(() => new Map(teams.map((t) => [t.id, t.name])), [teams])
   const baseName = useMemo(() => new Map(bases.map((b) => [b.id, b.name])), [bases])
