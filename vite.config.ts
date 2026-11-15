@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'logo.png'],
       manifest: {
-        name: 'CarreApp',
-        short_name: 'CarreApp',
+        name: 'CarrerApp',
+        short_name: 'CarrerApp',
         description: 'Gestión en vivo de la Carrera de inducción',
         lang: 'es',
         theme_color: '#0b0f17',

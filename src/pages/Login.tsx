@@ -22,8 +22,8 @@ export default function Login() {
 
   return (
     <main className="page login">
-      <img src="/logo.png" alt="Logo de CarreApp" className="logo" />
-      <h1>CarreApp</h1>
+      <img src="/logo.png" alt="Logo de CarrerApp" className="logo" />
+      <h1>CarrerApp</h1>
       <p className="muted">Ingresa con el usuario que te dio el coordinador.</p>
       <form className="card form" onSubmit={onSubmit}>
         <label>
