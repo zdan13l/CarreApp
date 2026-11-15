@@ -63,3 +63,16 @@ export const STATUS_LABEL: Record<MatchStatus, string> = {
   in_progress: 'En juego',
   finished: 'Terminado',
 }
+
+export type ScoreItem = 'barra' | 'pregunta' | 'minijuego'
+export const SCORE_ITEMS: ScoreItem[] = ['barra', 'pregunta', 'minijuego']
+export const ITEM_LABEL: Record<ScoreItem, string> = {
+  barra: 'Barra',
+  pregunta: 'Pregunta',
+  minijuego: 'Minijuego',
+}
+
+export interface MatchScore {
+  item: ScoreItem
+  winner_team_id: string | null // null = tie (nobody scores)
+}
