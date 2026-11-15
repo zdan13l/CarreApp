@@ -6,7 +6,7 @@ export default function AppShell({ title, children }: { title: string; children:
   return (
     <main className="page">
       <header className="topbar">
-        <img src="/logo.png" alt="Logo de CarreApp" className="logo-sm" />
+        <img src="/logo.png" alt="Logo de CarrerApp" className="logo-sm" />
         <div>
           <h1>{title}</h1>
           <p className="muted">{profile?.full_name} · @{profile?.username}</p>

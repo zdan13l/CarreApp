@@ -45,9 +45,9 @@ export default function AdminLayout() {
     <div className="admin">
       <aside className="admin-nav">
         <div className="admin-brand">
-          <img src="/logo.png" alt="Logo de CarreApp" className="logo-sm" />
+          <img src="/logo.png" alt="Logo de CarrerApp" className="logo-sm" />
           <div>
-            <strong>CarreApp</strong>
+            <strong>CarrerApp</strong>
             <p className="muted">{event ? event.name : 'Sin Carrera'}</p>
           </div>
         </div>
