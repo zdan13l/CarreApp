@@ -8,7 +8,7 @@ Plataforma web para la gestión y seguimiento en tiempo real de la **Carrera Jav
 - Los **neos** (primíparos) recorren la universidad en grupos. Cada grupo va acompañado de **corredores** (inductores).
 - En cada **base** (punto estratégico del campus) se enfrentan dos grupos. Un inductor de la base da los puntos.
 - Cada enfrentamiento vale **3 puntos**, uno por ítem: **barra** (canción del equipo), **pregunta** (sobre la información de la base) y **minijuego**.
-- Los desempates (por ítem o en el global) se resuelven en la vida real.
+- No hay empates por ítem; el desempate del total se resuelve en la vida real.
 - La app se reutiliza **inducción a inducción**: el número de grupos, bases, inductores, nombres y fotos cambian cada vez.
 
 ## Páginas de esta wiki
@@ -29,8 +29,8 @@ Ver la [Bitácora](Bitacora) para el detalle. Hoja de ruta:
 | 0 | Prueba de red y esqueleto PWA | Hecho |
 | 1 | Modelo de datos, autenticación y permisos | Hecho y validado en producción |
 | 2 | Panel admin: grupos, bases (foto, información, 3 preguntas), corredores y usuarios | Hecho y validado |
-| 3 | Cronograma, rotación y validación anti-repetición | Código listo, falta aplicar `0003` y probar |
-| 4 | Vista de base (calificar) | Pendiente |
+| 3 | Cronograma, rotación y validación anti-repetición | Hecho |
+| 4 | Vista de base (calificar) | Código listo, falta probar en campo |
 | 5 | Ranking en vivo y vista del corredor | Pendiente |
 | 6 | Mapa y GPS | Pendiente |
 | 7 | Alertas de demora | Pendiente |

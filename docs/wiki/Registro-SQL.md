@@ -15,7 +15,8 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 |---|---|---|---|
 | 0001 | [`0001_initial_schema.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0001_initial_schema.sql) | 2026-11-15 | Esquema inicial: tipos, 10 tablas, vista de ranking, funciones, triggers, RLS y tiempo real |
 | 0002 | [`0002_storage_and_event_validation.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0002_storage_and_event_validation.sql) | 2026-11-15 | Bucket de fotos, políticas de Storage y validación para activar la Carrera |
-| 0003 | [`0003_staff_rules.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0003_staff_rules.sql) | _pendiente_ | Un inductor por base y un corredor por grupo; mínimo 2 corredores por grupo para activar |
+| 0003 | [`0003_staff_rules.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0003_staff_rules.sql) | 2026-11-15 | Un inductor por base y un corredor por grupo; mínimo 2 corredores por grupo para activar |
+| 0004 | [`0004_no_ties.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0004_no_ties.sql) | 2026-11-15 | El puntaje siempre exige un ganador (sin empates por ítem) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
 ---
@@ -77,7 +78,7 @@ drop policy if exists photos_admin_delete on storage.objects;
 -- el bucket se vacía y borra desde Storage en el panel
 ```
 
-## 0003 — Reglas de personal (pendiente de aplicar)
+## 0003 — Reglas de personal (2026-11-15)
 
 **Qué cambia**
 - Trigger `base_staff_validate`: un inductor solo puede atender **una base por Carrera**.
@@ -96,6 +97,17 @@ drop trigger if exists base_staff_validate on public.base_staff;
 drop trigger if exists team_runners_validate on public.team_runners;
 drop function if exists public.validate_base_staff(), public.validate_team_runner();
 -- event_problems() vuelve a su versión de 0002 volviendo a ejecutar esa función
+```
+
+## 0004 — Sin empates por ítem (2026-11-15)
+
+**Qué cambia** Restricción `match_scores_winner_required`: `winner_team_id` no puede ser nulo. Es `NOT VALID`, así que rige para puntajes nuevos o editados y no falla por filas de prueba antiguas.
+
+**Por qué** En la Carrera nunca hay empate en un ítem; la pantalla ya no lo ofrece y la base de datos lo garantiza.
+
+**Cómo revertir**
+```sql
+alter table public.match_scores drop constraint match_scores_winner_required;
 ```
 
 ## Plantilla para nuevos registros

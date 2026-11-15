@@ -69,7 +69,7 @@ erDiagram
   match_scores {
     uuid match_id FK
     enum item "barra | pregunta | minijuego"
-    uuid winner_team_id "null = empate"
+    uuid winner_team_id "obligatorio: no hay empates por ítem"
     uuid awarded_by FK
   }
   score_audit {
@@ -92,7 +92,7 @@ erDiagram
 | Un grupo no se enfrenta a sí mismo | `check (team_a <> team_b)` |
 | Los grupos y la base de un cruce son de la **misma Carrera** | Trigger `validate_match` |
 | Cada ítem se puntúa **una sola vez** por cruce | `unique (match_id, item)` |
-| El ganador es **uno de los dos grupos** del cruce (o nadie, si hay empate) | Trigger `validate_score` |
+| El ganador es **uno de los dos grupos** del cruce (siempre hay ganador) | Trigger `validate_score` |
 | Una base solo puntúa **sus** cruces | Política RLS `scores_base_insert` |
 | Solo el coordinador **corrige o borra** puntajes | Políticas RLS (solo admin en update/delete) |
 | Todo cambio de puntaje queda **auditado** | Trigger `after_score_change` → `score_audit` |
