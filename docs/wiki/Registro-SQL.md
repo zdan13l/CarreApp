@@ -15,6 +15,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 |---|---|---|---|
 | 0001 | [`0001_initial_schema.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0001_initial_schema.sql) | 2026-11-15 | Esquema inicial: tipos, 10 tablas, vista de ranking, funciones, triggers, RLS y tiempo real |
 | 0002 | [`0002_storage_and_event_validation.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0002_storage_and_event_validation.sql) | 2026-11-15 | Bucket de fotos, políticas de Storage y validación para activar la Carrera |
+| 0003 | [`0003_staff_rules.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0003_staff_rules.sql) | _pendiente_ | Un inductor por base y un corredor por grupo; mínimo 2 corredores por grupo para activar |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
 ---
@@ -74,6 +75,27 @@ drop policy if exists photos_admin_insert on storage.objects;
 drop policy if exists photos_admin_update on storage.objects;
 drop policy if exists photos_admin_delete on storage.objects;
 -- el bucket se vacía y borra desde Storage en el panel
+```
+
+## 0003 — Reglas de personal (pendiente de aplicar)
+
+**Qué cambia**
+- Trigger `base_staff_validate`: un inductor solo puede atender **una base por Carrera**.
+- Trigger `team_runners_validate`: un corredor solo puede estar en **un grupo por Carrera**.
+- `event_problems()` ahora exige **mínimo 2 corredores por grupo** y avisa de asignaciones repetidas que ya existieran.
+
+**Por qué**
+Se detectó que un inductor podía quedar asignado a dos bases a la vez. La regla vive en la base de datos, no solo en la pantalla.
+
+**Verificación**
+Probado en Postgres en memoria: rechaza al inductor en dos bases y al corredor en dos grupos, y la validación reporta grupos con menos de 2 corredores. Las filas repetidas que ya existan no se borran: aparecen como pendiente en el Resumen para corregirlas a mano.
+
+**Cómo revertir**
+```sql
+drop trigger if exists base_staff_validate on public.base_staff;
+drop trigger if exists team_runners_validate on public.team_runners;
+drop function if exists public.validate_base_staff(), public.validate_team_runner();
+-- event_problems() vuelve a su versión de 0002 volviendo a ejecutar esa función
 ```
 
 ## Plantilla para nuevos registros

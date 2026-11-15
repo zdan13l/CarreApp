@@ -28,8 +28,8 @@ Ver la [Bitácora](Bitacora) para el detalle. Hoja de ruta:
 |---|---|---|
 | 0 | Prueba de red y esqueleto PWA | Hecho |
 | 1 | Modelo de datos, autenticación y permisos | Hecho y validado en producción |
-| 2 | Panel admin: grupos, bases (foto, información, 3 preguntas), corredores y usuarios | Desplegado, falta probar con datos reales |
-| 3 | Cronograma, rotación y validación anti-repetición | Pendiente |
+| 2 | Panel admin: grupos, bases (foto, información, 3 preguntas), corredores y usuarios | Hecho y validado |
+| 3 | Cronograma, rotación y validación anti-repetición | Código listo, falta aplicar `0003` y probar |
 | 4 | Vista de base (calificar) | Pendiente |
 | 5 | Ranking en vivo y vista del corredor | Pendiente |
 | 6 | Mapa y GPS | Pendiente |
