@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import Ranking from '../../components/Ranking'
 import RoundPager from '../../components/RoundPager'
 import { useRealtimeReload } from '../../lib/realtime'
 import { currentRound, formatTime } from '../../lib/schedule'
@@ -10,12 +11,14 @@ import {
   type MatchScore,
   type MatchStatus,
   type ScoreItem,
+  type StandingRow,
 } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
 
 interface Named {
   id: string
   name: string
+  photo_path?: string | null
 }
 
 interface MatchWithScores {
@@ -61,7 +64,7 @@ export default function Puntajes() {
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
     const [t, b, m, a, p] = await Promise.all([
-      supabase.from('teams').select('id, name').eq('event_id', eventId),
+      supabase.from('teams').select('id, name, photo_path').eq('event_id', eventId),
       supabase.from('bases').select('id, name').eq('event_id', eventId),
       supabase
         .from('matches')
@@ -89,13 +92,13 @@ export default function Puntajes() {
   const baseName = useMemo(() => new Map(bases.map((x) => [x.id, x.name])), [bases])
   const matchById = useMemo(() => new Map(matches.map((m) => [m.id, m])), [matches])
 
-  // Standings are derived from the scores (1 point per item won; ties give nobody a point).
-  const standings = useMemo(() => {
+  // Standings are derived from the scores (1 point per item won; voided items give nobody a point).
+  const standings = useMemo<StandingRow[]>(() => {
     const pts = new Map(teams.map((t) => [t.id, 0]))
     for (const m of matches) for (const s of m.match_scores) {
       if (s.winner_team_id) pts.set(s.winner_team_id, (pts.get(s.winner_team_id) ?? 0) + 1)
     }
-    return [...pts.entries()].sort((x, y) => y[1] - x[1])
+    return teams.map((t) => ({ team_id: t.id, name: t.name, photo_path: t.photo_path ?? null, points: pts.get(t.id) ?? 0 }))
   }, [matches, teams])
 
   if (!event) return <p className="warn">Primero crea una Carrera en "Resumen".</p>
@@ -144,15 +147,7 @@ export default function Puntajes() {
 
       <section className="card">
         <h2>Ranking</h2>
-        <ol className="rank">
-          {standings.map(([id, pts], i) => (
-            <li key={id}>
-              <span className="pos">{i + 1}</span>
-              <span className="grow">{teamName.get(id)}</span>
-              <strong>{pts} pts</strong>
-            </li>
-          ))}
-        </ol>
+        <Ranking rows={standings} />
         <p className="muted">Si dos grupos quedan igualados en puntos, se desempata en la vida real.</p>
       </section>
 
