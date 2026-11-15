@@ -14,7 +14,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | # | Archivo | Aplicado | Resumen |
 |---|---|---|---|
 | 0001 | [`0001_initial_schema.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0001_initial_schema.sql) | 2026-11-15 | Esquema inicial: tipos, 10 tablas, vista de ranking, funciones, triggers, RLS y tiempo real |
-| 0002 | [`0002_storage_and_event_validation.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0002_storage_and_event_validation.sql) | _pendiente_ | Bucket de fotos, políticas de Storage y validación para activar la Carrera |
+| 0002 | [`0002_storage_and_event_validation.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0002_storage_and_event_validation.sql) | 2026-11-15 | Bucket de fotos, políticas de Storage y validación para activar la Carrera |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
 ---
@@ -52,7 +52,7 @@ drop function if exists public.is_admin(), public.is_staff_of_match(uuid),
 drop type if exists public.user_role, public.score_item, public.match_status;
 ```
 
-## 0002 — Fotos y validación de la Carrera (pendiente de aplicar)
+## 0002 — Fotos y validación de la Carrera (2026-11-15)
 
 **Qué crea**
 - **Storage:** bucket público `photos` (máx. 2 MB, solo JPG/PNG/WebP) y 4 políticas en `storage.objects`: solo el admin sube, reemplaza o borra.

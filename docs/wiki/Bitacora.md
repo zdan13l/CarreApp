@@ -13,7 +13,7 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 - El login acepta también `usuario@carreapp.test`.
 
 **Pendiente**
-- Aplicar `0002` en Supabase y probar en producción.
+- Probar en producción con datos reales (migración `0002` ya aplicada).
 
 ## Bloque 1 — Modelo de datos, autenticación y permisos (2026-11-15)
 **Hecho**
