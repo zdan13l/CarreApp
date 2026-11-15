@@ -79,3 +79,15 @@ export function matchErrorMessage(message: string): string {
     return 'Esa base ya tiene un cruce en esa ronda.'
   return 'No se pudo guardar el cruce.'
 }
+
+// The round being played now: the first one that still has an unfinished match
+// (or the last one when everything is finished).
+export function currentRound(matches: { round_number: number; status: string }[]): number {
+  if (matches.length === 0) return 1
+  const open = matches.filter((m) => m.status !== 'finished').map((m) => m.round_number)
+  return open.length > 0 ? Math.min(...open) : Math.max(...matches.map((m) => m.round_number))
+}
+
+export function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
+}

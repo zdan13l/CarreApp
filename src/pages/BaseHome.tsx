@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell'
 import { useAuth } from '../lib/auth'
 import { useRealtimeReload } from '../lib/realtime'
-import { photoUrl } from '../lib/storage'
+import PhotoField from '../components/PhotoField'
+import { photoUrl, uploadPhoto } from '../lib/storage'
 import { supabase } from '../lib/supabase'
 import {
   ITEM_LABEL,
@@ -29,6 +30,7 @@ interface BaseMatch {
   team_a: string
   team_b: string
   status: MatchStatus
+  arrived_at: string | null
   match_scores: MatchScore[]
 }
 
@@ -63,7 +65,7 @@ export default function BaseHome() {
     const [m, t] = await Promise.all([
       supabase
         .from('matches')
-        .select('id, round_number, team_a, team_b, status, match_scores(item, winner_team_id)')
+        .select('id, round_number, team_a, team_b, status, arrived_at, match_scores(item, winner_team_id, voided)')
         .eq('base_id', b.id)
         .order('round_number'),
       supabase.from('teams').select('id, name, photo_path').eq('event_id', b.event_id),
@@ -80,6 +82,7 @@ export default function BaseHome() {
   useRealtimeReload(['match_scores', 'matches'], load)
 
   const current = useMemo(() => matches.find((m) => m.status !== 'finished'), [matches])
+  const next = current ? matches.find((m) => m.round_number > current.round_number && m.status !== 'finished') : undefined
   const finished = matches.filter((m) => m.status === 'finished')
 
   return (
@@ -92,10 +95,20 @@ export default function BaseHome() {
         </section>
       ) : (
         <>
-          <BaseInfoCard base={base} />
+          <BaseInfoCard base={base} onChanged={load} />
           <h2 className="section-title">{current ? `Ronda ${current.round_number}: ahora` : 'Cruces'}</h2>
           {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
           {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} />}
+          {next && (
+            <section className="card next">
+              <h3>Próxima ronda ({next.round_number})</h3>
+              <div className="versus small">
+                <TeamFace team={teams.get(next.team_a)} />
+                <span className="vs">vs</span>
+                <TeamFace team={teams.get(next.team_b)} />
+              </div>
+            </section>
+          )}
           {current === undefined && matches.length > 0 && <p className="ok-box">Todos los cruces de tu base terminaron. ¡Gracias!</p>}
           {finished.length > 0 && (
             <details className="card">
@@ -119,13 +132,34 @@ export default function BaseHome() {
   )
 }
 
-function BaseInfoCard({ base }: { base: MyBase }) {
-  const url = photoUrl(base.location_photo_path)
+function BaseInfoCard({ base, onChanged }: { base: MyBase; onChanged: () => Promise<void> }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const questions = [...base.base_questions].sort((a, b) => a.position - b.position)
+
+  // The base can move (e.g. because of rain): the inductor updates the photo of where it is now.
+  async function changePhoto(file: File) {
+    if (!supabase) return
+    setBusy(true)
+    setError(null)
+    try {
+      const path = await uploadPhoto('bases', file)
+      const { error: err } = await supabase.from('bases').update({ location_photo_path: path }).eq('id', base.id)
+      if (err) throw new Error('No se pudo guardar la foto.')
+      await onChanged()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo cambiar la foto.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <section className="card">
       <h2>{base.name}</h2>
-      {url && <div className="photo-box"><img src={url} alt={`Dónde queda ${base.name}`} /></div>}
+      <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
+      <p className="muted">¿La base se movió? Cambia la foto para que los grupos la encuentren.</p>
+      {error && <p className="error">{error}</p>}
       <details>
         <summary>Información y preguntas</summary>
         <p className="pre">{base.info}</p>
@@ -164,13 +198,27 @@ function MatchCard({
 
   const a = teams.get(match.team_a)
   const b = teams.get(match.team_b)
-  const scored = new Map(match.match_scores.map((s) => [s.item, s.winner_team_id]))
+  const scored = new Map(match.match_scores.map((s) => [s.item, s]))
   const pendingItems = SCORE_ITEMS.filter((i) => !scored.has(i))
   const toSend = pendingItems.filter((i) => picks[i])
+  const arrived = match.arrived_at !== null || match.status !== 'pending'
   const points = (teamId: string) => match.match_scores.filter((s) => s.winner_team_id === teamId).length
 
   const label = (pick: Pick | null | undefined) =>
     pick === undefined ? '' : pick === null || pick === 'tie' ? 'Empate' : teams.get(pick)?.name ?? '?'
+
+  async function confirmArrival() {
+    if (!supabase) return
+    if (!window.confirm(`¿Ya llegaron los dos grupos?
+
+${a?.name} y ${b?.name}`)) return
+    setBusy(true)
+    setError(null)
+    const { error: err } = await supabase.rpc('confirm_arrival', { p_match: match.id })
+    if (err) setError('No se pudo confirmar. Revisa tu conexión e inténtalo de nuevo.')
+    await onSent()
+    setBusy(false)
+  }
 
   async function send() {
     if (!supabase || toSend.length === 0) return
@@ -212,13 +260,25 @@ function MatchCard({
         <TeamFace team={b} />
       </div>
 
-      {SCORE_ITEMS.map((item) => {
+      {!arrived && (
+        <>
+          <p className="muted">Cuando estén los dos grupos en tu base, confírmalo. Así el coordinador sabe que ya pueden jugar.</p>
+          {error && <p className="error">{error}</p>}
+          <button disabled={busy} onClick={() => void confirmArrival()}>{busy ? 'Confirmando…' : 'Ya llegaron ambos grupos'}</button>
+        </>
+      )}
+
+      {arrived && SCORE_ITEMS.map((item) => {
         const done = scored.has(item)
         return (
           <div key={item} className="item">
             <h3>{ITEM_LABEL[item]}</h3>
             {done ? (
-              <p className="result">✔ {label(scored.get(item))}</p>
+              scored.get(item)?.voided ? (
+                <p className="result voided">⊘ Invalidado por el coordinador</p>
+              ) : (
+                <p className="result">✔ {label(scored.get(item)?.winner_team_id)}</p>
+              )
             ) : (
               <div className="choices">
                 {([match.team_a, match.team_b] as Pick[]).map((value) => (
@@ -239,8 +299,8 @@ function MatchCard({
         )
       })}
 
-      {error && <p className="error">{error}</p>}
-      {pendingItems.length > 0 && (
+      {arrived && error && <p className="error">{error}</p>}
+      {arrived && pendingItems.length > 0 && (
         <button disabled={busy || toSend.length === 0} onClick={() => void send()}>
           {busy ? 'Enviando…' : toSend.length ? `Enviar ${toSend.length} ${toSend.length === 1 ? 'ítem' : 'ítems'}` : 'Elige un ganador'}
         </button>
