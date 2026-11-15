@@ -2,6 +2,19 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Bloque 2 — Panel del coordinador (2026-11-15, en curso)
+**Hecho**
+- Panel adaptable: menú lateral en computador y pestañas abajo en celular. Secciones: Resumen, Grupos, Bases, Usuarios.
+- Carreras: crear y activar; la activación se bloquea si falta algo (regla en la base de datos, migración `0002`).
+- Grupos: nombre, foto, corredores y cuál transmite el GPS (solo uno por grupo).
+- Bases: nombre, foto del lugar, información, 3 preguntas e inductores asignados.
+- Usuarios: crear con contraseña sugerida copiable, cambiar contraseña y eliminar (vía `/api/users`).
+- Las fotos se reducen en el navegador a 1000 px antes de subirse.
+- El login acepta también `usuario@carreapp.test`.
+
+**Pendiente**
+- Aplicar `0002` en Supabase y probar en producción.
+
 ## Bloque 1 — Modelo de datos, autenticación y permisos (2026-11-15)
 **Hecho**
 - Esquema SQL completo con reglas de negocio, auditoría y RLS ([Registro SQL](Registro-SQL), 0001).
@@ -14,9 +27,9 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 - SQL probado en Postgres en memoria: reglas anti-repetición, permisos por base y auditoría.
 - La app compila y pasa el lint.
 
-**Pendiente de validar en producción**
-- Login real contra Supabase.
-- `/api/users` desplegado (requiere cargar `SUPABASE_SERVICE_ROLE_KEY` en Vercel).
+**Validado en producción**
+- Login real con el admin.
+- `/api/users` desplegado con `SUPABASE_SERVICE_ROLE_KEY` en Vercel.
 
 ## Bloque 0 — Esqueleto y prueba de red (2026-11-14)
 **Hecho**

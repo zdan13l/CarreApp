@@ -27,8 +27,8 @@ Ver la [Bitácora](Bitacora) para el detalle. Hoja de ruta:
 | Bloque | Descripción | Estado |
 |---|---|---|
 | 0 | Prueba de red y esqueleto PWA | Hecho |
-| 1 | Modelo de datos, autenticación y permisos | Hecho (falta validar login en producción) |
-| 2 | Panel admin: grupos, bases (foto, información, 3 preguntas), corredores y usuarios | Pendiente |
+| 1 | Modelo de datos, autenticación y permisos | Hecho y validado en producción |
+| 2 | Panel admin: grupos, bases (foto, información, 3 preguntas), corredores y usuarios | Código listo, falta aplicar `0002` y probar |
 | 3 | Cronograma, rotación y validación anti-repetición | Pendiente |
 | 4 | Vista de base (calificar) | Pendiente |
 | 5 | Ranking en vivo y vista del corredor | Pendiente |

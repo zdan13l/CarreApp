@@ -14,6 +14,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | # | Archivo | Aplicado | Resumen |
 |---|---|---|---|
 | 0001 | [`0001_initial_schema.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0001_initial_schema.sql) | 2026-11-15 | Esquema inicial: tipos, 10 tablas, vista de ranking, funciones, triggers, RLS y tiempo real |
+| 0002 | [`0002_storage_and_event_validation.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0002_storage_and_event_validation.sql) | _pendiente_ | Bucket de fotos, políticas de Storage y validación para activar la Carrera |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
 ---
@@ -49,6 +50,30 @@ drop table if exists public.score_audit, public.match_scores, public.matches,
 drop function if exists public.is_admin(), public.is_staff_of_match(uuid),
   public.validate_match(), public.validate_score(), public.after_score_change();
 drop type if exists public.user_role, public.score_item, public.match_status;
+```
+
+## 0002 — Fotos y validación de la Carrera (pendiente de aplicar)
+
+**Qué crea**
+- **Storage:** bucket público `photos` (máx. 2 MB, solo JPG/PNG/WebP) y 4 políticas en `storage.objects`: solo el admin sube, reemplaza o borra.
+- **Función** `event_problems(evento)`: lista lo que impide activar la Carrera (menos de 2 grupos o 1 base, grupo o base sin foto, base sin información o con menos de 3 preguntas).
+- **Trigger** `events_validate_activation`: rechaza activar una Carrera incompleta. La regla vive en la base de datos, no solo en la pantalla.
+
+**Por qué**
+El admin sube fotos de grupos y bases, y la Carrera no debe poder activarse con datos a medias.
+
+**Cómo aplicar**
+Supabase > SQL Editor, con el rol por defecto `postgres`, pegar el archivo completo y Run. Si dice *must be owner* o falla RLS, ejecutar `reset role;` en la misma consulta.
+
+**Cómo revertir**
+```sql
+drop trigger if exists events_validate_activation on public.events;
+drop function if exists public.validate_event_activation(), public.event_problems(uuid);
+drop policy if exists photos_admin_select on storage.objects;
+drop policy if exists photos_admin_insert on storage.objects;
+drop policy if exists photos_admin_update on storage.objects;
+drop policy if exists photos_admin_delete on storage.objects;
+-- el bucket se vacía y borra desde Storage en el panel
 ```
 
 ## Plantilla para nuevos registros
