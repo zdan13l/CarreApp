@@ -1,22 +1,37 @@
 # CarreApp
 
-PWA to manage the induction "Carrera" live: rankings per base, runners' routes, GPS map and admin panel.
-UI in Spanish, code in English.
+Plataforma web para la gestión y seguimiento en tiempo real de la Carrera Javeriana durante las jornadas de inducción. Permite administrar equipos, bases, enfrentamientos, puntuaciones y ubicaciones, ofreciendo un ranking dinámico y actualizado en vivo.
 
-## Stack
+Es una PWA (aplicación web instalable) pensada para que los inductores la usen desde el celular durante la semana de inducción. La interfaz está en español y el código en inglés.
+
+## Tecnologías
+
 Vite + React + TypeScript · vite-plugin-pwa · Supabase (Postgres, Auth, Realtime, Storage) · Vercel.
 
-## Local setup
+## Configuración local
+
 ```bash
 npm install
-cp .env.example .env.local   # fill in Supabase URL and anon key
+cp .env.example .env.local   # completa la URL y la anon key de Supabase
 npm run dev
 ```
 
-## Deploy (Vercel)
-Import the GitHub repo, framework preset **Vite**, and add `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`
-as environment variables. `vercel.json` handles SPA routing.
+## Despliegue (Vercel)
 
-## Roadmap
-Block 0 network check + skeleton (this) → 1 data model & auth → 2 admin config → 3 schedule & anti-repeat validation →
-4 base view → 5 live ranking & runner view → 6 GPS map → 7 slow-pace alerts → 8 bulk import → 9 rehearsal.
+Importa el repositorio de GitHub con el preset **Vite** y agrega las variables de entorno
+`VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`. El archivo `vercel.json` se encarga de las rutas de la SPA.
+
+## Hoja de ruta
+
+| Bloque | Descripción |
+|---|---|
+| 0 | Prueba de red y esqueleto del proyecto (actual) |
+| 1 | Modelo de datos y autenticación |
+| 2 | Panel de administrador: configuración |
+| 3 | Cronograma, rotación y validación de cruces repetidos |
+| 4 | Vista de base (calificar enfrentamientos) |
+| 5 | Ranking en vivo y vista de corredor |
+| 6 | Mapa y GPS |
+| 7 | Alertas de demora |
+| 8 | Carga masiva desde plantilla |
+| 9 | Pruebas y ensayo |
