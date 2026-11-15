@@ -2,6 +2,15 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Bloque 5 — Ranking en vivo y vista del corredor (2026-11-15)
+**Hecho**
+- **Vista del corredor** (`/corredor`): su grupo con foto, **puesto y puntos**; tarjeta de **su siguiente base** (foto de dónde queda, información y rival con foto) que pasa a *En juego* cuando la base confirma la llegada; **Top equipos** con su grupo resaltado; y **Tu ruta** ronda a ronda (base, rival, resultado, o *Descansas*).
+- **Ranking en vivo** (componente compartido `Ranking`): se actualiza solo cuando llegan puntajes, cambian los cruces o se mueve una base. Los grupos con los mismos puntos comparten puesto. También aparece (plegable) en la vista de la base y en Puntajes del coordinador.
+- Sin cambios de base de datos: usa la vista `team_standings` y las lecturas ya permitidas.
+
+**Pendiente de validar**
+- Probar con un usuario corredor real (iPhone) durante el simulacro.
+
 ## Ajustes al Bloque 4 (2026-11-15)
 - **Llegada de los grupos:** la base ve el botón *Ya llegaron ambos grupos*; al confirmarlo el cruce pasa a **En juego** en el panel del coordinador (con la hora) y recién ahí puede calificar (`0007`).
 - **Foto de la base editable** por sus inductores (la base puede moverse por lluvia).

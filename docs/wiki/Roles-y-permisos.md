@@ -7,7 +7,7 @@ Hay **tres roles**. Los permisos se aplican en la **base de datos** (RLS), no so
 | Crear / eliminar usuarios y cambiar contraseñas | Sí | No | No |
 | Configurar Carrera, grupos, bases, corredores | Sí | No | No |
 | Armar cruces y rotación | Sí | No | No |
-| Ver ranking, grupos, bases y cruces | Sí | Sí | Sí |
+| Ver ranking en vivo, grupos, bases y cruces | Sí | Sí | Sí |
 | Registrar puntajes | Sí | **Solo de su base** | No |
 | Confirmar que llegaron ambos grupos | Sí | **Solo su base** | No |
 | Cambiar la foto de la base | Sí | **Solo la suya** | No |
