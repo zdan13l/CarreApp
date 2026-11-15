@@ -2,7 +2,19 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
-## Bloque 2 — Panel del coordinador (2026-11-15, en curso)
+## Bloque 3 — Cruces y rotación (2026-11-15, en curso)
+**Hecho**
+- Pantalla **Cruces**: rondas con base y dos grupos por cruce. Los selectores ya excluyen grupos ocupados en la ronda y rivales que ya se enfrentaron; la base de datos valida igual (no repetir parejas, un grupo por ronda, una base por ronda).
+- **Generador automático** (método de todos contra todos): propone rondas sin repetir rivales y rota las bases; se revisa antes de guardar y se puede ajustar a mano.
+- **Revisión del cronograma**: grupos que descansan, repetición de bases, parejas programadas.
+- Regla **mínimo 2 corredores por grupo** para activar la Carrera.
+- Corrección: un inductor ya no puede asignarse a dos bases de la misma Carrera (ni un corredor a dos grupos) — migración `0003`.
+- Login: botón para ver u ocultar la contraseña.
+
+**Pendiente**
+- Aplicar `0003` en Supabase y corregir a mano las asignaciones repetidas que ya existan (el Resumen las lista).
+
+## Bloque 2 — Panel del coordinador (2026-11-15)
 **Hecho**
 - Panel adaptable: menú lateral en computador y pestañas abajo en celular. Secciones: Resumen, Grupos, Bases, Usuarios.
 - Carreras: crear y activar; la activación se bloquea si falta algo (regla en la base de datos, migración `0002`).
