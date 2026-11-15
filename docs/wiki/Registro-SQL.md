@@ -17,6 +17,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0002 | [`0002_storage_and_event_validation.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0002_storage_and_event_validation.sql) | 2026-11-15 | Bucket de fotos, políticas de Storage y validación para activar la Carrera |
 | 0003 | [`0003_staff_rules.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0003_staff_rules.sql) | 2026-11-15 | Un inductor por base y un corredor por grupo; mínimo 2 corredores por grupo para activar |
 | 0004 | [`0004_no_ties.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0004_no_ties.sql) | 2026-11-15 | El puntaje siempre exige un ganador (sin empates por ítem) |
+| 0005 | [`0005_scoring_order.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0005_scoring_order.sql) | 2026-11-15 | Una base califica sus rondas en orden |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
 ---
@@ -109,6 +110,16 @@ drop function if exists public.validate_base_staff(), public.validate_team_runne
 ```sql
 alter table public.match_scores drop constraint match_scores_winner_required;
 ```
+
+## 0005 — Calificar en orden (2026-11-15)
+
+**Qué cambia** `validate_score()` rechaza el puntaje de un inductor de base si su misma base tiene una ronda anterior sin terminar (sin los 3 ítems). El coordinador no tiene esta restricción.
+
+**Por qué** La base solo debe calificar la ronda en curso; el orden se garantiza también en la base de datos.
+
+**Verificación** Probado en Postgres en memoria: la ronda 2 se rechaza mientras la 1 esté incompleta, se acepta al terminar la 1, y el admin puede puntuar fuera de orden.
+
+**Cómo revertir** Volver a ejecutar `validate_score()` de `0001` (sin el bloque de la ronda anterior).
 
 ## Plantilla para nuevos registros
 
