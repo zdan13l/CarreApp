@@ -69,7 +69,7 @@ erDiagram
   match_scores {
     uuid match_id FK
     enum item "barra | pregunta | minijuego"
-    uuid winner_team_id "obligatorio: no hay empates por ítem"
+    uuid winner_team_id "obligatorio salvo ítem invalidado"
     uuid awarded_by FK
   }
   score_audit {

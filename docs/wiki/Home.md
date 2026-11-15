@@ -1,4 +1,4 @@
-# CarrerApp
+# CarreApp
 
 Plataforma web para la gestión y seguimiento en tiempo real de la **Carrera Javeriana** durante la semana de inducción: ranking en vivo, bases, enfrentamientos, ruta de los corredores, mapa con ubicación y panel de administración.
 

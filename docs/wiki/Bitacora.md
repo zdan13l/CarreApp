@@ -3,6 +3,11 @@
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
 ## Ajustes al Bloque 4 (2026-11-15)
+- **Llegada de los grupos:** la base ve el botón *Ya llegaron ambos grupos*; al confirmarlo el cruce pasa a **En juego** en el panel del coordinador (con la hora) y recién ahí puede calificar (`0007`).
+- **Foto de la base editable** por sus inductores (la base puede moverse por lluvia).
+- **Próxima ronda:** la base ve un adelanto del siguiente cruce (grupo A vs grupo B).
+- **Cruces y Puntajes por ronda:** el coordinador ve una ronda a la vez, con botones *Anterior* y *Siguiente ronda* y cuántos cruces van terminados; empieza en la ronda en curso. Hay una casilla para ver todas.
+- **Ítems invalidados:** si no se alcanza a hacer una barra, pregunta o minijuego, **solo el coordinador** lo marca como invalidado en Puntajes (incluso antes de esa ronda). Nadie suma, la base lo ve bloqueado y solo califica lo que queda; el cruce termina cuando sus 3 ítems están puntuados o invalidados (migración `0006`).
 - **Tiempo real:** el panel del coordinador (Puntajes y Cruces) y la vista de la base se actualizan solos cuando llega un puntaje, sin recargar.
 - **Solo la ronda en curso:** la base ve únicamente el cruce actual; al completar los 3 ítems aparece el siguiente. Los terminados quedan en un historial de solo lectura. La regla también está en la base de datos (`0005`); el coordinador puede puntuar fuera de orden.
 
@@ -61,7 +66,7 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 - Cliente de Supabase por variables de entorno.
 - Página de diagnóstico: conectividad, instalación, notificaciones y ubicación.
 - Despliegue en Vercel conectado a GitHub (deploy en cada push).
-- Logo de CarrerApp como icono de la app, favicon y encabezado.
+- Logo de CarreApp como icono de la app, favicon y encabezado.
 
 **Resultados de las pruebas de campo**
 - La red de la Javeriana (wifi y datos móviles) alcanza Vercel y Supabase.

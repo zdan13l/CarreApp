@@ -45,7 +45,7 @@ npm run build && npm run lint
 ## Instalación en iPhone (para los inductores)
 1. Abrir la URL en **Safari** (no Chrome).
 2. Compartir → **Agregar a pantalla de inicio**.
-3. Abrir CarrerApp desde el icono. Las notificaciones solo funcionan con la app instalada (iOS 16.4+).
+3. Abrir CarreApp desde el icono. Las notificaciones solo funcionan con la app instalada (iOS 16.4+).
 4. El corredor designado debe dejar la app abierta con la pantalla activa para transmitir el GPS.
 
 ## Pruebas de red

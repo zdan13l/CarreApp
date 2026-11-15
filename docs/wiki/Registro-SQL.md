@@ -18,6 +18,8 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0003 | [`0003_staff_rules.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0003_staff_rules.sql) | 2026-11-15 | Un inductor por base y un corredor por grupo; mínimo 2 corredores por grupo para activar |
 | 0004 | [`0004_no_ties.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0004_no_ties.sql) | 2026-11-15 | El puntaje siempre exige un ganador (sin empates por ítem) |
 | 0005 | [`0005_scoring_order.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0005_scoring_order.sql) | 2026-11-15 | Una base califica sus rondas en orden |
+| 0006 | [`0006_void_items.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0006_void_items.sql) | 2026-11-15 | Ítems invalidados por el coordinador |
+| 0007 | [`0007_arrival_and_base_photo.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/migrations/0007_arrival_and_base_photo.sql) | 2026-11-15 | Llegada de los grupos y foto de la base editable por sus inductores |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarrerApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
 ---
@@ -120,6 +122,51 @@ alter table public.match_scores drop constraint match_scores_winner_required;
 **Verificación** Probado en Postgres en memoria: la ronda 2 se rechaza mientras la 1 esté incompleta, se acepta al terminar la 1, y el admin puede puntuar fuera de orden.
 
 **Cómo revertir** Volver a ejecutar `validate_score()` de `0001` (sin el bloque de la ronda anterior).
+
+## 0006 — Ítems invalidados (2026-11-15)
+
+**Qué cambia**
+- `match_scores.voided`: el coordinador puede marcar un ítem (barra, pregunta o minijuego) como **invalidado** cuando no se alcanza a jugar. Nadie suma por ese ítem.
+- Restricción `match_scores_winner_or_void` (reemplaza a `match_scores_winner_required`): un puntaje tiene ganador, o está invalidado y no tiene ganador. Sigue sin haber empates.
+- `validate_score()`: solo el admin puede invalidar. Una base no puede puntuar un ítem invalidado (ya existe la fila del ítem).
+- `after_score_change()`: un ítem invalidado cuenta como resuelto, así que el cruce termina cuando sus 3 ítems están puntuados o invalidados.
+- `score_audit.old_voided` / `new_voided`: el registro de cambios muestra las invalidaciones.
+
+**Por qué**
+Por falta de tiempo puede no jugarse una barra o un minijuego. El coordinador invalida el ítem (incluso antes de que llegue la ronda) y la base solo califica lo que queda; si se invalidan los 3, la base pasa a la siguiente ronda.
+
+**Verificación** Probado en Postgres en memoria: la base no puede invalidar ni puntuar un ítem invalidado; con 2 ítems invalidados el cruce termina al calificar el tercero; el ranking no cuenta los invalidados; la auditoría los registra.
+
+**Cómo revertir**
+```sql
+alter table public.match_scores drop constraint match_scores_winner_or_void;
+delete from public.match_scores where voided;
+alter table public.match_scores drop column voided;
+alter table public.score_audit drop column old_voided, drop column new_voided;
+-- y volver a ejecutar validate_score() y after_score_change() de 0005 / 0001
+```
+
+## 0007 — Llegada de los grupos y foto de la base (2026-11-15)
+
+**Qué cambia**
+- `matches.arrived_at` y la función `confirm_arrival(cruce)`: la base confirma que **llegaron ambos grupos**; el cruce pasa a *en juego* y queda la hora. Solo la base de ese cruce (o el admin) puede llamarla; la base no recibe permiso general de escritura sobre `matches`.
+- `after_score_change()`: un cruce con llegada confirmada sigue *en juego* aunque se borren sus puntajes.
+- Política `bases_staff_update` y trigger `bases_restrict_staff_update`: un inductor puede cambiar **solo la foto** de su base (por ejemplo si se mueve por lluvia); cambiar nombre, información u otro dato lo rechaza el trigger.
+- Storage: los inductores de base pueden subir fotos a la carpeta `bases/`.
+
+**Verificación** Probado en Postgres en memoria: otra base no puede confirmar la llegada; el estado pasa a en juego y se mantiene; el inductor cambia la foto de su base pero no el nombre ni la foto de otra base. Las políticas de Storage no se pueden probar ahí y se validan al aplicarlas.
+
+**Cómo revertir**
+```sql
+drop policy if exists photos_staff_insert on storage.objects;
+drop policy if exists photos_staff_select on storage.objects;
+drop trigger if exists bases_restrict_staff_update on public.bases;
+drop function if exists public.restrict_base_staff_update();
+drop policy if exists bases_staff_update on public.bases;
+drop function if exists public.confirm_arrival(uuid);
+alter table public.matches drop column arrived_at;
+-- y volver a ejecutar after_score_change() de 0006
+```
 
 ## Plantilla para nuevos registros
 

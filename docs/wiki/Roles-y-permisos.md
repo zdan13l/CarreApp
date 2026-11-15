@@ -9,7 +9,10 @@ Hay **tres roles**. Los permisos se aplican en la **base de datos** (RLS), no so
 | Armar cruces y rotación | Sí | No | No |
 | Ver ranking, grupos, bases y cruces | Sí | Sí | Sí |
 | Registrar puntajes | Sí | **Solo de su base** | No |
+| Confirmar que llegaron ambos grupos | Sí | **Solo su base** | No |
+| Cambiar la foto de la base | Sí | **Solo la suya** | No |
 | Corregir o borrar un puntaje ya enviado | **Sí (único)** | No | No |
+| Invalidar un ítem que no se jugó | **Sí (único)** | No | No |
 | Ver el registro de auditoría | Sí | No | No |
 | Ver perfiles de otros usuarios | Sí | No (solo el suyo) | No (solo el suyo) |
 | Ver el mapa con la ubicación de todos | Sí | No | No |
