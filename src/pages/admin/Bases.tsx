@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import PhotoField from '../../components/PhotoField'
 import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
-import type { BaseRow, Profile } from '../../types'
+import { infoOf, type BaseRow, type Profile } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
 
 export default function Bases() {
@@ -20,7 +20,7 @@ export default function Bases() {
     const [b, p] = await Promise.all([
       supabase
         .from('bases')
-        .select('id, name, location_photo_path, info, sort_order, base_questions(position, question), base_staff(user_id)')
+        .select('id, name, location_photo_path, sort_order, base_details(info), base_questions(position, question), base_staff(user_id)')
         .eq('event_id', eventId)
         .order('sort_order')
         .order('name'),
@@ -96,7 +96,7 @@ function BaseCard({
 }) {
   const initialQuestions = [1, 2, 3].map((n) => base.base_questions.find((q) => q.position === n)?.question ?? '')
   const [name, setName] = useState(base.name)
-  const [info, setInfo] = useState(base.info ?? '')
+  const [info, setInfo] = useState(infoOf(base.base_details) ?? '')
   const [questions, setQuestions] = useState<string[]>(initialQuestions)
   const [pick, setPick] = useState('')
   const [busy, setBusy] = useState(false)
@@ -122,11 +122,10 @@ function BaseCard({
 
   const save = () =>
     run(async () => {
-      const { error: err } = await sb
-        .from('bases')
-        .update({ name: name.trim(), info: info.trim() || null })
-        .eq('id', base.id)
+      const { error: err } = await sb.from('bases').update({ name: name.trim() }).eq('id', base.id)
       if (err) throw new Error('No se pudo guardar (¿ya existe otra base con ese nombre?).')
+      const details = await sb.from('base_details').upsert({ base_id: base.id, info: info.trim() || null })
+      if (details.error) throw new Error('No se pudo guardar la información de la base.')
       for (let i = 0; i < 3; i++) {
         const position = i + 1
         const text = questions[i].trim()

@@ -23,7 +23,20 @@ export function useRealtimeReload(tables: string[], reload: () => void | Promise
       channel = channel.on('postgres_changes', { event: '*', schema: 'public', table }, trigger)
     }
     channel.subscribe()
+
+    // Safety net: phones (especially iPhone PWAs) suspend the connection when the screen locks,
+    // so also refresh when the app comes back to the foreground and every 20 s while it is visible.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') trigger()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('online', trigger)
+    const poll = setInterval(onVisible, 20000)
+
     return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('online', trigger)
+      clearInterval(poll)
       clearTimeout(timer)
       void client.removeChannel(channel)
     }
