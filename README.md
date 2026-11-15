@@ -27,7 +27,7 @@ Importa el repositorio de GitHub con el preset **Vite** y agrega las variables d
 |---|---|
 | 0 | Prueba de red y esqueleto del proyecto (actual) |
 | 1 | Modelo de datos y autenticación |
-| 2 | Panel de administrador: configuración |
+| 2 | Panel de administrador: grupos, bases (con foto del lugar, información que se da en la base y 3 posibles preguntas), corredores y usuarios |
 | 3 | Cronograma, rotación y validación de cruces repetidos |
 | 4 | Vista de base (calificar enfrentamientos) |
 | 5 | Ranking en vivo y vista de corredor |
