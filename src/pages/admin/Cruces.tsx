@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { analyzeSchedule, generateSchedule, matchErrorMessage, type PlannedMatch } from '../../lib/schedule'
+import RoundPager from '../../components/RoundPager'
+import { analyzeSchedule, currentRound, formatTime, generateSchedule, matchErrorMessage, type PlannedMatch } from '../../lib/schedule'
 import { useRealtimeReload } from '../../lib/realtime'
 import { supabase } from '../../lib/supabase'
 import { STATUS_LABEL, type MatchRow } from '../../types'
@@ -16,6 +17,8 @@ export default function Cruces() {
   const [bases, setBases] = useState<Named[]>([])
   const [matches, setMatches] = useState<MatchRow[]>([])
   const [extraRounds, setExtraRounds] = useState(0)
+  const [selected, setSelected] = useState<number | null>(null)
+  const [showAll, setShowAll] = useState(false)
   const [proposal, setProposal] = useState<PlannedMatch[] | null>(null)
   const [roundsToGenerate, setRoundsToGenerate] = useState(3)
   const [busy, setBusy] = useState(false)
@@ -30,7 +33,7 @@ export default function Cruces() {
       supabase.from('bases').select('id, name').eq('event_id', eventId).order('sort_order').order('name'),
       supabase
         .from('matches')
-        .select('id, round_number, base_id, team_a, team_b, status')
+        .select('id, round_number, base_id, team_a, team_b, status, arrived_at')
         .eq('event_id', eventId)
         .order('round_number'),
     ])
@@ -57,6 +60,8 @@ export default function Cruces() {
 
   const maxRound = matches.reduce((max, m) => Math.max(max, m.round_number), 0)
   const roundCount = Math.max(maxRound, extraRounds, 1)
+  const shownRound = Math.min(selected ?? currentRound(matches), roundCount)
+  const roundMatches = matches.filter((m) => m.round_number === shownRound)
   const maxPossibleRounds = Math.max(teams.length - (teams.length % 2 === 0 ? 1 : 0), 1)
 
   async function run(action: () => Promise<void>) {
@@ -199,8 +204,17 @@ export default function Cruces() {
       {!notEnough && (
         <>
           <h2 className="section-title">Rondas</h2>
+          <RoundPager
+            round={shownRound}
+            total={roundCount}
+            matches={roundMatches.length}
+            finished={roundMatches.filter((m) => m.status === 'finished').length}
+            onChange={setSelected}
+            showAll={showAll}
+            onToggleAll={setShowAll}
+          />
           <div className="grid">
-            {Array.from({ length: roundCount }, (_, i) => i + 1).map((r) => (
+            {Array.from({ length: roundCount }, (_, i) => i + 1).filter((r) => showAll || r === shownRound).map((r) => (
               <RoundCard
                 key={r}
                 round={r}
@@ -217,7 +231,7 @@ export default function Cruces() {
             ))}
           </div>
           <div className="row">
-            <button className="ghost" onClick={() => setExtraRounds(roundCount + 1)}>+ Agregar ronda</button>
+            <button className="ghost" onClick={() => { setExtraRounds(roundCount + 1); setSelected(roundCount + 1) }}>+ Agregar ronda</button>
             {matches.length > 0 && <button className="ghost danger" disabled={busy} onClick={clearAll}>Borrar todos los cruces</button>}
           </div>
         </>
@@ -306,7 +320,7 @@ function RoundCard({
               <strong>{baseName.get(m.base_id)}</strong>
               <br />
               {teamName.get(m.team_a)} vs {teamName.get(m.team_b)}
-              <small className="muted"> · {STATUS_LABEL[m.status]}</small>
+              <small className="muted"> · {STATUS_LABEL[m.status]}{m.arrived_at ? ` · llegaron ${formatTime(m.arrived_at)}` : ''}</small>
             </span>
             <button className="ghost danger" disabled={disabled} onClick={() => void remove(m)} aria-label="Borrar cruce">✕</button>
           </li>

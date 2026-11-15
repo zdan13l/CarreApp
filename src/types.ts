@@ -56,6 +56,7 @@ export interface MatchRow {
   team_a: string
   team_b: string
   status: MatchStatus
+  arrived_at: string | null // when the base confirmed both teams arrived
 }
 
 export const STATUS_LABEL: Record<MatchStatus, string> = {
@@ -74,5 +75,6 @@ export const ITEM_LABEL: Record<ScoreItem, string> = {
 
 export interface MatchScore {
   item: ScoreItem
-  winner_team_id: string | null // null = tie (nobody scores)
+  winner_team_id: string | null // null only when the item is voided
+  voided: boolean // the coordinator cancelled this item (e.g. no time): nobody scores
 }

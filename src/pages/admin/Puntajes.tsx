@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import RoundPager from '../../components/RoundPager'
 import { useRealtimeReload } from '../../lib/realtime'
+import { currentRound, formatTime } from '../../lib/schedule'
 import { supabase } from '../../lib/supabase'
 import {
   ITEM_LABEL,
@@ -23,6 +25,7 @@ interface MatchWithScores {
   team_a: string
   team_b: string
   status: MatchStatus
+  arrived_at: string | null
   match_scores: MatchScore[]
 }
 
@@ -33,6 +36,8 @@ interface AuditRow {
   action: string
   old_winner: string | null
   new_winner: string | null
+  old_voided: boolean | null
+  new_voided: boolean | null
   changed_by: string | null
   changed_at: string
 }
@@ -48,6 +53,8 @@ export default function Puntajes() {
   const [people, setPeople] = useState<Map<string, string>>(new Map())
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [selected, setSelected] = useState<number | null>(null)
+  const [showAll, setShowAll] = useState(false)
 
   const eventId = event?.id
 
@@ -58,7 +65,7 @@ export default function Puntajes() {
       supabase.from('bases').select('id, name').eq('event_id', eventId),
       supabase
         .from('matches')
-        .select('id, round_number, base_id, team_a, team_b, status, match_scores(item, winner_team_id)')
+        .select('id, round_number, base_id, team_a, team_b, status, arrived_at, match_scores(item, winner_team_id, voided)')
         .eq('event_id', eventId)
         .order('round_number'),
       supabase.from('score_audit').select('*').order('changed_at', { ascending: false }).limit(100),
@@ -93,6 +100,11 @@ export default function Puntajes() {
 
   if (!event) return <p className="warn">Primero crea una Carrera en "Resumen".</p>
 
+  const totalRounds = Math.max(1, ...matches.map((m) => m.round_number))
+  const shownRound = Math.min(selected ?? currentRound(matches), totalRounds)
+  const roundMatches = matches.filter((m) => m.round_number === shownRound)
+  const visible = showAll ? matches : roundMatches
+
   async function setScore(m: MatchWithScores, item: ScoreItem, value: string) {
     if (!supabase) return
     setBusy(true)
@@ -102,10 +114,11 @@ export default function Puntajes() {
         const { error: err } = await supabase.from('match_scores').delete().eq('match_id', m.id).eq('item', item)
         if (err) throw new Error('No se pudo borrar el puntaje.')
       } else {
+        const isVoid = value === 'void'
         const { error: err } = await supabase
           .from('match_scores')
           .upsert(
-            { match_id: m.id, item, winner_team_id: value },
+            { match_id: m.id, item, winner_team_id: isVoid ? null : value, voided: isVoid },
             { onConflict: 'match_id,item' },
           )
         if (err) throw new Error('No se pudo corregir el puntaje.')
@@ -118,13 +131,14 @@ export default function Puntajes() {
     }
   }
 
-  const who = (id: string | null) => (id ? teamName.get(id) ?? 'grupo eliminado' : 'Empate')
+  const who = (id: string | null, voided?: boolean | null) =>
+    voided ? 'Invalidado' : id ? teamName.get(id) ?? 'grupo eliminado' : 'Empate'
 
   return (
     <>
       <h1>Puntajes</h1>
       <p className="muted">
-        Las bases envían los puntos. Aquí el coordinador puede corregirlos o borrarlos; todo queda en el registro.
+        Las bases envían los puntos. Aquí el coordinador puede corregirlos, borrarlos o <strong>invalidar</strong> un ítem que no se alcance a jugar (nadie suma y la base no lo puede puntuar). Todo queda en el registro.
       </p>
       {error && <p className="error">{error}</p>}
 
@@ -144,9 +158,20 @@ export default function Puntajes() {
 
       <h2 className="section-title">Cruces</h2>
       {matches.length === 0 && <p className="warn">Aún no hay cruces programados.</p>}
+      {matches.length > 0 && (
+        <RoundPager
+          round={shownRound}
+          total={totalRounds}
+          matches={roundMatches.length}
+          finished={roundMatches.filter((m) => m.status === 'finished').length}
+          onChange={setSelected}
+          showAll={showAll}
+          onToggleAll={setShowAll}
+        />
+      )}
       <div className="grid">
-        {matches.map((m) => {
-          const scored = new Map(m.match_scores.map((s) => [s.item, s.winner_team_id]))
+        {visible.map((m) => {
+          const scored = new Map(m.match_scores.map((s) => [s.item, s]))
           return (
             <section key={m.id} className="card">
               <div className="match-head">
@@ -154,8 +179,10 @@ export default function Puntajes() {
                 <span className={`badge ${m.status === 'finished' ? 'ok' : 'idle'}`}>{STATUS_LABEL[m.status]}</span>
               </div>
               <p>{teamName.get(m.team_a)} vs {teamName.get(m.team_b)}</p>
+              {m.arrived_at && <p className="muted">Llegaron ambos a las {formatTime(m.arrived_at)}</p>}
               {SCORE_ITEMS.map((item) => {
-                const current = scored.has(item) ? (scored.get(item) ?? 'tie') : 'none'
+                const row = scored.get(item)
+                const current = !row ? 'none' : row.voided ? 'void' : (row.winner_team_id ?? 'tie')
                 return (
                   <label key={item} className="inline-field">
                     {ITEM_LABEL[item]}
@@ -163,6 +190,7 @@ export default function Puntajes() {
                       <option value="none">Sin registrar</option>
                       <option value={m.team_a}>{teamName.get(m.team_a)}</option>
                       <option value={m.team_b}>{teamName.get(m.team_b)}</option>
+                      <option value="void">Invalidado (no se juega)</option>
                       {current === 'tie' && <option value="tie">Empate (anterior)</option>}
                     </select>
                   </label>
@@ -187,9 +215,9 @@ export default function Puntajes() {
                   {m ? ` · ${teamName.get(m.team_a)} vs ${teamName.get(m.team_b)}` : ' · cruce eliminado'}
                   <br />
                   <small className="muted">
-                    {r.action === 'insert' && `Ganador: ${who(r.new_winner)}`}
-                    {r.action === 'update' && `${who(r.old_winner)} → ${who(r.new_winner)}`}
-                    {r.action === 'delete' && `Antes: ${who(r.old_winner)}`}
+                    {r.action === 'insert' && `Resultado: ${who(r.new_winner, r.new_voided)}`}
+                    {r.action === 'update' && `${who(r.old_winner, r.old_voided)} → ${who(r.new_winner, r.new_voided)}`}
+                    {r.action === 'delete' && `Antes: ${who(r.old_winner, r.old_voided)}`}
                     {' · '}
                     {new Date(r.changed_at).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}
                   </small>
