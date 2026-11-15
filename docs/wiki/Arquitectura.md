@@ -18,7 +18,7 @@ flowchart LR
     Auth["Auth\nusuario + contraseña"]
     DB[("Postgres\ntablas + RLS + triggers")]
     RT["Realtime\nranking en vivo"]
-    Storage["Storage\nfotos (Bloque 2)"]
+    Storage["Storage\nfotos (bucket photos)"]
   end
 
   UI -- "carga la app" --> Static
@@ -98,7 +98,8 @@ api/                      Funciones serverless (Vercel)
 src/
   lib/                    Cliente Supabase, autenticación, utilidades
   components/             RequireRole (guard de rutas), AppShell
-  pages/                  Login, AdminHome, BaseHome, RunnerHome, NetworkCheck
+  pages/                  Login, BaseHome, RunnerHome, NetworkCheck
+  pages/admin/            AdminLayout, Resumen, Grupos, Bases, Usuarios
 supabase/
   migrations/             Scripts SQL numerados (ver Registro SQL)
   seed_admin.sql          Crea el primer administrador
