@@ -2,6 +2,10 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Ajustes al Bloque 4 (2026-11-15)
+- **Tiempo real:** el panel del coordinador (Puntajes y Cruces) y la vista de la base se actualizan solos cuando llega un puntaje, sin recargar.
+- **Solo la ronda en curso:** la base ve únicamente el cruce actual; al completar los 3 ítems aparece el siguiente. Los terminados quedan en un historial de solo lectura. La regla también está en la base de datos (`0005`); el coordinador puede puntuar fuera de orden.
+
 ## Bloque 4 — Vista de base y puntajes (2026-11-15)
 **Hecho**
 - **Vista de la base** (`/base`): foto del lugar, información y 3 preguntas, y los cruces de su base. El cruce actual aparece primero, con las fotos de los dos grupos y el marcador.
@@ -57,7 +61,7 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 - Cliente de Supabase por variables de entorno.
 - Página de diagnóstico: conectividad, instalación, notificaciones y ubicación.
 - Despliegue en Vercel conectado a GitHub (deploy en cada push).
-- Logo de CarreApp como icono de la app, favicon y encabezado.
+- Logo de CarrerApp como icono de la app, favicon y encabezado.
 
 **Resultados de las pruebas de campo**
 - La red de la Javeriana (wifi y datos móviles) alcanza Vercel y Supabase.

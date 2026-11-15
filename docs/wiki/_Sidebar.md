@@ -1,4 +1,4 @@
-**CarreApp**
+**CarrerApp**
 
 - [Inicio](Home)
 - [Arquitectura](Arquitectura)
