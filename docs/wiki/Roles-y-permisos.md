@@ -18,7 +18,7 @@ Hay **tres roles**. Los permisos se aplican en la **base de datos** (RLS), no so
 ## Notas
 - Hay **un solo admin**: el coordinador del comité de Carrera, que cambia cada semestre. Para traspasarlo se crea otro admin y se elimina el anterior.
 - Una base con varios inductores: todos los asignados en `base_staff` pueden puntuar los cruces de esa base, y la regla de un puntaje por ítem evita que se pisen.
-- Los **desempates** (por ítem o global) se resuelven en la vida real; la app permite registrar un ítem como empate (nadie suma).
+- No hay empates por ítem: siempre se elige un ganador. Si dos grupos quedan igualados en el total, se desempata en la vida real.
 - Los **neos no usan la app**.
 
 ## Seguridad de las claves

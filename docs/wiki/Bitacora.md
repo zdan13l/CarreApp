@@ -2,7 +2,18 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
-## Bloque 3 — Cruces y rotación (2026-11-15, en curso)
+## Bloque 4 — Vista de base y puntajes (2026-11-15)
+**Hecho**
+- **Vista de la base** (`/base`): foto del lugar, información y 3 preguntas, y los cruces de su base. El cruce actual aparece primero, con las fotos de los dos grupos y el marcador.
+- Cada ítem (barra, pregunta, minijuego) se marca con dos botones grandes (uno por grupo; **no hay empates por ítem**). Se pueden enviar varios ítems juntos y la app pide confirmación porque **solo el coordinador puede corregir** después.
+- Los ítems ya enviados quedan bloqueados; si otro inductor de la misma base ya registró uno, la pantalla se actualiza sola (tiempo real).
+- **Admin > Puntajes:** ranking, corrección o borrado de cualquier puntaje y **registro de cambios** (quién, qué, antes y después, cuándo).
+- Sin cambios de base de datos: usa las reglas y la auditoría de `0001`.
+
+**Verificado**
+- Probado en Postgres en memoria: una base solo inserta puntajes de su cruce, no puede editar ni duplicar, el envío de varios ítems funcionan, y las correcciones del admin quedan en la auditoría.
+
+## Bloque 3 — Cruces y rotación (2026-11-15)
 **Hecho**
 - Pantalla **Cruces**: rondas con base y dos grupos por cruce. Los selectores ya excluyen grupos ocupados en la ronda y rivales que ya se enfrentaron; la base de datos valida igual (no repetir parejas, un grupo por ronda, una base por ronda).
 - **Generador automático** (método de todos contra todos): propone rondas sin repetir rivales y rota las bases; se revisa antes de guardar y se puede ajustar a mano.
@@ -10,9 +21,6 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 - Regla **mínimo 2 corredores por grupo** para activar la Carrera.
 - Corrección: un inductor ya no puede asignarse a dos bases de la misma Carrera (ni un corredor a dos grupos) — migración `0003`.
 - Login: botón para ver u ocultar la contraseña.
-
-**Pendiente**
-- Aplicar `0003` en Supabase y corregir a mano las asignaciones repetidas que ya existan (el Resumen las lista).
 
 ## Bloque 2 — Panel del coordinador (2026-11-15)
 **Hecho**
