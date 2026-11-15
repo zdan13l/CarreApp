@@ -12,6 +12,7 @@ erDiagram
   profiles ||--o{ base_staff : atiende
   bases ||--o{ base_staff : "es atendida por"
   bases ||--o{ base_questions : "hasta 3"
+  bases ||--o| base_details : "información privada"
   teams ||--o{ team_runners : "es acompañado por"
   profiles ||--o{ team_runners : corre
   bases ||--o{ matches : "se juega en"
@@ -42,12 +43,15 @@ erDiagram
     uuid event_id FK
     text name
     text location_photo_path "foto del lugar"
-    text info "información que se da en la base"
+  }
+  base_details {
+    uuid base_id PK_FK
+    text info "información que se da; PRIVADA (admin y su base)"
   }
   base_questions {
     uuid base_id FK
     smallint position "1 a 3"
-    text question
+    text question "PRIVADAS (admin y su base)"
   }
   base_staff {
     uuid base_id FK

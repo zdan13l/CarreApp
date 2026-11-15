@@ -20,6 +20,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0005 | [`0005_scoring_order.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0005_scoring_order.sql) | 2026-11-15 | Una base califica sus rondas en orden |
 | 0006 | [`0006_void_items.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0006_void_items.sql) | 2026-11-15 | Ítems invalidados por el coordinador |
 | 0007 | [`0007_arrival_and_base_photo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0007_arrival_and_base_photo.sql) | 2026-11-15 | Llegada de los grupos y foto de la base editable por sus inductores |
+| 0008 | [`0008_private_base_info.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0008_private_base_info.sql) | _pendiente_ | Información y preguntas de la base privadas; bases en tiempo real |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
 ---
@@ -166,6 +167,34 @@ drop policy if exists bases_staff_update on public.bases;
 drop function if exists public.confirm_arrival(uuid);
 alter table public.matches drop column arrived_at;
 -- y volver a ejecutar after_score_change() de 0006
+```
+
+## 0008 — Información de la base privada (pendiente de aplicar)
+
+**Qué cambia**
+- Nueva tabla `base_details` (`base_id`, `info`): la información que se da en la base sale de `bases` (columna `info` eliminada, datos copiados) y solo la leen el **admin y los inductores de esa base**; solo el admin escribe.
+- `base_questions`: la lectura pasa de "todos" a **admin e inductores de esa base**.
+- Función `is_staff_of_base(base)`.
+- `event_problems()` y `restrict_base_staff_update()` se actualizan al nuevo lugar de la información.
+- `bases` entra a la publicación de tiempo real, para que los corredores vean al instante el cambio de foto de una base.
+
+**Por qué**
+Los corredores solo deben ver el nombre y la foto de la base. Ocultarlo en la pantalla no basta: aquí lo impide la base de datos.
+
+**Verificación** Probado en Postgres en memoria: un corredor no lee ni la información ni las preguntas pero sí el nombre y la foto de las bases; un inductor ve solo lo de su base; el admin ve todo y escribe; la información existente se copia sin pérdida.
+
+**Importante** El código de esta versión ya usa `base_details`: aplicar el SQL justo después del despliegue.
+
+**Cómo revertir**
+```sql
+alter table public.bases add column info text;
+update public.bases b set info = d.info from public.base_details d where d.base_id = b.id;
+drop table public.base_details;
+drop policy base_questions_read on public.base_questions;
+create policy base_questions_read on public.base_questions for select to authenticated using (true);
+drop function public.is_staff_of_base(uuid);
+alter publication supabase_realtime drop table public.bases;
+-- y volver a ejecutar event_problems() de 0003 y restrict_base_staff_update() de 0007
 ```
 
 ## Plantilla para nuevos registros
