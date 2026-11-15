@@ -146,7 +146,7 @@ function TeamCard({
     run(async () => {
       if (!pick) return
       const { error: err } = await sb.from('team_runners').insert({ team_id: team.id, user_id: pick })
-      if (err) throw new Error('No se pudo agregar el corredor.')
+      if (err) throw new Error(err.message.includes('ya está en otro') ? 'Ese corredor ya está en otro grupo.' : 'No se pudo agregar el corredor.')
       setPick('')
     })
 
@@ -185,7 +185,7 @@ function TeamCard({
         <button disabled={busy || !name.trim() || name.trim() === team.name} onClick={() => void saveName()}>Guardar</button>
       </div>
 
-      <h3>Corredores</h3>
+      <h3>Corredores ({team.team_runners.length}, mínimo 2)</h3>
       {team.team_runners.length === 0 && <p className="muted">Sin corredores.</p>}
       <ul className="list">
         {team.team_runners.map((r) => {

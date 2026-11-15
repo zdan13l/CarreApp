@@ -7,6 +7,7 @@ export default function Login() {
   const { session, profile, loading, signIn } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -38,13 +39,24 @@ export default function Login() {
         </label>
         <label>
           Contraseña
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-          />
+          <div className="pass-field">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              className="eye"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? '🙈' : '👁️'}
+            </button>
+          </div>
         </label>
         {error && <p className="error">{error}</p>}
         <button disabled={submitting}>{submitting ? 'Entrando…' : 'Entrar'}</button>

@@ -109,7 +109,7 @@ button.ghost {
 .admin { min-height: 100dvh; }
 .admin-main { padding: max(1rem, env(safe-area-inset-top)) 16px 6.5rem; max-width: 980px; margin: 0 auto; }
 .admin-nav { position: fixed; z-index: 10; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
-.admin-nav nav { display: grid; grid-template-columns: repeat(4, 1fr); }
+.admin-nav nav { display: grid; grid-template-columns: repeat(5, 1fr); }
 .admin-brand, .admin-user { display: none; }
 .tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem; min-height: 60px; color: var(--text-muted); text-decoration: none; font-size: .8rem; font-weight: 600; }
 .tab.active { color: var(--orange); }
@@ -155,3 +155,12 @@ button.danger { color: var(--fail); border-color: var(--fail-bg); }
 .photo-box img { width: 100%; height: 100%; object-fit: cover; }
 .btn-like { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .5rem 1rem; border: 1.5px solid var(--border); border-radius: 14px; font-weight: 700; cursor: pointer; }
 .btn-like.disabled { opacity: .55; pointer-events: none; }
+
+.pass-field { position: relative; }
+.pass-field input { padding-right: 3.4rem; }
+.pass-field .eye { position: absolute; right: 4px; top: 4px; min-height: 44px; min-width: 44px; padding: 0; background: transparent; font-size: 1.3rem; }
+
+.section-title { margin: 1.5rem 0 0; }
+.add-match { margin-top: 1rem; gap: .6rem; }
+.proposal { margin-top: 1rem; }
+.proposal .list { margin: .4rem 0 .9rem; }

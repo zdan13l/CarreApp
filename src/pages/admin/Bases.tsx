@@ -53,6 +53,9 @@ export default function Bases() {
     await load()
   }
 
+  // An inductor can staff only one base per Carrera: hide those already assigned anywhere.
+  const taken = new Set(bases.flatMap((b) => b.base_staff.map((s) => s.user_id)))
+
   return (
     <>
       <h1>Bases</h1>
@@ -73,14 +76,24 @@ export default function Bases() {
 
       <div className="grid">
         {bases.map((b) => (
-          <BaseCard key={b.id} base={b} staff={staff} onChange={load} />
+          <BaseCard key={b.id} base={b} staff={staff} taken={taken} onChange={load} />
         ))}
       </div>
     </>
   )
 }
 
-function BaseCard({ base, staff, onChange }: { base: BaseRow; staff: Profile[]; onChange: () => Promise<void> }) {
+function BaseCard({
+  base,
+  staff,
+  taken,
+  onChange,
+}: {
+  base: BaseRow
+  staff: Profile[]
+  taken: Set<string>
+  onChange: () => Promise<void>
+}) {
   const initialQuestions = [1, 2, 3].map((n) => base.base_questions.find((q) => q.position === n)?.question ?? '')
   const [name, setName] = useState(base.name)
   const [info, setInfo] = useState(base.info ?? '')
@@ -139,7 +152,7 @@ function BaseCard({ base, staff, onChange }: { base: BaseRow; staff: Profile[]; 
     run(async () => {
       if (!pick) return
       const { error: err } = await sb.from('base_staff').insert({ base_id: base.id, user_id: pick })
-      if (err) throw new Error('No se pudo asignar el inductor.')
+      if (err) throw new Error(err.message.includes('ya está asignado') ? 'Ese inductor ya está asignado a otra base.' : 'No se pudo asignar el inductor.')
       setPick('')
     })
 
@@ -158,8 +171,7 @@ function BaseCard({ base, staff, onChange }: { base: BaseRow; staff: Profile[]; 
     })
   }
 
-  const assigned = new Set(base.base_staff.map((s) => s.user_id))
-  const available = staff.filter((p) => !assigned.has(p.id))
+  const available = staff.filter((p) => !taken.has(p.id))
 
   return (
     <section className="card">
