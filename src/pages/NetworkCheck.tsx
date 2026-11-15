@@ -49,8 +49,8 @@ export default function NetworkCheck() {
 
   return (
     <main className="page">
-      <img src="/logo.png" alt="Logo de CarrerApp" className="logo" />
-      <h1>CarrerApp</h1>
+      <img src="/logo.png" alt="Logo de CarreApp" className="logo" />
+      <h1>CarreApp</h1>
       <p className="muted">Bloque 0 · Prueba de red y dispositivo</p>
 
       <section className="card">
