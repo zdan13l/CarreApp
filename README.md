@@ -35,3 +35,23 @@ Importa el repositorio de GitHub con el preset **Vite** y agrega las variables d
 | 7 | Alertas de demora |
 | 8 | Carga masiva desde plantilla |
 | 9 | Pruebas y ensayo |
+
+## Base de datos (Supabase)
+
+1. En **SQL Editor** ejecuta completo [`supabase/migrations/0001_initial_schema.sql`](supabase/migrations/0001_initial_schema.sql).
+   Crea las tablas, las reglas de negocio (no repetir enfrentamientos, un grupo no puede estar en dos bases
+   a la vez, un puntaje por ítem), la auditoría, el ranking y los permisos por rol (RLS).
+2. Crea el primer administrador siguiendo [`supabase/seed_admin.sql`](supabase/seed_admin.sql).
+3. En Vercel agrega la variable **`SUPABASE_SERVICE_ROLE_KEY`** (solo servidor) para que `api/users.ts`
+   pueda crear y eliminar usuarios. Después haz *Redeploy*.
+
+### Inicio de sesión
+Los inductores entran con **usuario y contraseña**. Internamente cada usuario es `usuario@carreapp.test`
+en Supabase Auth. Solo el coordinador crea, cambia contraseña o elimina usuarios (endpoint `/api/users`).
+
+### Desarrollo local con la API
+`npm run dev` solo sirve el frontend. Para probar `/api/users` en local usa `npx vercel dev`.
+
+## Documentación
+La documentación completa (arquitectura con diagramas, modelo de datos, registro de SQL, roles y bitácora) está en
+[`docs/wiki/`](docs/wiki/Home.md) y se publica en la wiki del repositorio.
