@@ -112,10 +112,10 @@ export default function Resumen() {
           <p className="muted">{counts.teams} grupos · {counts.bases} bases</p>
 
           {problems.length === 0 ? (
-            <p className="ok-box">Todo completo: nombres, fotos, información y 3 preguntas por base.</p>
+            <p className="ok-box">Todo completo: fotos, 2 corredores por grupo, información y 3 preguntas por base.</p>
           ) : (
             <div className="fail-box">
-              <strong>Falta para poder activar la Carrera:</strong>
+              <strong>{event.is_active ? 'Pendientes de la Carrera activa:' : 'Falta para poder activar la Carrera:'}</strong>
               <ul>{problems.map((p) => <li key={p}>{p}</li>)}</ul>
             </div>
           )}
