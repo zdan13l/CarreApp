@@ -3,6 +3,7 @@ import AppShell from '../components/AppShell'
 import { useAuth } from '../lib/auth'
 import { useRealtimeReload } from '../lib/realtime'
 import PhotoField from '../components/PhotoField'
+import Ranking from '../components/Ranking'
 import { photoUrl, uploadPhoto } from '../lib/storage'
 import { supabase } from '../lib/supabase'
 import {
@@ -13,6 +14,7 @@ import {
   type MatchScore,
   type MatchStatus,
   type ScoreItem,
+  type StandingRow,
 } from '../types'
 
 interface MyBase {
@@ -45,6 +47,7 @@ export default function BaseHome() {
   const [base, setBase] = useState<MyBase | null>(null)
   const [matches, setMatches] = useState<BaseMatch[]>([])
   const [teams, setTeams] = useState<Map<string, Team>>(new Map())
+  const [standings, setStandings] = useState<StandingRow[]>([])
   const [loading, setLoading] = useState(true)
 
   const userId = profile?.id
@@ -62,14 +65,16 @@ export default function BaseHome() {
       .maybeSingle()
     setBase((b as MyBase | null) ?? null)
     if (!b) return
-    const [m, t] = await Promise.all([
+    const [m, t, st] = await Promise.all([
       supabase
         .from('matches')
         .select('id, round_number, team_a, team_b, status, arrived_at, match_scores(item, winner_team_id, voided)')
         .eq('base_id', b.id)
         .order('round_number'),
       supabase.from('teams').select('id, name, photo_path').eq('event_id', b.event_id),
+      supabase.from('team_standings').select('team_id, name, photo_path, points').eq('event_id', b.event_id),
     ])
+    setStandings(((st.data ?? []) as StandingRow[]).map((r) => ({ ...r, points: Number(r.points) })))
     setMatches((m.data ?? []) as BaseMatch[])
     setTeams(new Map((t.data ?? []).map((x) => [x.id, x])))
   }, [userId])
@@ -110,6 +115,10 @@ export default function BaseHome() {
             </section>
           )}
           {current === undefined && matches.length > 0 && <p className="ok-box">Todos los cruces de tu base terminaron. ¡Gracias!</p>}
+          <details className="card">
+            <summary>Top equipos</summary>
+            <Ranking rows={standings} />
+          </details>
           {finished.length > 0 && (
             <details className="card">
               <summary>Cruces terminados ({finished.length})</summary>

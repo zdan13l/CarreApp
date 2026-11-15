@@ -78,3 +78,10 @@ export interface MatchScore {
   winner_team_id: string | null // null only when the item is voided
   voided: boolean // the coordinator cancelled this item (e.g. no time): nobody scores
 }
+
+export interface StandingRow {
+  team_id: string
+  name: string
+  photo_path: string | null
+  points: number
+}
