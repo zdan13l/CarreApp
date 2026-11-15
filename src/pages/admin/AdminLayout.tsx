@@ -9,6 +9,7 @@ const TABS = [
   { to: '/admin', label: 'Resumen', icon: '📋', end: true },
   { to: '/admin/grupos', label: 'Grupos', icon: '👥', end: false },
   { to: '/admin/bases', label: 'Bases', icon: '📍', end: false },
+  { to: '/admin/cruces', label: 'Cruces', icon: '⚔️', end: false },
   { to: '/admin/usuarios', label: 'Usuarios', icon: '🔑', end: false },
 ]
 

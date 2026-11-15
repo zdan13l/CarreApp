@@ -46,3 +46,20 @@ export const ROLE_LABEL: Record<UserRole, string> = {
   base: 'Inductor de base',
   runner: 'Corredor',
 }
+
+export type MatchStatus = 'pending' | 'in_progress' | 'finished'
+
+export interface MatchRow {
+  id: string
+  round_number: number
+  base_id: string
+  team_a: string
+  team_b: string
+  status: MatchStatus
+}
+
+export const STATUS_LABEL: Record<MatchStatus, string> = {
+  pending: 'Pendiente',
+  in_progress: 'En juego',
+  finished: 'Terminado',
+}
