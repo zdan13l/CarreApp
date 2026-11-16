@@ -210,7 +210,7 @@ export default function BulkImport() {
           username: p.username, password: p.password, ok: false, note: '',
         }
         try {
-          const created = await createUser({ username: p.username, password: p.password, full_name: p.fullName, role: p.role! })
+          const created = await createUser({ username: p.username, password: p.password, full_name: p.fullName, role: p.role!, event_id: eventId })
           if (!created.id) throw new Error('El servidor no devolvió el usuario creado.')
           if (p.role === 'runner') {
             const teamId = teams.get(nameKey(p.assignment))!

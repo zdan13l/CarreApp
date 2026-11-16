@@ -5,6 +5,7 @@ export interface Profile {
   username: string
   full_name: string
   role: UserRole
+  event_id?: string | null
 }
 
 export interface EventRow {

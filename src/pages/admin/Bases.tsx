@@ -26,7 +26,7 @@ export default function Bases() {
         .eq('event_id', eventId)
         .order('sort_order')
         .order('name'),
-      supabase.from('profiles').select('id, username, full_name, role').eq('role', 'base').order('full_name'),
+      supabase.from('profiles').select('id, username, full_name, role').eq('role', 'base').eq('event_id', eventId).order('full_name'),
     ])
     setBases(b.data ?? [])
     setStaff(p.data ?? [])

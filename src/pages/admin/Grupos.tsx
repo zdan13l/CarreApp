@@ -26,7 +26,7 @@ export default function Grupos() {
         .eq('event_id', eventId)
         .order('sort_order')
         .order('name'),
-      supabase.from('profiles').select('id, username, full_name, role').eq('role', 'runner').order('full_name'),
+      supabase.from('profiles').select('id, username, full_name, role').eq('role', 'runner').eq('event_id', eventId).order('full_name'),
     ])
     setTeams(t.data ?? [])
     setRunners(p.data ?? [])

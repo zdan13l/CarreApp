@@ -113,7 +113,7 @@ export default function BaseHome() {
   }, [load])
 
   // Live refresh when scores change (another inductor of the same base, or a correction).
-  useRealtimeReload(['match_scores', 'matches', 'bases'], load)
+  useRealtimeReload(['match_scores', 'matches', 'bases', 'events'], load)
 
   const current = useMemo(() => matches.find((m) => m.status !== 'finished'), [matches])
   const next = current ? matches.find((m) => m.round_number > current.round_number && m.status !== 'finished') : undefined

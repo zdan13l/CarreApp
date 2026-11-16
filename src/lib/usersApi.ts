@@ -18,7 +18,7 @@ async function call(method: 'POST' | 'PATCH' | 'DELETE', body: object): Promise<
   return res.json().catch(() => ({}))
 }
 
-export const createUser = (u: { username: string; password: string; full_name: string; role: UserRole }) =>
+export const createUser = (u: { username: string; password: string; full_name: string; role: UserRole; event_id?: string | null }) =>
   call('POST', u)
 export const resetPassword = (userId: string, password: string) =>
   call('PATCH', { user_id: userId, password })
