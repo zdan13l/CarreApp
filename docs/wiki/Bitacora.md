@@ -42,7 +42,7 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 - **Corregido gracias a las pruebas:** alertas de demora falsas para grupos que no caminan (migración `0013`), mapas Mapbox múltiples en Bases (riesgo de agotar WebGL), colores antiguos en la ruta del mapa, variables de entorno sin documentar y textos desactualizados.
 
 **Pendiente**
-- Aplicar `0013`.
+- (hecho) `0013` aplicada el 2026-11-15.
 - Simulacro con teléfonos reales (sonido y notificaciones en iPhone, GPS, red de la Javeriana) y limpieza de los datos de prueba antes de la Carrera real.
 
 ## Mejoras de las alertas (2026-11-15)
