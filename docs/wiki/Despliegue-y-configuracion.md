@@ -18,6 +18,11 @@ Costo total: **$0**. Límites relevantes del plan gratuito de Supabase: la base 
 | `VITE_SUPABASE_URL` | Vercel y `.env.local` | URL del proyecto Supabase |
 | `VITE_SUPABASE_ANON_KEY` | Vercel y `.env.local` | Clave pública (protegida por RLS) |
 | `VITE_MAPBOX_TOKEN` | Vercel y `.env.local` | Token **público** de Mapbox (`pk.*`) para el mapa 3D y las rutas a pie. En Mapbox > Access tokens, restringirlo a la URL de la app |
+| `VITE_VAPID_PUBLIC_KEY` | Vercel y `.env.local` | Clave **pública** de las notificaciones push (la app la usa para suscribir cada teléfono) |
+| `VAPID_PUBLIC_KEY` | **Solo Vercel** | La misma clave pública, para el envío |
+| `VAPID_PRIVATE_KEY` | **Solo Vercel** | Clave **secreta** de las notificaciones push. Nunca en el repo ni en el chat |
+| `VAPID_SUBJECT` | **Solo Vercel** | Contacto del envío: la dirección de la app (`https://carreapp.vercel.app`) |
+| `PUSH_SECRET` | **Solo Vercel** | Clave inventada que comparten Vercel y la base de datos para autorizar los envíos |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Solo Vercel** | Clave secreta para `/api/users` (crear/eliminar usuarios) |
 
 > Después de cambiar variables en Vercel hay que hacer **Redeploy** para que apliquen.
@@ -51,3 +56,12 @@ npm run build && npm run lint
 
 ## Pruebas de red
 La ruta `/diagnostico` comprueba conectividad con el hosting, Supabase y el mapa, y permite probar instalación, notificaciones y ubicación. Se usó para confirmar que la red de la Javeriana (wifi y datos móviles) alcanza todos los servicios.
+
+## Activar las notificaciones push
+Para que las alertas lleguen con el teléfono bloqueado o la app cerrada (una sola vez por Carrera):
+1. Generar las claves: `npx web-push generate-vapid-keys` (imprime una clave pública y una privada).
+2. En Vercel > Settings > Environment Variables agregar: `VAPID_PUBLIC_KEY` y `VITE_VAPID_PUBLIC_KEY` (la pública, las dos iguales), `VAPID_PRIVATE_KEY` (la privada), `VAPID_SUBJECT` (`https://carreapp.vercel.app`) y `PUSH_SECRET` (cualquier texto largo inventado). Luego **Redeploy**.
+3. En Supabase > SQL Editor ejecutar [`0011_push_and_travel_times.sql`](Registro-SQL) y después `supabase/push_setup.sql`, cambiando en este último `REEMPLAZA-POR-TU-CLAVE` por el valor de `PUSH_SECRET`.
+4. Cada persona abre la app, entra y pulsa **Activar notificaciones** (en iPhone, desde la app instalada en la pantalla de inicio).
+
+Para apagarlas: `select cron.unschedule(jobid) from cron.job where jobname = 'check-delays';`
