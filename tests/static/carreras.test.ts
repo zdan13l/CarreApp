@@ -57,3 +57,40 @@ describe('Carrera switching reaches every screen without a reload', () => {
     expect(read('src/lib/bulk.ts')).toMatch(/únicos en todas las Carreras/)
   })
 })
+
+describe('resilience of the screens (third QA run)', () => {
+  it('the delay alerts use the server clock, not the phone clock', () => {
+    expect(read('src/lib/alerts.ts')).toMatch(/serverNow\(\)/)
+    expect(read('src/pages/admin/Mapa.tsx')).toMatch(/serverNow\(\)/)
+    expect(read('src/lib/clock.ts')).toMatch(/rpc\('server_now'\)/)
+  })
+  it('GPS positions reload on their own, without reloading the whole coordinator screen', () => {
+    for (const f of ['src/pages/admin/EnVivo.tsx', 'src/pages/admin/Mapa.tsx']) {
+      const t = read(f)
+      expect(t).toMatch(/useRealtimeReload\(\['team_locations'\], loadPositions\)/)
+      expect(t).not.toMatch(/useRealtimeReload\(\[[^\]]*'team_locations'[^\]]*,[^\]]*\], load\)/)
+    }
+  })
+  it('phones spread their reloads (jitter), and every shell shows the offline banner', () => {
+    expect(read('src/pages/RunnerHome.tsx')).toMatch(/load, 1500\)/)
+    expect(read('src/pages/BaseHome.tsx')).toMatch(/load, 1500\)/)
+    expect(read('src/components/AppShell.tsx')).toMatch(/<ConnectionBanner/)
+    expect(read('src/pages/admin/AdminLayout.tsx')).toMatch(/<ConnectionBanner/)
+  })
+  it('signing out asks first and removes the push subscription of the phone', () => {
+    expect(read('src/components/AppShell.tsx')).toMatch(/window\.confirm\('¿Cerrar sesión\?'\)/)
+    expect(read('src/pages/admin/AdminLayout.tsx')).toMatch(/window\.confirm\('¿Cerrar sesión\?'\)/)
+    expect(read('src/lib/auth.tsx')).toMatch(/disablePush\(\)/)
+  })
+  it('changing or deleting a score asks first; the push secret is compared in constant time', () => {
+    expect(read('src/pages/admin/Puntajes.tsx')).toMatch(/window\.confirm\(`\$\{ITEM_LABEL\[item\]\}/)
+    expect(read('api/push.ts')).toMatch(/timingSafeEqual/)
+  })
+  it('the text is never smaller than 12px', () => {
+    const css = read('src/index.css')
+    for (const m of css.matchAll(/font-size:\s*([0-9.]+)(rem|px)/g)) {
+      const px = m[2] === 'rem' ? Number(m[1]) * 16 : Number(m[1])
+      expect(px, `font-size ${m[0]}`).toBeGreaterThanOrEqual(12)
+    }
+  })
+})
