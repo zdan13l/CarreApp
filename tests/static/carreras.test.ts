@@ -94,3 +94,12 @@ describe('resilience of the screens (third QA run)', () => {
     }
   })
 })
+
+describe('deleting a Carrera', () => {
+  it('only a deactivated Carrera can be deleted, after typing its name; users are listed before the cascade', () => {
+    const t = read('src/pages/admin/Carrera.tsx')
+    expect(t).toMatch(/function DeleteEvent/)
+    expect(t).toMatch(/if \(!supabase \|\| !matches \|\| active\) return/)
+    expect(t.indexOf("from('profiles').select('id').eq('event_id', eventId)")).toBeLessThan(t.indexOf("from('events').delete()"))
+  })
+})
