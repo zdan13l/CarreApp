@@ -26,6 +26,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0011 | [`0011_push_and_travel_times.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0011_push_and_travel_times.sql) | _pendiente_ | Tiempo de traslado por tramo, suscripciones push y revisión de demoras en el servidor |
 | 0012 | [`0012_runner_only_push.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0012_runner_only_push.sql) | _pendiente_ | Las notificaciones push son solo para corredores; la base también puede mandar avisos |
 | 0013 | [`0013_no_delay_same_base.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0013_no_delay_same_base.sql) | 2026-11-15 | Un grupo que juega de nuevo en la misma base no cuenta como "en demora" |
+| 0014 | [`0014_users_per_event.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0014_users_per_event.sql) | _pendiente_ | Cada corredor/inductor pertenece a una Carrera; `events` entra a Realtime |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -292,6 +293,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/alerts.test.ts` ("does NOT warn a group whose next match is at the same base…"), `tests/unit/delays.test.ts` y la prueba de paridad cliente/servidor.
 
 **Cómo revertir** Volver a ejecutar `check_delays()` de `0012_runner_only_push.sql`.
+
+## 0014 — Usuarios por Carrera (pendiente de aplicar)
+
+**Qué cambia** `profiles.event_id` (la Carrera del corredor o inductor; el coordinador no tiene). Los usuarios existentes se asignan a la Carrera donde ya trabajan (la más reciente si estaban en varias). `validate_team_runner()` y `validate_base_staff()` rechazan asignar a alguien de otra Carrera ("Ese usuario pertenece a otra Carrera.") y adoptan para la Carrera a quien aún no tenía. `events` entra a la publicación de Realtime.
+
+**Por qué** Los usuarios se compartían entre Carreras: todas las listas de corredores e inductores mostraban a todos. Ahora cada Carrera tiene los suyos (Usuarios, Grupos y Bases solo listan los de la Carrera elegida; los usuarios creados antes y sin asignación aparecen en "Sin Carrera asignada" para adoptarlos o eliminarlos). Con `events` en Realtime, activar o desactivar la Carrera llega de inmediato a corredores y bases.
+
+**Verificación** `tests/db/rules.test.ts` ("keeps users inside their own Carrera…"). En Supabase: `select count(*) from public.profiles where role <> 'admin' and event_id is null;` → usuarios sin Carrera (deberían ser solo los que nunca fueron asignados).
+
+**Cómo revertir** `alter table public.profiles drop column event_id;`, volver a ejecutar las dos funciones de `0003_staff_rules.sql` y `alter publication supabase_realtime drop table public.events;`.
 
 ## Plantilla para nuevos registros
 

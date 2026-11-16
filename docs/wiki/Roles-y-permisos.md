@@ -38,3 +38,6 @@ Hay **tres roles**. Los permisos se aplican en la **base de datos** (RLS), no so
 | `service_role` (secreta) | Solo variable de entorno de Vercel (`SUPABASE_SERVICE_ROLE_KEY`) | Nadie fuera del servidor. **Salta RLS**; no debe ir en el repo, el navegador ni chats |
 
 Si la `service_role` se llega a exponer, se **regenera** en Supabase (Project Settings > API) y se actualiza en Vercel.
+
+## Usuarios y Carreras
+Corredores e inductores pertenecen a **una** Carrera (`profiles.event_id`) y no pueden asignarse a otra; el coordinador no pertenece a ninguna y ve todas. Ver [Registro SQL](Registro-SQL) `0014`.
