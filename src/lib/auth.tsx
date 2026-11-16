@@ -15,14 +15,36 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null)
 
-async function fetchProfile(userId: string): Promise<Profile | null> {
-  if (!supabase) return null
-  const { data } = await supabase
+// The last profile that was read is kept on the device: with a bad network the screen must not turn into
+// "no profile". (It only decides which screen to show; the database still enforces every permission.)
+const cacheKey = (userId: string) => `carreapp.profile.${userId}`
+function readCache(userId: string): Profile | null {
+  try {
+    const raw = localStorage.getItem(cacheKey(userId))
+    return raw ? (JSON.parse(raw) as Profile) : null
+  } catch {
+    return null
+  }
+}
+function writeCache(userId: string, profile: Profile | null) {
+  try {
+    if (profile) localStorage.setItem(cacheKey(userId), JSON.stringify(profile))
+    else localStorage.removeItem(cacheKey(userId))
+  } catch {
+    /* storage unavailable: just no cache */
+  }
+}
+
+// `failed` means the request did not work (network); a missing profile with no error is a real "no profile".
+async function fetchProfile(userId: string): Promise<{ profile: Profile | null; failed: boolean }> {
+  if (!supabase) return { profile: null, failed: false }
+  const { data, error } = await supabase
     .from('profiles')
     .select('id, username, full_name, role')
     .eq('id', userId)
     .maybeSingle()
-  return (data as Profile | null) ?? null
+  if (error) return { profile: null, failed: true }
+  return { profile: (data as Profile | null) ?? null, failed: false }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -37,11 +59,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     let active = true
 
+    let retry: ReturnType<typeof setTimeout> | undefined
     async function apply(next: Session | null) {
       if (!active) return
+      clearTimeout(retry)
       setSession(next)
-      setProfile(next ? await fetchProfile(next.user.id) : null)
-      if (active) setLoading(false)
+      if (!next) {
+        setProfile(null)
+        setLoading(false)
+        return
+      }
+      const { profile: fresh, failed } = await fetchProfile(next.user.id)
+      if (!active) return
+      if (failed) {
+        // Network trouble: keep what we know (current profile, else the saved one) and try again shortly.
+        setProfile((current) => current ?? readCache(next.user.id))
+        retry = setTimeout(() => void apply(next), 4000)
+        setLoading((wasLoading) => (wasLoading && !readCache(next.user.id) ? true : false))
+        return
+      }
+      writeCache(next.user.id, fresh)
+      setProfile(fresh)
+      setLoading(false)
     }
 
     supabase.auth.getSession().then(({ data }) => apply(data.session))
@@ -51,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     return () => {
       active = false
+      clearTimeout(retry)
       sub.subscription.unsubscribe()
     }
   }, [])
