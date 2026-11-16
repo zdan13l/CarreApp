@@ -76,7 +76,14 @@ describe('POST: create a user', () => {
     expect(res.statusCode).toBe(201)
     expect(res.body).toEqual({ id: 'new-user', username: 'nuevo.usuario', full_name: 'Nuevo Usuario', role: 'runner' })
     expect(state.createUser).toHaveBeenCalledWith({ email: 'nuevo.usuario@carreapp.test', password: 'secreto1', email_confirm: true })
-    expect(state.insertProfile).toHaveBeenCalledWith({ id: 'new-user', username: 'nuevo.usuario', full_name: 'Nuevo Usuario', role: 'runner' })
+    expect(state.insertProfile).toHaveBeenCalledWith({ id: 'new-user', username: 'nuevo.usuario', full_name: 'Nuevo Usuario', role: 'runner', event_id: null })
+  })
+
+  it('stores the Carrera of a runner, but never gives one to a coordinator', async () => {
+    await call('POST', { ...valid, event_id: 'evt-1' })
+    expect(state.insertProfile).toHaveBeenLastCalledWith(expect.objectContaining({ role: 'runner', event_id: 'evt-1' }))
+    await call('POST', { ...valid, username: 'otro.admin', role: 'admin', event_id: 'evt-1' })
+    expect(state.insertProfile).toHaveBeenLastCalledWith(expect.objectContaining({ role: 'admin', event_id: null }))
   })
 
   it.each([
