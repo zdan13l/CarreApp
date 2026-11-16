@@ -6,7 +6,6 @@ import { supabase } from '../../lib/supabase'
 import { createUser, deleteUser, resetPassword } from '../../lib/usersApi'
 import { normalizeUsername, suggestUsername, USERNAME_PATTERN } from '../../lib/username'
 import { ROLE_LABEL, type Profile, type UserRole } from '../../types'
-import BulkImport from './BulkImport'
 import { errMsg } from './AdminContext'
 
 interface Credentials {
@@ -105,8 +104,6 @@ export default function Usuarios() {
           </div>
         </section>
       )}
-
-      <BulkImport onDone={load} />
 
       <section className="card">
         <h2>Crear usuario</h2>
