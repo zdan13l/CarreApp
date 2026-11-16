@@ -22,32 +22,7 @@ const mix = (ink: number[], surface: number[], p: number) => ink.map((v, i) => M
 // Pairs under the AA threshold, as "palette: foreground on background (ratio)".
 // Known (fourth QA run): the light palette's ok/warn/danger and faint text fall 0.1-0.7 short of 4.5:1 on tinted boxes and
 // on --surface-3. They are small bold chips, so it is a P2 palette tweak, not a blocker. Fix the colour and delete the line.
-const KNOWN_BELOW_AA: string[] = [
-  "dark: --text-muted on gold 22% (4.12)",
-  "light: --danger 11% tint on --bg (4.45)",
-  "light: --danger 11% tint on --surface-2 (4.30)",
-  "light: --danger 15% tint on --bg (4.18)",
-  "light: --danger 15% tint on --surface-2 (4.04)",
-  "light: --danger 16% tint on --bg (4.11)",
-  "light: --danger 16% tint on --surface (4.44)",
-  "light: --danger 16% tint on --surface-2 (3.97)",
-  "light: --gold-ink on --surface-3 (4.39)",
-  "light: --ok 11% tint on --bg (4.25)",
-  "light: --ok 11% tint on --surface-2 (4.12)",
-  "light: --ok 15% tint on --bg (4.02)",
-  "light: --ok 15% tint on --surface (4.33)",
-  "light: --ok 15% tint on --surface-2 (3.90)",
-  "light: --ok 16% tint on --bg (3.97)",
-  "light: --ok 16% tint on --surface (4.28)",
-  "light: --ok 16% tint on --surface-2 (3.85)",
-  "light: --ok on --surface-3 (4.35)",
-  "light: --text-faint on --surface-3 (4.41)",
-  "light: --warn 11% tint on --surface-2 (4.43)",
-  "light: --warn 15% tint on --bg (4.31)",
-  "light: --warn 15% tint on --surface-2 (4.17)",
-  "light: --warn 16% tint on --bg (4.27)",
-  "light: --warn 16% tint on --surface-2 (4.10)",
-]
+const KNOWN_BELOW_AA: string[] = [] // the 2026-11 palette (Marcador nocturno) clears every pair
 const below: string[] = []
 const check = (label: string, fg: number[], bg: number[], min = 4.5) => {
   const r = ratio(fg, bg)
