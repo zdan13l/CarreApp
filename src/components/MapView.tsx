@@ -2,6 +2,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { useEffect, useRef } from 'react'
 import { CAMPUS_CENTER, MAPBOX_TOKEN, type LngLat } from '../lib/mapbox'
+import { useTheme } from '../lib/theme'
 
 export interface MapMarker {
   id: string
@@ -131,6 +132,20 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
     // The map is created once; the light preset is applied at load time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Light preset of the basemap and route colours follow the app theme / the requested preset.
+  const [theme] = useTheme()
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !loaded.current) return
+    try {
+      map.setConfigProperty('basemap', 'lightPreset', lightPreset)
+      map.setPaintProperty('route-casing', 'line-color', cssColor('--bg'))
+      map.setPaintProperty('route-line', 'line-color', cssColor('--gold'))
+    } catch {
+      // style not ready or without the basemap import
+    }
+  }, [lightPreset, theme])
 
   // Keep the markers in sync (rebuilt when label, photo or stale state change).
   useEffect(() => {

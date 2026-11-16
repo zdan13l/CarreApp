@@ -1,6 +1,7 @@
 import { Activity, Flag, KeyRound, LogOut, Map, MapPin, SlidersHorizontal, Swords, Trophy, Users } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import ThemeToggle from '../../components/ThemeToggle'
 import Logo from '../../components/Logo'
 
 const ICON = { size: 22, strokeWidth: 1.9, 'aria-hidden': true } as const
@@ -32,6 +33,7 @@ export function AdminTopbar({ onSignOut }: { onSignOut: () => void }) {
   return (
     <header className="topbar admin-topbar">
       <Logo size={30} />
+      <ThemeToggle />
       <button className="ghost icon-btn" onClick={onSignOut} aria-label="Cerrar sesión" title="Cerrar sesión">
         <LogOut size={20} />
       </button>
@@ -106,6 +108,7 @@ export default function AdminNav({
           <strong>{user?.full_name}</strong>
           <small className="muted">@{user?.username}</small>
         </div>
+        <ThemeToggle />
         <button className="ghost icon-btn" onClick={onSignOut} aria-label="Cerrar sesión" title="Cerrar sesión">
           <LogOut size={20} />
         </button>

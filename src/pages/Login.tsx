@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import Logo from '../components/Logo'
+import ThemeToggle from '../components/ThemeToggle'
 import { homePathForRole, useAuth } from '../lib/auth'
 
 export default function Login() {
@@ -24,6 +25,7 @@ export default function Login() {
 
   return (
     <main className="page login">
+      <div className="login-theme"><ThemeToggle /></div>
       <Logo size={72} />
       <p className="tagline">Gestión en vivo de la Carrera de inducción.</p>
       <form className="card form" onSubmit={onSubmit}>
