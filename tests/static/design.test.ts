@@ -129,9 +129,9 @@ describe('hygiene', () => {
       expect(theme).toMatch(/catch/) // storage can be blocked
     })
 
-    it('every top bar has the toggle (runner and inductor shell, coordinator, login)', () => {
+    it('every top bar has the account menu with the toggle (runner and inductor shell, coordinator) and the login the plain toggle', () => {
       for (const f of ['src/components/AppShell.tsx', 'src/pages/admin/AdminNav.tsx', 'src/pages/Login.tsx']) {
-        expect(fs.readFileSync(rootPath(f), 'utf8'), f).toMatch(/<ThemeToggle/)
+        expect(fs.readFileSync(rootPath(f), 'utf8'), f).toMatch(/<ThemeToggle|<AccountMenu/)
       }
     })
 
