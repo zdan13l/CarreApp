@@ -4,27 +4,15 @@ import { useAuth } from '../../lib/auth'
 import { generatePassword } from '../../lib/password'
 import { supabase } from '../../lib/supabase'
 import { createUser, deleteUser, resetPassword } from '../../lib/usersApi'
-import { normalizeUsername, USERNAME_PATTERN } from '../../lib/username'
+import { normalizeUsername, suggestUsername, USERNAME_PATTERN } from '../../lib/username'
 import { ROLE_LABEL, type Profile, type UserRole } from '../../types'
+import BulkImport from './BulkImport'
 import { errMsg } from './AdminContext'
 
 interface Credentials {
   username: string
   password: string
   label: string
-}
-
-// "María José Pérez" -> "maria.perez" (just a suggestion, the admin can edit it)
-function suggestUsername(fullName: string): string {
-  const parts = fullName
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z\s]/g, '')
-    .split(/\s+/)
-    .filter(Boolean)
-  if (parts.length === 0) return ''
-  return parts.length === 1 ? parts[0] : `${parts[0]}.${parts[parts.length - 1]}`
 }
 
 export default function Usuarios() {
@@ -91,7 +79,9 @@ export default function Usuarios() {
 
   function onDelete(u: Profile) {
     if (!window.confirm(`¿Eliminar a ${u.full_name} (@${u.username})? No se puede deshacer.`)) return
-    void run(async () => deleteUser(u.id))
+    void run(async () => {
+      await deleteUser(u.id)
+    })
   }
 
   const shown = users.filter((u) => filter === 'all' || u.role === filter)
@@ -115,6 +105,8 @@ export default function Usuarios() {
           </div>
         </section>
       )}
+
+      <BulkImport onDone={load} />
 
       <section className="card">
         <h2>Crear usuario</h2>

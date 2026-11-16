@@ -214,6 +214,21 @@ export default function Preview() {
                 </form>
               </section>
               <section className="card">
+                <h2>Cargar desde un archivo</h2>
+                <p className="muted">Crea muchos usuarios de una vez con una plantilla de Word, Excel o CSV.</p>
+                <div className="row"><a className="btn-like" href="#">Plantilla Word</a><a className="btn-like" href="#">Plantilla Excel</a></div>
+                <p><strong>5</strong> filas leídas: <span className="ok-text">4 correctas</span>, <span className="error">1 con errores</span>.</p>
+                <div className="table-wrap">
+                  <table className="data-table">
+                    <thead><tr><th>#</th><th>Nombre</th><th>Rol</th><th>Grupo o base</th><th>Usuario</th><th>Estado</th></tr></thead>
+                    <tbody>
+                      <tr><td>2</td><td>Daniel Rodríguez</td><td>Corredor</td><td>Dioses Griegos · GPS</td><td className="mono">daniel.rodriguez</td><td><span className="badge ok">Correcta</span></td></tr>
+                      <tr className="bad"><td>3</td><td>Valeria Gómez</td><td>—</td><td>Dioses Griegos</td><td className="mono">valeria.gomez</td><td>Rol no válido ("Capitán"). Usa "Corredor" o "Base".</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+              <section className="card">
                 <h2>Fotos</h2>
                 <div className="row">
                   <Crest name="Dioses Griegos" size="xl" /> <Crest name="Samuráis" size="lg" /> <Crest name="Vikingos" /> <Crest name="Aztecas" size="sm" />

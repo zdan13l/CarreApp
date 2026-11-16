@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 import type { UserRole } from '../types'
 
-async function call(method: 'POST' | 'PATCH' | 'DELETE', body: object): Promise<void> {
+async function call(method: 'POST' | 'PATCH' | 'DELETE', body: object): Promise<{ id?: string }> {
   if (!supabase) throw new Error('Supabase no está configurado.')
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
@@ -15,6 +15,7 @@ async function call(method: 'POST' | 'PATCH' | 'DELETE', body: object): Promise<
     const payload = await res.json().catch(() => ({}))
     throw new Error(payload.error ?? 'No se pudo completar la acción.')
   }
+  return res.json().catch(() => ({}))
 }
 
 export const createUser = (u: { username: string; password: string; full_name: string; role: UserRole }) =>
