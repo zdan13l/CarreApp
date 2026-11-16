@@ -1,11 +1,10 @@
 import { BellRing, CircleCheck } from 'lucide-react'
 import { useState } from 'react'
-import { useNow, useRepeatingAlert } from '../lib/alerts'
+import { useNow } from '../lib/alerts'
 import { DEFAULT_ALERT_MESSAGE, lateTeams, type TimedMatch } from '../lib/delays'
 import { distanceMeters } from '../lib/geo'
 import { formatDistance } from '../lib/mapbox'
 import { supabase } from '../lib/supabase'
-import { AlertSettings } from './Alerts'
 
 export async function sendMatchAlert(eventId: string, matchId: string, message: string): Promise<string | null> {
   if (!supabase) return 'Supabase no está configurado.'
@@ -39,7 +38,6 @@ export default function DelaysPanel({
   const matchIds = [...new Set(late.map((l) => l.matchId))]
   const [sent, setSent] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | null>(null)
-  useRepeatingAlert(matchIds.length > 0) // every 10 s while there are delays
 
   async function alert(matchId: string) {
     const message = window.prompt('Mensaje para los grupos y la base de este cruce:', DEFAULT_ALERT_MESSAGE)
@@ -99,7 +97,6 @@ export default function DelaysPanel({
         </ul>
       )}
       {error && <p className="error">{error}</p>}
-      <AlertSettings />
     </section>
   )
 }

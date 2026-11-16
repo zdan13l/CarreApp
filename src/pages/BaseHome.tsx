@@ -1,14 +1,15 @@
-import { Ban, Check, CheckCheck, Flag, MapPin, Send, Trophy, UsersRound } from 'lucide-react'
+import { Ban, BellRing, Check, CheckCheck, Flag, MapPin, Send, Trophy, UsersRound } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell'
-import { AlertBanner, AlertSettings } from '../components/Alerts'
+import { AlertBanner } from '../components/Alerts'
+import { sendMatchAlert } from '../components/DelaysPanel'
 import BaseLocationEditor from '../components/BaseLocationEditor'
 import BottomNav, { type NavTab } from '../components/BottomNav'
 import Crest from '../components/Crest'
 import PhotoField from '../components/PhotoField'
 import Ranking from '../components/Ranking'
 import { useAuth } from '../lib/auth'
-import { useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
+import { useNow } from '../lib/alerts'
 import { lateTeams, type TimedMatch } from '../lib/delays'
 import { useTravelTimes } from '../lib/travel'
 import { useRealtimeReload } from '../lib/realtime'
@@ -125,8 +126,6 @@ export default function BaseHome() {
   const myMatchIds = new Set(matches.map((m) => m.id))
   const travel = useTravelTimes(base?.event_id)
   const late = lateTeams(eventMatches, maxMinutes, now, travel).filter((l) => myMatchIds.has(l.matchId))
-  const manual = useManualAlerts(matches.map((m) => m.id))
-  useRepeatingAlert(late.length > 0) // every 10 s while a delay lasts
 
   return (
     <AppShell title={base?.name ?? 'Mi base'}>
@@ -138,11 +137,6 @@ export default function BaseHome() {
         </section>
       ) : (
         <>
-          {manual.alerts.map((a) => (
-            <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => manual.dismiss(a.id)}>
-              {a.message}
-            </AlertBanner>
-          ))}
           {[...new Set(late.map((l) => l.matchId))].map((matchId) => {
             const m = matches.find((x) => x.id === matchId)
             const names = late
@@ -152,7 +146,7 @@ export default function BaseHome() {
             const minutes = Math.max(...late.filter((l) => l.matchId === matchId).map((l) => l.elapsedMin))
             return (
               <AlertBanner key={matchId} title={`Ronda ${m?.round_number}: grupos en demora`}>
-                {names} llevan {minutes} min en el traslado (máximo {Math.min(...late.filter((l) => l.matchId === matchId).map((l) => l.maxMin))} min).
+                {names} llevan {minutes} min en el traslado (máximo {Math.min(...late.filter((l) => l.matchId === matchId).map((l) => l.maxMin))} min). Usa "Apurar a los grupos" para avisarles.
               </AlertBanner>
             )
           })}
@@ -161,9 +155,8 @@ export default function BaseHome() {
 
           {tab === 'ronda' && (
             <>
-              <AlertSettings />
               {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
-              {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} />}
+              {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} eventId={base.event_id} />}
               {next && (
                 <section className="card next">
                   <h3>Próxima ronda · R{next.round_number}</h3>
@@ -272,14 +265,17 @@ export function MatchCard({
   match,
   teams,
   onSent,
+  eventId,
 }: {
   match: BaseMatch
   teams: Map<string, Team>
   onSent: () => Promise<void>
+  eventId?: string // when given, the base can send an alert to the groups of this match
 }) {
   const [picks, setPicks] = useState<Partial<Record<ScoreItem, Pick>>>({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const a = teams.get(match.team_a)
   const b = teams.get(match.team_b)
@@ -300,6 +296,18 @@ export function MatchCard({
     if (err) setError('No se pudo confirmar. Revisa tu conexión e inténtalo de nuevo.')
     await onSent()
     setBusy(false)
+  }
+
+  // The base can hurry the groups: they get the message (and a notification) on their phones.
+  async function hurry() {
+    if (!eventId) return
+    const message = window.prompt('Mensaje para los dos grupos:', 'Apúrense: la base los está esperando.')
+    if (!message?.trim()) return
+    setError(null)
+    setNotice(null)
+    const err = await sendMatchAlert(eventId, match.id, message)
+    if (err) setError(err)
+    else setNotice('Aviso enviado a los dos grupos.')
   }
 
   async function send() {
@@ -348,6 +356,13 @@ export function MatchCard({
             <UsersRound size={20} aria-hidden="true" />
             {busy ? 'Confirmando…' : 'Ya llegaron ambos grupos'}
           </button>
+          {eventId && (
+            <button className="ghost btn-block hurry" disabled={busy} onClick={() => void hurry()}>
+              <BellRing size={19} aria-hidden="true" />
+              Apurar a los grupos
+            </button>
+          )}
+          {notice && <p className="ok-text">{notice}</p>}
         </>
       )}
 

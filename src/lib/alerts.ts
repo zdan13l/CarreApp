@@ -8,7 +8,7 @@ import { supabase } from './supabase'
 //   * every tap anywhere in the app wakes the audio up again (see `unlock` below).
 // For alerts while the phone is locked or the app is closed, push notifications are used.
 const KEY = 'carreapp.alert-sound'
-export const ALERT_REPEAT_MS = 10_000 // a delay alert sounds every 10 seconds while it lasts
+export const ALERT_REPEAT_MS = 30_000 // a delay alert sounds every 30 seconds while it lasts
 let audio: AudioContext | null = null
 
 function context(): AudioContext | null {
@@ -136,7 +136,7 @@ export interface ManualAlert {
 }
 
 const RECENT_MS = 20 * 60 * 1000 // alerts stay visible for 20 minutes
-const FRESH_MS = 60 * 1000 // and sound repeatedly during their first minute
+const FRESH_MS = 90 * 1000 // and sound repeatedly (every 30 s) during their first minute and a half
 
 // Manual alerts sent by the coordinator for the given matches. They arrive live, and the list is
 // also refreshed every 10 s and whenever the app comes back to the foreground (a locked phone

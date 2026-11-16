@@ -109,7 +109,7 @@ export default function RunnerHome() {
   const travel = useTravelTimes(team?.event_id)
   const myLate = team ? lateTeams(matches, maxMinutes, now, travel).filter((l) => l.teamId === team.id) : []
   const manual = useManualAlerts(mine.map((m) => m.id))
-  useRepeatingAlert(myLate.length > 0) // every 10 s while the delay lasts
+  useRepeatingAlert(myLate.length > 0) // every 30 s while the delay lasts
   const position = myRow ? standings.filter((r) => r.points > myRow.points).length + 1 : null
 
   return (
