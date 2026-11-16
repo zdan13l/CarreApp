@@ -2,7 +2,7 @@
 // docs/wiki/Roles-y-permisos.md: if one changes, the other must change with it.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createDb, type TestDb } from './harness'
-import { insertMatch, seedCarrera, type CarreraSeed, type MatchSeed } from './seed'
+import { activate, insertMatch, seedCarrera, type CarreraSeed, type MatchSeed } from './seed'
 
 let db: TestDb
 let c: CarreraSeed
@@ -11,6 +11,7 @@ let m2: MatchSeed // a match of the OTHER base
 beforeAll(async () => {
   db = await createDb()
   c = await seedCarrera(db, { teams: 4, bases: 2, runnersPerTeam: 2 })
+  await activate(db, c)
   m = await insertMatch(db, c, 1, c.bases[0].id, c.teams[0].id, c.teams[1].id)
   m2 = await insertMatch(db, c, 1, c.bases[1].id, c.teams[2].id, c.teams[3].id)
 })
