@@ -7,7 +7,7 @@
 --   3. Si tu dirección de la app no es https://carreapp.vercel.app, cámbiala en la url.
 --
 -- Qué hace: guarda la dirección y la clave del envío y programa la revisión de demoras
--- cada 10 segundos (solo hace una llamada a Vercel cuando hay un grupo en demora).
+-- cada 30 segundos (solo hace una llamada a Vercel cuando hay un grupo en demora).
 
 create extension if not exists pg_cron;
 
@@ -17,7 +17,7 @@ on conflict (id) do update set url = excluded.url, secret = excluded.secret;
 
 -- Reprograma limpio si ya existía.
 select cron.unschedule(jobid) from cron.job where jobname = 'check-delays';
-select cron.schedule('check-delays', '10 seconds', 'select public.check_delays()');
+select cron.schedule('check-delays', '30 seconds', 'select public.check_delays()');
 
 -- Para apagar las notificaciones automáticas:
 --   select cron.unschedule(jobid) from cron.job where jobname = 'check-delays';
