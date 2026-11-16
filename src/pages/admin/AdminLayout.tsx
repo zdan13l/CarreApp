@@ -5,6 +5,7 @@ import { useRealtimeReload } from '../../lib/realtime'
 import { supabase } from '../../lib/supabase'
 import type { EventRow } from '../../types'
 import { AdminContext, type AdminCtx } from './AdminContext'
+import ConnectionBanner from '../../components/ConnectionBanner'
 import AdminNav, { AdminTopbar } from './AdminNav'
 
 // Adaptive shell: side menu on computers, bottom tabs on phones.
@@ -30,6 +31,10 @@ export default function AdminLayout() {
   // another coordinator session (or a restored connection) can activate / deactivate a Carrera
   useRealtimeReload(['events'], reload)
 
+  const askSignOut = () => {
+    if (window.confirm('¿Cerrar sesión?')) void signOut()
+  }
+
   const event = events.find((e) => e.id === selectedId) ?? events.find((e) => e.is_active) ?? events[0] ?? null
 
   const ctx = useMemo<AdminCtx>(
@@ -39,9 +44,10 @@ export default function AdminLayout() {
 
   return (
     <div className="admin">
-      <AdminNav eventName={event?.name} user={profile ?? undefined} onSignOut={signOut} />
+      <AdminNav eventName={event?.name} user={profile ?? undefined} onSignOut={askSignOut} />
       <main className="admin-main">
-        <AdminTopbar onSignOut={signOut} />
+        <ConnectionBanner />
+        <AdminTopbar onSignOut={askSignOut} />
         {loading ? <p className="loading">Cargando…</p> : (
           <AdminContext.Provider value={ctx}>
             <Outlet />

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
+import { serverNow, syncClock } from './clock'
 
 // ---------- Sound and vibration ----------
 // Browsers (and iOS especially) only allow sound after a tap, and they suspend it again when the
@@ -100,9 +101,13 @@ export function playAlertSound() {
 
 // ---------- Hooks ----------
 export function useNow(intervalMs = 5000): number {
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(() => serverNow())
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), intervalMs)
+    void syncClock().then(() => setNow(serverNow()))
+    const id = setInterval(() => {
+      void syncClock()
+      setNow(serverNow())
+    }, intervalMs)
     return () => clearInterval(id)
   }, [intervalMs])
   return now
@@ -159,7 +164,7 @@ export function useManualAlerts(matchIds: string[]) {
     const client = supabase
     let cancelled = false
     const refresh = async () => {
-      const since = new Date(Date.now() - RECENT_MS).toISOString()
+      const since = new Date(serverNow() - RECENT_MS).toISOString()
       const { data } = await client
         .from('alerts')
         .select('id, match_id, message, created_at')

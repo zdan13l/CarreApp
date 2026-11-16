@@ -21,7 +21,7 @@
   /* Texto */
   --text: #edf1fa;
   --text-muted: #9aa8c7;
-  --text-faint: #6f7ea3;
+  --text-faint: #8896ba;
 
   /* Marca y estados */
   --gold: #f2b632;
@@ -367,7 +367,7 @@ details[open] summary::after { transform: rotate(180deg); }
   padding: 0 2px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: .625rem;
+  font-size: .75rem;
   font-weight: 600;
 }
 .tab span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -389,7 +389,7 @@ button.tab:hover:not(:disabled), button.tab:active:not(:disabled) { background: 
   border-radius: var(--radius) var(--radius) 0 0;
   box-shadow: 0 -14px 30px -14px rgba(0, 0, 0, .8);
 }
-.setup-sheet .nav-label { display: block; margin: .25rem .5rem .35rem; font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); }
+.setup-sheet .nav-label { display: block; margin: .25rem .5rem .35rem; font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); }
 .setup-sheet .tab { flex-direction: row; justify-content: flex-start; gap: .9rem; min-height: 52px; padding: 0 1rem; font-size: 1rem; border-radius: var(--radius-sm); }
 .setup-sheet .tab.active { background: var(--surface-2); }
 .setup-sheet .tab.active::before { display: none; }
@@ -410,7 +410,7 @@ button.tab:hover:not(:disabled), button.tab:active:not(:disabled) { background: 
   .admin-brand .event strong { color: var(--text); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nav-mobile, .setup-sheet, .sheet-backdrop { display: none; }
   .nav-desktop { display: grid; grid-template-columns: 1fr; gap: .25rem; margin-top: .5rem; }
-  .nav-label { display: block; margin: 1.1rem 0 .3rem .9rem; font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); }
+  .nav-label { display: block; margin: 1.1rem 0 .3rem .9rem; font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); }
   .nav-desktop .tab { border-radius: var(--radius-sm); }
   .tab { flex-direction: row; justify-content: flex-start; gap: .8rem; min-height: 46px; padding: 0 .9rem; border-radius: var(--radius-sm); font-size: .95rem; }
   .tab:hover { background: var(--surface-2); color: var(--text); }
@@ -443,7 +443,7 @@ button.tab:hover:not(:disabled), button.tab:active:not(:disabled) { background: 
   background: transparent;
   color: var(--text-muted);
   border-radius: 0;
-  font-size: .72rem;
+  font-size: .75rem;
   font-weight: 600;
 }
 .bn-tab:hover:not(:disabled) { background: transparent; color: var(--text); }
@@ -469,10 +469,10 @@ button.tab:hover:not(:disabled), button.tab:active:not(:disabled) { background: 
 }
 .status-bar .who { flex: 1; min-width: 0; line-height: 1.2; }
 .status-bar .who strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.status-bar .live-label { display: inline-flex; align-items: center; gap: .35rem; color: var(--ok); font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.status-bar .live-label { display: inline-flex; align-items: center; gap: .35rem; color: var(--ok); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .status-bar .live-label::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 1.6s ease-in-out infinite; }
 .stat { display: grid; justify-items: center; line-height: 1; min-width: 3.1rem; }
-.stat-label { margin-bottom: .3rem; color: var(--text-muted); font-size: .625rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.stat-label { margin-bottom: .3rem; color: var(--text-muted); font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .stat-value { font-size: 1.9rem; }
 .stat + .stat { padding-left: .75rem; border-left: 1px solid var(--border-strong); }
 
@@ -542,7 +542,7 @@ button.tab:hover:not(:disabled), button.tab:active:not(:disabled) { background: 
 .top-teams li:first-child .pos { color: var(--gold); }
 .top-teams .team-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .top-teams .pts { font-size: 1.5rem; text-align: right; line-height: 1; }
-.top-teams .pts small { margin-left: .2rem; color: var(--text-muted); font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-stretch: 100%; }
+.top-teams .pts small { margin-left: .2rem; color: var(--text-muted); font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-stretch: 100%; }
 
 /* ---------- Vista del corredor ---------- */
 .next-base { border-color: var(--border-strong); }
@@ -698,7 +698,7 @@ button.route-row:hover:not(:disabled) { background: var(--surface-3); }
 /* Tablas de datos (carga masiva) */
 .table-wrap { margin-top: 1rem; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .data-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
-.data-table th { padding: .6rem .75rem; text-align: left; color: var(--text-muted); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; background: var(--surface-2); white-space: nowrap; }
+.data-table th { padding: .6rem .75rem; text-align: left; color: var(--text-muted); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; background: var(--surface-2); white-space: nowrap; }
 .data-table td { padding: .6rem .75rem; border-top: 1px solid var(--border); vertical-align: top; }
 .data-table tr.bad td { background: color-mix(in srgb, var(--danger) 9%, transparent); }
 .data-table tr.bad td:last-child { color: var(--danger); min-width: 14rem; }
@@ -717,3 +717,6 @@ a.btn-like { color: var(--text); text-decoration: none; }
 .next p { margin: .5rem 0 0; }
 .audit-log summary { color: var(--text); font-size: 1.05rem; }
 .audit-log .list { margin-top: .5rem; }
+
+/* Connection banner (offline) */
+.conn-banner { position: sticky; top: 0; z-index: 60; background: var(--warn); color: #1a1206; text-align: center; font-weight: 700; font-size: .85rem; padding: .45rem 1rem; }

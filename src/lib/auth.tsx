@@ -2,6 +2,7 @@ import type { Session } from '@supabase/supabase-js'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Profile } from '../types'
+import { disablePush } from './push'
 import { supabase } from './supabase'
 import { usernameToEmail } from './username'
 
@@ -101,10 +102,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: usernameToEmail(username),
       password,
     })
-    return error ? 'Usuario o contraseña incorrectos.' : null
+    if (!error) return null
+    // No HTTP status means the request never reached the server (no network): do not blame the password.
+    return error.status ? 'Usuario o contraseña incorrectos.' : 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.'
   }, [])
 
   const signOut = useCallback(async () => {
+    // This phone must stop receiving pushes meant for the signed-out user (needs the session: do it first).
+    await disablePush().catch(() => undefined)
     await supabase?.auth.signOut()
   }, [])
 

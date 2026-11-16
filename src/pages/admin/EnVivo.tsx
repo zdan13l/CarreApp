@@ -61,7 +61,7 @@ export default function EnVivo() {
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
-    const [t, b, m, s, l, p] = await Promise.all([
+    const [t, b, m, s, p] = await Promise.all([
       supabase.from('teams').select('id, name').eq('event_id', eventId).order('sort_order'),
       supabase.from('bases').select('id, name, lat, lng').eq('event_id', eventId).order('sort_order'),
       supabase
@@ -70,22 +70,29 @@ export default function EnVivo() {
         .eq('event_id', eventId)
         .order('round_number'),
       supabase.from('team_standings').select('team_id, name, photo_path, points').eq('event_id', eventId),
-      supabase.from('team_locations').select('team_id, lat, lng, updated_at'),
       active ? Promise.resolve(null) : supabase.rpc('event_problems', { p_event: eventId }),
     ])
     setTeams(t.data ?? [])
     setBases(b.data ?? [])
     setMatches((m.data ?? []) as LiveMatch[])
     setStandings(((s.data ?? []) as StandingRow[]).map((r) => ({ ...r, points: Number(r.points) })))
-    setPositions(l.data ?? [])
     setPending(((p?.data as string[] | null) ?? []).length)
   }, [eventId, active])
 
+  // GPS positions have their own light reload: they arrive every few seconds.
+  const loadPositions = useCallback(async () => {
+    if (!supabase) return
+    const { data } = await supabase.from('team_locations').select('team_id, lat, lng, updated_at')
+    setPositions(data ?? [])
+  }, [])
+
   useEffect(() => {
     void load()
-  }, [load])
+    void loadPositions()
+  }, [load, loadPositions])
 
-  useRealtimeReload(['matches', 'match_scores', 'team_locations', 'bases'], load)
+  useRealtimeReload(['matches', 'match_scores', 'bases'], load)
+  useRealtimeReload(['team_locations'], loadPositions)
 
   const teamName = useMemo(() => new Map(teams.map((t) => [t.id, t.name])), [teams])
   const baseName = useMemo(() => new Map(bases.map((b) => [b.id, b.name])), [bases])
