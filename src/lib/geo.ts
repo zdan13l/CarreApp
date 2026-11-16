@@ -19,6 +19,12 @@ export function distanceMeters(a: LngLat, b: LngLat): number {
   return 2 * R * Math.asin(Math.sqrt(h))
 }
 
+// A position that has not been updated for an hour is dropped from the live map (someone forgot to stop
+// sharing, or the Carrera is over): it must not stay on the map as a ghost.
+export const LOCATION_HIDE_AFTER_MS = 60 * 60 * 1000
+export const isLocationFresh = (updatedAt: string, now: number): boolean =>
+  now - new Date(updatedAt).getTime() < LOCATION_HIDE_AFTER_MS
+
 export function timeAgo(iso: string): string {
   const seconds = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000))
   if (seconds < 60) return `hace ${seconds} s`

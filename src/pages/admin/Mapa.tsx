@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import LazyMap, { type MapMarker } from '../../components/LazyMap'
 import { lateTeams, type TimedMatch } from '../../lib/delays'
-import { timeAgo } from '../../lib/geo'
+import { isLocationFresh, timeAgo } from '../../lib/geo'
 import { useTravelTimes } from '../../lib/travel'
 import { useRealtimeReload } from '../../lib/realtime'
 import { photoUrl } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import { useAdmin } from './AdminContext'
+import { serverNow } from '../../lib/clock'
 
 interface BasePoint {
   id: string
@@ -37,17 +38,16 @@ export default function Mapa() {
   const [teams, setTeams] = useState<TeamInfo[]>([])
   const [locations, setLocations] = useState<TeamLocation[]>([])
   const [matches, setMatches] = useState<TimedMatch[]>([])
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(() => serverNow())
 
   const eventId = event?.id
   const travel = useTravelTimes(eventId)
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
-    const [b, t, l, m] = await Promise.all([
+    const [b, t, m] = await Promise.all([
       supabase.from('bases').select('id, name, lat, lng').eq('event_id', eventId).order('sort_order'),
       supabase.from('teams').select('id, name, photo_path').eq('event_id', eventId).order('sort_order'),
-      supabase.from('team_locations').select('team_id, lat, lng, accuracy, updated_at'),
       supabase
         .from('matches')
         .select('id, round_number, base_id, team_a, team_b, status, arrived_at, finished_at')
@@ -56,23 +56,35 @@ export default function Mapa() {
     setMatches((m.data ?? []) as TimedMatch[])
     setBases(b.data ?? [])
     setTeams(t.data ?? [])
-    setLocations(l.data ?? [])
   }, [eventId])
+
+  // Positions arrive every few seconds: they have their own light reload instead of the whole screen.
+  const loadPositions = useCallback(async () => {
+    if (!supabase) return
+    const { data } = await supabase.from('team_locations').select('team_id, lat, lng, accuracy, updated_at')
+    setLocations(data ?? [])
+  }, [])
 
   useEffect(() => {
     void load()
-  }, [load])
+    void loadPositions()
+  }, [load, loadPositions])
 
   // Live: every position update from the runners moves the marker.
-  useRealtimeReload(['team_locations', 'bases', 'matches'], load)
+  useRealtimeReload(['bases', 'matches'], load)
+  useRealtimeReload(['team_locations'], loadPositions)
 
   // Re-evaluate "no signal" and "x min ago" every 15 s.
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 15000)
+    const id = setInterval(() => setNow(serverNow()), 15000)
     return () => clearInterval(id)
   }, [])
 
-  const locationByTeam = useMemo(() => new Map(locations.map((l) => [l.team_id, l])), [locations])
+  // Positions older than an hour are not shown at all (neither marker nor "hace x h"): the group reads "Sin señal".
+  const locationByTeam = useMemo(
+    () => new Map(locations.filter((l) => isLocationFresh(l.updated_at, now)).map((l) => [l.team_id, l])),
+    [locations, now],
+  )
 
   // Groups that are walking longer than allowed (the full list with the "Avisar" button is in "En vivo").
   const lateIds = useMemo(
