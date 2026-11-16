@@ -23,6 +23,8 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0008 | [`0008_private_base_info.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0008_private_base_info.sql) | _pendiente_ | Información y preguntas de la base privadas; bases en tiempo real |
 | 0009 | [`0009_map_and_gps.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0009_map_and_gps.sql) | 2026-11-15 | Ubicación de las bases y última ubicación de cada grupo (GPS) |
 | 0010 | [`0010_delay_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0010_delay_alerts.sql) | _pendiente_ | Tiempo máximo de traslado, hora de término de cada cruce y avisos manuales |
+| 0011 | [`0011_push_and_travel_times.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0011_push_and_travel_times.sql) | _pendiente_ | Tiempo de traslado por tramo, suscripciones push y revisión de demoras en el servidor |
+| — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
 ---
@@ -239,6 +241,31 @@ drop table public.alerts;
 alter table public.matches drop column finished_at;
 alter table public.events drop column max_travel_minutes;
 -- y volver a ejecutar after_score_change() de 0007
+```
+
+## 0011 — Traslado por tramo y notificaciones push (pendiente de aplicar)
+
+**Qué cambia**
+- `base_travel_times`: tiempo máximo de cada **tramo** (de una base a otra). Un tramo sin tiempo propio usa el general de la Carrera (`events.max_travel_minutes`). Lo lee cualquiera, solo el admin lo escribe.
+- `push_subscriptions`: una fila por teléfono suscrito a notificaciones. Se guardan y quitan con las funciones `save_push_subscription` / `remove_push_subscription` (si el teléfono lo usó otra persona, pasa a quien entró ahora).
+- `push_config`: dirección y clave del envío; ningún usuario de la app puede leerla.
+- `push_send()`: llama a `/api/push` en Vercel con la clave. Solo la usan las funciones de abajo.
+- `check_delays()`: revisa, **cada 10 segundos**, qué grupos superaron el tiempo de su tramo sin que la base confirme la llegada, y manda la notificación al corredor, a la base y al coordinador. Solo llama a Vercel si hay alguna demora.
+- Trigger en `alerts`: el aviso manual del coordinador también sale como notificación.
+
+**Cómo activar las notificaciones (una vez)**
+1. En Vercel agregar `VAPID_PUBLIC_KEY`, `VITE_VAPID_PUBLIC_KEY` (la misma), `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` y `PUSH_SECRET`, y hacer *Redeploy*. Las claves VAPID se generan con `npx web-push generate-vapid-keys`.
+2. Ejecutar `0011` y después `supabase/push_setup.sql` (poniendo en él el mismo valor de `PUSH_SECRET`).
+
+**Verificación** Probado en Postgres en memoria (con el envío simulado): sin configuración o con la Carrera inactiva no se llama a nadie; con una demora se manda una sola llamada con la clave y tres avisos (corredor, base, coordinador); el tiempo del tramo cambia el umbral; si la base confirma la llegada, deja de avisar; el aviso manual llega a los tres destinatarios correctos; un corredor no puede ejecutar la revisión ni escribir tiempos. El envío real y el programador (`pg_cron`) se validan al activarlos.
+
+**Cómo revertir**
+```sql
+select cron.unschedule(jobid) from cron.job where jobname = 'check-delays';
+drop trigger alerts_after_insert on public.alerts;
+drop function public.alerts_push(), public.check_delays(), public.push_send(jsonb),
+  public.save_push_subscription(text, text, text), public.remove_push_subscription(text);
+drop table public.push_config, public.push_subscriptions, public.base_travel_times;
 ```
 
 ## Plantilla para nuevos registros

@@ -2,6 +2,18 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Mejoras de las alertas (2026-11-15)
+**Corregido**
+- **Sonido que no sonaba en tiempo real o dejaba de sonar:** el teléfono duerme el audio al bloquearse o al reabrir la app. Ahora cualquier toque en la app lo despierta, el botón avisa "Toca aquí para reactivar el sonido" cuando está dormido, y los avisos del coordinador se consultan también cada 10 segundos y al volver a la app (el bloqueo corta la conexión en vivo).
+- **Repetición:** mientras dure una demora, la alerta suena **cada 10 segundos** (corredor, base y coordinador). El aviso manual suena cada 10 segundos durante su primer minuto.
+
+**Nuevo**
+- **Notificaciones push:** llegan con el teléfono bloqueado o la app cerrada. Las manda la base de datos (revisión cada 10 s) a través de `/api/push`; cada persona las activa con un botón (en iPhone, con la app instalada en la pantalla de inicio). Ver [Despliegue y configuración](Despliegue-y-configuracion).
+- **Tiempo por tramo:** el recorrido entre bases no es igual, así que cada tramo del cronograma puede tener su tiempo máximo (Resumen > Tiempo de traslado por tramo). Hay un botón que lo calcula con el mapa (caminando x1,5) y se puede ajustar; los tramos vacíos usan el tiempo general.
+
+**Pendiente**
+- Aplicar `0011` y `push_setup.sql`, cargar las claves en Vercel y probar con teléfonos reales (bloqueados) en el simulacro.
+
 ## Bloque 7 — Alertas de demora (2026-11-15)
 **Hecho**
 - **Tiempo máximo de traslado** configurable por el coordinador (Resumen > Alertas de demora; por defecto 10 min).
