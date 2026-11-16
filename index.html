@@ -9,6 +9,15 @@
     <meta name="theme-color" content="#0a1020" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="CarreApp" />
+    <script>
+      try {
+        var t = localStorage.getItem('carreapp.theme')
+        if (t === 'light') {
+          document.documentElement.dataset.theme = 'light'
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f4f6fb')
+        }
+      } catch (e) {}
+    </script>
     <title>CarreApp</title>
   </head>
   <body>

@@ -8,6 +8,7 @@ import { photoUrl } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import { useAdmin } from './AdminContext'
 import { serverNow } from '../../lib/clock'
+import { useTheme } from '../../lib/theme'
 
 interface BasePoint {
   id: string
@@ -33,6 +34,7 @@ interface TeamLocation {
 const STALE_MS = 2 * 60 * 1000 // no signal for 2 minutes
 
 export default function Mapa() {
+  const [theme] = useTheme()
   const { event } = useAdmin()
   const [bases, setBases] = useState<BasePoint[]>([])
   const [teams, setTeams] = useState<TeamInfo[]>([])
@@ -127,7 +129,7 @@ export default function Mapa() {
       </p>
 
       <section className="card map-card">
-        <LazyMap markers={markers} height="min(70vh, 560px)" lightPreset="dusk" />
+        <LazyMap markers={markers} height="min(70vh, 560px)" lightPreset={theme === 'dark' ? 'dusk' : 'day'} />
       </section>
 
       {withoutLocation.length > 0 && (

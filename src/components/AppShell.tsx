@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useAuth } from '../lib/auth'
 import ConnectionBanner from './ConnectionBanner'
 import Logo from './Logo'
+import ThemeToggle from './ThemeToggle'
 
 export default function AppShell({
   title,
@@ -27,6 +28,7 @@ export default function AppShell({
           <small>@{who?.username}</small>
         </div>
         {topActions}
+        <ThemeToggle />
         <button className="ghost icon-btn" onClick={() => { if (window.confirm('¿Cerrar sesión?')) void signOut() }} aria-label="Cerrar sesión" title="Cerrar sesión">
           <LogOut size={20} />
         </button>

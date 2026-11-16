@@ -26,6 +26,7 @@
   /* Marca y estados */
   --gold: #f2b632;
   --gold-hover: #ffc94d;
+  --gold-ink: #f2b632; /* gold used as text */
   --on-gold: #1f1604;
   --sky: #6cb0ff;
   --ok: #3dd6a0;
@@ -41,6 +42,32 @@
   line-height: 1.5;
   color: var(--text);
   background: var(--bg);
+}
+
+/* Modo claro: mismas variables, otros valores (el dorado de marca sigue en botones; como texto usa --gold-ink). */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --surface-2: #eef2f9;
+  --surface-3: #e2e8f4;
+  --inset: #e8ecf5;
+  --border: #d5dcea;
+  --border-strong: #b4c0d8;
+
+  --text: #14203a;
+  --text-muted: #4c5b7a;
+  --text-faint: #5b6a8a;
+
+  --gold: #f2b632;
+  --gold-hover: #e3a21a;
+  --gold-ink: #926000;
+  --on-gold: #1f1604;
+  --sky: #1b64c4;
+  --ok: #0b7a55;
+  --warn: #a64b00;
+  --danger: #c4281f;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -105,7 +132,7 @@ small { font-size: .8125rem; }
 .brand { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none; color: var(--text); }
 .brand svg { flex: none; display: block; }
 .wordmark { font-stretch: 76%; font-weight: 800; font-size: 1.35rem; letter-spacing: .01em; line-height: 1; }
-.wordmark b { color: var(--gold); font-weight: 800; }
+.wordmark b { color: var(--gold-ink); font-weight: 800; }
 .topbar { display: flex; align-items: center; gap: .75rem; padding-bottom: .9rem; border-bottom: 1px solid var(--border); }
 .topbar .brand { margin-right: auto; }
 .topbar-user { text-align: right; line-height: 1.2; min-width: 0; }
@@ -298,7 +325,7 @@ details[open] summary::after { transform: rotate(180deg); }
   place-items: center;
   border-radius: calc(var(--size) * .26);
   background: var(--surface-3) center / cover no-repeat;
-  color: var(--gold);
+  color: var(--gold-ink);
   font-stretch: 76%;
   font-weight: 800;
   font-size: calc(var(--size) * .4);
@@ -329,7 +356,8 @@ details[open] summary::after { transform: rotate(180deg); }
 .photo-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* ---------- Login ---------- */
-.login { display: flex; flex-direction: column; justify-content: center; min-height: 100dvh; max-width: 420px; padding-block: 32px; text-align: center; }
+.login-theme { position: absolute; top: 1rem; right: 1rem; }
+.login { position: relative; display: flex; flex-direction: column; justify-content: center; min-height: 100dvh; max-width: 420px; padding-block: 32px; text-align: center; }
 .login .brand { flex-direction: column; align-self: center; gap: .9rem; }
 .login .wordmark { font-size: 2.6rem; }
 .login .tagline { color: var(--text-muted); margin: .75rem 0 0; }
@@ -371,7 +399,7 @@ details[open] summary::after { transform: rotate(180deg); }
   font-weight: 600;
 }
 .tab span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tab.active { color: var(--gold); }
+.tab.active { color: var(--gold-ink); }
 .tab.active::before { content: ''; position: absolute; top: 0; left: 22%; right: 22%; height: 3px; border-radius: 0 0 3px 3px; background: var(--gold); }
 button.tab:hover:not(:disabled), button.tab:active:not(:disabled) { background: transparent; transform: none; }
 .sheet-backdrop { position: fixed; inset: 0; z-index: 18; background: rgba(5, 8, 16, .65); }
@@ -447,8 +475,8 @@ button.tab:hover:not(:disabled), button.tab:active:not(:disabled) { background: 
   font-weight: 600;
 }
 .bn-tab:hover:not(:disabled) { background: transparent; color: var(--text); }
-.bn-tab.active { color: var(--gold); }
-.bn-tab.active:hover:not(:disabled) { color: var(--gold); }
+.bn-tab.active { color: var(--gold-ink); }
+.bn-tab.active:hover:not(:disabled) { color: var(--gold-ink); }
 .bn-tab.active::before { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--gold); }
 
 /* ---------- Marcador del corredor (siempre visible) ---------- */
@@ -478,7 +506,7 @@ button.tab:hover:not(:disabled), button.tab:active:not(:disabled) { background: 
 
 /* ---------- Cruces: ronda, enfrentamiento y marcador ---------- */
 .match-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; margin-bottom: .25rem; }
-.round-tag { color: var(--gold); font-stretch: 76%; font-weight: 800; font-size: 1.05rem; letter-spacing: .08em; text-transform: uppercase; }
+.round-tag { color: var(--gold-ink); font-stretch: 76%; font-weight: 800; font-size: 1.05rem; letter-spacing: .08em; text-transform: uppercase; }
 .versus { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: .5rem; margin: 1rem 0; text-align: center; }
 .versus .vs { align-self: center; color: var(--text); font-size: 2.2rem; white-space: nowrap; }
 .versus .vs.dim { color: var(--text-faint); font-size: 1.1rem; font-weight: 700; letter-spacing: .1em; }
@@ -539,7 +567,7 @@ button.tab:hover:not(:disabled), button.tab:active:not(:disabled) { background: 
 }
 .top-teams li.mine { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 9%, var(--surface-2)); }
 .top-teams .pos { color: var(--text-muted); font-size: 1.5rem; text-align: center; }
-.top-teams li:first-child .pos { color: var(--gold); }
+.top-teams li:first-child .pos { color: var(--gold-ink); }
 .top-teams .team-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .top-teams .pts { font-size: 1.5rem; text-align: right; line-height: 1; }
 .top-teams .pts small { margin-left: .2rem; color: var(--text-muted); font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-stretch: 100%; }
@@ -549,7 +577,7 @@ button.tab:hover:not(:disabled), button.tab:active:not(:disabled) { background: 
 .next-base .photo-box { margin: .75rem 0; }
 .next-base .rival { display: flex; align-items: center; gap: .75rem; margin-top: .75rem; }
 .next-base .rival p { margin: 0; }
-.big-score { font-size: 2rem; color: var(--gold); line-height: 1; }
+.big-score { font-size: 2rem; color: var(--gold-ink); line-height: 1; }
 .route { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
 .route li {
   background: var(--surface-2);
@@ -579,7 +607,7 @@ button.route-row:hover:not(:disabled) { background: var(--surface-3); }
 .chip svg { transition: transform .2s; }
 .chip svg.flip { transform: rotate(180deg); }
 .route li.now { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 9%, var(--surface-2)); }
-.route .round { color: var(--gold); font-size: 1.15rem; text-align: center; }
+.route .round { color: var(--gold-ink); font-size: 1.15rem; text-align: center; }
 .route li.rest { background: transparent; border: 1px dashed var(--border-strong); }
 .route li.rest .round { color: var(--text-faint); }
 .route strong { display: block; overflow-wrap: anywhere; line-height: 1.25; }
@@ -612,7 +640,7 @@ button.route-row:hover:not(:disabled) { background: var(--surface-3); }
   font-weight: 700;
   line-height: 1.3;
 }
-.next-step svg { flex: none; margin-top: 2px; color: var(--gold); }
+.next-step svg { flex: none; margin-top: 2px; color: var(--gold-ink); }
 .mk { display: grid; justify-items: center; gap: 4px; pointer-events: none; }
 .mk-pin {
   position: relative;
@@ -631,7 +659,7 @@ button.route-row:hover:not(:disabled) { background: var(--surface-3); }
 }
 .mk-pin svg { width: 18px; height: 18px; }
 .mk-base .mk-pin { background-color: #2f7bf0; border-radius: 11px; }
-.mk-team .mk-pin { border-color: var(--gold); background-color: var(--surface-3); color: var(--gold); }
+.mk-team .mk-pin { border-color: var(--gold); background-color: var(--surface-3); color: var(--gold-ink); }
 .mk-target .mk-pin { width: 46px; height: 46px; background-color: var(--gold); color: var(--on-gold); border-color: #fff; }
 .mk-target .mk-pin::after { content: ''; position: absolute; inset: -9px; border-radius: 50%; border: 2px solid var(--gold); animation: ring 1.8s ease-out infinite; }
 .mk-me .mk-pin { width: 20px; height: 20px; background-color: #2f80ff; border-width: 3px; box-shadow: 0 0 0 7px rgba(47, 128, 255, .28); }
@@ -722,3 +750,8 @@ a.btn-like { color: var(--text); text-decoration: none; }
 .conn-banner { position: sticky; top: 0; z-index: 60; background: var(--warn); color: #1a1206; text-align: center; font-weight: 700; font-size: .85rem; padding: .45rem 1rem; }
 
 .danger-zone { border-color: var(--danger); }
+
+@media (max-width: 420px) {
+  .topbar-user small { display: none; }
+  .topbar-user strong { max-width: 6.5rem; }
+}

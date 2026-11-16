@@ -30,8 +30,8 @@ describe('visual rules', () => {
   })
 
   it('keeps hex colours in the stylesheet inside :root, except a short documented list', () => {
-    const rootBlock = /:root\s*\{[\s\S]*?\n\}/.exec(css)![0]
-    const rest = css.replace(rootBlock, '')
+    // the palettes live in the :root blocks (dark by default, :root[data-theme='light'] for light mode)
+    const rest = css.replace(/:root[^{]*\{[\s\S]*?\n\}/g, '')
     const allowed = new Set(['#fff', '#2f7bf0', '#2f80ff', '#1a1206', '#000']) // white outline and map-marker blues
     const stray = [...new Set(rest.match(/#[0-9a-fA-F]{3,8}\b/g) ?? [])].filter((c) => !allowed.has(c.toLowerCase()))
     expect(stray).toEqual([])
@@ -103,5 +103,52 @@ describe('hygiene', () => {
   it('keeps the development-only preview page out of production routing', () => {
     const app = code.find((s) => s.file === 'src/App.tsx')!.text
     expect(app).toMatch(/import\.meta\.env\.DEV \? lazy\(/)
+  })
+
+  describe('light and dark mode', () => {
+    const block = (re: RegExp) => re.exec(css)![0]
+    const vars = (b: string) => new Set([...b.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]))
+    const dark = block(/:root\s*\{[\s\S]*?\n\}/)
+    const light = block(/:root\[data-theme='light'\]\s*\{[\s\S]*?\n\}/)
+
+    it('the light palette defines every colour variable of the dark one', () => {
+      const colour = (n: string) => !['--radius', '--radius-sm', '--nav-h'].includes(n)
+      const missing = [...vars(dark)].filter((v) => colour(v) && !vars(light).has(v))
+      expect(missing).toEqual([])
+    })
+
+    it('gold used as text goes through --gold-ink (darker on a light background)', () => {
+      expect(css).not.toMatch(/(?<![-\w])color:\s*var\(--gold\)/)
+    })
+
+    it('the choice is applied before the first paint and kept on the device', () => {
+      const html = fs.readFileSync(rootPath('index.html'), 'utf8')
+      expect(html).toMatch(/localStorage\.getItem\('carreapp\.theme'\)/)
+      const theme = fs.readFileSync(rootPath('src/lib/theme.ts'), 'utf8')
+      expect(theme).toMatch(/localStorage\.setItem\(KEY/)
+      expect(theme).toMatch(/catch/) // storage can be blocked
+    })
+
+    it('every top bar has the toggle (runner and inductor shell, coordinator, login)', () => {
+      for (const f of ['src/components/AppShell.tsx', 'src/pages/admin/AdminNav.tsx', 'src/pages/Login.tsx']) {
+        expect(fs.readFileSync(rootPath(f), 'utf8'), f).toMatch(/<ThemeToggle/)
+      }
+    })
+
+    it('text colours keep a readable contrast on the surfaces of both themes (AA, 4.5:1)', () => {
+      const hex = (b: string, name: string) => new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`).exec(b)![1]
+      const lum = (h: string) => {
+        const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+      }
+      const ratio = (a: string, b: string) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05)
+      for (const [name, b] of [['dark', dark], ['light', light]] as const) {
+        for (const surface of ['--bg', '--surface', '--surface-2']) {
+          for (const ink of ['--text', '--text-muted', '--text-faint', '--gold-ink', '--sky', '--ok', '--warn', '--danger']) {
+            expect(ratio(hex(b, ink), hex(b, surface)), `${name}: ${ink} on ${surface}`).toBeGreaterThanOrEqual(4.5)
+          }
+        }
+      }
+    })
   })
 })
