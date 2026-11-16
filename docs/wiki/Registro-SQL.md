@@ -25,7 +25,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0010 | [`0010_delay_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0010_delay_alerts.sql) | _pendiente_ | Tiempo máximo de traslado, hora de término de cada cruce y avisos manuales |
 | 0011 | [`0011_push_and_travel_times.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0011_push_and_travel_times.sql) | _pendiente_ | Tiempo de traslado por tramo, suscripciones push y revisión de demoras en el servidor |
 | 0012 | [`0012_runner_only_push.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0012_runner_only_push.sql) | _pendiente_ | Las notificaciones push son solo para corredores; la base también puede mandar avisos |
-| 0013 | [`0013_no_delay_same_base.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0013_no_delay_same_base.sql) | _pendiente_ | Un grupo que juega de nuevo en la misma base no cuenta como "en demora" |
+| 0013 | [`0013_no_delay_same_base.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0013_no_delay_same_base.sql) | 2026-11-15 | Un grupo que juega de nuevo en la misma base no cuenta como "en demora" |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -283,7 +283,7 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 
 **Cómo revertir** Volver a ejecutar `check_delays()` y `alerts_push()` de `0011` y `drop policy alerts_base_insert on public.alerts;`.
 
-## 0013 — Sin demora si el grupo no camina (pendiente de aplicar)
+## 0013 — Sin demora si el grupo no camina
 
 **Qué cambia** `check_delays()` ignora a un grupo cuya siguiente base es **la misma** donde ya está (`p.base_id <> m.base_id`). La versión de la app (`lateTeams` en `src/lib/delays.ts`) tiene la misma regla.
 
