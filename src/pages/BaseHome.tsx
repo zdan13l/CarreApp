@@ -1,4 +1,4 @@
-import { Ban, BellRing, Check, CheckCheck, Flag, MapPin, Send, Trophy, UsersRound } from 'lucide-react'
+import { Ban, BellRing, Check, Flag, MapPin, Send, Trophy, UsersRound } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell'
 import { AlertBanner } from '../components/Alerts'
@@ -56,13 +56,12 @@ export interface Team {
   photo_path: string | null
 }
 
-type Tab = 'base' | 'ronda' | 'top' | 'terminados'
+type Tab = 'ronda' | 'resultados' | 'base'
 const ICON = { size: 22, strokeWidth: 1.9, 'aria-hidden': true } as const
 const TABS: NavTab<Tab>[] = [
-  { id: 'base', label: 'Mi base', icon: <MapPin {...ICON} /> },
   { id: 'ronda', label: 'Ronda', icon: <Flag {...ICON} /> },
-  { id: 'top', label: 'Top', icon: <Trophy {...ICON} /> },
-  { id: 'terminados', label: 'Terminados', icon: <CheckCheck {...ICON} /> },
+  { id: 'resultados', label: 'Resultados', icon: <Trophy {...ICON} /> },
+  { id: 'base', label: 'Mi base', icon: <MapPin {...ICON} /> },
 ]
 
 export default function BaseHome() {
@@ -151,8 +150,6 @@ export default function BaseHome() {
             )
           })}
 
-          {tab === 'base' && <BaseInfoCard base={base} onChanged={load} />}
-
           {tab === 'ronda' && (
             <>
               {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
@@ -168,36 +165,38 @@ export default function BaseHome() {
                 </section>
               )}
               {current === undefined && matches.length > 0 && <p className="ok-box">Todos los cruces de tu base terminaron. ¡Gracias!</p>}
+              <BaseGuide info={infoOf(base.base_details)} questions={base.base_questions} />
             </>
           )}
 
-          {tab === 'top' && (
-            <section className="card">
-              <h2>Top equipos</h2>
-              <Ranking rows={standings} />
-            </section>
+          {tab === 'resultados' && (
+            <>
+              <section className="card">
+                <h2>Top equipos</h2>
+                <Ranking rows={standings} />
+              </section>
+              <section className="card">
+                <h2>Cruces de tu base ({finished.length})</h2>
+                {finished.length === 0 && <p className="muted">Todavía no has terminado ningún cruce.</p>}
+                <ul className="list">
+                  {finished.map((m) => (
+                    <li key={m.id}>
+                      <span className="round-tag">R{m.round_number}</span>
+                      <span className="grow">
+                        {teams.get(m.team_a)?.name} <span className="muted">vs</span> {teams.get(m.team_b)?.name}
+                      </span>
+                      <strong className="num">
+                        {m.match_scores.filter((x) => x.winner_team_id === m.team_a).length}–
+                        {m.match_scores.filter((x) => x.winner_team_id === m.team_b).length}
+                      </strong>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
           )}
 
-          {tab === 'terminados' && (
-            <section className="card">
-              <h2>Cruces terminados ({finished.length})</h2>
-              {finished.length === 0 && <p className="muted">Todavía no has terminado ningún cruce.</p>}
-              <ul className="list">
-                {finished.map((m) => (
-                  <li key={m.id}>
-                    <span className="round-tag">R{m.round_number}</span>
-                    <span className="grow">
-                      {teams.get(m.team_a)?.name} <span className="muted">vs</span> {teams.get(m.team_b)?.name}
-                    </span>
-                    <strong className="num">
-                      {m.match_scores.filter((x) => x.winner_team_id === m.team_a).length}–
-                      {m.match_scores.filter((x) => x.winner_team_id === m.team_b).length}
-                    </strong>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
+          {tab === 'base' && <BaseInfoCard base={base} onChanged={load} />}
 
           <BottomNav tabs={TABS} active={tab} onChange={setTab} />
         </>
@@ -209,7 +208,6 @@ export default function BaseHome() {
 function BaseInfoCard({ base, onChanged }: { base: MyBase; onChanged: () => Promise<void> }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const questions = [...base.base_questions].sort((a, b) => a.position - b.position)
 
   // The base can move (e.g. because of rain): the inductor updates the photo of where it is now.
   async function changePhoto(file: File) {
@@ -237,16 +235,27 @@ function BaseInfoCard({ base, onChanged }: { base: MyBase; onChanged: () => Prom
         {error && <p className="error">{error}</p>}
         <BaseLocationEditor baseId={base.id} name={base.name} lat={base.lat} lng={base.lng} onSaved={onChanged} />
       </section>
-      <section className="card">
-        <h2>Información</h2>
-        <h3>Lo que se explica en la base</h3>
-        <p className="pre">{infoOf(base.base_details) ?? 'Sin información.'}</p>
-        <h3>Posibles preguntas</h3>
+    </>
+  )
+}
+
+// What the inductor needs at hand while running the match: what to explain and the possible questions.
+export function BaseGuide({ info, questions: raw }: { info: string | null; questions: BaseQuestion[] }) {
+  const questions = [...raw].sort((a, b) => a.position - b.position)
+  return (
+    <details className="card guide">
+      <summary>Guía de la base: información y preguntas</summary>
+      <h3>Lo que se explica en la base</h3>
+      <p className="pre">{info ?? 'Sin información.'}</p>
+      <h3>Posibles preguntas</h3>
+      {questions.length === 0 ? (
+        <p className="muted">Sin preguntas.</p>
+      ) : (
         <ol className="questions">
           {questions.map((q) => <li key={q.position}>{q.question}</li>)}
         </ol>
-      </section>
-    </>
+      )}
+    </details>
   )
 }
 

@@ -2,7 +2,7 @@
 // look can be reviewed without signing in. Not included in the production build.
 //   /preview/runner  /preview/runner-ruta  /preview/runner-top
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
-import { Check, Compass, Flag, MapPin, Route, Trophy } from 'lucide-react'
+import { Bell, BellRing, ChevronRight, Compass, Flag, MapPin, Route, Trophy } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import BottomNav from '../components/BottomNav'
@@ -14,8 +14,8 @@ import RoundPager from '../components/RoundPager'
 import AdminNav, { AdminTopbar } from './admin/AdminNav'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
-import { MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
-import { CurrentRound, ItemResults, RouteList, StatusBar, type RouteMatch } from './RunnerHome'
+import { BaseGuide, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
+import { CurrentRound, RouteList, StatusBar, type RouteMatch } from './RunnerHome'
 import type { MatchRow, StandingRow, TeamRow } from '../types'
 
 const user = { full_name: 'Daniel Rodríguez', username: 'daniel' }
@@ -61,10 +61,9 @@ const runnerTabs = [
   { id: 'top', label: 'Top', icon: <Trophy {...ic} /> },
 ]
 const baseTabs = [
-  { id: 'base', label: 'Mi base', icon: <MapPin {...ic} /> },
   { id: 'ronda', label: 'Ronda', icon: <Flag {...ic} /> },
-  { id: 'top', label: 'Top', icon: <Trophy {...ic} /> },
-  { id: 'terminados', label: 'Terminados', icon: <Check {...ic} /> },
+  { id: 'resultados', label: 'Resultados', icon: <Trophy {...ic} /> },
+  { id: 'base', label: 'Mi base', icon: <MapPin {...ic} /> },
 ]
 const noop = () => {}
 const noopAsync = async () => {}
@@ -72,18 +71,49 @@ const noopAsync = async () => {}
 export default function Preview() {
   const { screen } = useParams()
 
+  if (screen === 'runner-alertas') {
+    return (
+      <AppShell title="Mi grupo" user={user}>
+        <StatusBar name="Dioses Griegos" photoPath={null} position={2} points={5} />
+        <section className="card">
+          <h2>Alertas</h2>
+          <p className="muted">Para que te avisemos cuando vayas tarde a la siguiente base: con el sonido activado suena cada 30 segundos mientras dure la demora; con las notificaciones te llega aunque el teléfono esté bloqueado.</p>
+          <button className="ghost sound-toggle asleep">Toca aquí para reactivar el sonido</button>
+          <button className="ghost sound-toggle on">Notificaciones activadas</button>
+        </section>
+        <div className="alert-banner" role="alert">
+          <BellRing size={24} aria-hidden="true" />
+          <div className="grow"><strong>Llevas 12 min en el traslado</strong><p>El máximo para este tramo es 10 min. ¡Apúrate hacia Cancha de Fútbol! Si ya llegaste, avísale a la base.</p></div>
+        </div>
+        <BottomNav tabs={runnerTabs} active="ronda" onChange={noop} />
+      </AppShell>
+    )
+  }
+
   if (screen === 'runner' || screen === 'runner-ruta' || screen === 'runner-top') {
     const tab = screen === 'runner' ? 'ronda' : screen === 'runner-ruta' ? 'ruta' : 'top'
     return (
-      <AppShell title="Mi grupo" user={user}>
+      <AppShell
+        title="Mi grupo"
+        user={user}
+        topActions={
+          <button className="ghost icon-btn bell" aria-label="Ajustes de alertas">
+            <Bell size={20} />
+            <span className="dot" aria-hidden="true" />
+          </button>
+        }
+      >
         <StatusBar name="Dioses Griegos" photoPath={null} position={1} points={7} />
         {tab === 'ronda' && (
           <>
             <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} />
-            <section className="card">
-              <h2>Ronda 1 terminada</h2>
-              <p className="muted">vs Dioses Nórdicos · 2–1</p>
-              <ItemResults match={routeMatches[0]} teams={teamById} />
+            <section className="card next">
+              <h3>Después · Ronda 4</h3>
+              <p>
+                <strong>Cancha de Fútbol</strong>
+                <span className="muted"> contra </span>
+                <strong>Guerreros Aztecas</strong>
+              </p>
             </section>
           </>
         )}
@@ -119,6 +149,10 @@ export default function Preview() {
               </div>
             </section>
             <MatchCard match={baseMatchPending} teams={teams} onSent={noopAsync} />
+            <BaseGuide
+              info="Aquí se explica la historia de la Universidad."
+              questions={[{ position: 1, question: '¿En qué año se fundó la Javeriana?' }, { position: 2, question: '¿Quién es el patrono de la Universidad?' }]}
+            />
           </>
         ) : (
           <section className="card">
@@ -138,57 +172,132 @@ export default function Preview() {
     )
   }
 
-  if (screen === 'admin' || screen === 'admin-forms') {
+  if (screen === 'admin' || screen === 'admin-carrera' || screen === 'admin-forms') {
     return (
       <div className="admin">
         <AdminNav eventName="Carrera 2027-1" user={user} onSignOut={noop} />
         <main className="admin-main">
           <AdminTopbar onSignOut={noop} />
-          {screen === 'admin' ? (
-            <>
-              <h1>Resumen de la Carrera</h1>
-              <section className="card">
-                <h2>Carrera 2027-1</h2>
-                <p>
-                  Estado: <span className="badge ok live">Activa</span>
+          {screen === 'admin' || screen === 'admin-carrera' ? (
+            screen === 'admin' ? (
+              <>
+                <h1>En vivo</h1>
+                <p className="muted">
+                  <strong>Carrera 2027-1</strong> <span className="badge ok live">Activa</span> · Ronda 2 de 3 · 3 de 6 cruces terminados
                 </p>
-                <p className="muted">4 grupos · 2 bases</p>
-                <div className="fail-box">
-                  <strong>Pendientes de la Carrera activa:</strong>
-                  <ul>
-                    <li>El grupo "Samuráis" tiene 1 de 2 corredores como mínimo.</li>
-                    <li>La base "Atrio" tiene 2 de 3 preguntas.</li>
-                  </ul>
+                <div className="grid">
+                  <div>
+                    <section className="card">
+                      <div className="match-head">
+                        <h2>Ronda 2</h2>
+                        <span className="chip">1 de 3 terminados</span>
+                      </div>
+                      <ul className="list">
+                        <li>
+                          <span className="grow">
+                            <strong>Atrio</strong>
+                            <span className="match-names">Dioses Griegos <span className="muted">vs</span> Samuráis</span>
+                            <span className="meta"><span className="badge ok live">En juego</span><span className="num">1–0</span><small className="muted">1/3 ítems · llegaron a las 10:08 a. m.</small></span>
+                          </span>
+                          <button className="ghost icon-btn" aria-label="Enviar aviso"><BellRing size={18} /></button>
+                        </li>
+                        <li>
+                          <span className="grow">
+                            <strong>Cancha de Fútbol</strong>
+                            <span className="match-names">Dioses Nórdicos <span className="muted">vs</span> Guerreros Aztecas</span>
+                            <span className="meta"><span className="badge">Pendiente</span><small className="muted">0/3 ítems</small></span>
+                          </span>
+                          <button className="ghost icon-btn" aria-label="Enviar aviso"><BellRing size={18} /></button>
+                        </li>
+                        <li>
+                          <span className="grow">
+                            <strong>Biblioteca</strong>
+                            <span className="match-names">Grupo 5 <span className="muted">vs</span> Grupo 6</span>
+                            <span className="meta"><span className="badge ok">Terminado</span><span className="num">2–1</span><small className="muted">3/3 ítems</small></span>
+                          </span>
+                        </li>
+                      </ul>
+                      <div className="row"><a className="btn-like" href="#">Cronograma completo <ChevronRight size={16} aria-hidden="true" /></a></div>
+                    </section>
+                  </div>
+                  <div>
+                    <section className="card delay-list">
+                      <h2>Demoras en el traslado</h2>
+                      <ul className="list">
+                        <li>
+                          <span className="grow">
+                            <strong>Ronda 2 · Cancha de Fútbol</strong>
+                            <span className="match-names">Dioses Nórdicos: <span className="late">12 min</span> (máx. 10)<small className="muted"> · a 180 m de la base</small></span>
+                          </span>
+                          <button className="ghost"><BellRing size={17} aria-hidden="true" /> Avisar</button>
+                        </li>
+                      </ul>
+                    </section>
+                    <section className="card">
+                      <h2>Top equipos</h2>
+                      <Ranking rows={standings.slice(0, 3)} />
+                      <div className="row"><a className="btn-like" href="#">Ranking y puntajes <ChevronRight size={16} aria-hidden="true" /></a></div>
+                    </section>
+                    <section className="card">
+                      <h2>Ubicación de los grupos</h2>
+                      <p><strong>3 de 4</strong> grupos comparten su ubicación ahora.</p>
+                      <div className="row"><a className="btn-like" href="#">Abrir el mapa <ChevronRight size={16} aria-hidden="true" /></a></div>
+                    </section>
+                  </div>
                 </div>
-                <div className="warn">
-                  <strong>Recomendado revisar (no bloquea):</strong>
-                  <ul>
-                    <li>La base "Cancha" no tiene ubicación en el mapa.</li>
-                  </ul>
+              </>
+            ) : (
+              <>
+                <h1>Carrera</h1>
+                <p className="muted">Prepara la Carrera: estado y activación, carga desde un archivo, tiempos de traslado y nuevas ediciones.</p>
+                <section className="card">
+                  <h2>Carrera 2027-1</h2>
+                  <p>
+                    Estado: <span className="badge ok live">Activa</span>
+                  </p>
+                  <p className="muted">4 grupos · 2 bases</p>
+                  <div className="fail-box">
+                    <strong>Pendientes de la Carrera activa:</strong>
+                    <ul>
+                      <li>El grupo "Samuráis" tiene 1 de 2 corredores como mínimo.</li>
+                      <li>La base "Atrio" tiene 2 de 3 preguntas.</li>
+                    </ul>
+                  </div>
+                  <div className="warn">
+                    <strong>Recomendado revisar (no bloquea):</strong>
+                    <ul>
+                      <li>La base "Cancha" no tiene ubicación en el mapa.</li>
+                    </ul>
+                  </div>
+                  <div className="row">
+                    <button className="ghost">Desactivar Carrera</button>
+                  </div>
+                </section>
+                <h2 className="section-title">Alertas de demora</h2>
+                <section className="card">
+                  <h2>Tiempo general de traslado</h2>
+                  <p className="muted">Si un grupo pasa más de este tiempo entre que termina una base y llega a la siguiente, suena una alerta a sus corredores.</p>
+                  <div className="row"><label className="inline-field grow">Tiempo máximo general (minutos)<input defaultValue="10" /></label><button>Guardar</button></div>
+                </section>
+                <h2 className="section-title">Rondas</h2>
+                <RoundPager round={2} total={3} matches={2} finished={1} onChange={noop} showAll={false} onToggleAll={noop} />
+                <div className="grid">
+                  <RoundCard
+                    round={1}
+                    matches={adminMatches}
+                    allMatches={adminMatches}
+                    teams={standings.map((r) => ({ id: r.team_id, name: r.name }))}
+                    bases={[{ id: 'x1', name: 'Atrio' }, { id: 'x2', name: 'Cancha de Fútbol' }, { id: 'x3', name: 'Biblioteca' }]}
+                    teamName={new Map(standings.map((r) => [r.team_id, r.name]))}
+                    baseName={new Map([['x1', 'Atrio'], ['x2', 'Cancha de Fútbol']])}
+                    eventId="e1"
+                    busy={false}
+                    onChange={noopAsync}
+                  />
+                  <TeamCard team={teamRow} runners={profiles} free={profiles.slice(2)} onChange={noopAsync} />
                 </div>
-                <p className="ok-box">Todo completo: fotos, 2 corredores por grupo, información y 3 preguntas por base.</p>
-                <div className="row">
-                  <button className="ghost">Desactivar Carrera</button>
-                </div>
-              </section>
-              <h2 className="section-title">Rondas</h2>
-              <RoundPager round={2} total={3} matches={2} finished={1} onChange={noop} showAll={false} onToggleAll={noop} />
-              <div className="grid">
-                <RoundCard
-                  round={1}
-                  matches={adminMatches}
-                  allMatches={adminMatches}
-                  teams={standings.map((r) => ({ id: r.team_id, name: r.name }))}
-                  bases={[{ id: 'x1', name: 'Atrio' }, { id: 'x2', name: 'Cancha de Fútbol' }, { id: 'x3', name: 'Biblioteca' }]}
-                  teamName={new Map(standings.map((r) => [r.team_id, r.name]))}
-                  baseName={new Map([['x1', 'Atrio'], ['x2', 'Cancha de Fútbol']])}
-                  eventId="e1"
-                  busy={false}
-                  onChange={noopAsync}
-                />
-                <TeamCard team={teamRow} runners={profiles} free={profiles.slice(2)} onChange={noopAsync} />
-              </div>
-            </>
+              </>
+            )
           ) : (
             <>
               <h1>Usuarios</h1>
@@ -268,5 +377,5 @@ export default function Preview() {
     )
   }
 
-  return <p className="page">Pantallas: map, runner, runner-ruta, runner-top, base, base-info, admin, admin-forms</p>
+  return <p className="page">Pantallas: map, runner, runner-ruta, runner-alertas, runner-top, base, base-info, admin, admin-carrera, admin-forms</p>
 }

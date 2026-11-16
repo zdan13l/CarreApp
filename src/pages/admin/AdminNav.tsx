@@ -1,18 +1,30 @@
-import { Flag, KeyRound, LayoutDashboard, LogOut, Map, MapPin, Swords, Trophy, Users } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { Activity, Flag, KeyRound, LogOut, Map, MapPin, SlidersHorizontal, Swords, Trophy, Users } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
 import Logo from '../../components/Logo'
 
 const ICON = { size: 22, strokeWidth: 1.9, 'aria-hidden': true } as const
 
-const TABS: { to: string; label: string; icon: ReactNode; end: boolean }[] = [
-  { to: '/admin', label: 'Resumen', icon: <LayoutDashboard {...ICON} />, end: true },
-  { to: '/admin/grupos', label: 'Grupos', icon: <Users {...ICON} />, end: false },
-  { to: '/admin/bases', label: 'Bases', icon: <MapPin {...ICON} />, end: false },
-  { to: '/admin/cruces', label: 'Cruces', icon: <Swords {...ICON} />, end: false },
-  { to: '/admin/puntajes', label: 'Puntajes', icon: <Trophy {...ICON} />, end: false },
-  { to: '/admin/mapa', label: 'Mapa', icon: <Map {...ICON} />, end: false },
-  { to: '/admin/usuarios', label: 'Usuarios', icon: <KeyRound {...ICON} />, end: false },
+interface NavItem {
+  to: string
+  label: string
+  icon: ReactNode
+  end?: boolean
+}
+
+// What the coordinator watches and acts on while the Carrera is running…
+export const LIVE_TABS: NavItem[] = [
+  { to: '/admin', label: 'En vivo', icon: <Activity {...ICON} />, end: true },
+  { to: '/admin/puntajes', label: 'Puntajes', icon: <Trophy {...ICON} /> },
+  { to: '/admin/mapa', label: 'Mapa', icon: <Map {...ICON} /> },
+]
+// …and what is set up beforehand (and corrected now and then).
+export const SETUP_TABS: NavItem[] = [
+  { to: '/admin/carrera', label: 'Carrera', icon: <Flag {...ICON} /> },
+  { to: '/admin/grupos', label: 'Grupos', icon: <Users {...ICON} /> },
+  { to: '/admin/bases', label: 'Bases', icon: <MapPin {...ICON} /> },
+  { to: '/admin/cruces', label: 'Cruces', icon: <Swords {...ICON} /> },
+  { to: '/admin/usuarios', label: 'Usuarios', icon: <KeyRound {...ICON} /> },
 ]
 
 // Brand and sign-out for phones (the side menu has them on computers).
@@ -27,7 +39,8 @@ export function AdminTopbar({ onSignOut }: { onSignOut: () => void }) {
   )
 }
 
-// Side menu on computers, bottom tab bar on phones (the CSS decides).
+// Side menu in two groups on computers; on phones a bottom bar with the live screens and a
+// "Preparar" button that opens the setup screens (seven tabs do not fit on a phone).
 export default function AdminNav({
   eventName,
   user,
@@ -37,6 +50,17 @@ export default function AdminNav({
   user?: { full_name: string; username: string }
   onSignOut: () => void
 }) {
+  const [open, setOpen] = useState(false)
+  const { pathname } = useLocation()
+  const inSetup = SETUP_TABS.some((t) => pathname.startsWith(t.to))
+
+  const link = (t: NavItem, onClick?: () => void) => (
+    <NavLink key={t.to} to={t.to} end={t.end} className="tab" onClick={onClick}>
+      {t.icon}
+      <span>{t.label}</span>
+    </NavLink>
+  )
+
   return (
     <aside className="admin-nav">
       <div className="admin-brand">
@@ -46,14 +70,37 @@ export default function AdminNav({
           <strong>{eventName ?? 'Sin Carrera'}</strong>
         </p>
       </div>
-      <nav aria-label="Secciones del panel">
-        {TABS.map((t) => (
-          <NavLink key={t.to} to={t.to} end={t.end} className="tab">
-            {t.icon}
-            <span>{t.label}</span>
-          </NavLink>
-        ))}
+
+      <nav className="nav-desktop" aria-label="Secciones del panel">
+        <p className="nav-label">Durante la Carrera</p>
+        {LIVE_TABS.map((t) => link(t))}
+        <p className="nav-label">Preparación</p>
+        {SETUP_TABS.map((t) => link(t))}
       </nav>
+
+      <nav className="nav-mobile" aria-label="Secciones del panel">
+        {LIVE_TABS.map((t) => link(t, () => setOpen(false)))}
+        <button
+          type="button"
+          className={`tab more${inSetup || open ? ' active' : ''}`}
+          aria-expanded={open}
+          aria-controls="setup-sheet"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <SlidersHorizontal {...ICON} />
+          <span>Preparar</span>
+        </button>
+      </nav>
+      {open && (
+        <>
+          <div className="sheet-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />
+          <div className="setup-sheet" id="setup-sheet">
+            <p className="nav-label">Preparación de la Carrera</p>
+            {SETUP_TABS.map((t) => link(t, () => setOpen(false)))}
+          </div>
+        </>
+      )}
+
       <div className="admin-user">
         <div>
           <strong>{user?.full_name}</strong>

@@ -1,4 +1,4 @@
-import { Trash2, X } from 'lucide-react'
+import { MapPin, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import BaseLocationEditor from '../../components/BaseLocationEditor'
 import PhotoField from '../../components/PhotoField'
@@ -36,7 +36,7 @@ export default function Bases() {
     void load()
   }, [load])
 
-  if (!event) return <p className="warn">Primero crea una Carrera en "Resumen".</p>
+  if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
 
   async function addBase(e: FormEvent) {
     e.preventDefault()
@@ -104,6 +104,7 @@ export function BaseCard({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const [showMap, setShowMap] = useState(false) // a Mapbox map per card would exhaust the browser's WebGL contexts
 
   const sb = supabase!
 
@@ -204,7 +205,13 @@ export function BaseCard({
         {saved && <p className="ok-text">Guardado.</p>}
       </div>
 
-      <BaseLocationEditor baseId={base.id} name={base.name} lat={base.lat} lng={base.lng} onSaved={onChange} />
+      <h3>Ubicación en el mapa</h3>
+      <p className="muted">{base.lat !== null && base.lng !== null ? 'Ubicación marcada.' : 'Todavía sin ubicación.'}</p>
+      <button className="ghost" type="button" aria-expanded={showMap} onClick={() => setShowMap((v) => !v)}>
+        <MapPin size={18} aria-hidden="true" />
+        {showMap ? 'Ocultar el mapa' : base.lat !== null ? 'Ver o cambiar en el mapa' : 'Marcar en el mapa'}
+      </button>
+      {showMap && <BaseLocationEditor compact baseId={base.id} name={base.name} lat={base.lat} lng={base.lng} onSaved={onChange} />}
 
       <h3>Inductores de la base</h3>
       {base.base_staff.length === 0 && <p className="muted">Sin inductores asignados.</p>}

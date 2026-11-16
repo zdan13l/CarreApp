@@ -12,12 +12,14 @@ export default function BaseLocationEditor({
   lat,
   lng,
   onSaved,
+  compact = false,
 }: {
   baseId: string
   name: string
   lat: number | null
   lng: number | null
   onSaved: () => Promise<void>
+  compact?: boolean // the caller already shows a heading
 }) {
   const saved: LngLat | null = lat !== null && lng !== null ? [lng, lat] : null
   const [draft, setDraft] = useState<LngLat | null>(saved)
@@ -68,7 +70,7 @@ export default function BaseLocationEditor({
 
   return (
     <div className="location-editor">
-      <h3>Ubicación en el mapa</h3>
+      {!compact && <h3>Ubicación en el mapa</h3>}
       <LazyMap
         height="280px"
         markers={draft ? [{ id: 'base', lng: draft[0], lat: draft[1], label: name, kind: 'base' }] : []}

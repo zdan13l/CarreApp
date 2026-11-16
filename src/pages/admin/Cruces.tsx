@@ -1,12 +1,11 @@
 import { Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BellRing } from 'lucide-react'
-import DelaysPanel, { sendMatchAlert } from '../../components/DelaysPanel'
+import { sendMatchAlert } from '../../components/DelaysPanel'
 import RoundPager from '../../components/RoundPager'
 import { analyzeSchedule, currentRound, formatTime, generateSchedule, matchErrorMessage, type PlannedMatch } from '../../lib/schedule'
 import { useRealtimeReload } from '../../lib/realtime'
 import { DEFAULT_ALERT_MESSAGE } from '../../lib/delays'
-import { useTravelTimes } from '../../lib/travel'
 import { supabase } from '../../lib/supabase'
 import { STATUS_LABEL, type MatchRow } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
@@ -14,8 +13,6 @@ import { errMsg, useAdmin } from './AdminContext'
 interface Named {
   id: string
   name: string
-  lat?: number | null
-  lng?: number | null
 }
 
 export default function Cruces() {
@@ -23,7 +20,6 @@ export default function Cruces() {
   const [teams, setTeams] = useState<Named[]>([])
   const [bases, setBases] = useState<Named[]>([])
   const [matches, setMatches] = useState<MatchRow[]>([])
-  const [positions, setPositions] = useState<Map<string, [number, number]>>(new Map())
   const [extraRounds, setExtraRounds] = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
   const [showAll, setShowAll] = useState(false)
@@ -33,21 +29,18 @@ export default function Cruces() {
   const [error, setError] = useState<string | null>(null)
 
   const eventId = event?.id
-  const travel = useTravelTimes(eventId)
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
-    const [t, b, m, loc] = await Promise.all([
+    const [t, b, m] = await Promise.all([
       supabase.from('teams').select('id, name').eq('event_id', eventId).order('sort_order').order('name'),
-      supabase.from('bases').select('id, name, lat, lng').eq('event_id', eventId).order('sort_order').order('name'),
+      supabase.from('bases').select('id, name').eq('event_id', eventId).order('sort_order').order('name'),
       supabase
         .from('matches')
         .select('id, round_number, base_id, team_a, team_b, status, arrived_at, finished_at')
         .eq('event_id', eventId)
         .order('round_number'),
-      supabase.from('team_locations').select('team_id, lat, lng'),
     ])
-    setPositions(new Map((loc.data ?? []).map((l) => [l.team_id, [l.lng, l.lat] as [number, number]])))
     setTeams(t.data ?? [])
     setBases(b.data ?? [])
     setMatches((m.data ?? []) as MatchRow[])
@@ -57,7 +50,7 @@ export default function Cruces() {
     void load()
   }, [load])
 
-  useRealtimeReload(['matches', 'team_locations'], load)
+  useRealtimeReload(['matches'], load)
 
   const teamName = useMemo(() => new Map(teams.map((t) => [t.id, t.name])), [teams])
   const baseName = useMemo(() => new Map(bases.map((b) => [b.id, b.name])), [bases])
@@ -67,7 +60,7 @@ export default function Cruces() {
     [proposal, teams, bases],
   )
 
-  if (!event) return <p className="warn">Primero crea una Carrera en "Resumen".</p>
+  if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
 
   const maxRound = matches.reduce((max, m) => Math.max(max, m.round_number), 0)
   const roundCount = Math.max(maxRound, extraRounds, 1)
@@ -138,19 +131,6 @@ export default function Cruces() {
         Cada pareja de grupos solo puede enfrentarse una vez; la app lo valida.
       </p>
       {error && <p className="error">{error}</p>}
-
-      {matches.length > 0 && (
-        <DelaysPanel
-          eventId={event.id}
-          matches={matches}
-          maxMinutes={event.max_travel_minutes}
-          teamName={teamName}
-          baseName={baseName}
-          baseCoords={new Map(bases.filter((b) => b.lat != null && b.lng != null).map((b) => [b.id, [b.lng!, b.lat!] as [number, number]]))}
-          teamCoords={positions}
-          travel={travel}
-        />
-      )}
 
       {notEnough ? (
         <p className="warn">Necesitas al menos 2 grupos y 1 base para armar cruces.</p>
