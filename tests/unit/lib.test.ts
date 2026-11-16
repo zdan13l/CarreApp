@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { distanceMeters, timeAgo } from '../../src/lib/geo'
+import { distanceMeters, isLocationFresh, LOCATION_HIDE_AFTER_MS, timeAgo } from '../../src/lib/geo'
 import { formatDistance, formatDuration } from '../../src/lib/mapbox'
 import { generatePassword } from '../../src/lib/password'
 import { legKey } from '../../src/lib/travel'
@@ -60,6 +60,15 @@ describe('geography helpers', () => {
   })
 
   afterEach(() => vi.useRealTimers())
+
+  it('hides a team position that has not been updated for an hour', () => {
+    const now = Date.parse('2027-01-20T15:00:00Z')
+    const ago = (ms: number) => new Date(now - ms).toISOString()
+    expect(isLocationFresh(ago(5 * 60_000), now)).toBe(true)
+    expect(isLocationFresh(ago(LOCATION_HIDE_AFTER_MS - 1000), now)).toBe(true)
+    expect(isLocationFresh(ago(LOCATION_HIDE_AFTER_MS), now)).toBe(false)
+    expect(isLocationFresh(ago(5 * 3600_000), now)).toBe(false)
+  })
 
   it('build the key of a leg of the route', () => expect(legKey('a', 'b')).toBe('a>b'))
 })

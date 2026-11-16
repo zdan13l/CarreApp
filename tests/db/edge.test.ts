@@ -40,9 +40,9 @@ describe('people who leave or are replaced during the day', () => {
     const [s] = await db.sql<{ n: string; nobody: string }>(`select count(*)::text n, count(*) filter (where awarded_by is null)::text nobody from public.match_scores where match_id = $1`, [m.id])
     expect(Number(s.n)).toBe(3)
     expect(Number(s.nobody)).toBe(3) // the author is forgotten, the result is not
-    // 3 inserts, plus 3 "update" rows written by the cascade (awarded_by -> null): noise in the log that reads as a correction
+    // only the 3 inserts: forgetting the author (awarded_by -> null) is not a correction and writes nothing (0017)
     const audit = await db.sql<{ action: string }>(`select action from public.score_audit where event_id = $1 order by id`, [c.eventId])
-    expect(audit.map((r) => r.action)).toEqual(['insert', 'insert', 'insert', 'update', 'update', 'update'])
+    expect(audit.map((r) => r.action)).toEqual(['insert', 'insert', 'insert'])
   })
 
   it('an inductor who replaces another one continues the same base; the old one can no longer score', async () => {
@@ -192,22 +192,26 @@ describe('deleting a group or playing with an odd number of groups', () => {
 })
 
 describe('the alerts table (privacy and abuse)', () => {
-  it('characterization: any signed-in user, even a runner of ANOTHER Carrera, can read every alert text', async () => {
-    const a = await seedCarrera(db, { teams: 2, bases: 1 })
+  it('hides the alerts from everyone who is not the coordinator, a runner of that match or the inductor of its base (0017)', async () => {
+    const a = await seedCarrera(db, { teams: 2, bases: 2 })
     const b = await seedCarrera(db, { teams: 2, bases: 1 })
     const m = await insertMatch(db, a, 1, a.bases[0].id, a.teams[0].id, a.teams[1].id)
     await activate(db, a)
     await db.asUser(a.admin).sql(`insert into public.alerts (event_id, match_id, message) values ($1, $2, 'mensaje interno')`, [a.eventId, m.id])
-    const seen = await db.asUser(b.teams[0].runners[0]).sql<{ message: string }>(`select message from public.alerts`)
-    expect(seen.map((r) => r.message)).toContain('mensaje interno')
+    const read = async (id: string) => (await db.asUser(id).sql<{ message: string }>(`select message from public.alerts`)).length
+    expect(await read(b.teams[0].runners[0])).toBe(0) // a runner of another Carrera
+    expect(await read(a.bases[1].staff)).toBe(0) // the inductor of another base
+    expect(await read(a.teams[0].runners[0])).toBe(1) // a runner of the match
+    expect(await read(a.bases[0].staff)).toBe(1) // the inductor of that base
+    expect(await read(a.admin)).toBe(1)
   })
 
-  it('characterization: an inductor can attach an alert to a match of their base with any event_id (only the match is checked)', async () => {
+  it('refuses an alert whose event_id is not the one of its match (0017)', async () => {
     const a = await seedCarrera(db, { teams: 2, bases: 1 })
     const b = await seedCarrera(db, { teams: 2, bases: 1 })
     const m = await insertMatch(db, a, 1, a.bases[0].id, a.teams[0].id, a.teams[1].id)
     await activate(db, a)
-    await db.asUser(a.bases[0].staff).sql(`insert into public.alerts (event_id, match_id, message) values ($1, $2, 'x')`, [b.eventId, m.id])
+    await expect(db.asUser(a.bases[0].staff).sql(`insert into public.alerts (event_id, match_id, message) values ($1, $2, 'x')`, [b.eventId, m.id])).rejects.toThrow(/row-level security/)
   })
 
   it('an inductor of a Carrera that is NOT active cannot send alerts either', async () => {
@@ -218,12 +222,15 @@ describe('the alerts table (privacy and abuse)', () => {
     await expect(db.asUser(a.bases[0].staff).sql(`insert into public.alerts (event_id, match_id, message) values ($1, $2, 'hola')`, [a.eventId, m.id])).rejects.toThrow()
   })
 
-  it('an inductor can flood: nothing in the database limits how many alerts (and pushes) a base sends', async () => {
+  it('limits a base to one alert per match every 20 seconds, while the coordinator is not limited (0017)', async () => {
     const c = await seedCarrera(db, { teams: 2, bases: 1 })
     const m = await insertMatch(db, c, 1, c.bases[0].id, c.teams[0].id, c.teams[1].id)
     await activate(db, c)
-    for (let i = 0; i < 15; i++) await db.asUser(c.bases[0].staff).sql(`insert into public.alerts (event_id, match_id, message) values ($1, $2, $3)`, [c.eventId, m.id, `aviso ${i}`])
-    expect(await db.httpCalls()).toHaveLength(15) // 15 pushes to the same 4 runners
+    const send = (who: string, i: number) => db.asUser(who).sql(`insert into public.alerts (event_id, match_id, message) values ($1, $2, $3)`, [c.eventId, m.id, `aviso ${i}`])
+    await send(c.bases[0].staff, 0)
+    await expect(send(c.bases[0].staff, 1)).rejects.toThrow(/Espera unos segundos/)
+    for (let i = 0; i < 3; i++) await send(c.admin, i)
+    expect(await db.httpCalls()).toHaveLength(4)
   })
 })
 
@@ -240,5 +247,14 @@ describe('groups that rest a round', () => {
     await db.sql(`select public.check_delays()`)
     const notified = (await pushes()).flatMap((n) => n.user_ids)
     for (const id of a.runners) expect(notified).not.toContain(id)
+  })
+})
+
+describe('server clock (0017)', () => {
+  it('server_now() is readable by a signed-in user and closely follows the database clock', async () => {
+    const c = await seedCarrera(db, { teams: 2, bases: 1 })
+    const [row] = await db.asUser(c.teams[0].runners[0]).sql<{ t: string }>(`select public.server_now()::text as t`)
+    expect(Math.abs(new Date(row.t).getTime() - Date.now())).toBeLessThan(5000)
+    await expect(db.asAnon().sql(`select public.server_now()`)).rejects.toThrow()
   })
 })
