@@ -11,6 +11,7 @@ const TABS = [
   { to: '/admin/bases', label: 'Bases', icon: '📍', end: false },
   { to: '/admin/cruces', label: 'Cruces', icon: '⚔️', end: false },
   { to: '/admin/puntajes', label: 'Puntajes', icon: '🏆', end: false },
+  { to: '/admin/mapa', label: 'Mapa', icon: '🗺️', end: false },
   { to: '/admin/usuarios', label: 'Usuarios', icon: '🔑', end: false },
 ]
 

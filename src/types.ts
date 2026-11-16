@@ -43,6 +43,8 @@ export interface BaseRow {
   id: string
   name: string
   location_photo_path: string | null
+  lat: number | null
+  lng: number | null
   base_details: InfoEmbed // private info: only admin and the base's inductors can read it
   sort_order: number
   base_questions: BaseQuestion[]

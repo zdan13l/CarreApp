@@ -9,6 +9,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'logo.png'],
+      // The 3D map is heavy (~1.9 MB): load it on demand instead of precaching it on every phone.
+      workbox: { globIgnores: ['**/MapView-*'] },
       manifest: {
         name: 'CarreApp',
         short_name: 'CarreApp',
