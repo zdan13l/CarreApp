@@ -2,6 +2,17 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Bloque 6 — Mapa 3D y GPS (2026-11-15)
+**Hecho**
+- **Mapa 3D con Mapbox** (estilo *Standard*: edificios en 3D, inclinado, centrado en la Javeriana). Se carga solo cuando una pantalla lo usa (no pesa en el resto de la app).
+- **Ubicación de las bases:** el coordinador (o la propia base, si se mueve) toca el mapa o usa su ubicación actual para fijar dónde está.
+- **Mapa en vivo del coordinador** (pestaña *Mapa*): bases y grupos; cada grupo se mueve con la ubicación del corredor designado, con "hace X min" y alerta en rojo si pasan más de 2 minutos sin señal.
+- **Corredor, pestaña Mapa:** ruta a pie a la siguiente base con distancia, tiempo e indicaciones paso a paso en español. Todos pueden usarla (su posición queda en su teléfono); **solo el designado** comparte además su ubicación con el coordinador (cada 10 s), con la pantalla encendida (*Wake Lock*) y la compartición sigue aunque cambie de pestaña.
+- Variable `VITE_MAPBOX_TOKEN` (token público de Mapbox restringido por URL).
+
+**Pendiente**
+- Probar con teléfonos reales en el campus (migración `0009` aplicada y token de Mapbox cargado).
+
 ## Ajustes al Bloque 5 (2026-11-15)
 - **Barra de navegación inferior** en celular. **Corredor:** barra de estado siempre visible con puesto y puntos en vivo, y pestañas *Ronda* (ronda actual, rival y lo que la base ha calificado ítem por ítem, más la última ronda terminada), *Ruta* y *Top*. **Base:** pestañas *Mi base* (foto, información y preguntas), *Ronda* (actual y próxima), *Top* y *Terminados*.
 - **Información de la base privada:** el corredor ya no la ve, y tampoco puede leerla de la base de datos (migración `0008`).
