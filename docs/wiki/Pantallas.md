@@ -16,7 +16,7 @@ En el computador el menú lateral tiene dos grupos; en el celular la barra infer
 ### Preparación
 | Pantalla | Qué muestra | Para qué |
 |---|---|---|
-| **Carrera** | Estado y lista de pendientes para activar, **carga desde un archivo** (Word/Excel), tiempo general y por tramo de las alertas, y nueva edición. | Dejar lista la Carrera. |
+| **Carrera** | Estado y lista de pendientes para activar, **carga desde un archivo** (Word/Excel, con una *Carrera de prueba* lista para ensayar), tiempo general y por tramo de las alertas, nueva edición y **eliminar la Carrera** (la desactivada, escribiendo su nombre; con la opción de borrar también a sus usuarios). | Dejar lista la Carrera. |
 | **Grupos** | Nombre, foto y corredores (con el que transmite el GPS). | |
 | **Bases** | Nombre, foto del lugar, información, 3 preguntas, inductores y ubicación (el mapa se abre solo si se necesita). | |
 | **Cruces** | Generador del cronograma, revisión (descansos, bases repetidas) y edición ronda por ronda. | Armar y ajustar el cronograma. |
