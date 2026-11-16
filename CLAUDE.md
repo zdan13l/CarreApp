@@ -25,7 +25,7 @@ npm run check                    # tsc -b + lint + api tsc + tests + build
 
 There is no CLI migration tooling: SQL is applied by hand in the Supabase SQL Editor (see Conventions).
 
-**Verifying UI without logging in:** `npm run dev` serves a dev-only `/preview/<screen>` page that renders the real components with sample data (`runner`, `runner-ruta`, `runner-top`, `runner-alertas`, `base`, `base-info`, `admin` = En vivo, `admin-carrera`, `admin-forms`, `map`). Check at 390 px and 1280 px. `src/pages/Preview.tsx` imports components with concrete props, so changing a component's props means updating it too or `tsc -b` breaks. There are no test credentials; never ask for or type the real admin password.
+**Verifying UI without logging in:** `npm run dev` serves a dev-only `/preview/<screen>` page that renders the real components with sample data (`runner`, `runner-ruta`, `runner-top`, `runner-alertas`, `base`, `base-info`, `admin` = En vivo, `admin-carrera`, `admin-forms`, `map`, `logos` = the logo options gallery). Check at 390 px and 1280 px. `src/pages/Preview.tsx` imports components with concrete props, so changing a component's props means updating it too or `tsc -b` breaks. There are no test credentials; never ask for or type the real admin password.
 
 ## Architecture
 

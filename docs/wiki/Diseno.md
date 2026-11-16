@@ -8,22 +8,34 @@ Un **marcador de carrera**: fondo azul noche, **dorado** como color de marca y a
 ## Logo
 Una **C** dorada (la Carrera) con una **aguja de brújula** azul en su interior (la ruta que hay que seguir). Archivos en `public/`: `logo.svg`, `favicon.svg` y los PNG de la app instalada (`pwa-192.png`, `pwa-512.png`, `pwa-maskable-512.png`, `apple-touch-icon.png`). El componente `Logo` dibuja la marca y el nombre "Carre**App**".
 
-## Paleta
-| Uso | Color | Variable |
-|---|---|---|
-| Fondo | `#0A1020` | `--bg` |
-| Tarjetas | `#111A2E` | `--surface` |
-| Elementos elevados | `#172240` / `#1F2D52` | `--surface-2` / `--surface-3` |
-| Campos (hundidos) | `#0D1528` | `--inset` |
-| Bordes | `#223052` / `#33466F` | `--border` / `--border-strong` |
-| Texto | `#EDF1FA` · suave `#9AA8C7` · tenue `#6F7EA3` | `--text`, `--text-muted`, `--text-faint` |
-| **Marca (acciones principales)** | `#F2B632` | `--gold` |
-| Información, enlaces, foco | `#6CB0FF` | `--sky` |
-| Éxito / en vivo | `#3DD6A0` | `--ok` |
-| Advertencia | `#FF9F43` | `--warn` |
-| Error / eliminar | `#FF6B6B` | `--danger` |
+## Paleta · "Marcador nocturno"
+Azul noche con el oro de la Javeriana, como el marcador de un estadio de noche; en modo claro, papel cálido con tinta azul. Todos los colores son variables en `src/index.css`.
 
-Los fondos de avisos y etiquetas se derivan del color con `color-mix`, así siempre combinan.
+| Uso | Oscuro | Claro | Variable |
+|---|---|---|---|
+| Fondo | `#070B18` | `#F4F2EC` | `--bg` |
+| Tarjetas | `#0E1630` | `#FFFFFF` | `--surface` |
+| Elevados | `#152045` / `#1E2C5C` | `#F0EDE4` / `#E6E2D6` | `--surface-2` / `--surface-3` |
+| Campos | `#0A1128` | `#EDEAE0` | `--inset` |
+| Texto · suave · tenue | `#EEF2FF` · `#A9B6DB` · `#93A1CC` | `#0D1633` · `#465073` · `#566083` | `--text`, `--text-muted`, `--text-faint` |
+| **Marca (botones)** | `#FFC53D` | `#FFC53D` | `--gold` |
+| Oro como texto | `#FFC53D` | `#7C4F00` | `--gold-ink` |
+| Información, foco | `#66B3FF` | `#1A57C8` | `--sky` |
+| Éxito / en vivo | `#3BDDA8` | `#08694A` | `--ok` |
+| Advertencia | `#FFAC52` | `#8F4300` | `--warn` |
+| Error / eliminar | `#FF7080` | `#A71C26` | `--danger` |
+| **Tarjeta destacada** (marcador, KPI, entrada) | `#234BB5 → #0C1C55` | igual | `--hero-a`, `--hero-b` |
+
+Los fondos de avisos y etiquetas se derivan del color con `color-mix`, así siempre combinan. Todos los pares de texto cumplen contraste AA (4,5:1) en los dos modos y las pruebas lo vigilan (`tests/static/theme-contrast.test.ts`).
+
+### Rasgos del diseño
+- **Una tarjeta azul profunda por pantalla** (el marcador del corredor, el indicador principal del coordinador, el panel de entrada) ancla la marca; el resto son superficies tranquilas con sombra suave.
+- **Celular (corredor y base):** cabecera limpia con el logo y **un solo avatar** (menú con modo claro/oscuro y cerrar sesión), marcador en grande, pestañas inferiores de vidrio con una pastilla dorada en la activa, objetivos táctiles de 44 px o más y márgenes seguros del iPhone.
+- **PC (coordinador):** menú lateral de 272 px con la Carrera activa arriba, contenido de hasta 1320 px, **indicadores arriba** (ronda, cruces, demoras, ubicación) y la ronda como **tabla** (base, cruce, estado, marcador y aviso) con el ranking y las demoras al lado. La entrada es una pantalla partida: marca a la izquierda, formulario a la derecha.
+- **Tipografía:** Archivo condensado y en mayúsculas para títulos y marcadores (carácter deportivo), Archivo normal para el texto.
+
+### Logo
+Seis opciones listas (`src/components/logos.tsx`, galería en `/preview/logos`): **Brújula** (en uso: una C dorada con la aguja azul que marca el camino), C con destino, Podio, Pista, Bandera y Doble paso. Cambiar de logo es cambiar `LOGO_VARIANT` en `src/components/Logo.tsx`. Los íconos de la app (favicon, iPhone, PWA) se generan con el mismo dibujo; si cambias de logo hay que regenerarlos.
 
 ### Modo claro y oscuro
 Cada persona elige su modo con el botón de **sol / luna** de la barra superior (corredor, base, coordinador y pantalla de entrada). La elección se guarda en el teléfono (`localStorage`, clave `carreapp.theme`); la primera vez la app es **oscura**, como siempre. Un pequeño script de `index.html` aplica el modo guardado antes de pintar, así no hay parpadeo, y el color de la barra del navegador (`theme-color`) cambia con él.
