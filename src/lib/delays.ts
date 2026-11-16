@@ -39,6 +39,7 @@ export function lateTeams(
         .filter((x) => x.round_number < m.round_number && (x.team_a === teamId || x.team_b === teamId))
         .sort((x, y) => y.round_number - x.round_number)[0]
       if (!prev || prev.status !== 'finished' || !prev.finished_at) continue
+      if (prev.round_number !== m.round_number - 1) continue // the group rested a round: it was not walking, so no deadline
       if (prev.base_id === m.base_id) continue // the group is already at that base: it does not walk, so it cannot be late
       const allowed = travel.get(legKey(prev.base_id, m.base_id)) ?? maxMinutes
       const elapsedMin = Math.floor((now - new Date(prev.finished_at).getTime()) / 60000)

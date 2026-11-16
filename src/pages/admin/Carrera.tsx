@@ -75,8 +75,12 @@ export default function Carrera() {
 
   function activate() {
     if (!supabase || !event) return
+    const previous = events.find((x) => x.is_active && x.id !== event.id)
+    const msg = previous
+      ? `¿Activar "${event.name}"? Se desactivará "${previous.name}" y todos los teléfonos pasarán a la nueva Carrera.`
+      : `¿Activar "${event.name}"? Los corredores y las bases la verán de inmediato.`
+    if (!window.confirm(msg)) return
     void run(async () => {
-      const previous = events.find((x) => x.is_active && x.id !== event.id)
       if (previous) await supabase!.from('events').update({ is_active: false }).eq('id', previous.id)
       const { error: err } = await supabase!.from('events').update({ is_active: true }).eq('id', event.id)
       if (err) {
@@ -88,6 +92,7 @@ export default function Carrera() {
 
   function deactivate() {
     if (!supabase || !event) return
+    if (!window.confirm(`¿Desactivar "${event.name}"? Los corredores y las bases dejarán de ver la Carrera de inmediato.`)) return
     void run(async () => {
       const { error: err } = await supabase!.from('events').update({ is_active: false }).eq('id', event.id)
       if (err) throw new Error('No se pudo desactivar la Carrera.')
