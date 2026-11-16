@@ -11,6 +11,7 @@ export interface EventRow {
   id: string
   name: string
   is_active: boolean
+  max_travel_minutes: number
 }
 
 export interface TeamRunner {
@@ -67,6 +68,7 @@ export interface MatchRow {
   team_b: string
   status: MatchStatus
   arrived_at: string | null // when the base confirmed both teams arrived
+  finished_at: string | null // when its 3 items were scored or voided
 }
 
 export const STATUS_LABEL: Record<MatchStatus, string> = {

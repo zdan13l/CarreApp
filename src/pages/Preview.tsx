@@ -26,11 +26,11 @@ const teams = new Map<string, Team>(standings.map((r) => [r.team_id, { id: r.tea
 const base = { name: 'Atrio', location_photo_path: null, lat: 4.6286, lng: -74.0647 }
 
 const routeMatches: RouteMatch[] = [
-  { id: 'm1', round_number: 1, team_a: 't0', team_b: 't1', status: 'finished', arrived_at: '2026-01-20T10:00:00Z', bases: base,
+  { id: 'm1', round_number: 1, base_id: 'x1', finished_at: null, team_a: 't0', team_b: 't1', status: 'finished', arrived_at: '2026-01-20T10:00:00Z', bases: base,
     match_scores: [{ item: 'barra', winner_team_id: 't0', voided: false }, { item: 'pregunta', winner_team_id: 't1', voided: false }, { item: 'minijuego', winner_team_id: 't0', voided: false }] },
-  { id: 'm2', round_number: 2, team_a: 't0', team_b: 't2', status: 'in_progress', arrived_at: '2026-01-20T10:30:00Z', bases: { ...base, name: 'Biblioteca Alfonso Borrero' },
+  { id: 'm2', round_number: 2, base_id: 'x1', finished_at: null, team_a: 't0', team_b: 't2', status: 'in_progress', arrived_at: '2026-01-20T10:30:00Z', bases: { ...base, name: 'Biblioteca Alfonso Borrero' },
     match_scores: [{ item: 'barra', winner_team_id: 't2', voided: false }, { item: 'pregunta', winner_team_id: null, voided: true }] },
-  { id: 'm3', round_number: 4, team_a: 't3', team_b: 't0', status: 'pending', arrived_at: null, bases: { ...base, name: 'Cancha de Fútbol' }, match_scores: [] },
+  { id: 'm3', round_number: 4, base_id: 'x1', finished_at: null, team_a: 't3', team_b: 't0', status: 'pending', arrived_at: null, bases: { ...base, name: 'Cancha de Fútbol' }, match_scores: [] },
 ]
 
 const baseMatchPending: BaseMatch = { id: 'b1', round_number: 3, team_a: 't0', team_b: 't3', status: 'pending', arrived_at: null, match_scores: [] }
@@ -49,8 +49,8 @@ const profiles = [
   { id: 'u3', username: 'nico', full_name: 'Nicolás Pérez', role: 'runner' as const },
 ]
 const adminMatches: MatchRow[] = [
-  { id: 'a1', round_number: 1, base_id: 'x1', team_a: 't0', team_b: 't1', status: 'finished', arrived_at: '2026-01-20T10:05:00Z' },
-  { id: 'a2', round_number: 1, base_id: 'x2', team_a: 't2', team_b: 't3', status: 'in_progress', arrived_at: '2026-01-20T10:08:00Z' },
+  { id: 'a1', round_number: 1, base_id: 'x1', team_a: 't0', team_b: 't1', status: 'finished', arrived_at: '2026-01-20T10:05:00Z', finished_at: '2026-01-20T10:20:00Z' },
+  { id: 'a2', round_number: 1, base_id: 'x2', team_a: 't2', team_b: 't3', status: 'in_progress', arrived_at: '2026-01-20T10:08:00Z', finished_at: null },
 ]
 
 const ic = { size: 22, strokeWidth: 1.9 } as const

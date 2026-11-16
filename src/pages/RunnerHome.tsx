@@ -5,7 +5,10 @@ import BottomNav, { type NavTab } from '../components/BottomNav'
 import Crest from '../components/Crest'
 import Ranking from '../components/Ranking'
 import RunnerMap from '../components/RunnerMap'
+import { AlertBanner, SoundToggle } from '../components/Alerts'
 import { useAuth } from '../lib/auth'
+import { useAlertSound, useManualAlerts, useNow } from '../lib/alerts'
+import { lateTeams } from '../lib/delays'
 import { useRealtimeReload } from '../lib/realtime'
 import { photoUrl } from '../lib/storage'
 import { supabase } from '../lib/supabase'
@@ -24,6 +27,7 @@ interface MyTeam {
   photo_path: string | null
   event_id: string
   team_runners: { is_gps_tracker: boolean }[] // only this runner's own row
+  events: { max_travel_minutes: number } | { max_travel_minutes: number }[]
 }
 
 // Only name and photo of the base: its information and questions are private to the base.
@@ -34,6 +38,8 @@ export interface RouteMatch {
   team_b: string
   status: MatchStatus
   arrived_at: string | null
+  finished_at: string | null
+  base_id: string
   bases: { name: string; location_photo_path: string | null; lat: number | null; lng: number | null } | null
   match_scores: MatchScore[]
 }
@@ -63,7 +69,7 @@ export default function RunnerHome() {
     // The team this runner belongs to in the ACTIVE Carrera.
     const { data: t } = await supabase
       .from('teams')
-      .select('id, name, photo_path, event_id, team_runners!inner(user_id, is_gps_tracker), events!inner(is_active)')
+      .select('id, name, photo_path, event_id, team_runners!inner(user_id, is_gps_tracker), events!inner(is_active, max_travel_minutes)')
       .eq('team_runners.user_id', userId)
       .eq('events.is_active', true)
       .maybeSingle()
@@ -73,7 +79,7 @@ export default function RunnerHome() {
       supabase
         .from('matches')
         .select(
-          'id, round_number, team_a, team_b, status, arrived_at, bases(name, location_photo_path, lat, lng), match_scores(item, winner_team_id, voided)',
+          'id, round_number, base_id, team_a, team_b, status, arrived_at, finished_at, bases(name, location_photo_path, lat, lng), match_scores(item, winner_team_id, voided)',
         )
         .eq('event_id', t.event_id)
         .order('round_number'),
@@ -96,6 +102,12 @@ export default function RunnerHome() {
   const lastFinished = [...mine].reverse().find((m) => m.status === 'finished')
   const totalRounds = matches.reduce((max, m) => Math.max(max, m.round_number), 0)
   const myRow = standings.find((r) => r.team_id === team?.id)
+  const events = team?.events
+  const maxMinutes = (Array.isArray(events) ? events[0]?.max_travel_minutes : events?.max_travel_minutes) ?? 10
+  const now = useNow()
+  const myLate = team ? lateTeams(matches, maxMinutes, now).filter((l) => l.teamId === team.id) : []
+  const manual = useManualAlerts(mine.map((m) => m.id))
+  useAlertSound([...myLate.map((l) => `late-${l.matchId}`), ...manual.alerts.map((a) => `msg-${a.id}`)])
   const position = myRow ? standings.filter((r) => r.points > myRow.points).length + 1 : null
 
   return (
@@ -111,9 +123,22 @@ export default function RunnerHome() {
           {/* Always visible and live: position and points */}
           <StatusBar name={team.name} photoPath={team.photo_path} position={position} points={myRow?.points ?? 0} />
 
+          {manual.alerts.map((a) => (
+            <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => manual.dismiss(a.id)}>
+              {a.message}
+            </AlertBanner>
+          ))}
+          {myLate.map((l) => (
+            <AlertBanner key={l.matchId} title={`Llevas ${l.elapsedMin} min en el traslado`}>
+              El máximo es {maxMinutes} min. ¡Apúrate hacia {matches.find((m) => m.id === l.matchId)?.bases?.name}! Si ya
+              llegaste, avísale a la base.
+            </AlertBanner>
+          ))}
+
           {tab === 'ronda' && (
             <>
               {mine.length === 0 && <p className="warn">El coordinador aún no ha programado tus cruces.</p>}
+              <SoundToggle />
               {next && <CurrentRound match={next} myId={team.id} teams={teamById} />}
               {!next && mine.length > 0 && <p className="ok-box">Terminaste todos tus cruces. ¡Buen trabajo!</p>}
               {lastFinished && (

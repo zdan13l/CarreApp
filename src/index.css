@@ -619,3 +619,26 @@ details[open] summary::after { transform: rotate(180deg); }
 @media (min-width: 900px) { .admin-topbar { display: none; } }
 .admin-topbar + h1 { margin-top: 1.25rem; }
 .card > button.ghost.danger { margin-top: 1.25rem; }
+
+/* ---------- Alertas de demora ---------- */
+.alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+  margin-top: 1rem;
+  padding: .9rem 1rem;
+  color: var(--text);
+  background: color-mix(in srgb, var(--danger) 16%, var(--surface));
+  border: 1px solid var(--danger);
+  border-left-width: 5px;
+  border-radius: var(--radius);
+  animation: alert-in .35s ease-out;
+}
+.alert-banner > svg { flex: none; margin-top: 2px; color: var(--danger); }
+.alert-banner strong { display: block; font-size: 1.05rem; }
+.alert-banner p { margin: .25rem 0 0; color: var(--text-muted); font-size: .95rem; }
+@keyframes alert-in { from { transform: translateY(-6px); opacity: 0; } }
+.sound-toggle { margin-top: 1rem; width: 100%; color: var(--text-muted); }
+.sound-toggle.on { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+.delay-list .list li { align-items: flex-start; }
+.delay-list .late { color: var(--danger); font-weight: 700; }
