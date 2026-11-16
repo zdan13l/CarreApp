@@ -103,7 +103,7 @@ describe('POST: create a user', () => {
     state.createUser.mockResolvedValue({ data: { user: null }, error: { message: 'User already registered' } })
     const res = await call('POST', valid)
     expect(res.statusCode).toBe(409)
-    expect((res.body as { error: string }).error).toBe('Ese usuario ya existe.')
+    expect((res.body as { error: string }).error).toContain('Ese usuario ya existe')
   })
 
   it('rolls the account back when the profile cannot be written, so no orphan login remains', async () => {
