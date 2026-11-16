@@ -20,7 +20,8 @@ export interface LateTeam {
   maxMin: number // the time allowed for this leg
 }
 
-// A team is "late" when its previous match finished more than the time allowed for that leg
+// A team is "late" when it has to WALK to another base (a group that plays again at the base where it
+// already is never is) and its previous match finished more than the time allowed for that leg
 // (`travel`, from one base to the next; `maxMinutes` when the leg has no time of its own) ago and the base has
 // not yet confirmed that both teams arrived for the next one. Computed on each device from the
 // shared data, so no server job is needed.
@@ -38,6 +39,7 @@ export function lateTeams(
         .filter((x) => x.round_number < m.round_number && (x.team_a === teamId || x.team_b === teamId))
         .sort((x, y) => y.round_number - x.round_number)[0]
       if (!prev || prev.status !== 'finished' || !prev.finished_at) continue
+      if (prev.base_id === m.base_id) continue // the group is already at that base: it does not walk, so it cannot be late
       const allowed = travel.get(legKey(prev.base_id, m.base_id)) ?? maxMinutes
       const elapsedMin = Math.floor((now - new Date(prev.finished_at).getTime()) / 60000)
       if (elapsedMin >= allowed) late.push({ matchId: m.id, teamId, elapsedMin, overMin: elapsedMin - allowed, maxMin: allowed })
