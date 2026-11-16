@@ -35,7 +35,7 @@ Ver la [Bitácora](Bitacora) para el detalle. Hoja de ruta:
 | 6 | Mapa y GPS | Hecho, falta probar con teléfonos en el campus |
 | 7 | Alertas de demora | Código listo, falta aplicar `0010` y probar |
 | 8 | Carga masiva (plantilla Word/Excel) | Código listo (plantilla completa), falta probar con el archivo real |
-| 9 | Pruebas y ensayo | Pendiente |
+| 9 | Pruebas y ensayo | Pruebas automáticas y agente de pruebas listos; falta el simulacro con teléfonos |
 
 ## Decisiones clave
 - **PWA única con 3 roles** (admin, base, corredor) en vez de varias apps: se instala desde el navegador, sin tiendas de apps, y es gratis.
