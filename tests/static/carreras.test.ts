@@ -43,3 +43,17 @@ describe('the score log belongs to the selected Carrera', () => {
     expect(text).toMatch(/from\('matches'\)[\s\S]*?\.eq\('event_id', eventId\)/)
   })
 })
+
+describe('Carrera switching reaches every screen without a reload', () => {
+  it('the coordinator layout listens to events', () => {
+    expect(read('src/pages/admin/AdminLayout.tsx')).toMatch(/useRealtimeReload\(\['events'\], reload\)/)
+  })
+  it('runner and base keep what is on screen when the request fails (a network error is not "no active Carrera")', () => {
+    expect(read('src/pages/RunnerHome.tsx')).toMatch(/if \(teamErr\) return/)
+    expect(read('src/pages/BaseHome.tsx')).toMatch(/if \(baseErr\) return/)
+  })
+  it('a taken username explains that usernames are shared by all Carreras', () => {
+    expect(read('api/users.ts')).toMatch(/únicos en todas las Carreras/)
+    expect(read('src/lib/bulk.ts')).toMatch(/únicos en todas las Carreras/)
+  })
+})
