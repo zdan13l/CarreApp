@@ -1,11 +1,11 @@
 import { BellRing, CircleCheck } from 'lucide-react'
 import { useState } from 'react'
-import { useAlertSound, useNow } from '../lib/alerts'
+import { useNow, useRepeatingAlert } from '../lib/alerts'
 import { DEFAULT_ALERT_MESSAGE, lateTeams, type TimedMatch } from '../lib/delays'
 import { distanceMeters } from '../lib/geo'
 import { formatDistance } from '../lib/mapbox'
 import { supabase } from '../lib/supabase'
-import { SoundToggle } from './Alerts'
+import { AlertSettings } from './Alerts'
 
 export async function sendMatchAlert(eventId: string, matchId: string, message: string): Promise<string | null> {
   if (!supabase) return 'Supabase no está configurado.'
@@ -23,6 +23,7 @@ export default function DelaysPanel({
   baseName,
   baseCoords,
   teamCoords,
+  travel,
 }: {
   eventId: string
   matches: TimedMatch[]
@@ -31,13 +32,14 @@ export default function DelaysPanel({
   baseName: Map<string, string>
   baseCoords?: Map<string, [number, number]>
   teamCoords?: Map<string, [number, number]>
+  travel?: Map<string, number>
 }) {
   const now = useNow()
-  const late = lateTeams(matches, maxMinutes, now)
+  const late = lateTeams(matches, maxMinutes, now, travel)
   const matchIds = [...new Set(late.map((l) => l.matchId))]
   const [sent, setSent] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | null>(null)
-  useAlertSound(matchIds.map((id) => `late-${id}`))
+  useRepeatingAlert(matchIds.length > 0) // every 10 s while there are delays
 
   async function alert(matchId: string) {
     const message = window.prompt('Mensaje para los grupos y la base de este cruce:', DEFAULT_ALERT_MESSAGE)
@@ -53,7 +55,7 @@ export default function DelaysPanel({
       <h2>Demoras en el traslado</h2>
       {matchIds.length === 0 ? (
         <p className="ok-box">
-          Ningún grupo ha superado los {maxMinutes} min de traslado entre bases.
+          Ningún grupo ha superado su tiempo de traslado entre bases.
         </p>
       ) : (
         <ul className="list">
@@ -72,10 +74,8 @@ export default function DelaysPanel({
                       const pos = teamCoords?.get(l.teamId)
                       return (
                         <span key={l.teamId} className="match-names">
-                          {teamName.get(l.teamId)}: <span className="late">{l.elapsedMin} min</span>
+                          {teamName.get(l.teamId)}: <span className="late">{l.elapsedMin} min</span> (máx. {l.maxMin})
                           <small className="muted">
-                            {' '}
-                            (+{l.overMin})
                             {pos && base ? ` · a ${formatDistance(distanceMeters(pos, base))} de la base` : ''}
                           </small>
                         </span>
@@ -99,7 +99,7 @@ export default function DelaysPanel({
         </ul>
       )}
       {error && <p className="error">{error}</p>}
-      <SoundToggle />
+      <AlertSettings />
     </section>
   )
 }

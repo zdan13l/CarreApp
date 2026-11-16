@@ -5,10 +5,11 @@ import BottomNav, { type NavTab } from '../components/BottomNav'
 import Crest from '../components/Crest'
 import Ranking from '../components/Ranking'
 import RunnerMap from '../components/RunnerMap'
-import { AlertBanner, SoundToggle } from '../components/Alerts'
+import { AlertBanner, AlertSettings } from '../components/Alerts'
 import { useAuth } from '../lib/auth'
-import { useAlertSound, useManualAlerts, useNow } from '../lib/alerts'
+import { useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
 import { lateTeams } from '../lib/delays'
+import { useTravelTimes } from '../lib/travel'
 import { useRealtimeReload } from '../lib/realtime'
 import { photoUrl } from '../lib/storage'
 import { supabase } from '../lib/supabase'
@@ -105,9 +106,10 @@ export default function RunnerHome() {
   const events = team?.events
   const maxMinutes = (Array.isArray(events) ? events[0]?.max_travel_minutes : events?.max_travel_minutes) ?? 10
   const now = useNow()
-  const myLate = team ? lateTeams(matches, maxMinutes, now).filter((l) => l.teamId === team.id) : []
+  const travel = useTravelTimes(team?.event_id)
+  const myLate = team ? lateTeams(matches, maxMinutes, now, travel).filter((l) => l.teamId === team.id) : []
   const manual = useManualAlerts(mine.map((m) => m.id))
-  useAlertSound([...myLate.map((l) => `late-${l.matchId}`), ...manual.alerts.map((a) => `msg-${a.id}`)])
+  useRepeatingAlert(myLate.length > 0) // every 10 s while the delay lasts
   const position = myRow ? standings.filter((r) => r.points > myRow.points).length + 1 : null
 
   return (
@@ -130,7 +132,7 @@ export default function RunnerHome() {
           ))}
           {myLate.map((l) => (
             <AlertBanner key={l.matchId} title={`Llevas ${l.elapsedMin} min en el traslado`}>
-              El máximo es {maxMinutes} min. ¡Apúrate hacia {matches.find((m) => m.id === l.matchId)?.bases?.name}! Si ya
+              El máximo para este tramo es {l.maxMin} min. ¡Apúrate hacia {matches.find((m) => m.id === l.matchId)?.bases?.name}! Si ya
               llegaste, avísale a la base.
             </AlertBanner>
           ))}
@@ -138,7 +140,7 @@ export default function RunnerHome() {
           {tab === 'ronda' && (
             <>
               {mine.length === 0 && <p className="warn">El coordinador aún no ha programado tus cruces.</p>}
-              <SoundToggle />
+              <AlertSettings />
               {next && <CurrentRound match={next} myId={team.id} teams={teamById} />}
               {!next && mine.length > 0 && <p className="ok-box">Terminaste todos tus cruces. ¡Buen trabajo!</p>}
               {lastFinished && (

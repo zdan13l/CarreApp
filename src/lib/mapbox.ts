@@ -50,3 +50,15 @@ export function formatDuration(seconds: number): string {
   const min = Math.max(1, Math.round(seconds / 60))
   return `${min} min`
 }
+
+// Walking durations (seconds) between every pair of points: matrix[from][to]. Up to 25 points.
+export async function fetchWalkingMatrix(points: LngLat[]): Promise<(number | null)[][] | null> {
+  if (!MAPBOX_TOKEN || points.length < 2) return null
+  const coords = points.map((p) => `${p[0]},${p[1]}`).join(';')
+  const res = await fetch(
+    `https://api.mapbox.com/directions-matrix/v1/mapbox/walking/${coords}?annotations=duration&access_token=${MAPBOX_TOKEN}`,
+  )
+  if (!res.ok) return null
+  const data = await res.json()
+  return (data.durations as (number | null)[][] | undefined) ?? null
+}

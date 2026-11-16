@@ -7,10 +7,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest', // custom service worker (src/sw.ts) to receive push notifications
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'favicon.svg', 'apple-touch-icon.png', 'logo.png'],
       // The 3D map is heavy (~1.9 MB): load it on demand instead of precaching it on every phone.
-      workbox: { globPatterns: ['**/*.{js,css,html,woff2,svg,png}'], globIgnores: ['**/MapView-*', '**/*vietnamese*'] },
+      injectManifest: { globPatterns: ['**/*.{js,css,html,woff2,svg,png}'], globIgnores: ['**/MapView-*', '**/*vietnamese*'] },
       manifest: {
         name: 'CarreApp',
         short_name: 'CarreApp',

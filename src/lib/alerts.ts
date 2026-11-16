@@ -2,9 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 
 // ---------- Sound and vibration ----------
-// Browsers (and iOS especially) only allow sound after a user tap, so the user turns it on with a
-// button ("Activar sonido"); that tap unlocks the audio context.
+// Browsers (and iOS especially) only allow sound after a tap, and they suspend it again when the
+// phone locks or the app goes to the background. So:
+//   * the user turns sound on once with a button (the setting is remembered), and
+//   * every tap anywhere in the app wakes the audio up again (see `unlock` below).
+// For alerts while the phone is locked or the app is closed, push notifications are used.
 const KEY = 'carreapp.alert-sound'
+export const ALERT_REPEAT_MS = 10_000 // a delay alert sounds every 10 seconds while it lasts
 let audio: AudioContext | null = null
 
 function context(): AudioContext | null {
@@ -22,14 +26,46 @@ export function soundEnabled(): boolean {
   }
 }
 
+export function audioRunning(): boolean {
+  return audio?.state === 'running'
+}
+
+// Plays a silent tick: on iOS this is what really "unlocks" the audio after a tap.
+async function unlock() {
+  const ctx = context()
+  if (!ctx) return
+  try {
+    await ctx.resume()
+    const buffer = ctx.createBuffer(1, 1, 22050)
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    source.connect(ctx.destination)
+    source.start(0)
+  } catch {
+    // still locked: the next tap tries again
+  }
+}
+
+if (typeof window !== 'undefined') {
+  const wake = () => {
+    if (soundEnabled() && !audioRunning()) void unlock()
+  }
+  for (const type of ['pointerdown', 'touchend', 'click', 'keydown'] as const) {
+    window.addEventListener(type, wake, { passive: true })
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') wake()
+  })
+}
+
 export async function enableSound(): Promise<void> {
   try {
     localStorage.setItem(KEY, '1')
   } catch {
     // storage blocked: works until the page is closed
   }
-  await context()?.resume()
-  playAlertSound() // short confirmation beep
+  await unlock()
+  playAlertSound() // short confirmation
 }
 
 export function disableSound() {
@@ -43,7 +79,7 @@ export function disableSound() {
 export function playAlertSound() {
   if (!soundEnabled()) return
   const ctx = context()
-  if (ctx) {
+  if (ctx && ctx.state !== 'closed') {
     void ctx.resume()
     const start = ctx.currentTime
     ;[880, 660, 880].forEach((freq, i) => {
@@ -52,7 +88,7 @@ export function playAlertSound() {
       osc.type = 'square'
       osc.frequency.value = freq
       gain.gain.setValueAtTime(0.0001, start + i * 0.28)
-      gain.gain.exponentialRampToValueAtTime(0.25, start + i * 0.28 + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.3, start + i * 0.28 + 0.02)
       gain.gain.exponentialRampToValueAtTime(0.0001, start + i * 0.28 + 0.22)
       osc.connect(gain).connect(ctx.destination)
       osc.start(start + i * 0.28)
@@ -63,7 +99,7 @@ export function playAlertSound() {
 }
 
 // ---------- Hooks ----------
-export function useNow(intervalMs = 15000): number {
+export function useNow(intervalMs = 5000): number {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), intervalMs)
@@ -72,27 +108,24 @@ export function useNow(intervalMs = 15000): number {
   return now
 }
 
-// Plays the alert sound when a key shows up that was not there before (and again every `repeatMs`
-// while it stays, so a late team is not forgotten). The first render never beeps.
-export function useAlertSound(keys: string[], repeatMs = 3 * 60 * 1000) {
-  const seen = useRef<Map<string, number> | null>(null)
-  const signature = keys.join('|')
+// True while the audio is awake. False after a reload or a lock until the user taps again.
+export function useAudioRunning(): boolean {
+  const [running, setRunning] = useState(audioRunning)
   useEffect(() => {
-    const now = Date.now()
-    const current = new Map<string, number>()
-    let beep = false
-    for (const k of keys) {
-      const last = seen.current?.get(k)
-      if (seen.current !== null && (last === undefined || now - last >= repeatMs)) {
-        beep = true
-        current.set(k, now)
-      } else current.set(k, last ?? now)
-    }
-    seen.current = current
-    if (beep) playAlertSound()
-    // keys are compared through their signature
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signature])
+    const id = setInterval(() => setRunning(audioRunning()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  return running
+}
+
+// Sounds right away when `active` turns on and then every `everyMs` while it stays on.
+export function useRepeatingAlert(active: boolean, everyMs = ALERT_REPEAT_MS) {
+  useEffect(() => {
+    if (!active) return
+    playAlertSound()
+    const id = setInterval(playAlertSound, everyMs)
+    return () => clearInterval(id)
+  }, [active, everyMs])
 }
 
 export interface ManualAlert {
@@ -102,13 +135,16 @@ export interface ManualAlert {
   created_at: string
 }
 
-const RECENT_MS = 20 * 60 * 1000
+const RECENT_MS = 20 * 60 * 1000 // alerts stay visible for 20 minutes
+const FRESH_MS = 60 * 1000 // and sound repeatedly during their first minute
 
-// Manual alerts sent by the coordinator for the given matches: loads the recent ones and listens
-// for new ones live (sound included).
+// Manual alerts sent by the coordinator for the given matches. They arrive live, and the list is
+// also refreshed every 10 s and whenever the app comes back to the foreground (a locked phone
+// drops the live connection), so an alert is never missed.
 export function useManualAlerts(matchIds: string[]) {
   const [alerts, setAlerts] = useState<ManualAlert[]>([])
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  const now = useNow(5000)
   const idsKey = matchIds.join(',')
   const idsRef = useRef(new Set(matchIds))
 
@@ -122,35 +158,48 @@ export function useManualAlerts(matchIds: string[]) {
     if (!supabase || matchIds.length === 0) return
     const client = supabase
     let cancelled = false
-    const since = new Date(Date.now() - RECENT_MS).toISOString()
-    void client
-      .from('alerts')
-      .select('id, match_id, message, created_at')
-      .in('match_id', matchIds)
-      .gte('created_at', since)
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        if (!cancelled && data) setAlerts(data)
-      })
+    const refresh = async () => {
+      const since = new Date(Date.now() - RECENT_MS).toISOString()
+      const { data } = await client
+        .from('alerts')
+        .select('id, match_id, message, created_at')
+        .in('match_id', matchIds)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+      if (!cancelled && data) setAlerts(data)
+    }
+    void refresh()
+    const poll = setInterval(() => void refresh(), 10_000)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refresh()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('online', onVisible)
     const channel = client
       .channel(`alerts-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, (payload) => {
         const row = payload.new as ManualAlert
         if (!idsRef.current.has(row.match_id)) return
         setAlerts((prev) => (prev.some((a) => a.id === row.id) ? prev : [row, ...prev]))
-        playAlertSound()
       })
       .subscribe()
     return () => {
       cancelled = true
+      clearInterval(poll)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('online', onVisible)
       void client.removeChannel(channel)
     }
     // matchIds is tracked through idsKey
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idsKey])
 
+  const visible = alerts.filter((a) => !dismissed.has(a.id) && now - new Date(a.created_at).getTime() < RECENT_MS)
+  const fresh = visible.some((a) => now - new Date(a.created_at).getTime() < FRESH_MS)
+  useRepeatingAlert(fresh)
+
   return {
-    alerts: alerts.filter((a) => !dismissed.has(a.id) && Date.now() - new Date(a.created_at).getTime() < RECENT_MS),
+    alerts: visible,
     dismiss: (id: string) => setDismissed((prev) => new Set(prev).add(id)),
   }
 }
