@@ -99,7 +99,7 @@ drop policy if exists photos_admin_delete on storage.objects;
 Se detectó que un inductor podía quedar asignado a dos bases a la vez. La regla vive en la base de datos, no solo en la pantalla.
 
 **Verificación**
-Probado en Postgres en memoria: rechaza al inductor en dos bases y al corredor en dos grupos, y la validación reporta grupos con menos de 2 corredores. Las filas repetidas que ya existan no se borran: aparecen como pendiente en el Resumen para corregirlas a mano.
+Probado en Postgres en memoria: rechaza al inductor en dos bases y al corredor en dos grupos, y la validación reporta grupos con menos de 2 corredores. Las filas repetidas que ya existan no se borran: aparecen como pendiente en la pestaña Carrera para corregirlas a mano.
 
 **Cómo revertir**
 ```sql
