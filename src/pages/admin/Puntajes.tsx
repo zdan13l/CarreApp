@@ -211,7 +211,7 @@ export default function Puntajes() {
                   <br />
                   <small className="muted">
                     {r.action === 'insert' && `Resultado: ${who(r.new_winner, r.new_voided)}`}
-                    {r.action === 'update' && `${who(r.old_winner, r.old_voided)} → ${who(r.new_winner, r.new_voided)}`}
+                    {r.action === 'update' && `${who(r.old_winner, r.old_voided)} pasó a ${who(r.new_winner, r.new_voided)}`}
                     {r.action === 'delete' && `Antes: ${who(r.old_winner, r.old_voided)}`}
                     {' · '}
                     {new Date(r.changed_at).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}

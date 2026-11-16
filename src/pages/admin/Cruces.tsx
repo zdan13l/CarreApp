@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import RoundPager from '../../components/RoundPager'
 import { analyzeSchedule, currentRound, formatTime, generateSchedule, matchErrorMessage, type PlannedMatch } from '../../lib/schedule'
@@ -240,7 +241,7 @@ export default function Cruces() {
   )
 }
 
-function RoundCard({
+export function RoundCard({
   round,
   matches,
   allMatches,
@@ -318,11 +319,17 @@ function RoundCard({
           <li key={m.id}>
             <span className="grow">
               <strong>{baseName.get(m.base_id)}</strong>
-              <br />
-              {teamName.get(m.team_a)} vs {teamName.get(m.team_b)}
-              <small className="muted"> · {STATUS_LABEL[m.status]}{m.arrived_at ? ` · llegaron ${formatTime(m.arrived_at)}` : ''}</small>
+              <span className="match-names">
+                {teamName.get(m.team_a)} <span className="muted">vs</span> {teamName.get(m.team_b)}
+              </span>
+              <span className="meta">
+                <span className={`badge ${m.status === 'finished' ? 'ok' : m.status === 'in_progress' ? 'ok live' : ''}`}>
+                  {STATUS_LABEL[m.status]}
+                </span>
+                {m.arrived_at && <small className="muted">Llegaron a las {formatTime(m.arrived_at)}</small>}
+              </span>
             </span>
-            <button className="ghost danger" disabled={disabled} onClick={() => void remove(m)} aria-label="Borrar cruce">✕</button>
+            <button className="ghost danger icon-btn" disabled={disabled} onClick={() => void remove(m)} aria-label="Borrar cruce" title="Borrar cruce"><Trash2 size={18} /></button>
           </li>
         ))}
       </ul>

@@ -1,18 +1,32 @@
+import { LogOut } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useAuth } from '../lib/auth'
+import Logo from './Logo'
 
-export default function AppShell({ title, children }: { title: string; children: ReactNode }) {
+export default function AppShell({
+  title,
+  children,
+  user,
+}: {
+  title: string
+  children: ReactNode
+  user?: { full_name: string; username: string } // overrides the signed-in user (design preview)
+}) {
   const { profile, signOut } = useAuth()
+  const who = user ?? profile
   return (
     <main className="page">
       <header className="topbar">
-        <img src="/logo.png" alt="Logo de CarreApp" className="logo-sm" />
-        <div>
-          <h1>{title}</h1>
-          <p className="muted">{profile?.full_name} · @{profile?.username}</p>
+        <Logo size={30} />
+        <div className="topbar-user">
+          <strong>{who?.full_name}</strong>
+          <small>@{who?.username}</small>
         </div>
-        <button className="ghost" onClick={signOut}>Salir</button>
+        <button className="ghost icon-btn" onClick={signOut} aria-label="Cerrar sesión" title="Cerrar sesión">
+          <LogOut size={20} />
+        </button>
       </header>
+      <h1 className="page-title">{title}</h1>
       {children}
     </main>
   )

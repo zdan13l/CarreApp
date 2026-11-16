@@ -1,3 +1,4 @@
+import { LocateFixed } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { LngLat } from '../lib/mapbox'
@@ -80,7 +81,8 @@ export default function BaseLocationEditor({
         {draft ? 'Toca el mapa para mover el punto.' : 'Toca el mapa para marcar dónde está la base.'}
       </p>
       <div className="row">
-        <button className="ghost" type="button" disabled={busy} onClick={useMyPosition}>📍 Usar mi ubicación</button>
+        <button className="ghost" type="button" disabled={busy} onClick={useMyPosition}><LocateFixed size={18} aria-hidden="true" />
+          Usar mi ubicación</button>
         <button type="button" disabled={busy || !changed} onClick={() => void save()}>Guardar ubicación</button>
       </div>
       {message && <p className="ok-text">{message}</p>}

@@ -1,13 +1,14 @@
-import '../ranking.css'
+import { Ban, Check, CheckCheck, Flag, MapPin, Send, Trophy, UsersRound } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell'
 import BaseLocationEditor from '../components/BaseLocationEditor'
 import BottomNav, { type NavTab } from '../components/BottomNav'
-import { useAuth } from '../lib/auth'
-import { useRealtimeReload } from '../lib/realtime'
+import Crest from '../components/Crest'
 import PhotoField from '../components/PhotoField'
 import Ranking from '../components/Ranking'
-import { photoUrl, uploadPhoto } from '../lib/storage'
+import { useAuth } from '../lib/auth'
+import { useRealtimeReload } from '../lib/realtime'
+import { uploadPhoto } from '../lib/storage'
 import { supabase } from '../lib/supabase'
 import {
   ITEM_LABEL,
@@ -33,7 +34,7 @@ interface MyBase {
   base_questions: BaseQuestion[]
 }
 
-interface BaseMatch {
+export interface BaseMatch {
   id: string
   round_number: number
   team_a: string
@@ -43,18 +44,19 @@ interface BaseMatch {
   match_scores: MatchScore[]
 }
 
-interface Team {
+export interface Team {
   id: string
   name: string
   photo_path: string | null
 }
 
 type Tab = 'base' | 'ronda' | 'top' | 'terminados'
+const ICON = { size: 22, strokeWidth: 1.9, 'aria-hidden': true } as const
 const TABS: NavTab<Tab>[] = [
-  { id: 'base', label: 'Mi base', icon: '📍' },
-  { id: 'ronda', label: 'Ronda', icon: '⚽' },
-  { id: 'top', label: 'Top', icon: '🏆' },
-  { id: 'terminados', label: 'Terminados', icon: '✅' },
+  { id: 'base', label: 'Mi base', icon: <MapPin {...ICON} /> },
+  { id: 'ronda', label: 'Ronda', icon: <Flag {...ICON} /> },
+  { id: 'top', label: 'Top', icon: <Trophy {...ICON} /> },
+  { id: 'terminados', label: 'Terminados', icon: <CheckCheck {...ICON} /> },
 ]
 
 export default function BaseHome() {
@@ -107,9 +109,9 @@ export default function BaseHome() {
   const finished = matches.filter((m) => m.status === 'finished')
 
   return (
-    <AppShell title="Mi base">
+    <AppShell title={base?.name ?? 'Mi base'}>
       {loading ? (
-        <p className="muted">Cargando…</p>
+        <p className="loading">Cargando…</p>
       ) : !base ? (
         <section className="card">
           <p>Todavía no tienes una base asignada en la Carrera activa. Avísale al coordinador.</p>
@@ -120,15 +122,14 @@ export default function BaseHome() {
 
           {tab === 'ronda' && (
             <>
-              <h2 className="section-title">{current ? `Ronda ${current.round_number}: ahora` : 'Ronda actual'}</h2>
               {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
               {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} />}
               {next && (
                 <section className="card next">
-                  <h3>Próxima ronda ({next.round_number})</h3>
+                  <h3>Próxima ronda · R{next.round_number}</h3>
                   <div className="versus small">
                     <TeamFace team={teams.get(next.team_a)} />
-                    <span className="vs">vs</span>
+                    <span className="vs dim">VS</span>
                     <TeamFace team={teams.get(next.team_b)} />
                   </div>
                 </section>
@@ -151,11 +152,14 @@ export default function BaseHome() {
               <ul className="list">
                 {finished.map((m) => (
                   <li key={m.id}>
+                    <span className="round-tag">R{m.round_number}</span>
                     <span className="grow">
-                      Ronda {m.round_number}: {teams.get(m.team_a)?.name} {m.match_scores.filter((x) => x.winner_team_id === m.team_a).length}
-                      {' – '}
-                      {m.match_scores.filter((x) => x.winner_team_id === m.team_b).length} {teams.get(m.team_b)?.name}
+                      {teams.get(m.team_a)?.name} <span className="muted">vs</span> {teams.get(m.team_b)?.name}
                     </span>
+                    <strong className="num">
+                      {m.match_scores.filter((x) => x.winner_team_id === m.team_a).length}–
+                      {m.match_scores.filter((x) => x.winner_team_id === m.team_b).length}
+                    </strong>
                   </li>
                 ))}
               </ul>
@@ -192,35 +196,39 @@ function BaseInfoCard({ base, onChanged }: { base: MyBase; onChanged: () => Prom
   }
 
   return (
-    <section className="card">
-      <h2>{base.name}</h2>
-      <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
-      <p className="muted">¿La base se movió? Cambia la foto y la ubicación en el mapa para que los grupos la encuentren.</p>
-      {error && <p className="error">{error}</p>}
-      <BaseLocationEditor baseId={base.id} name={base.name} lat={base.lat} lng={base.lng} onSaved={onChanged} />
-      <h3>Información que se da</h3>
-      <p className="pre">{infoOf(base.base_details) ?? 'Sin información.'}</p>
-      <h3>Posibles preguntas</h3>
-      <ol>
-        {questions.map((q) => <li key={q.position}>{q.question}</li>)}
-      </ol>
-    </section>
+    <>
+      <section className="card">
+        <h2>Dónde queda</h2>
+        <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
+        <p className="muted">¿La base se movió? Cambia la foto y la ubicación en el mapa para que los grupos la encuentren.</p>
+        {error && <p className="error">{error}</p>}
+        <BaseLocationEditor baseId={base.id} name={base.name} lat={base.lat} lng={base.lng} onSaved={onChanged} />
+      </section>
+      <section className="card">
+        <h2>Información</h2>
+        <h3>Lo que se explica en la base</h3>
+        <p className="pre">{infoOf(base.base_details) ?? 'Sin información.'}</p>
+        <h3>Posibles preguntas</h3>
+        <ol className="questions">
+          {questions.map((q) => <li key={q.position}>{q.question}</li>)}
+        </ol>
+      </section>
+    </>
   )
 }
 
-function TeamFace({ team }: { team?: Team }) {
-  const url = photoUrl(team?.photo_path ?? null)
+export function TeamFace({ team }: { team?: Team }) {
   return (
     <div className="face">
-      {url ? <img src={url} alt="" /> : <span aria-hidden="true">👥</span>}
+      <Crest name={team?.name} photoPath={team?.photo_path} size="lg" />
       <strong>{team?.name ?? '—'}</strong>
     </div>
   )
 }
 
-type Pick = string | 'tie' // team id or tie
+type Pick = string // team id
 
-function MatchCard({
+export function MatchCard({
   match,
   teams,
   onSent,
@@ -241,14 +249,11 @@ function MatchCard({
   const arrived = match.arrived_at !== null || match.status !== 'pending'
   const points = (teamId: string) => match.match_scores.filter((s) => s.winner_team_id === teamId).length
 
-  const label = (pick: Pick | null | undefined) =>
-    pick === undefined ? '' : pick === null || pick === 'tie' ? 'Empate' : teams.get(pick)?.name ?? '?'
+  const label = (id: string | null | undefined) => (id ? (teams.get(id)?.name ?? '?') : '')
 
   async function confirmArrival() {
     if (!supabase) return
-    if (!window.confirm(`¿Ya llegaron los dos grupos?
-
-${a?.name} y ${b?.name}`)) return
+    if (!window.confirm(`¿Ya llegaron los dos grupos?\n\n${a?.name} y ${b?.name}`)) return
     setBusy(true)
     setError(null)
     const { error: err } = await supabase.rpc('confirm_arrival', { p_match: match.id })
@@ -264,19 +269,15 @@ ${a?.name} y ${b?.name}`)) return
     setBusy(true)
     setError(null)
     const { error: err } = await supabase.from('match_scores').insert(
-      toSend.map((i) => ({
-        match_id: match.id,
-        item: i,
-        winner_team_id: picks[i] === 'tie' ? null : (picks[i] as string),
-      })),
+      toSend.map((i) => ({ match_id: match.id, item: i, winner_team_id: picks[i] as string })),
     )
     if (err) {
       setError(
         /ronda anterior/i.test(err.message)
           ? 'Primero termina de calificar la ronda anterior.'
           : /duplicate|unique/i.test(err.message)
-          ? 'Alguien ya registró uno de esos ítems. Se actualizó la pantalla.'
-          : 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.',
+            ? 'Alguien ya registró uno de esos ítems. Se actualizó la pantalla.'
+            : 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.',
       )
     } else {
       setPicks({})
@@ -288,12 +289,14 @@ ${a?.name} y ${b?.name}`)) return
   return (
     <section className="card match">
       <div className="match-head">
-        <span>Ronda {match.round_number}</span>
-        <span className={`badge ${match.status === 'finished' ? 'ok' : 'idle'}`}>{STATUS_LABEL[match.status]}</span>
+        <span className="round-tag">Ronda {match.round_number}</span>
+        <span className={`badge ${match.status === 'in_progress' ? 'ok live' : match.status === 'finished' ? 'ok' : ''}`}>
+          {STATUS_LABEL[match.status]}
+        </span>
       </div>
       <div className="versus">
         <TeamFace team={a} />
-        <span className="vs">{points(match.team_a)} – {points(match.team_b)}</span>
+        <span className="vs num">{points(match.team_a)}–{points(match.team_b)}</span>
         <TeamFace team={b} />
       </div>
 
@@ -301,44 +304,62 @@ ${a?.name} y ${b?.name}`)) return
         <>
           <p className="muted">Cuando estén los dos grupos en tu base, confírmalo. Así el coordinador sabe que ya pueden jugar.</p>
           {error && <p className="error">{error}</p>}
-          <button disabled={busy} onClick={() => void confirmArrival()}>{busy ? 'Confirmando…' : 'Ya llegaron ambos grupos'}</button>
+          <button className="btn-block" disabled={busy} onClick={() => void confirmArrival()}>
+            <UsersRound size={20} aria-hidden="true" />
+            {busy ? 'Confirmando…' : 'Ya llegaron ambos grupos'}
+          </button>
         </>
       )}
 
-      {arrived && SCORE_ITEMS.map((item) => {
-        const done = scored.has(item)
-        return (
-          <div key={item} className="item">
-            <h3>{ITEM_LABEL[item]}</h3>
-            {done ? (
-              scored.get(item)?.voided ? (
-                <p className="result voided">⊘ Invalidado por el coordinador</p>
+      {arrived &&
+        SCORE_ITEMS.map((item) => {
+          const row = scored.get(item)
+          return (
+            <div key={item} className="item">
+              <h3>{ITEM_LABEL[item]}</h3>
+              {row ? (
+                row.voided ? (
+                  <p className="result voided">
+                    <Ban size={18} aria-hidden="true" /> Invalidado por el coordinador
+                  </p>
+                ) : (
+                  <p className="result">
+                    <Check size={18} aria-hidden="true" /> {label(row.winner_team_id)}
+                  </p>
+                )
               ) : (
-                <p className="result">✔ {label(scored.get(item)?.winner_team_id)}</p>
-              )
-            ) : (
-              <div className="choices">
-                {([match.team_a, match.team_b] as Pick[]).map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`choice${picks[item] === value ? ' on' : ''}`}
-                    aria-pressed={picks[item] === value}
-                    disabled={busy}
-                    onClick={() => setPicks({ ...picks, [item]: picks[item] === value ? undefined : value })}
-                  >
-                    {teams.get(value)?.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )
-      })}
+                <div className="choices">
+                  {[match.team_a, match.team_b].map((id) => {
+                    const on = picks[item] === id
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        className={`choice${on ? ' on' : ''}`}
+                        aria-pressed={on}
+                        disabled={busy}
+                        onClick={() => setPicks({ ...picks, [item]: on ? undefined : id })}
+                      >
+                        <Crest name={teams.get(id)?.name} photoPath={teams.get(id)?.photo_path} size="sm" />
+                        <span className="name">{teams.get(id)?.name}</span>
+                        {on && (
+                          <span className="tick" aria-hidden="true">
+                            <Check size={14} strokeWidth={3} />
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
 
       {arrived && error && <p className="error">{error}</p>}
       {arrived && pendingItems.length > 0 && (
-        <button disabled={busy || toSend.length === 0} onClick={() => void send()}>
+        <button className="btn-block" disabled={busy || toSend.length === 0} onClick={() => void send()}>
+          <Send size={19} aria-hidden="true" />
           {busy ? 'Enviando…' : toSend.length ? `Enviar ${toSend.length} ${toSend.length === 1 ? 'ítem' : 'ítems'}` : 'Elige un ganador'}
         </button>
       )}

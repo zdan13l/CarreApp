@@ -1,9 +1,9 @@
-import '../ranking.css'
+import type { ReactNode } from 'react'
 
 export interface NavTab<T extends string> {
   id: T
   label: string
-  icon: string
+  icon: ReactNode
 }
 
 // Bottom tab bar for the phone views (runner and base). State-based, so each tab keeps its
@@ -32,7 +32,7 @@ export default function BottomNav<T extends string>({
               window.scrollTo({ top: 0 })
             }}
           >
-            <span aria-hidden="true">{t.icon}</span>
+            {t.icon}
             <span>{t.label}</span>
           </button>
         ))}

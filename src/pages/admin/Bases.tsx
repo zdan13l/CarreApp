@@ -1,3 +1,4 @@
+import { Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import BaseLocationEditor from '../../components/BaseLocationEditor'
 import PhotoField from '../../components/PhotoField'
@@ -84,7 +85,7 @@ export default function Bases() {
   )
 }
 
-function BaseCard({
+export function BaseCard({
   base,
   staff,
   taken,
@@ -213,7 +214,7 @@ function BaseCard({
           return (
             <li key={s.user_id}>
               <span className="grow">{p ? p.full_name : 'Usuario'}</span>
-              <button className="ghost" disabled={busy} onClick={() => void removeStaff(s.user_id)} aria-label="Quitar inductor">✕</button>
+              <button className="ghost icon-btn" disabled={busy} onClick={() => void removeStaff(s.user_id)} aria-label="Quitar inductor" title="Quitar inductor"><X size={18} /></button>
             </li>
           )
         })}
@@ -227,7 +228,10 @@ function BaseCard({
       </div>
 
       {error && <p className="error">{error}</p>}
-      <button className="ghost danger" disabled={busy} onClick={remove}>Eliminar base</button>
+      <button className="ghost danger" disabled={busy} onClick={remove}>
+        <Trash2 size={18} aria-hidden="true" />
+        Eliminar base
+      </button>
     </section>
   )
 }

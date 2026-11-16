@@ -8,16 +8,16 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'logo.png'],
+      includeAssets: ['favicon.png', 'favicon.svg', 'apple-touch-icon.png', 'logo.png'],
       // The 3D map is heavy (~1.9 MB): load it on demand instead of precaching it on every phone.
-      workbox: { globIgnores: ['**/MapView-*'] },
+      workbox: { globPatterns: ['**/*.{js,css,html,woff2,svg,png}'], globIgnores: ['**/MapView-*', '**/*vietnamese*'] },
       manifest: {
         name: 'CarreApp',
         short_name: 'CarreApp',
         description: 'Gestión en vivo de la Carrera de inducción',
         lang: 'es',
-        theme_color: '#0b0f17',
-        background_color: '#0b0f17',
+        theme_color: '#0a1020',
+        background_color: '#0a1020',
         display: 'standalone',
         start_url: '/',
         icons: [

@@ -1,3 +1,4 @@
+import { Copy, KeyRound, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '../../lib/auth'
 import { generatePassword } from '../../lib/password'
@@ -107,6 +108,7 @@ export default function Usuarios() {
           <p>Contraseña: <strong className="mono">{creds.password}</strong></p>
           <div className="row">
             <button onClick={() => void navigator.clipboard?.writeText(`Usuario: ${creds.username}\nContraseña: ${creds.password}`)}>
+              <Copy size={18} aria-hidden="true" />
               Copiar
             </button>
             <button className="ghost" onClick={() => setCreds(null)}>Cerrar</button>
@@ -180,9 +182,12 @@ export default function Usuarios() {
                 {u.full_name}
                 <small className="muted"> @{u.username} · {ROLE_LABEL[u.role]}</small>
               </span>
-              <button className="ghost" disabled={busy} onClick={() => onReset(u)}>Contraseña</button>
+              <button className="ghost" disabled={busy} onClick={() => onReset(u)} title="Generar una contraseña nueva">
+                <KeyRound size={16} aria-hidden="true" />
+                Contraseña
+              </button>
               {u.id !== me?.id && (
-                <button className="ghost danger" disabled={busy} onClick={() => onDelete(u)} aria-label={`Eliminar ${u.full_name}`}>✕</button>
+                <button className="ghost danger icon-btn" disabled={busy} onClick={() => onDelete(u)} aria-label={`Eliminar ${u.full_name}`} title="Eliminar usuario"><Trash2 size={18} /></button>
               )}
             </li>
           ))}

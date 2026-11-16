@@ -1,4 +1,6 @@
+import { Check, X } from 'lucide-react'
 import { useState } from 'react'
+import Logo from '../components/Logo'
 import { isSupabaseConfigured } from '../lib/supabase'
 
 type Result = { label: string; ok: boolean; detail: string; ms: number }
@@ -49,9 +51,9 @@ export default function NetworkCheck() {
 
   return (
     <main className="page">
-      <img src="/logo.png" alt="Logo de CarreApp" className="logo" />
-      <h1>CarreApp</h1>
-      <p className="muted">Bloque 0 · Prueba de red y dispositivo</p>
+      <Logo size={40} />
+      <h1 className="page-title">Prueba de red y dispositivo</h1>
+      <p className="muted">Comprueba que tu teléfono llega a los servicios de la Carrera.</p>
 
       <section className="card">
         <h2>Conectividad</h2>
@@ -62,7 +64,7 @@ export default function NetworkCheck() {
         <ul className="results">
           {results.map((r) => (
             <li key={r.label} className={r.ok ? 'ok' : 'fail'}>
-              <strong>{r.ok ? '✔' : '✘'} {r.label}</strong>
+              <strong>{r.ok ? <Check size={16} aria-hidden="true" /> : <X size={16} aria-hidden="true" />} {r.label}</strong>
               <span>{r.detail} · {r.ms} ms</span>
             </li>
           ))}
@@ -72,7 +74,7 @@ export default function NetworkCheck() {
       <section className="card">
         <h2>Dispositivo</h2>
         <p>Instalada como app: <strong>{standalone ? 'sí' : 'no'}</strong></p>
-        <p>Notificaciones: <strong>{'Notification' in window ? Notification.permission : 'no soportadas (en iPhone instala la app primero)'}</strong></p>
+        <p>Notificaciones: <strong>{'Notification' in window ? ({ granted: 'permitidas', denied: 'bloqueadas', default: 'sin decidir' } as const)[Notification.permission] : 'no soportadas (en iPhone instala la app primero)'}</strong></p>
         <p>Ubicación: <strong>{geo}</strong></p>
         <button onClick={testGeo}>Probar ubicación</button>
       </section>

@@ -1,19 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import { useAuth } from '../../lib/auth'
 import { supabase } from '../../lib/supabase'
 import type { EventRow } from '../../types'
 import { AdminContext, type AdminCtx } from './AdminContext'
-
-const TABS = [
-  { to: '/admin', label: 'Resumen', icon: '📋', end: true },
-  { to: '/admin/grupos', label: 'Grupos', icon: '👥', end: false },
-  { to: '/admin/bases', label: 'Bases', icon: '📍', end: false },
-  { to: '/admin/cruces', label: 'Cruces', icon: '⚔️', end: false },
-  { to: '/admin/puntajes', label: 'Puntajes', icon: '🏆', end: false },
-  { to: '/admin/mapa', label: 'Mapa', icon: '🗺️', end: false },
-  { to: '/admin/usuarios', label: 'Usuarios', icon: '🔑', end: false },
-]
+import AdminNav, { AdminTopbar } from './AdminNav'
 
 // Adaptive shell: side menu on computers, bottom tabs on phones.
 export default function AdminLayout() {
@@ -44,29 +35,10 @@ export default function AdminLayout() {
 
   return (
     <div className="admin">
-      <aside className="admin-nav">
-        <div className="admin-brand">
-          <img src="/logo.png" alt="Logo de CarreApp" className="logo-sm" />
-          <div>
-            <strong>CarreApp</strong>
-            <p className="muted">{event ? event.name : 'Sin Carrera'}</p>
-          </div>
-        </div>
-        <nav>
-          {TABS.map((t) => (
-            <NavLink key={t.to} to={t.to} end={t.end} className="tab">
-              <span aria-hidden="true">{t.icon}</span>
-              <span>{t.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-        <div className="admin-user">
-          <p className="muted">@{profile?.username}</p>
-          <button className="ghost" onClick={signOut}>Salir</button>
-        </div>
-      </aside>
+      <AdminNav eventName={event?.name} user={profile ?? undefined} onSignOut={signOut} />
       <main className="admin-main">
-        {loading ? <p className="muted">Cargando…</p> : (
+        <AdminTopbar onSignOut={signOut} />
+        {loading ? <p className="loading">Cargando…</p> : (
           <AdminContext.Provider value={ctx}>
             <Outlet />
           </AdminContext.Provider>
