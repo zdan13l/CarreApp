@@ -1,6 +1,6 @@
 # Informe de pruebas
 
-> **Después de la tercera ejecución se corrigieron los hallazgos P0 1, 2 y 3** (perfil con mala red, alerta por descanso con la migración `0016`, confirmación al activar/desactivar). Queda el simulacro con teléfonos reales y los P1/P2.
+> **Después de la tercera ejecución se corrigieron los hallazgos P0 1, 2 y 3** (perfil con mala red, alerta por descanso con la migración `0016`, confirmación al activar/desactivar). Después se corrigieron también los P1 y P2 (migración `0017`, ver [Bitácora](Bitacora)). No se tocó: las contraseñas de mínimo 6 caracteres (lo exige Supabase Auth y las plantillas), un límite de intentos en `/api/users` (se apoya en Supabase Auth) y las etiquetas del mapa que se encimen. Queda el simulacro con teléfonos reales y la regla de **no publicar en `main` durante la Carrera** (el mapa no está en el precaché y un teléfono con la versión vieja puede fallar al abrirlo tras una publicación).
 
 Tercera ejecución, 2026-11-15 (revisión crítica antes de la Carrera real: pantallas, código, rendimiento, privacidad). Cada vez que se use el agente `carreapp-tester` este informe se actualiza con la fecha. Las ejecuciones anteriores están resumidas al final.
 

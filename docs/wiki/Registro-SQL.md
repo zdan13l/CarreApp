@@ -29,6 +29,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0014 | [`0014_users_per_event.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0014_users_per_event.sql) | 2026-11-15 | Cada corredor/inductor pertenece a una Carrera; `events` entra a Realtime |
 | 0015 | [`0015_audit_event_and_active_scoring.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0015_audit_event_and_active_scoring.sql) | 2026-11-15 | El registro de cambios guarda su Carrera; los inductores solo actúan en la Carrera activa |
 | 0016 | [`0016_no_delay_when_resting.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0016_no_delay_when_resting.sql) | 2026-11-15 | Un grupo que descansa una ronda no recibe alerta de demora |
+| 0017 | [`0017_hardening.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0017_hardening.sql) | 2026-11-15 | Hora del servidor, avisos con alcance y límite, auditoría sin ruido |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -325,6 +326,19 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/alerts.test.ts`, `tests/db/edge.test.ts` ("does not push the runners of a group that rests…"), `tests/unit/delays-edge.test.ts` y la prueba de paridad cliente/servidor.
 
 **Cómo revertir** Volver a ejecutar `check_delays()` de `0013_no_delay_same_base.sql`.
+
+## 0017 — Endurecimiento
+
+**Qué cambia**
+- `server_now()`: la hora del servidor. La app corrige el reloj del teléfono con ella (`src/lib/clock.ts`) para las alertas de demora.
+- **Avisos** (`alerts`): los lee solo el coordinador, los corredores de ese cruce y el inductor de su base (antes cualquier usuario); una base solo puede avisar con el `event_id` de su propio cruce; y una base no puede enviar más de un aviso cada 20 s al mismo cruce (el coordinador no tiene límite).
+- **Auditoría**: si solo cambia "quién calificó" (por ejemplo, se elimina a un inductor), `after_score_change()` ya no escribe filas "Corrigió".
+
+**Por qué** Tercera ejecución del agente de pruebas: un reloj de teléfono desajustado daba alarmas falsas (o escondía una real); cualquier usuario leía todos los avisos y una base podía inundar de notificaciones a sus corredores; y eliminar a un inductor llenaba el registro de correcciones falsas.
+
+**Verificación** `tests/db/edge.test.ts` ("hides the alerts…", "refuses an alert whose event_id…", "limits a base…", "server clock", "deleting an inductor…").
+
+**Cómo revertir** `drop function public.server_now();` y `drop trigger alerts_rate_limit on public.alerts; drop function public.alerts_rate_limit();`; recrear las políticas `alerts_read` (`using (true)`) y `alerts_base_insert` como en `0012_runner_only_push.sql`; `drop function public.is_runner_of_match(uuid);` y volver a ejecutar `after_score_change()` de `0010_delay_alerts.sql`.
 
 ## Plantilla para nuevos registros
 
