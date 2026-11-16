@@ -26,7 +26,7 @@ Segunda ejecución, 2026-11-15 (después de los usuarios por Carrera, migración
 - Las pruebas **detectan** las roturas deliberadas.
 
 ## Lo que falló
-No hay fallos de las pruebas. Hallazgos de revisión. **Corregidos después de esta ejecución:** 1, 2, 3, 4, 8 y 9 (migración `0015`, `Usuarios.tsx`, `Puntajes.tsx`, `Pantallas.md`, la prueba movida a `tests/unit/`). Quedan 5, 6 y 7.
+No hay fallos de las pruebas. Hallazgos de revisión. **Corregidos después de esta ejecución:** 1 a 6, 8 y 9 (migración `0015`, `Usuarios.tsx`, `Puntajes.tsx`, `Pantallas.md`, la prueba movida a `tests/unit/`). También 5 y 6 (escuchar `events` en el panel del coordinador; un error de red ya no se muestra como "sin Carrera activa"). El 7 no se puede eliminar sin cambiar cómo se entra (el usuario es único en toda la aplicación): se dejó el mensaje claro al repetirlo.
 
 | # | Hallazgo | Dónde | Efecto |
 |---|---|---|---|
