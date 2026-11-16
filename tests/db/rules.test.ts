@@ -1,7 +1,7 @@
 // Business rules enforced by the database: what must be impossible no matter what the client does.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createDb, type TestDb } from './harness'
-import { addUser, getAdmin, insertMatch, seedCarrera } from './seed'
+import { activate, addUser, getAdmin, insertMatch, seedCarrera } from './seed'
 
 let db: TestDb
 beforeAll(async () => {
@@ -166,6 +166,7 @@ describe('activating a Carrera', () => {
 describe('arrival confirmation', () => {
   it('can be given only by the inductor of that base (or the coordinator) and starts the match', async () => {
     const c = await seedCarrera(db, { teams: 4, bases: 2 })
+    await activate(db, c)
     const m = await insertMatch(db, c, 1, c.bases[0].id, c.teams[0].id, c.teams[1].id)
     const status = async () => (await db.sql<{ status: string; arrived: boolean }>(`select status, arrived_at is not null as arrived from public.matches where id = $1`, [m.id]))[0]
     expect(await status()).toEqual({ status: 'pending', arrived: false })
@@ -185,6 +186,7 @@ describe('arrival confirmation', () => {
 describe('scoring rules', () => {
   async function setup() {
     const c = await seedCarrera(db, { teams: 4, bases: 2 })
+    await activate(db, c)
     const m1 = await insertMatch(db, c, 1, c.bases[0].id, c.teams[0].id, c.teams[1].id)
     const m2 = await insertMatch(db, c, 2, c.bases[0].id, c.teams[0].id, c.teams[2].id)
     const other = await insertMatch(db, c, 1, c.bases[1].id, c.teams[2].id, c.teams[3].id)
@@ -305,6 +307,7 @@ describe('scoring rules', () => {
 describe('behaviours worth knowing (characterization)', () => {
   it('the database lets a base score before arrival is confirmed: only the screen enforces it', async () => {
     const c = await seedCarrera(db, { teams: 2, bases: 1 })
+    await activate(db, c)
     const m = await insertMatch(db, c, 1, c.bases[0].id, c.teams[0].id, c.teams[1].id)
     await db.asUser(c.bases[0].staff).sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, 'barra', $2)`, [m.id, m.teamA])
     const [row] = await db.sql<{ arrived: boolean; status: string }>(`select arrived_at is not null as arrived, status from public.matches where id = $1`, [m.id])
@@ -313,6 +316,7 @@ describe('behaviours worth knowing (characterization)', () => {
 
   it('an admin account cannot be created through the profile table by someone else', async () => {
     const c = await seedCarrera(db, { teams: 2, bases: 1 })
+    await activate(db, c)
     const outsider = await addUser(db, `intruso.${Date.now()}`, 'runner')
     await expect(
       db.asUser(c.teams[0].runners[0]).sql(`update public.profiles set role = 'admin' where id = $1`, [outsider]),
