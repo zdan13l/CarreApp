@@ -35,7 +35,7 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
 ## Ajustes tras el Bloque 9 (2026-11-15)
 - **Registro de cambios por Carrera:** Puntajes mostraba el registro de todas las Carreras; ahora solo el de la Carrera elegida.
-- **Usuarios por Carrera** (migración `0014`, pendiente de aplicar): cada corredor e inductor pertenece a una Carrera; Usuarios, Grupos y Bases solo muestran los de la Carrera elegida y la carga masiva y el formulario crean usuarios ya asignados.
+- **Usuarios por Carrera** (migración `0014`, aplicada el 2026-11-15): cada corredor e inductor pertenece a una Carrera; Usuarios, Grupos y Bases solo muestran los de la Carrera elegida y la carga masiva y el formulario crean usuarios ya asignados.
 - **Desactivar la Carrera:** la base de datos y el botón funcionan (probado con permisos del coordinador); lo que faltaba era que corredores y bases lo notaran al instante (`events` en Realtime, también en `0014`).
 
 ## Bloque 9 — Pruebas y organización de las pantallas (2026-11-16)
