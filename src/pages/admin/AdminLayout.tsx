@@ -47,7 +47,7 @@ export default function AdminLayout() {
       <AdminNav eventName={event?.name} user={profile ?? undefined} onSignOut={askSignOut} />
       <main className="admin-main">
         <ConnectionBanner />
-        <AdminTopbar onSignOut={askSignOut} />
+        <AdminTopbar user={profile ?? undefined} onSignOut={askSignOut} />
         {loading ? <p className="loading">Cargando…</p> : (
           <AdminContext.Provider value={ctx}>
             <Outlet />
