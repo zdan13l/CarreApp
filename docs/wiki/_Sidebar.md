@@ -9,5 +9,6 @@
 - [Roles y permisos](Roles-y-permisos)
 - [Despliegue y configuración](Despliegue-y-configuracion)
 - [Pruebas](Pruebas)
+- [Prueba en vivo](Prueba-en-vivo)
 - [Informe de pruebas](Informe-de-pruebas)
 - [Bitácora](Bitacora)
