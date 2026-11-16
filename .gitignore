@@ -26,3 +26,7 @@ dist-ssr
 # Configuración local de herramientas (el agente de pruebas en .claude/agents/ sí se versiona)
 .claude/launch.json
 .claude/settings.local.json
+
+# Skills de terceros instaladas en el proyecto (pesadas y se instalan de sus repositorios; no se versionan)
+.claude/skills/
+.claude/agents/impeccable-*.md
