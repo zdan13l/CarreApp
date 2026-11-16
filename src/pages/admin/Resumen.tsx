@@ -139,6 +139,8 @@ export default function Resumen() {
         </section>
       )}
 
+      {event && <TravelSetting key={event.id} eventId={event.id} minutes={event.max_travel_minutes} onSaved={reload} />}
+
       <section className="card">
         <h2>{event ? 'Nueva Carrera' : 'Crea tu primera Carrera'}</h2>
         <form className="form" onSubmit={createEvent}>
@@ -150,5 +152,49 @@ export default function Resumen() {
         </form>
       </section>
     </>
+  )
+}
+
+// Maximum time a group may take between two bases before the alerts go off.
+function TravelSetting({ eventId, minutes, onSaved }: { eventId: string; minutes: number; onSaved: () => Promise<void> }) {
+  const [value, setValue] = useState(String(minutes))
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const parsed = Number(value)
+  const valid = Number.isInteger(parsed) && parsed >= 1 && parsed <= 120
+
+  async function save() {
+    if (!supabase || !valid) return
+    setBusy(true)
+    setError(null)
+    setMessage(null)
+    const { error: err } = await supabase.from('events').update({ max_travel_minutes: parsed }).eq('id', eventId)
+    if (err) setError('No se pudo guardar.')
+    else {
+      setMessage('Guardado.')
+      await onSaved()
+    }
+    setBusy(false)
+  }
+
+  return (
+    <section className="card">
+      <h2>Alertas de demora</h2>
+      <p className="muted">
+        Si un grupo pasa más de este tiempo entre que termina una base y llega a la siguiente, suena una alerta a sus
+        corredores, a la base y a ti (en Cruces y en Mapa), y puedes avisarles con un botón.
+      </p>
+      <div className="row">
+        <label className="inline-field grow">
+          Tiempo máximo de traslado (minutos)
+          <input type="number" inputMode="numeric" min={1} max={120} value={value} onChange={(e) => setValue(e.target.value)} />
+        </label>
+        <button disabled={busy || !valid || parsed === minutes} onClick={() => void save()}>Guardar</button>
+      </div>
+      {!valid && <p className="error">Escribe un número entero entre 1 y 120.</p>}
+      {message && <p className="ok-text">{message}</p>}
+      {error && <p className="error">{error}</p>}
+    </section>
   )
 }

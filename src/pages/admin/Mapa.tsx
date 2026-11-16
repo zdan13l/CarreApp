@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import DelaysPanel from '../../components/DelaysPanel'
 import LazyMap, { type MapMarker } from '../../components/LazyMap'
+import type { TimedMatch } from '../../lib/delays'
 import { timeAgo } from '../../lib/geo'
 import { useRealtimeReload } from '../../lib/realtime'
 import { photoUrl } from '../../lib/storage'
@@ -34,17 +36,23 @@ export default function Mapa() {
   const [bases, setBases] = useState<BasePoint[]>([])
   const [teams, setTeams] = useState<TeamInfo[]>([])
   const [locations, setLocations] = useState<TeamLocation[]>([])
+  const [matches, setMatches] = useState<TimedMatch[]>([])
   const [now, setNow] = useState(() => Date.now())
 
   const eventId = event?.id
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
-    const [b, t, l] = await Promise.all([
+    const [b, t, l, m] = await Promise.all([
       supabase.from('bases').select('id, name, lat, lng').eq('event_id', eventId).order('sort_order'),
       supabase.from('teams').select('id, name, photo_path').eq('event_id', eventId).order('sort_order'),
       supabase.from('team_locations').select('team_id, lat, lng, accuracy, updated_at'),
+      supabase
+        .from('matches')
+        .select('id, round_number, base_id, team_a, team_b, status, arrived_at, finished_at')
+        .eq('event_id', eventId),
     ])
+    setMatches((m.data ?? []) as TimedMatch[])
     setBases(b.data ?? [])
     setTeams(t.data ?? [])
     setLocations(l.data ?? [])
@@ -55,7 +63,7 @@ export default function Mapa() {
   }, [load])
 
   // Live: every position update from the runners moves the marker.
-  useRealtimeReload(['team_locations', 'bases'], load)
+  useRealtimeReload(['team_locations', 'bases', 'matches'], load)
 
   // Re-evaluate "no signal" and "x min ago" every 15 s.
   useEffect(() => {
@@ -101,6 +109,16 @@ export default function Mapa() {
       <section className="card map-card">
         <LazyMap markers={markers} height="min(70vh, 560px)" lightPreset="dusk" />
       </section>
+
+      <DelaysPanel
+        eventId={event.id}
+        matches={matches}
+        maxMinutes={event.max_travel_minutes}
+        teamName={new Map(teams.map((t) => [t.id, t.name]))}
+        baseName={new Map(bases.map((b) => [b.id, b.name]))}
+        baseCoords={new Map(bases.filter((b) => b.lat !== null && b.lng !== null).map((b) => [b.id, [b.lng!, b.lat!] as [number, number]]))}
+        teamCoords={new Map(locations.map((l) => [l.team_id, [l.lng, l.lat] as [number, number]]))}
+      />
 
       {withoutLocation.length > 0 && (
         <p className="warn">

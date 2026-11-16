@@ -1,12 +1,15 @@
 import { Ban, Check, CheckCheck, Flag, MapPin, Send, Trophy, UsersRound } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell'
+import { AlertBanner, SoundToggle } from '../components/Alerts'
 import BaseLocationEditor from '../components/BaseLocationEditor'
 import BottomNav, { type NavTab } from '../components/BottomNav'
 import Crest from '../components/Crest'
 import PhotoField from '../components/PhotoField'
 import Ranking from '../components/Ranking'
 import { useAuth } from '../lib/auth'
+import { useAlertSound, useManualAlerts, useNow } from '../lib/alerts'
+import { lateTeams, type TimedMatch } from '../lib/delays'
 import { useRealtimeReload } from '../lib/realtime'
 import { uploadPhoto } from '../lib/storage'
 import { supabase } from '../lib/supabase'
@@ -32,6 +35,7 @@ interface MyBase {
   base_details: InfoEmbed
   event_id: string
   base_questions: BaseQuestion[]
+  events: { max_travel_minutes: number } | { max_travel_minutes: number }[]
 }
 
 export interface BaseMatch {
@@ -66,6 +70,7 @@ export default function BaseHome() {
   const [matches, setMatches] = useState<BaseMatch[]>([])
   const [teams, setTeams] = useState<Map<string, Team>>(new Map())
   const [standings, setStandings] = useState<StandingRow[]>([])
+  const [eventMatches, setEventMatches] = useState<TimedMatch[]>([]) // every match, to know when teams left their previous base
   const [loading, setLoading] = useState(true)
 
   const userId = profile?.id
@@ -76,14 +81,14 @@ export default function BaseHome() {
     const { data: b } = await supabase
       .from('bases')
       .select(
-        'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question), base_staff!inner(user_id), events!inner(is_active)',
+        'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question), base_staff!inner(user_id), events!inner(is_active, max_travel_minutes)',
       )
       .eq('base_staff.user_id', userId)
       .eq('events.is_active', true)
       .maybeSingle()
     setBase((b as MyBase | null) ?? null)
     if (!b) return
-    const [m, t, st] = await Promise.all([
+    const [m, t, st, all] = await Promise.all([
       supabase
         .from('matches')
         .select('id, round_number, team_a, team_b, status, arrived_at, match_scores(item, winner_team_id, voided)')
@@ -91,7 +96,12 @@ export default function BaseHome() {
         .order('round_number'),
       supabase.from('teams').select('id, name, photo_path').eq('event_id', b.event_id),
       supabase.from('team_standings').select('team_id, name, photo_path, points').eq('event_id', b.event_id),
+      supabase
+        .from('matches')
+        .select('id, round_number, base_id, team_a, team_b, status, arrived_at, finished_at')
+        .eq('event_id', b.event_id),
     ])
+    setEventMatches((all.data ?? []) as TimedMatch[])
     setStandings(((st.data ?? []) as StandingRow[]).map((r) => ({ ...r, points: Number(r.points) })))
     setMatches((m.data ?? []) as BaseMatch[])
     setTeams(new Map((t.data ?? []).map((x) => [x.id, x])))
@@ -108,6 +118,14 @@ export default function BaseHome() {
   const next = current ? matches.find((m) => m.round_number > current.round_number && m.status !== 'finished') : undefined
   const finished = matches.filter((m) => m.status === 'finished')
 
+  const events = base?.events
+  const maxMinutes = (Array.isArray(events) ? events[0]?.max_travel_minutes : events?.max_travel_minutes) ?? 10
+  const now = useNow()
+  const myMatchIds = new Set(matches.map((m) => m.id))
+  const late = lateTeams(eventMatches, maxMinutes, now).filter((l) => myMatchIds.has(l.matchId))
+  const manual = useManualAlerts(matches.map((m) => m.id))
+  useAlertSound([...new Set(late.map((l) => `late-${l.matchId}`)), ...manual.alerts.map((a) => `msg-${a.id}`)])
+
   return (
     <AppShell title={base?.name ?? 'Mi base'}>
       {loading ? (
@@ -118,10 +136,30 @@ export default function BaseHome() {
         </section>
       ) : (
         <>
+          {manual.alerts.map((a) => (
+            <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => manual.dismiss(a.id)}>
+              {a.message}
+            </AlertBanner>
+          ))}
+          {[...new Set(late.map((l) => l.matchId))].map((matchId) => {
+            const m = matches.find((x) => x.id === matchId)
+            const names = late
+              .filter((l) => l.matchId === matchId)
+              .map((l) => teams.get(l.teamId)?.name)
+              .join(' y ')
+            const minutes = Math.max(...late.filter((l) => l.matchId === matchId).map((l) => l.elapsedMin))
+            return (
+              <AlertBanner key={matchId} title={`Ronda ${m?.round_number}: grupos en demora`}>
+                {names} llevan {minutes} min en el traslado (máximo {maxMinutes} min).
+              </AlertBanner>
+            )
+          })}
+
           {tab === 'base' && <BaseInfoCard base={base} onChanged={load} />}
 
           {tab === 'ronda' && (
             <>
+              <SoundToggle />
               {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
               {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} />}
               {next && (
