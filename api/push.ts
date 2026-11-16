@@ -41,7 +41,9 @@ async function run(req: VercelRequest, res: VercelResponse) {
   let webpush: typeof import('web-push')
   try {
     // Loaded here (not at the top) so a problem loading the library is reported instead of crashing.
-    webpush = (await import('web-push')).default as unknown as typeof import('web-push')
+    // web-push is a CommonJS module: depending on the bundler its API is on `default` or on the module itself.
+    const mod = (await import('web-push')) as unknown as { default?: typeof import('web-push') } & typeof import('web-push')
+    webpush = mod.default ?? mod
     webpush.setVapidDetails(subject, publicKey.trim(), privateKey.trim())
   } catch (e) {
     return res.status(500).json({ error: `No se pudo preparar el envío (claves VAPID o librería): ${(e as Error).message}` })
