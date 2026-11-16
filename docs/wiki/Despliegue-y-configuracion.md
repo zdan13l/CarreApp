@@ -62,6 +62,6 @@ Para que las alertas lleguen con el teléfono bloqueado o la app cerrada (una so
 1. Generar las claves: `npx web-push generate-vapid-keys` (imprime una clave pública y una privada).
 2. En Vercel > Settings > Environment Variables agregar: `VAPID_PUBLIC_KEY` y `VITE_VAPID_PUBLIC_KEY` (la pública, las dos iguales), `VAPID_PRIVATE_KEY` (la privada), `VAPID_SUBJECT` (`https://carreapp.vercel.app`) y `PUSH_SECRET` (cualquier texto largo inventado). Luego **Redeploy**.
 3. En Supabase > SQL Editor ejecutar [`0011_push_and_travel_times.sql`](Registro-SQL) y después `supabase/push_setup.sql`, cambiando en este último `REEMPLAZA-POR-TU-CLAVE` por el valor de `PUSH_SECRET`.
-4. Cada persona abre la app, entra y pulsa **Activar notificaciones** (en iPhone, desde la app instalada en la pantalla de inicio).
+4. Solo los **corredores** abren la app, entran y pulsan **Activar notificaciones** (en iPhone, desde la app instalada en la pantalla de inicio).
 
 Para apagarlas: `select cron.unschedule(jobid) from cron.job where jobname = 'check-delays';`

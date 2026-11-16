@@ -2,6 +2,11 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Ajustes de las alertas, 2.ª ronda (2026-11-16)
+- **Las notificaciones y el sonido son solo para los corredores** (son quienes deben apurarse). El coordinador y la base **mandan** los avisos: el coordinador desde Cruces y Mapa; la base con el botón *Apurar a los grupos* de su cruce actual. Los botones de activar sonido y notificaciones solo aparecen en la vista del corredor.
+- El sonido de demora se repite **cada 30 segundos** (antes 10).
+- **Error corregido en el envío:** la función `/api/push` fallaba con un error 500 del servidor y por eso no llegaba ninguna notificación; ahora carga la librería de forma segura y devuelve el motivo exacto del fallo.
+
 ## Mejoras de las alertas (2026-11-15)
 **Corregido**
 - **Sonido que no sonaba en tiempo real o dejaba de sonar:** el teléfono duerme el audio al bloquearse o al reabrir la app. Ahora cualquier toque en la app lo despierta, el botón avisa "Toca aquí para reactivar el sonido" cuando está dormido, y los avisos del coordinador se consultan también cada 10 segundos y al volver a la app (el bloqueo corta la conexión en vivo).
