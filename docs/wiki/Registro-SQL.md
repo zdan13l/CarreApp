@@ -30,6 +30,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0015 | [`0015_audit_event_and_active_scoring.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0015_audit_event_and_active_scoring.sql) | 2026-11-15 | El registro de cambios guarda su Carrera; los inductores solo actúan en la Carrera activa |
 | 0016 | [`0016_no_delay_when_resting.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0016_no_delay_when_resting.sql) | 2026-11-15 | Un grupo que descansa una ronda no recibe alerta de demora |
 | 0017 | [`0017_hardening.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0017_hardening.sql) | 2026-11-15 | Hora del servidor, avisos con alcance y límite, auditoría sin ruido |
+| 0018 | [`0018_profile_photo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0018_profile_photo.sql) | _pendiente_ | Foto de cada usuario (`profiles.photo_path`) |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -339,6 +340,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/edge.test.ts` ("hides the alerts…", "refuses an alert whose event_id…", "limits a base…", "server clock", "deleting an inductor…").
 
 **Cómo revertir** `drop function public.server_now();` y `drop trigger alerts_rate_limit on public.alerts; drop function public.alerts_rate_limit();`; recrear las políticas `alerts_read` (`using (true)`) y `alerts_base_insert` como en `0012_runner_only_push.sql`; `drop function public.is_runner_of_match(uuid);` y volver a ejecutar `after_score_change()` de `0010_delay_alerts.sql`.
+
+## 0018 — Foto de cada usuario (pendiente de aplicar)
+
+**Qué cambia** `profiles.photo_path` (texto, opcional): la foto de la persona, en la carpeta `users/` del bucket `photos`. El coordinador la sube desde *Usuarios* (botón de cámara en cada persona) y se ve en lugar de la inicial en la cabecera de la persona y en la lista.
+
+**Por qué** Personalizar la app: cada corredor e inductor ve su propia foto junto a su nombre.
+
+**Verificación** `tests/db/profile-photo.test.ts`. La app sigue funcionando sin esta migración (entrar y listar usuarios leen el perfil sin la foto si la columna no existe), pero subir fotos falla hasta aplicarla.
+
+**Cómo revertir** `alter table public.profiles drop column photo_path;` (las imágenes quedan en el almacenamiento).
 
 ## Plantilla para nuevos registros
 
