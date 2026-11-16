@@ -12,7 +12,7 @@ export default function AppShell({
 }: {
   title: string
   children: ReactNode
-  user?: { full_name: string; username: string } // overrides the signed-in user (design preview)
+  user?: { full_name: string; username: string; photo_path?: string | null } // overrides the signed-in user (design preview)
   topActions?: ReactNode // extra buttons in the top bar, before "Cerrar sesión"
 }) {
   const { profile, signOut } = useAuth()

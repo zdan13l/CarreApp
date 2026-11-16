@@ -167,7 +167,6 @@ export default function BaseHome() {
                 </section>
               )}
               {current === undefined && matches.length > 0 && <p className="ok-box">Todos los cruces de tu base terminaron. ¡Gracias!</p>}
-              <BaseGuide info={infoOf(base.base_details)} questions={base.base_questions} />
             </>
           )}
 
@@ -198,7 +197,7 @@ export default function BaseHome() {
             </>
           )}
 
-          {tab === 'base' && <BaseInfoCard base={base} onChanged={load} />}
+          {tab === 'base' && <MyBaseTab base={base} onChanged={load} />}
 
           <BottomNav tabs={TABS} active={tab} onChange={setTab} />
         </>
@@ -207,9 +206,23 @@ export default function BaseHome() {
   )
 }
 
-function BaseInfoCard({ base, onChanged }: { base: MyBase; onChanged: () => Promise<void> }) {
+// "Mi base": the informative space of the inductor. What is explained and the possible questions (to have at hand while
+// running the match), then where the base is: the photo and the saved location. The map only opens when the inductor
+// wants to change the location (or when none is saved yet).
+function MyBaseTab({ base, onChanged }: { base: MyBase; onChanged: () => Promise<void> }) {
+  return (
+    <>
+      <BaseGuide info={infoOf(base.base_details)} questions={base.base_questions} />
+      <BaseWhere base={base} onChanged={onChanged} />
+    </>
+  )
+}
+
+export function BaseWhere({ base, onChanged }: { base: { id: string; name: string; location_photo_path: string | null; lat: number | null; lng: number | null }; onChanged: () => Promise<void> }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
+  const hasLocation = base.lat !== null && base.lng !== null
 
   // The base can move (e.g. because of rain): the inductor updates the photo of where it is now.
   async function changePhoto(file: File) {
@@ -229,15 +242,36 @@ function BaseInfoCard({ base, onChanged }: { base: MyBase; onChanged: () => Prom
   }
 
   return (
-    <>
-      <section className="card">
-        <h2>Dónde queda</h2>
-        <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
-        <p className="muted">¿La base se movió? Cambia la foto y la ubicación en el mapa para que los grupos la encuentren.</p>
-        {error && <p className="error">{error}</p>}
-        <BaseLocationEditor baseId={base.id} name={base.name} lat={base.lat} lng={base.lng} onSaved={onChanged} />
-      </section>
-    </>
+    <section className="card">
+      <h2>Dónde queda</h2>
+      <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
+      {error && <p className="error">{error}</p>}
+      {hasLocation && !editing ? (
+        <div className="location-saved">
+          <p className="ok-text"><MapPin size={16} aria-hidden="true" /> Ubicación guardada en el mapa.</p>
+          <button className="ghost" type="button" onClick={() => setEditing(true)}>Cambiar ubicación</button>
+        </div>
+      ) : (
+        <>
+          {hasLocation && <p className="muted">¿La base se movió? Marca el nuevo punto y guárdalo.</p>}
+          <BaseLocationEditor
+            baseId={base.id}
+            name={base.name}
+            lat={base.lat}
+            lng={base.lng}
+            onSaved={async () => {
+              await onChanged()
+              setEditing(false)
+            }}
+          />
+          {hasLocation && (
+            <div className="row">
+              <button className="ghost" type="button" onClick={() => setEditing(false)}>Cancelar</button>
+            </div>
+          )}
+        </>
+      )}
+    </section>
   )
 }
 
@@ -245,19 +279,22 @@ function BaseInfoCard({ base, onChanged }: { base: MyBase; onChanged: () => Prom
 export function BaseGuide({ info, questions: raw }: { info: string | null; questions: BaseQuestion[] }) {
   const questions = [...raw].sort((a, b) => a.position - b.position)
   return (
-    <details className="card guide">
-      <summary>Guía de la base: información y preguntas</summary>
-      <h3>Lo que se explica en la base</h3>
-      <p className="pre">{info ?? 'Sin información.'}</p>
-      <h3>Posibles preguntas</h3>
-      {questions.length === 0 ? (
-        <p className="muted">Sin preguntas.</p>
-      ) : (
-        <ol className="questions">
-          {questions.map((q) => <li key={q.position}>{q.question}</li>)}
-        </ol>
-      )}
-    </details>
+    <>
+      <section className="card guide">
+        <h2>Lo que se explica en la base</h2>
+        <p className="pre">{info ?? 'Sin información.'}</p>
+      </section>
+      <section className="card guide">
+        <h2>Posibles preguntas</h2>
+        {questions.length === 0 ? (
+          <p className="muted">Sin preguntas.</p>
+        ) : (
+          <ol className="questions">
+            {questions.map((q) => <li key={q.position}>{q.question}</li>)}
+          </ol>
+        )}
+      </section>
+    </>
   )
 }
 

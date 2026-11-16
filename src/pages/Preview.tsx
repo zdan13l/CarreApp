@@ -2,22 +2,22 @@
 // look can be reviewed without signing in. Not included in the production build.
 //   /preview/runner  /preview/runner-ruta  /preview/runner-top
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
-import { Bell, BellRing, ChevronRight, Compass, Flag, MapPin, Route, Trophy } from 'lucide-react'
+import { Bell, BellRing, Camera, ChevronRight, KeyRound, Trash2, Compass, Flag, MapPin, Route, Trophy } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+import Avatar from '../components/Avatar'
 import BottomNav from '../components/BottomNav'
 import Crest from '../components/Crest'
 import Kpi from '../components/Kpi'
 import LazyMap from '../components/LazyMap'
 import LogoGallery from './LogoGallery'
-import PhotoField from '../components/PhotoField'
 import Ranking from '../components/Ranking'
 import RoundPager from '../components/RoundPager'
 import AdminNav, { AdminTopbar } from './admin/AdminNav'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
-import { BaseGuide, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
-import { CurrentRound, RouteList, StatusBar, type RouteMatch } from './RunnerHome'
+import { BaseGuide, BaseWhere, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
+import { AfterCard, CurrentRound, RouteList, StatusBar, type RouteMatch } from './RunnerHome'
 import type { MatchRow, StandingRow, TeamRow } from '../types'
 
 const user = { full_name: 'Daniel Rodríguez', username: 'daniel' }
@@ -111,14 +111,7 @@ export default function Preview() {
         {tab === 'ronda' && (
           <>
             <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} />
-            <section className="card next">
-              <h3>Después · Ronda 4</h3>
-              <p>
-                <strong>Cancha de Fútbol</strong>
-                <span className="muted"> contra </span>
-                <strong>Guerreros Aztecas</strong>
-              </p>
-            </section>
+            <AfterCard match={routeMatches.find((m) => m.round_number === 4)!} myId="t0" teams={teamById} />
           </>
         )}
         {tab === 'ruta' && (
@@ -140,7 +133,7 @@ export default function Preview() {
 
   if (screen === 'base' || screen === 'base-info') {
     return (
-      <AppShell title="Atrio" user={{ full_name: 'Valeria Gómez', username: 'valeria' }}>
+      <AppShell title={screen === 'base' ? 'Atrio' : 'Mi base'} user={{ full_name: 'Valeria Gómez', username: 'valeria' }}>
         {screen === 'base' ? (
           <>
             <MatchCard match={baseMatchPlaying} teams={teams} onSent={noopAsync} />
@@ -153,17 +146,15 @@ export default function Preview() {
               </div>
             </section>
             <MatchCard match={baseMatchPending} teams={teams} onSent={noopAsync} />
-            <BaseGuide
-              info="Aquí se explica la historia de la Universidad."
-              questions={[{ position: 1, question: '¿En qué año se fundó la Javeriana?' }, { position: 2, question: '¿Quién es el patrono de la Universidad?' }]}
-            />
           </>
         ) : (
-          <section className="card">
-            <h2>Dónde queda</h2>
-            <PhotoField path={null} label="Atrio" busy={false} onPick={noop} />
-            <p className="muted">¿La base se movió? Cambia la foto y la ubicación en el mapa para que los grupos la encuentren.</p>
-          </section>
+          <>
+            <BaseGuide
+              info="Aquí se explica la historia de la Universidad."
+              questions={[{ position: 1, question: '¿En qué año se fundó la Javeriana?' }, { position: 2, question: '¿Quién es el patrono de la Universidad?' }, { position: 3, question: '¿Cuántas facultades hay?' }]}
+            />
+            <BaseWhere base={{ id: 'x1', name: 'Atrio', location_photo_path: null, lat: 4.6286, lng: -74.0647 }} onChanged={noopAsync} />
+          </>
         )}
         <BottomNav tabs={baseTabs} active={screen === 'base' ? 'ronda' : 'base'} onChange={noop} />
       </AppShell>
@@ -327,6 +318,26 @@ export default function Preview() {
                   <p className="error">Ese usuario ya existe.</p>
                   <button type="submit">Crear usuario</button>
                 </form>
+              </section>
+              <section className="card">
+                <h2>Lista</h2>
+                <ul className="list">
+                  {[['Daniel Rodríguez', 'daniel', 'Corredor'], ['Valeria Gómez', 'valeria', 'Inductor de base'], ['María José Pérez Villamizar', 'maria.perez', 'Corredor']].map(([n, u, r]) => (
+                    <li key={u}>
+                      <Avatar name={n} size={44} />
+                      <span className="grow">
+                        {n}
+                        <small className="muted"> @{u} · {r}</small>
+                      </span>
+                      <label className="btn-like icon-only" title="Agregar foto">
+                        <Camera size={18} aria-hidden="true" />
+                        <span className="sr-only">Agregar foto a {n}</span>
+                      </label>
+                      <button className="ghost"><KeyRound size={16} aria-hidden="true" /> Contraseña</button>
+                      <button className="ghost danger icon-btn" aria-label={`Eliminar ${n}`}><Trash2 size={18} /></button>
+                    </li>
+                  ))}
+                </ul>
               </section>
               <section className="card">
                 <h2>Cargar desde un archivo</h2>

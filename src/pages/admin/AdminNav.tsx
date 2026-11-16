@@ -29,7 +29,7 @@ export const SETUP_TABS: NavItem[] = [
 ]
 
 // Brand and sign-out for phones (the side menu has them on computers).
-export function AdminTopbar({ user, onSignOut }: { user?: { full_name: string; username: string }; onSignOut: () => void }) {
+export function AdminTopbar({ user, onSignOut }: { user?: { full_name: string; username: string; photo_path?: string | null }; onSignOut: () => void }) {
   return (
     <header className="topbar admin-topbar">
       <Logo size={30} />
@@ -46,7 +46,7 @@ export default function AdminNav({
   onSignOut,
 }: {
   eventName?: string
-  user?: { full_name: string; username: string }
+  user?: { full_name: string; username: string; photo_path?: string | null }
   onSignOut: () => void
 }) {
   const [open, setOpen] = useState(false)
@@ -102,10 +102,6 @@ export default function AdminNav({
 
       <div className="admin-user">
         <AccountMenu user={user} onSignOut={onSignOut} placement="up" roleLabel="Coordinador" />
-        <div>
-          <strong>{user?.full_name}</strong>
-          <small className="muted">@{user?.username}</small>
-        </div>
       </div>
     </aside>
   )

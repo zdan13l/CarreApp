@@ -37,15 +37,15 @@ function writeCache(userId: string, profile: Profile | null) {
 }
 
 // `failed` means the request did not work (network); a missing profile with no error is a real "no profile".
+// photo_path (migration 0018) is asked for first; if the column does not exist yet the profile is read without it,
+// so signing in keeps working while the SQL is pending.
 async function fetchProfile(userId: string): Promise<{ profile: Profile | null; failed: boolean }> {
   if (!supabase) return { profile: null, failed: false }
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, username, full_name, role')
-    .eq('id', userId)
-    .maybeSingle()
+  const read = (columns: string) => supabase!.from('profiles').select(columns).eq('id', userId).maybeSingle()
+  let { data, error } = await read('id, username, full_name, role, photo_path')
+  if (error?.code === '42703' || /photo_path/.test(error?.message ?? '')) ({ data, error } = await read('id, username, full_name, role'))
   if (error) return { profile: null, failed: true }
-  return { profile: (data as Profile | null) ?? null, failed: false }
+  return { profile: (data as unknown as Profile | null) ?? null, failed: false }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
