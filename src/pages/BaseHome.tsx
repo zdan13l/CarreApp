@@ -103,6 +103,7 @@ export default function BaseHome() {
         .select('id, round_number, base_id, team_a, team_b, status, arrived_at, finished_at')
         .eq('event_id', b.event_id),
     ])
+    if (m.error || t.error || st.error || all.error) return // keep what is on screen on a failed request
     setEventMatches((all.data ?? []) as TimedMatch[])
     setStandings(((st.data ?? []) as StandingRow[]).map((r) => ({ ...r, points: Number(r.points) })))
     setMatches((m.data ?? []) as BaseMatch[])
@@ -114,7 +115,7 @@ export default function BaseHome() {
   }, [load])
 
   // Live refresh when scores change (another inductor of the same base, or a correction).
-  useRealtimeReload(['match_scores', 'matches', 'bases', 'events'], load)
+  useRealtimeReload(['match_scores', 'matches', 'bases', 'events'], load, 1500)
 
   const current = useMemo(() => matches.find((m) => m.status !== 'finished'), [matches])
   const next = current ? matches.find((m) => m.round_number > current.round_number && m.status !== 'finished') : undefined

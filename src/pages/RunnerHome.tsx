@@ -88,6 +88,7 @@ export default function RunnerHome() {
         .order('round_number'),
       supabase.from('team_standings').select('team_id, name, photo_path, points').eq('event_id', t.event_id),
     ])
+    if (m.error || s.error) return // keep what is on screen: an empty list would look like no rounds
     setMatches((m.data ?? []) as unknown as RouteMatch[])
     setStandings(((s.data ?? []) as StandingRow[]).map((r) => ({ ...r, points: Number(r.points) })))
   }, [userId])
@@ -97,7 +98,7 @@ export default function RunnerHome() {
   }, [load])
 
   // Live: scores, matches and bases (photo) refresh the screen by themselves.
-  useRealtimeReload(['match_scores', 'matches', 'bases', 'events'], load)
+  useRealtimeReload(['match_scores', 'matches', 'bases', 'events'], load, 1500)
 
   const teamById = new Map(standings.map((r) => [r.team_id, r]))
   const mine = matches.filter((m) => m.team_a === team?.id || m.team_b === team?.id)

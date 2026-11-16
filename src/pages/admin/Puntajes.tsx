@@ -110,6 +110,8 @@ export default function Puntajes() {
 
   async function setScore(m: MatchWithScores, item: ScoreItem, value: string) {
     if (!supabase) return
+    const what = value === 'none' ? 'Se BORRARÁ el resultado' : value === 'void' ? 'Se INVALIDARÁ el ítem' : `Ganador: ${teamName.get(value) ?? 'el grupo elegido'}`
+    if (!window.confirm(`${ITEM_LABEL[item]} · ${what}. Queda en el registro de cambios. ¿Continuar?`)) return
     setBusy(true)
     setError(null)
     try {

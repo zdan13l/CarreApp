@@ -159,12 +159,6 @@ export default function Preview() {
             <h2>Dónde queda</h2>
             <PhotoField path={null} label="Atrio" busy={false} onPick={noop} />
             <p className="muted">¿La base se movió? Cambia la foto y la ubicación en el mapa para que los grupos la encuentren.</p>
-            <h3>Posibles preguntas</h3>
-            <ol className="questions">
-              <li>¿En qué año se fundó la Universidad?</li>
-              <li>¿Cómo se llama el patrono de la Javeriana?</li>
-              <li>¿Cuántas facultades hay?</li>
-            </ol>
           </section>
         )}
         <BottomNav tabs={baseTabs} active={screen === 'base' ? 'ronda' : 'base'} onChange={noop} />

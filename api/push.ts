@@ -4,6 +4,7 @@
 //   POST /api/push   header x-push-secret   { notifications: [{ user_ids, title, body, tag }] }
 import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { createHash, timingSafeEqual } from 'node:crypto'
 
 interface Notification {
   user_ids: string[]
@@ -20,6 +21,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 
+// Constant-time comparison, so the secret cannot be guessed from response times.
+function sameSecret(given: string | string[] | undefined, expected: string): boolean {
+  if (typeof given !== 'string') return false
+  const a = createHash('sha256').update(given).digest()
+  const b = createHash('sha256').update(expected).digest()
+  return timingSafeEqual(a, b)
+}
+
 async function run(req: VercelRequest, res: VercelResponse) {
   const url = process.env.VITE_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -31,7 +40,7 @@ async function run(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Servidor sin configurar.' })
   }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido.' })
-  if (req.headers['x-push-secret'] !== secret) return res.status(401).json({ error: 'No autorizado.' })
+  if (!sameSecret(req.headers['x-push-secret'], secret)) return res.status(401).json({ error: 'No autorizado.' })
 
   const notifications: Notification[] = Array.isArray(req.body?.notifications) ? req.body.notifications : []
   if (notifications.length === 0) return res.status(200).json({ sent: 0 })

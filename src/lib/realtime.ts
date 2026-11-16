@@ -3,7 +3,9 @@ import { supabase } from './supabase'
 
 // Calls `reload` whenever one of the tables changes in the database (Supabase Realtime).
 // Bursts of events (e.g. 3 scores inserted together) are merged into a single reload.
-export function useRealtimeReload(tables: string[], reload: () => void | Promise<void>) {
+// `jitterMs` spreads the reload of many phones over a random delay, so one change does not hit the
+// database from every phone at the same instant.
+export function useRealtimeReload(tables: string[], reload: () => void | Promise<void>, jitterMs = 0) {
   const reloadRef = useRef(reload)
   useEffect(() => {
     reloadRef.current = reload
@@ -16,7 +18,7 @@ export function useRealtimeReload(tables: string[], reload: () => void | Promise
     let timer: ReturnType<typeof setTimeout> | undefined
     const trigger = () => {
       clearTimeout(timer)
-      timer = setTimeout(() => void reloadRef.current(), 250)
+      timer = setTimeout(() => void reloadRef.current(), 250 + Math.random() * jitterMs)
     }
     let channel = client.channel(`rt-${key}-${crypto.randomUUID()}`)
     for (const table of key.split(',')) {
