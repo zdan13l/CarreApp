@@ -9,6 +9,37 @@ const NONE: ExistingData = { usernames: new Set(), teams: new Set(), bases: new 
 const load = async (name: string) => readTablesFromFile(new File([fs.readFileSync(`public/plantillas/${name}`)], name))
 const parse = (tables: string[][][], existing: ExistingData = NONE) => validateFile(parseTables(tables), existing)
 
+describe('the ready-made test Carrera (public/plantillas/carrera-de-prueba.xlsx)', () => {
+  it('loads with no errors and is a playable Carrera: 6 groups, 3 bases, 15 users, a complete 5-round schedule', async () => {
+    const file = parse(await load('carrera-de-prueba.xlsx'))
+    expect(countErrors(file)).toBe(0)
+    expect(file.notes).toEqual([])
+    expect(file.grupos).toHaveLength(6)
+    expect(file.bases).toHaveLength(3)
+    expect(file.bases.every((b) => b.questions.length === 3 && b.lat !== null && b.info.length > 0)).toBe(true)
+    expect(file.personas.filter((p) => p.role === 'runner')).toHaveLength(12)
+    expect(file.personas.filter((p) => p.role === 'base')).toHaveLength(3)
+    expect(file.personas.filter((p) => p.gps)).toHaveLength(6) // one GPS runner per group
+    expect(file.personas.every((p) => p.username.startsWith('prueba.'))).toBe(true)
+    expect(file.cruces).toHaveLength(15)
+    // every pair of groups meets exactly once and nobody plays twice in a round
+    const pairs = new Set(file.cruces.map((c) => [c.teamA, c.teamB].sort().join('|')))
+    expect(pairs.size).toBe(15)
+    for (let r = 1; r <= 5; r++) {
+      const inRound = file.cruces.filter((c) => c.round === r).flatMap((c) => [c.teamA, c.teamB])
+      expect(new Set(inRound).size).toBe(6)
+    }
+    expect(file.tiempos).toHaveLength(6)
+  })
+
+  it('contains no passwords: they are generated when the file is uploaded', async () => {
+    const raw = await load('carrera-de-prueba.xlsx')
+    const people = raw.find((t) => t[0]?.[0] === 'Nombre completo')!
+    expect(people.length).toBe(16)
+    expect(people.slice(1).every((row) => !row[5])).toBe(true)
+  })
+})
+
 describe('the downloadable templates', () => {
   it.each(['plantilla-carrera.docx', 'plantilla-carrera.xlsx'])('%s loads the whole Carrera with no errors', async (name) => {
     const file = parse(await load(name))
