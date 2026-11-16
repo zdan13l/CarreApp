@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../../lib/supabase'
 import { errMsg, useAdmin } from './AdminContext'
+import BulkImport from './BulkImport'
 import TravelTimes from './TravelTimes'
 
 interface Counts {
@@ -142,6 +143,8 @@ export default function Resumen() {
 
       {event && <TravelSetting key={event.id} eventId={event.id} minutes={event.max_travel_minutes} onSaved={reload} />}
       {event && <TravelTimes key={`t-${event.id}`} eventId={event.id} defaultMinutes={event.max_travel_minutes} />}
+
+      <BulkImport />
 
       <section className="card">
         <h2>{event ? 'Nueva Carrera' : 'Crea tu primera Carrera'}</h2>
