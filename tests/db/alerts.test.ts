@@ -139,6 +139,7 @@ describe('check_delays (server side)', () => {
 
   it('compares with the LAST previous match of the group, not an older one', async () => {
     // a: round 1 finished 60 min ago at b0, round 2 finished 2 min ago at b1, round 3 pending at b2.
+    // y rested round 2 (its last match is 60 min old, but it was not walking: 0016), so nobody is late.
     const c = await seedCarrera(db, { teams: 4, bases: 3 })
     const [a, b, x, y] = c.teams.map((t) => t.id)
     const r1 = await insertMatch(db, c, 1, c.bases[0].id, a, b)
@@ -147,12 +148,10 @@ describe('check_delays (server side)', () => {
     await finishedMinutesAgo(db, r1.id, 60)
     await finishedMinutesAgo(db, r1x.id, 60)
     await finishedMinutesAgo(db, r2.id, 2)
-    await insertMatch(db, c, 3, c.bases[2].id, a, y) // a walks b1->b2 (2 min ago: fine); y finished long ago at b1 and walks to b2
+    await insertMatch(db, c, 3, c.bases[2].id, a, y) // a walks b1->b2 (2 min ago: fine); y rested, so it has no deadline
     await activate(c)
     await tick()
-    const sent = await items()
-    expect(sent).toHaveLength(1)
-    expect(new Set(sent[0].user_ids)).toEqual(new Set(c.teams[3].runners)) // only y
+    expect(await items()).toHaveLength(0)
   })
 })
 
