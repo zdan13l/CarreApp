@@ -71,14 +71,13 @@ export default function Puntajes() {
         .select('id, round_number, base_id, team_a, team_b, status, arrived_at, match_scores(item, winner_team_id, voided)')
         .eq('event_id', eventId)
         .order('round_number'),
-      supabase.from('score_audit').select('*').order('changed_at', { ascending: false }).limit(500),
+      supabase.from('score_audit').select('*').eq('event_id', eventId).order('changed_at', { ascending: false }).limit(200),
       supabase.from('profiles').select('id, full_name'),
     ])
     setTeams(t.data ?? [])
     setBases(b.data ?? [])
     setMatches((m.data ?? []) as MatchWithScores[])
-    const ids = new Set((m.data ?? []).map((x) => x.id))
-    setAudit(((a.data ?? []) as AuditRow[]).filter((r) => r.match_id && ids.has(r.match_id))) // the log is global: keep this Carrera's only
+    setAudit((a.data ?? []) as AuditRow[])
     setPeople(new Map((p.data ?? []).map((x) => [x.id, x.full_name])))
   }, [eventId])
 

@@ -129,8 +129,15 @@ export async function scheduleWithGenerator(db: TestDb, c: CarreraSeed, rounds: 
   return out
 }
 
+/** Makes this Carrera the active one (inductors only act on the active Carrera). */
+export async function activate(db: TestDb, c: Pick<CarreraSeed, 'eventId'>): Promise<void> {
+  await db.sql(`update public.events set is_active = false where is_active and id <> $1`, [c.eventId])
+  await db.sql(`update public.events set is_active = true where id = $1`, [c.eventId])
+}
+
 /** Makes a base confirm arrival and score all its items for a match (winner = teamA or teamB). */
 export async function playMatch(db: TestDb, c: CarreraSeed, m: MatchSeed, winners: [string, string, string]): Promise<void> {
+  await activate(db, c)
   const staff = c.bases.find((b) => b.id === m.baseId)!.staff
   const as = db.asUser(staff)
   await as.sql(`select public.confirm_arrival($1)`, [m.id])
