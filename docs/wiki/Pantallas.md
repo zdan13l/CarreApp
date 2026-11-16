@@ -11,7 +11,7 @@ En el computador el menú lateral tiene dos grupos; en el celular la barra infer
 |---|---|---|
 | **En vivo** | La ronda en curso (cada cruce con su estado, marcador, ítems y hora de llegada), las **demoras en el traslado** con el botón *Avisar*, el top 3 y cuántos grupos comparten su ubicación. Si la Carrera está en borrador, avisa qué falta y lleva a *Carrera*. | Es el tablero de control: todo lo que cambia mientras se juega, en un solo lugar. |
 | **Puntajes** | Ranking completo, corrección o invalidación de cualquier ítem por cruce (de a una ronda) y el registro de cambios (plegable). | Corregir lo que envió una base y dejar rastro. |
-| **Mapa** | Mapa 3D con las bases y la posición de cada grupo; los grupos sin señal o en demora se marcan. | Ver dónde está cada grupo. |
+| **Mapa** | Mapa 3D con las bases y la posición de cada grupo; los grupos sin señal o en demora se marcan. Una posición que lleva **más de 1 hora sin actualizarse desaparece** del mapa (el grupo queda como "Sin señal"), así que si alguien olvida apagar el GPS no queda un punto fantasma al terminar la Carrera. | Ver dónde está cada grupo. |
 
 ### Preparación
 | Pantalla | Qué muestra | Para qué |
