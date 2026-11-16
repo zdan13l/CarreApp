@@ -19,10 +19,11 @@ npm run check                # tsc + lint + funciones del servidor + pruebas + b
 | `tests/db/alerts` | Las alertas de demora en el servidor (`check_delays`, avisos manuales) y su **paridad con el cálculo de la app**. |
 | `tests/db/generator` | El generador de cronograma acepta cualquier tamaño (2 a 20 grupos) y respeta todas las reglas. |
 | `tests/db/race` | **La Carrera de ensayo**: 6 grupos, 3 bases, 5 rondas, con ítems invalidados, una corrección, un cruce cancelado, una demora, avisos y GPS; al final compara el ranking con un conteo independiente. |
+| `tests/db/simulacro` | **El simulacro en código** de [Prueba en vivo](Prueba-en-vivo): carga el archivo real `carrera-de-prueba.xlsx` con el mismo código de la app, repite lo que hace *Cargar la Carrera desde un archivo* y recorre la lista de comprobación como cada rol (activación con fotos, 5 rondas, demora por tramo, avisos con límite de 20 s, GPS, privacidad), borra la Carrera como *Eliminar esta Carrera* y comprueba que no queda nada; también que cargar el mismo archivo dos veces falla sin dañar nada. Cuenta la historia con `npx vitest run tests/db/simulacro.test.ts --reporter=verbose`. |
 | `tests/db/edge` | Casos de un día real: personas que salen o se reemplazan, cambiar de Carrera a mitad de un cruce, subir o bajar el tiempo de traslado en vivo, borrar un grupo, número impar de grupos, grupos que descansan una ronda, y la privacidad / abuso de la tabla de avisos. Varias son *caracterizaciones* (documentan lo que pasa hoy). |
 | `tests/api/` | Las funciones del servidor (`/api/users`, `/api/push`): autorización, validación, reversas y errores legibles. |
 | `tests/unit/` | Lógica pura: cronograma, demoras (incluye reloj del teléfono y grupo que descansa en `delays-edge`), lectura de plantillas Word/Excel/CSV, usuarios y contraseñas. |
-| `tests/static/` | El **contrato** entre la app y el esquema (cada tabla, columna, relación, `rpc` y canal en tiempo real que usa el código existe), las reglas de diseño (sin emojis, colores solo de variables, botones con nombre accesible) y la documentación al día (SQL registrado, variables de entorno). |
+| `tests/static/` | El contraste real de los colores en modo claro y oscuro (`theme-contrast`), el **contrato** entre la app y el esquema (cada tabla, columna, relación, `rpc` y canal en tiempo real que usa el código existe), las reglas de diseño (sin emojis, colores solo de variables, botones con nombre accesible) y la documentación al día (SQL registrado, variables de entorno). |
 
 ## ¿Las pruebas detectan fallos?
 La base de pruebas acepta `TEST_MUTATION_SQL`, un SQL que **rompe una regla a propósito** después de las migraciones. Las pruebas de esa regla deben fallar:
@@ -37,6 +38,7 @@ Se comprobaron 7 roturas (quitar un trigger, un índice, abrir una política, ap
 - `tests/db/seed.ts` tiene constructores (`seedCarrera`, `scheduleWithGenerator`, `playMatch`…) para armar una Carrera en pocas líneas.
 
 ## Lo que no cubre (y cómo cubrirlo)
+- Lo que el simulacro en código no sustituye: sonido y notificaciones en iPhone con la pantalla bloqueada, GPS real, la red del campus y las teselas de Mapbox.
 - Pantallas con **usuarios reales** (login, tiempo real, geolocalización, sonido y notificaciones en iPhone, la red de la Javeriana): se prueban en el **simulacro** con teléfonos. Ver la lista en el [Informe de pruebas](Informe-de-pruebas).
 - La revisión visual se hace con las páginas de vista previa (`/preview/<pantalla>` en `npm run dev`) en 390 px y 1280 px.
 

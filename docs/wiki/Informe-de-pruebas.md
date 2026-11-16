@@ -1,91 +1,71 @@
 # Informe de pruebas
 
-> **Después de la tercera ejecución se corrigieron los hallazgos P0 1, 2 y 3** (perfil con mala red, alerta por descanso con la migración `0016`, confirmación al activar/desactivar). Después se corrigieron también los P1 y P2 (migración `0017`, ver [Bitácora](Bitacora)). No se tocó: las contraseñas de mínimo 6 caracteres (lo exige Supabase Auth y las plantillas), un límite de intentos en `/api/users` (se apoya en Supabase Auth) y las etiquetas del mapa que se encimen. Queda el simulacro con teléfonos reales y la regla de **no publicar en `main` durante la Carrera** (el mapa no está en el precaché y un teléfono con la versión vieja puede fallar al abrirlo tras una publicación).
-
-Tercera ejecución, 2026-11-15 (revisión crítica antes de la Carrera real: pantallas, código, rendimiento, privacidad). Cada vez que se use el agente `carreapp-tester` este informe se actualiza con la fecha. Las ejecuciones anteriores están resumidas al final.
+Cuarta ejecución, 2026-11-16 (simulacro de la Carrera de prueba en código, modo claro/oscuro, Eliminar Carrera, migración `0017`, ocultar posiciones viejas). Cada vez que se use el agente `carreapp-tester` este informe se actualiza con la fecha. Las ejecuciones anteriores están resumidas al final.
 
 ## Qué se probó
-- Puertas estáticas: `npx tsc -b`, `npx tsc -p api/tsconfig.json`, `npm run build` sin errores; `npm run lint` solo con las 8 advertencias conocidas (`set-state-in-effect`), 0 errores.
-- **306 pruebas automáticas** (`npm test`, 20 archivos: 290 anteriores + 16 nuevas) y `npm run test:race` (14 pruebas; la Carrera de ensayo cuadra con el conteo independiente).
-- Seis roturas deliberadas (`TEST_MUTATION_SQL`), todas **detectadas**: quitar `scores_validate`, `events_validate_activation`, `bases_restrict_staff_update` y `score_audit_event`; abrir `alerts_base_insert`; quitar el requisito de Carrera activa de `is_staff_of_match`.
-- **Revisión visual con el navegador** (`/preview/*`, 390 px y 1280 px): `runner`, `runner-ruta`, `runner-top`, `runner-alertas`, `base`, `base-info`, `admin`, `admin-carrera`, `admin-forms`, `map`. Sin desbordamiento horizontal y sin errores de consola salvo el de Mapbox en localhost (esperado: token por URL). Botones, tamaño de letra y contraste medidos con un script.
-- Lectura del código de las tres áreas (coordinador, corredor, base), `api/users.ts`, `api/push.ts`, `src/sw.ts`, `realtime.ts`, `auth.tsx` y las políticas de las migraciones 0010 a 0015.
-- No se probó con teléfonos reales, ni con credenciales, ni contra Supabase real (no hay credenciales de prueba).
-
-## Pruebas nuevas (16, todas pasan)
-- `tests/db/edge.test.ts` (14):
-  - un inductor borrado conserva sus puntajes (pero el borrado escribe 3 filas "Corrigió" de ruido en el registro);
-  - relevo de inductor y de corredor a mitad de la Carrera (el push va al corredor nuevo);
-  - un grupo puede quedar con menos de 2 corredores después de activar (solo lo avisa la lista de pendientes);
-  - cambiar de Carrera a mitad de un cruce congela la base; volver permite terminar sin perder datos;
-  - bajar o subir el tiempo de traslado en vivo cambia el siguiente `check_delays`;
-  - un grupo con demora recibe el push en **cada** revisión (cada 30 s, mismo `tag`);
-  - borrar un grupo borra los puntos que sus rivales ganaron contra él;
-  - 5 grupos y 2 bases: cada ronda descansa uno y los puntos suman 3 por cruce jugado;
-  - los avisos los lee cualquier usuario, incluso de otra Carrera; una base puede poner cualquier `event_id` y mandar 15 avisos seguidos sin límite; una base de una Carrera apagada no puede avisar;
-  - **un grupo que descansa una ronda recibe una alarma de demora falsa** (hallazgo 2).
-- `tests/unit/delays-edge.test.ts` (2): un teléfono con el reloj 4 min adelantado da una alarma falsa y uno 4 min atrasado esconde una real; el grupo que descansa aparece como "tarde".
-- Varias son *caracterizaciones*: documentan lo que pasa hoy; si se mejora a propósito, se actualizan.
+- Puertas estáticas: `npx tsc -b`, `npx tsc -p api/tsconfig.json` y `npm run build` sin errores; `npm run lint`: 0 errores y 22 advertencias de los mismos tipos de siempre (`set-state-in-effect`, `only-export-components`, `exhaustive-deps`), ninguna en archivos nuevos.
+- **375 pruebas automáticas pasan** (`npm test`, 23 archivos) más **1 "fallo esperado"** (`it.fails`, el defecto 1 de abajo); `npm run test:race`: 14 pruebas.
+- **Simulacro en código** (`tests/db/simulacro.test.ts`, 39 pruebas; `npx vitest run tests/db/simulacro.test.ts --reporter=verbose` cuenta la historia). Carga el archivo real `public/plantillas/carrera-de-prueba.xlsx` con el mismo código de la app (`readTablesFromFile` + `parseTables` + `validateFile`), repite paso a paso lo que hace `BulkImport.tsx` contra la base en memoria (Carrera, 6 grupos, 3 bases con información, 3 preguntas y coordenadas, 15 usuarios con `event_id` como `api/users.ts`, GPS, asignaciones, 15 cruces, 6 tiempos, 8 min general) y recorre `Prueba-en-vivo.md` como cada rol con RLS:
+  - activación bloqueada sin las 9 fotos y con otra Carrera activa; luego activa;
+  - 5 rondas con inductores (llegada y 3 ítems), un ítem invalidado por el coordinador (el inductor no puede), una corrección del coordinador (la base no puede), un cruce cancelado;
+  - un grupo lento con tiempos por tramo (3 a 5 min contra 8 general): a los 4 min 20 s solo Vikingos y Dioses Nórdicos (tramo de 4 min) reciben push y **solo sus 4 corredores**; con 8 min general nadie; los grupos que repiten base (Samuráis, Guerreros Aztecas) y el que descansa (en una transacción que se revierte) nunca; pantalla (`lateTeams`) y servidor (`check_delays`) coinciden con un modelo escrito a mano;
+  - avisos manuales del coordinador (sin límite) y de una base (1 cada 20 s por cruce; el segundo se rechaza y no genera push; otra base no se bloquea);
+  - GPS de los 6 corredores designados; ni el segundo corredor ni otro grupo escribe; una posición de 61 min se oculta (`isLocationFresh`, con límites exactos);
+  - privacidad (el corredor no lee información, preguntas, GPS ajeno ni auditoría; la llave pública no lee nada), intentos de subir de rol, desactivar a mitad de la Carrera (el inductor no puede confirmar ni calificar, no hay alertas) y reactivar;
+  - ranking final contra un conteo independiente (41 puntos = 45 menos 4 invalidados) y 45 filas de auditoría más 1 corrección;
+  - **Eliminar Carrera** igual que `DeleteEvent` (listar perfiles, borrar la Carrera, borrar los usuarios): todas las tablas vuelven a su estado previo (salvo el defecto 1), la otra Carrera y el coordinador quedan intactos y el mismo archivo se puede volver a cargar;
+  - **cargar el mismo archivo dos veces**: la vista previa marca los 15 usuarios y el botón queda bloqueado; forzando la carga, cada usuario falla con "Ese usuario ya existe", los 15 cruces se rechazan y ninguna tabla cambia.
+- 2 roturas deliberadas sobre el simulacro (`TEST_MUTATION_SQL`), ambas **detectadas**: quitar `alerts_rate_limit` y quitar `events_validate_activation` (una tercera tenía el nombre de la política mal escrito y no se aplicó: no cuenta).
+- Pruebas nuevas fuera del simulacro: `tests/static/theme-contrast.test.ts` (contraste real de los pares de color, claro y oscuro, incluidas las cajas teñidas con `color-mix`) y `tests/unit/theme.test.ts` (tema por defecto, guardado, valor corrupto, almacenamiento bloqueado).
+- **Revisión visual** con `npm run dev` y `/preview/*` más `/login`, a 390 y 1280 px, en tema claro y oscuro (`localStorage 'carreapp.theme'`), con un script que mide desbordamiento, contraste real calculado y objetivos táctiles. Se restauró el visor, se apagó el servidor y se borró la clave del tema.
+- No se probó con teléfonos reales, ni contra Supabase real, ni con credenciales.
 
 ## Lo que está bien
-- La base de datos impone las reglas (cruces, orden de calificación, una Carrera activa, usuarios por Carrera, auditoría) y las pruebas notan las roturas.
-- Visual: nada se desborda a 390 px; los botones principales miden 44 a 56 px; la barra inferior del corredor y de la base es clara; el aviso de demora tiene `role="alert"` y hay foco visible; el mapa se carga bajo demanda.
-- Privacidad: la información y las preguntas de las bases, el GPS y la configuración de push están cerrados por RLS; `api/users.ts` valida el rol del llamador en el servidor, revierte el usuario si falla el perfil y no deja eliminarse a uno mismo.
-- Tiempo real con red de seguridad (sondeo de 20 s, al volver a primer plano y al reconectar) y un error de red en la primera consulta ya no borra el grupo en `RunnerHome` / `BaseHome`.
+- El simulacro entero pasa en reglas: carga, activación, rondas, demoras por tramo, avisos, GPS, privacidad, ranking y borrado. El borrado de la Carrera es completo salvo el defecto 1.
+- Modo claro: sin desbordamiento horizontal en ninguna pantalla a 390 ni a 1280 px; en oscuro **cero** pares de texto bajo 4.5:1; botones, login y barras se ven bien en ambos temas. El tema se guarda, no falla con el almacenamiento bloqueado, se aplica antes del primer pintado y el mapa lo sigue.
+- Las alertas por tramo, repetir base y descansar se comportan igual en pantalla y servidor.
 
 ## Lo que falló
-Ninguna prueba falló. Hallazgos nuevos (los marcados "leído" salen de leer el código; no se pudieron reproducir sin teléfono ni credenciales):
-
-| # | Hallazgo | Dónde | Efecto |
+| # | Hallazgo | Reproducción / causa | Gravedad |
 |---|---|---|---|
-| 1 | **Si falla la lectura del perfil, el usuario queda sin perfil y no se reintenta** (leído) | `src/lib/auth.tsx` (`fetchProfile` devuelve `null` ante cualquier error y `apply` lo guarda), `RequireRole.tsx` | supabase-js vuelve a emitir `SIGNED_IN` al regresar la app a primer plano. Con mala red el corredor ve "Sin perfil... Avísale al coordinador" y solo puede cerrar sesión; no se corrige solo |
-| 2 | **Alarma de demora falsa para el grupo que descansa una ronda** (reproducido: prueba en cliente y en servidor) | `src/lib/delays.ts` y `check_delays()` | El descanso cuenta como caminata: el grupo y sus corredores reciben sonido y push cada 30 s mientras los demás juegan. Pasa con número impar de grupos o con más grupos que 2 × bases |
-| 3 | Activar y Desactivar la Carrera no piden confirmación; activar apaga la activa | `Carrera.tsx` (`activate`, `deactivate`) | Un toque mal puesto oculta la Carrera a todos los teléfonos hasta reactivarla |
-| 4 | **Tormenta de recargas en En vivo y Mapa por el GPS** | `EnVivo.tsx` y `Mapa.tsx` escuchan `team_locations` y ejecutan la recarga completa (6 y 4 consultas) | ~20 corredores GPS cada 10 s = ~2 eventos/s; con el debounce de 250 ms son unas 20 a 30 consultas por segundo solo del coordinador, el doble con dos pestañas |
-| 5 | El reloj del teléfono decide la alarma en pantalla | `lateTeams(…, Date.now())` | Reloj desajustado 4 min = alarma falsa o ausente (prueba). El servidor usa su reloj, así que pantalla y push pueden discrepar |
-| 6 | Sin indicador de "sin conexión" ni de "última actualización"; si falla la consulta de `matches` o `team_standings` la lista queda vacía ("El coordinador aún no ha programado tus cruces"); si falla la primera carga se dice "no estás en un grupo" | `RunnerHome.tsx`, `BaseHome.tsx` (`m.data ?? []`, `finally` de la primera carga) | Con mala red el usuario no sabe si ve datos viejos o ninguno |
-| 7 | Cerrar sesión es un icono de un toque, sin confirmación, junto a la campana; la suscripción push no se quita al cerrar sesión | `AppShell.tsx`, `lib/push.ts` | Un corredor que se sale sin querer debe escribir usuario y contraseña en plena calle; quien deja el teléfono sigue recibiendo avisos |
-| 8 | "Usuario o contraseña incorrectos" también cuando no hay red | `auth.tsx` (`signIn`) | Falso diagnóstico en el campus |
-| 9 | Todos los teléfonos recargan a la vez ante cada cambio | `realtime.ts` (debounce fijo de 250 ms) | 60 teléfonos × 3 a 4 consultas en el mismo segundo por cada puntaje; aceptable, pero el pico se puede suavizar con un retraso aleatorio |
-| 10 | Avisos: `alerts_read using (true)` (cualquier usuario los lee), una base puede poner cualquier `event_id`, sin límite de envío | `0010`, `0012` (pruebas de caracterización) | Un inductor puede inundar de push a sus corredores; riesgo bajo con personas conocidas |
-| 11 | Borrar un usuario que ya calificó escribe filas "Corrigió" falsas en el registro (el `on delete set null` de `awarded_by` se audita) | trigger de `score_audit`, `0001` | Ruido que puede leerse como una corrección del coordinador |
-| 12 | Puntajes cambia o borra un puntaje con solo elegir en el `<select>`, sin confirmar | `Puntajes.tsx` (`setScore`) | Un roce corrige un resultado; queda en el registro, pero el ranking se mueve en vivo |
-| 13 | `api/push.ts` compara el secreto con `!==` (no en tiempo constante); `api/users.ts` sin límite de intentos y con contraseña mínima de 6 | `api/*.ts` | Riesgo bajo (el secreto es largo y las contraseñas las genera la app); fácil de endurecer |
-| 14 | Texto pequeño: 10 px (barra del coordinador, "PUESTO / PTS"), 10.9 px en el menú lateral, 11.5 px en la barra inferior y en el mapa; contraste 4.3:1 en "Por jugar", "VS" y los títulos del menú; etiquetas del mapa que se encimen si dos puntos están cerca; casilla de 22 px | `index.css`, `BottomNav`, `AdminNav`, `MapView` | Difícil de leer al sol; nada bloquea el uso |
-| 15 | `/preview/base-info` muestra las preguntas en "Mi base", pero la pantalla real las tiene en la guía de *Ronda* | `Preview.tsx` | La vista previa engaña al revisar |
-| 16 | Publicar en pleno evento: `skipWaiting` + `clientsClaim` + `autoUpdate`, y el mapa (`MapView-*`) no está en el precaché | `sw.ts`, `vite.config.ts` | Teléfonos con la versión vieja abierta pueden fallar al abrir el mapa por primera vez (leído; confirmar en un simulacro) |
+| 1 | **Eliminar una Carrera deja 45 filas huérfanas en `score_audit`** (una "delete" por cada puntaje, con `event_id` nulo, que ninguna Carrera puede borrar después) | `tests/db/simulacro.test.ts` > "KNOWN DEFECT" (`it.fails`). El borrado en cascada de `matches` borra `match_scores`; el trigger `after_score_change` escribe una fila "delete" cuando el cruce ya no existe, así que `audit_set_event()` no encuentra la Carrera | P1: solo basura en el registro, pero rompe la promesa "no queda nada" |
+| 2 | **Modo claro: el texto de estado verde (`badge ok`, `chip.win`) queda entre 3.7 y 4.4:1 sobre su caja teñida** (`En juego` 3.74, `2–1 Ganaron` 3.90, `Activa` 4.04, `Terminado` 4.34); también las iniciales del `crest` (4.39), `--gold-ink` y `--text-faint` sobre `--surface-3` (4.4) y los avisos teñidos de ok/warn/danger | Medido en el navegador y reproducido en `theme-contrast.test.ts` (lista `KNOWN_BELOW_AA`, 24 pares). Texto de 12 px en negrita | P2 |
+| 3 | Modo oscuro: `--text-muted` sobre la opción dorada seleccionada al 22 % da 4.12:1 | `theme-contrast.test.ts` | P2 |
+| 4 | Las tablas `matches`, `teams`, `bases`, `match_scores` las lee cualquier usuario autenticado, también de otra Carrera o inactiva (`using (true)`): "dejan de ver la Carrera" es un filtro del teléfono, no de la base de datos | Prueba "a runner sees the Carrera…" (caracterización). Lo privado (información, preguntas, GPS, auditoría, avisos de otras Carreras) sí está cerrado | P2, bajo (nada sensible) |
+| 5 | La vista previa `/preview/admin-carrera` no muestra la zona "Eliminar esta Carrera" | `Preview.tsx` | P2: no se pudo revisar visualmente en claro/oscuro |
+| 6 | Con la Carrera desactivada, el inductor recibe un error genérico de permisos al confirmar o calificar | Simulacro, "switching the Carrera off mid-race" | P2 |
+
+## Lo que no convence
+- `DeleteEvent` solo bloquea borrar una Carrera activa en la pantalla; la base de datos la borraría (caracterizado en el simulacro). Un cliente viejo o un `delete` a mano lo evita.
+- El mapa de la vista previa superpone las etiquetas cuando dos grupos están cerca (conocido).
+- Los controles de zoom de Mapbox miden 32x48 px (de la librería, no de la app).
+- Errores de teselas de Mapbox en la consola en localhost (token por URL): esperado.
 
 ## Ubicación de la información
-- **Mantener:** En vivo / Carrera, las demoras en un solo lugar, la guía de la base en *Ronda*, el registro plegable en Puntajes, el menú móvil de 4 pestañas.
-- **Mover / aclarar:** en el menú del coordinador "Preparar" esconde cinco pantallas con un nombre que no dice que ahí están Grupos, Bases, Cruces y Usuarios. En *Carrera*, la carga masiva (se usa una vez) va antes que los tiempos de alerta (se usan en vivo): conviene plegarla cuando la Carrera ya está activa. Mostrar la hora de la última actualización en corredor y base.
-- **Nueva sección:** no hace falta. Un buscador en *Usuarios* sí (con 60 o más personas la lista es larga).
+Sin cambios respecto a la tercera ejecución. *Eliminar esta Carrera* al final de *Carrera* (zona de peligro, solo aparece desactivada) está bien ubicada: se usa una vez, al terminar.
 
-## Riesgos para la Carrera real (no los cubre la automatización)
-- Sonido y push en iPhone con el teléfono bloqueado (la app no suena en segundo plano; solo el push).
-- GPS: iOS suspende la app con la pantalla bloqueada; el corredor designado debe dejarla encendida.
-- Red del campus con 60 teléfonos: probar con `/diagnostico` y un simulacro.
-- Mapbox con token por URL: probar en el dominio real.
-- No publicar en `main` durante la Carrera (se redespliega en 15 s y reemplaza el service worker de todos los teléfonos).
-- Plan gratuito de Supabase: conexiones Realtime (límite de 200) y consultas pico; mirar el panel durante el simulacro.
+## Riesgos para la Carrera real (siguen necesitando teléfonos)
+- Sonido y push en iPhone con la pantalla bloqueada, instalación de la PWA y permisos.
+- GPS real (iOS suspende con la pantalla apagada) y precisión en el campus.
+- Red de la Javeriana con ~60 teléfonos y Realtime en el plan gratuito; 6 corredores GPS cada 10 s.
+- Mapbox con token por URL, mapa claro/oscuro con teselas reales y brillo al sol.
+- Tema claro al sol: la lectura real de los chips de estado.
+- Publicar en `main` durante el evento (service worker).
 
 ## Recomendaciones
-**P0** (antes del día)
-- Hallazgo 1: no borrar el perfil si falla la lectura; reintentar y guardar el último perfil en `localStorage`. **S**
-- Hallazgo 2: medir la demora solo para el *siguiente* cruce del grupo y desde que terminó la ronda anterior (cliente `delays.ts` + migración `0016` para `check_delays`; las pruebas de caracterización pasan a pruebas de regla). **M**
-- Hallazgo 3: confirmación al activar (nombrando la Carrera que se apaga) y al desactivar. **S**
-- Simulacro con teléfonos reales (un corredor, una base, un coordinador) con red mala y pantalla bloqueada.
+**P0:** ninguna nueva; falta el simulacro con teléfonos reales ([Prueba en vivo](Prueba-en-vivo)).
 
 **P1**
-- Hallazgo 4: en En vivo y Mapa actualizar solo `positions` con el *payload* de `team_locations`. **S–M**
-- Hallazgos 6 y 8: franja "Sin conexión · datos de las 10:32", conservar la lista ante un error, distinguir red de contraseña. **S–M**
-- Hallazgo 7: confirmar al cerrar sesión y quitar la suscripción push. **S**
-- Hallazgo 5: usar la hora del servidor (cabecera `Date` de la respuesta o un `rpc`) para la demora en pantalla. **S–M**
-- Hallazgo 16: congelar los despliegues durante la Carrera y probar el mapa tras una publicación. **S** (proceso)
+- Hallazgo 1: migración `0018` que no audite el borrado en cascada (en `after_score_change`: `if tg_op = 'DELETE' and not exists (select 1 from public.matches where id = old.match_id) then return null; end if;`) y borre las filas huérfanas existentes; al arreglarlo, quitar `.fails` y poner `ORPHAN_AUDIT_ROWS = 0` en el simulacro. **S**
 
 **P2**
-- Hallazgos 9 a 15: retraso aleatorio de 0 a 1.5 s en `useRealtimeReload`; limitar `alerts` a su cruce y a N por minuto (migración); no auditar el `set null` de `awarded_by`; confirmación en Puntajes; `timingSafeEqual`; letra mínima de 12 px; arreglar la vista previa. **S cada uno**
-- Buscador en Usuarios; bajar las 8 advertencias del lint con un hook `useLoad` compartido. **M**
-- Actualizar el roadmap del `README.md`.
+- Hallazgos 2 y 3: ajustar `--ok`, `--warn`, `--danger`, `--gold-ink`, `--text-faint` (claro) y el 22 % de la opción dorada (oscuro) y vaciar `KNOWN_BELOW_AA`. **S**
+- Hallazgo 4: acotar `matches`/`teams`/`bases` a la Carrera activa para quien no es coordinador, o documentarlo en Roles y permisos. **M**
+- Hallazgo 5: añadir la zona de eliminar a `/preview/admin-carrera`. **S**
+- Hallazgo 6 y `DeleteEvent`: mensaje claro al inductor ("la Carrera no está activa") y un trigger que impida borrar una Carrera activa. **S**
+
+## Tercera ejecución (2026-11-15)
+306 pruebas, seis roturas deliberadas detectadas y revisión visual a 390 y 1280 px. Hallazgos corregidos después: perfil con mala red, alerta falsa por descanso (`0016`), confirmación al activar/desactivar y los P1 y P2 (`0017`: `server_now()`, avisos con lectura acotada y límite de 20 s, auditoría sin ruido). No se tocó: contraseñas de mínimo 6 caracteres y un límite de intentos en `/api/users`. Quedó pendiente el simulacro con teléfonos y la regla de no publicar en `main` durante la Carrera.
 
 ## Segunda ejecución (2026-11-15)
 286 pruebas. Usuarios por Carrera (`0014`), cambiar de Carrera, registro de cambios por Carrera. Cuatro roturas deliberadas detectadas. Corregido después: registro de puntajes por Carrera y calificación solo en la Carrera activa (`0015`), el panel del coordinador escucha `events`, un error de red ya no se muestra como "sin Carrera activa", mensaje claro al repetir un usuario, Pantallas.md y la prueba movida a `tests/unit/`. Queda por diseño: los nombres de usuario son únicos entre Carreras. No se revisó el navegador.
