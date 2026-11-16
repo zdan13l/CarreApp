@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../node_modules/.tmp/tsconfig.tests.tsbuildinfo",
+    "types": ["vite/client", "node"],
+    "noUnusedLocals": false
+  },
+  "include": ["./**/*.ts", "../api/*.ts", "../src/lib", "../src/types.ts", "../src/mammoth.d.ts", "../src/vite-env.d.ts"],
+  "exclude": []
+}
