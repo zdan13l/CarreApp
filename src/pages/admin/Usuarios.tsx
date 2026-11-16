@@ -59,6 +59,10 @@ export default function Usuarios() {
       setError('El usuario debe tener 3-30 caracteres: letras minúsculas, números, punto, guion o guion bajo.')
       return
     }
+    if (role !== 'admin' && !eventId) {
+      setError('Primero crea o elige una Carrera: los corredores e inductores pertenecen a una.')
+      return
+    }
     void run(async () => {
       await createUser({ username: u, password, full_name: fullName.trim(), role, event_id: role === 'admin' ? null : eventId })
       setCreds({ username: u, password, label: `Usuario creado: ${fullName.trim()}` })
@@ -162,7 +166,7 @@ export default function Usuarios() {
             </div>
           </label>
           {error && <p className="error">{error}</p>}
-          <button type="submit" disabled={busy || !fullName.trim() || !username.trim() || password.length < 6}>
+          <button type="submit" disabled={busy || !fullName.trim() || !username.trim() || password.length < 6 || (role !== 'admin' && !eventId)}>
             {busy ? 'Creando…' : 'Crear usuario'}
           </button>
         </form>
