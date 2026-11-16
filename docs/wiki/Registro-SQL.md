@@ -27,6 +27,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0012 | [`0012_runner_only_push.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0012_runner_only_push.sql) | _pendiente_ | Las notificaciones push son solo para corredores; la base también puede mandar avisos |
 | 0013 | [`0013_no_delay_same_base.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0013_no_delay_same_base.sql) | 2026-11-15 | Un grupo que juega de nuevo en la misma base no cuenta como "en demora" |
 | 0014 | [`0014_users_per_event.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0014_users_per_event.sql) | 2026-11-15 | Cada corredor/inductor pertenece a una Carrera; `events` entra a Realtime |
+| 0015 | [`0015_audit_event_and_active_scoring.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0015_audit_event_and_active_scoring.sql) | 2026-11-15 | El registro de cambios guarda su Carrera; los inductores solo actúan en la Carrera activa |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -303,6 +304,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/rules.test.ts` ("keeps users inside their own Carrera…"). En Supabase: `select count(*) from public.profiles where role <> 'admin' and event_id is null;` → usuarios sin Carrera (deberían ser solo los que nunca fueron asignados).
 
 **Cómo revertir** `alter table public.profiles drop column event_id;`, volver a ejecutar las dos funciones de `0003_staff_rules.sql` y `alter publication supabase_realtime drop table public.events;`.
+
+## 0015 — Registro por Carrera y calificación solo en la activa
+
+**Qué cambia** `score_audit.event_id` (se llena solo con un trigger, también en las filas anteriores y las de cruces borrados quedan sin Carrera solo si ya estaban huérfanas). `is_staff_of_match()` exige que la Carrera del cruce sea la activa: un inductor no puede calificar, confirmar llegada ni enviar avisos en una Carrera apagada. El coordinador no cambia: puede corregir cualquier Carrera.
+
+**Por qué** La pantalla de Puntajes pedía el registro de todas las Carreras (últimas 500 filas) y filtraba en el navegador: una Carrera antigua podía verse vacía y los cruces borrados perdían su rastro. Y nada impedía a un inductor de una Carrera apagada calificar llamando a la API.
+
+**Verificación** `tests/db/carreras.test.ts` ("what a switched-off Carrera allows" y "score audit log per Carrera"). En Supabase: `select count(*) from public.score_audit where event_id is null;` (solo deberían quedar filas de cruces ya borrados antes de esta migración).
+
+**Cómo revertir** `alter table public.score_audit drop column event_id;`, `drop trigger score_audit_event on public.score_audit; drop function public.audit_set_event();` y volver a crear `is_staff_of_match()` como en `0001_initial_schema.sql`.
 
 ## Plantilla para nuevos registros
 

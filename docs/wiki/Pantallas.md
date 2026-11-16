@@ -20,7 +20,7 @@ En el computador el menú lateral tiene dos grupos; en el celular la barra infer
 | **Grupos** | Nombre, foto y corredores (con el que transmite el GPS). | |
 | **Bases** | Nombre, foto del lugar, información, 3 preguntas, inductores y ubicación (el mapa se abre solo si se necesita). | |
 | **Cruces** | Generador del cronograma, revisión (descansos, bases repetidas) y edición ronda por ronda. | Armar y ajustar el cronograma. |
-| **Usuarios** | Crear, cambiar contraseña y eliminar. | |
+| **Usuarios** | Los de la Carrera elegida (más los coordinadores): crear, cambiar contraseña y eliminar. Los usuarios anteriores a esta regla aparecen en *Sin Carrera asignada* para adoptarlos o eliminarlos. Corredores e inductores se crean siempre dentro de una Carrera. | |
 
 ## Corredor (`/corredor`)
 Una **barra de estado siempre visible** (grupo, puesto y puntos en vivo) y cuatro pestañas:
