@@ -6,6 +6,7 @@ import RoundPager from '../../components/RoundPager'
 import { analyzeSchedule, currentRound, formatTime, generateSchedule, matchErrorMessage, type PlannedMatch } from '../../lib/schedule'
 import { useRealtimeReload } from '../../lib/realtime'
 import { DEFAULT_ALERT_MESSAGE } from '../../lib/delays'
+import { useTravelTimes } from '../../lib/travel'
 import { supabase } from '../../lib/supabase'
 import { STATUS_LABEL, type MatchRow } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
@@ -32,6 +33,7 @@ export default function Cruces() {
   const [error, setError] = useState<string | null>(null)
 
   const eventId = event?.id
+  const travel = useTravelTimes(eventId)
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
@@ -146,6 +148,7 @@ export default function Cruces() {
           baseName={baseName}
           baseCoords={new Map(bases.filter((b) => b.lat != null && b.lng != null).map((b) => [b.id, [b.lng!, b.lat!] as [number, number]]))}
           teamCoords={positions}
+          travel={travel}
         />
       )}
 

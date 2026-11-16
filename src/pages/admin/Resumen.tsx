@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../../lib/supabase'
 import { errMsg, useAdmin } from './AdminContext'
+import TravelTimes from './TravelTimes'
 
 interface Counts {
   teams: number
@@ -140,6 +141,7 @@ export default function Resumen() {
       )}
 
       {event && <TravelSetting key={event.id} eventId={event.id} minutes={event.max_travel_minutes} onSaved={reload} />}
+      {event && <TravelTimes key={`t-${event.id}`} eventId={event.id} defaultMinutes={event.max_travel_minutes} />}
 
       <section className="card">
         <h2>{event ? 'Nueva Carrera' : 'Crea tu primera Carrera'}</h2>
@@ -180,14 +182,15 @@ function TravelSetting({ eventId, minutes, onSaved }: { eventId: string; minutes
 
   return (
     <section className="card">
-      <h2>Alertas de demora</h2>
+      <h2>Alertas de demora: tiempo general</h2>
       <p className="muted">
         Si un grupo pasa más de este tiempo entre que termina una base y llega a la siguiente, suena una alerta a sus
-        corredores, a la base y a ti (en Cruces y en Mapa), y puedes avisarles con un botón.
+        corredores, a la base y a ti (cada 10 segundos mientras siga la demora), y también llega como notificación al
+        teléfono. Este tiempo vale para los tramos que no tengan el suyo (abajo).
       </p>
       <div className="row">
         <label className="inline-field grow">
-          Tiempo máximo de traslado (minutos)
+          Tiempo máximo general (minutos)
           <input type="number" inputMode="numeric" min={1} max={120} value={value} onChange={(e) => setValue(e.target.value)} />
         </label>
         <button disabled={busy || !valid || parsed === minutes} onClick={() => void save()}>Guardar</button>

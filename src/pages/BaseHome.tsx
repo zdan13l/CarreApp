@@ -1,15 +1,16 @@
 import { Ban, Check, CheckCheck, Flag, MapPin, Send, Trophy, UsersRound } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell'
-import { AlertBanner, SoundToggle } from '../components/Alerts'
+import { AlertBanner, AlertSettings } from '../components/Alerts'
 import BaseLocationEditor from '../components/BaseLocationEditor'
 import BottomNav, { type NavTab } from '../components/BottomNav'
 import Crest from '../components/Crest'
 import PhotoField from '../components/PhotoField'
 import Ranking from '../components/Ranking'
 import { useAuth } from '../lib/auth'
-import { useAlertSound, useManualAlerts, useNow } from '../lib/alerts'
+import { useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
 import { lateTeams, type TimedMatch } from '../lib/delays'
+import { useTravelTimes } from '../lib/travel'
 import { useRealtimeReload } from '../lib/realtime'
 import { uploadPhoto } from '../lib/storage'
 import { supabase } from '../lib/supabase'
@@ -122,9 +123,10 @@ export default function BaseHome() {
   const maxMinutes = (Array.isArray(events) ? events[0]?.max_travel_minutes : events?.max_travel_minutes) ?? 10
   const now = useNow()
   const myMatchIds = new Set(matches.map((m) => m.id))
-  const late = lateTeams(eventMatches, maxMinutes, now).filter((l) => myMatchIds.has(l.matchId))
+  const travel = useTravelTimes(base?.event_id)
+  const late = lateTeams(eventMatches, maxMinutes, now, travel).filter((l) => myMatchIds.has(l.matchId))
   const manual = useManualAlerts(matches.map((m) => m.id))
-  useAlertSound([...new Set(late.map((l) => `late-${l.matchId}`)), ...manual.alerts.map((a) => `msg-${a.id}`)])
+  useRepeatingAlert(late.length > 0) // every 10 s while a delay lasts
 
   return (
     <AppShell title={base?.name ?? 'Mi base'}>
@@ -150,7 +152,7 @@ export default function BaseHome() {
             const minutes = Math.max(...late.filter((l) => l.matchId === matchId).map((l) => l.elapsedMin))
             return (
               <AlertBanner key={matchId} title={`Ronda ${m?.round_number}: grupos en demora`}>
-                {names} llevan {minutes} min en el traslado (máximo {maxMinutes} min).
+                {names} llevan {minutes} min en el traslado (máximo {Math.min(...late.filter((l) => l.matchId === matchId).map((l) => l.maxMin))} min).
               </AlertBanner>
             )
           })}
@@ -159,7 +161,7 @@ export default function BaseHome() {
 
           {tab === 'ronda' && (
             <>
-              <SoundToggle />
+              <AlertSettings />
               {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
               {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} />}
               {next && (

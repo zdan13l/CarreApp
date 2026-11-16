@@ -642,3 +642,8 @@ details[open] summary::after { transform: rotate(180deg); }
 .sound-toggle.on { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
 .delay-list .list li { align-items: flex-start; }
 .delay-list .late { color: var(--danger); font-weight: 700; }
+.sound-toggle.asleep { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
+.push-note { margin-top: .75rem; font-size: .875rem; }
+.legs li { align-items: center; }
+.leg-input { display: flex; align-items: center; gap: .4rem; color: var(--text-muted); font-size: .875rem; }
+.leg-input input { width: 5rem; min-height: 46px; text-align: center; }

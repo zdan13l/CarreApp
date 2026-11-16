@@ -3,6 +3,7 @@ import DelaysPanel from '../../components/DelaysPanel'
 import LazyMap, { type MapMarker } from '../../components/LazyMap'
 import type { TimedMatch } from '../../lib/delays'
 import { timeAgo } from '../../lib/geo'
+import { useTravelTimes } from '../../lib/travel'
 import { useRealtimeReload } from '../../lib/realtime'
 import { photoUrl } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
@@ -40,6 +41,7 @@ export default function Mapa() {
   const [now, setNow] = useState(() => Date.now())
 
   const eventId = event?.id
+  const travel = useTravelTimes(eventId)
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
@@ -118,6 +120,7 @@ export default function Mapa() {
         baseName={new Map(bases.map((b) => [b.id, b.name]))}
         baseCoords={new Map(bases.filter((b) => b.lat !== null && b.lng !== null).map((b) => [b.id, [b.lng!, b.lat!] as [number, number]]))}
         teamCoords={new Map(locations.map((l) => [l.team_id, [l.lng, l.lat] as [number, number]]))}
+        travel={travel}
       />
 
       {withoutLocation.length > 0 && (
