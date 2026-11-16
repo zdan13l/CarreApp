@@ -26,7 +26,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0011 | [`0011_push_and_travel_times.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0011_push_and_travel_times.sql) | _pendiente_ | Tiempo de traslado por tramo, suscripciones push y revisión de demoras en el servidor |
 | 0012 | [`0012_runner_only_push.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0012_runner_only_push.sql) | _pendiente_ | Las notificaciones push son solo para corredores; la base también puede mandar avisos |
 | 0013 | [`0013_no_delay_same_base.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0013_no_delay_same_base.sql) | 2026-11-15 | Un grupo que juega de nuevo en la misma base no cuenta como "en demora" |
-| 0014 | [`0014_users_per_event.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0014_users_per_event.sql) | _pendiente_ | Cada corredor/inductor pertenece a una Carrera; `events` entra a Realtime |
+| 0014 | [`0014_users_per_event.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0014_users_per_event.sql) | 2026-11-15 | Cada corredor/inductor pertenece a una Carrera; `events` entra a Realtime |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -294,7 +294,7 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 
 **Cómo revertir** Volver a ejecutar `check_delays()` de `0012_runner_only_push.sql`.
 
-## 0014 — Usuarios por Carrera (pendiente de aplicar)
+## 0014 — Usuarios por Carrera
 
 **Qué cambia** `profiles.event_id` (la Carrera del corredor o inductor; el coordinador no tiene). Los usuarios existentes se asignan a la Carrera donde ya trabajan (la más reciente si estaban en varias). `validate_team_runner()` y `validate_base_staff()` rechazan asignar a alguien de otra Carrera ("Ese usuario pertenece a otra Carrera.") y adoptan para la Carrera a quien aún no tenía. `events` entra a la publicación de Realtime.
 
