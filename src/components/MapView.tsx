@@ -21,15 +21,30 @@ export interface MapViewProps {
   lightPreset?: 'day' | 'dusk' | 'night' | 'dawn'
 }
 
-const ICON: Record<MapMarker['kind'], string> = { base: '📍', team: '🏃', me: '🔵', target: '🏁' }
+// Glyphs (Lucide paths) drawn inside the markers.
+const GLYPH = {
+  base: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
+  target:
+    '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
+} as const
+
+function initialsOf(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return '?'
+  return (words.length === 1 ? words[0].slice(0, 2) : words[0][0] + words[1][0]).toUpperCase()
+}
 
 function buildElement(m: MapMarker): HTMLElement {
   const el = document.createElement('div')
   el.className = `mk mk-${m.kind}${m.stale ? ' stale' : ''}`
   const pin = document.createElement('span')
   pin.className = 'mk-pin'
-  if (m.photo) pin.style.backgroundImage = `url("${m.photo}")`
-  else pin.textContent = ICON[m.kind]
+  if (m.kind === 'base' || m.kind === 'target') {
+    pin.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${GLYPH[m.kind]}</svg>`
+  } else if (m.kind === 'team') {
+    if (m.photo) pin.style.backgroundImage = `url("${m.photo}")`
+    else pin.textContent = initialsOf(m.label)
+  }
   const label = document.createElement('span')
   label.className = 'mk-label'
   label.textContent = m.label

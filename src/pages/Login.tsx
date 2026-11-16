@@ -1,6 +1,8 @@
+import { Eye, EyeOff, LogIn } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
+import Logo from '../components/Logo'
 import { homePathForRole, useAuth } from '../lib/auth'
 
 export default function Login() {
@@ -22,9 +24,8 @@ export default function Login() {
 
   return (
     <main className="page login">
-      <img src="/logo.png" alt="Logo de CarreApp" className="logo" />
-      <h1>CarreApp</h1>
-      <p className="muted">Ingresa con el usuario que te dio el coordinador.</p>
+      <Logo size={72} />
+      <p className="tagline">Gestión en vivo de la Carrera de inducción.</p>
       <form className="card form" onSubmit={onSubmit}>
         <label>
           Usuario
@@ -34,6 +35,7 @@ export default function Login() {
             autoCapitalize="none"
             autoCorrect="off"
             autoComplete="username"
+            placeholder="el que te dio el coordinador"
             required
           />
         </label>
@@ -54,12 +56,15 @@ export default function Login() {
               aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
               aria-pressed={showPassword}
             >
-              {showPassword ? '🙈' : '👁️'}
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
         </label>
         {error && <p className="error">{error}</p>}
-        <button disabled={submitting}>{submitting ? 'Entrando…' : 'Entrar'}</button>
+        <button className="btn-block" disabled={submitting}>
+          <LogIn size={19} aria-hidden="true" />
+          {submitting ? 'Entrando…' : 'Entrar'}
+        </button>
       </form>
     </main>
   )

@@ -1,3 +1,4 @@
+import { Radio, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import PhotoField from '../../components/PhotoField'
 import { deletePhoto, uploadPhoto } from '../../lib/storage'
@@ -94,7 +95,7 @@ export default function Grupos() {
   )
 }
 
-function TeamCard({
+export function TeamCard({
   team,
   runners,
   free,
@@ -194,11 +195,11 @@ function TeamCard({
             <li key={r.user_id}>
               <span className="grow">{p ? p.full_name : 'Usuario'}</span>
               {r.is_gps_tracker ? (
-                <span className="badge ok">📡 GPS</span>
+                <span className="badge ok"><Radio size={13} aria-hidden="true" /> GPS</span>
               ) : (
                 <button className="ghost" disabled={busy} onClick={() => void setTracker(r.user_id)}>Usar para GPS</button>
               )}
-              <button className="ghost" disabled={busy} onClick={() => void removeRunner(r.user_id)} aria-label="Quitar corredor">✕</button>
+              <button className="ghost icon-btn" disabled={busy} onClick={() => void removeRunner(r.user_id)} aria-label="Quitar corredor" title="Quitar corredor"><X size={18} /></button>
             </li>
           )
         })}
@@ -212,7 +213,10 @@ function TeamCard({
       </div>
 
       {error && <p className="error">{error}</p>}
-      <button className="ghost danger" disabled={busy} onClick={remove}>Eliminar grupo</button>
+      <button className="ghost danger" disabled={busy} onClick={remove}>
+        <Trash2 size={18} aria-hidden="true" />
+        Eliminar grupo
+      </button>
     </section>
   )
 }

@@ -1,3 +1,4 @@
+import { LocateFixed, Navigation, Radio } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { distanceMeters, useWakeLock, useWatchPosition } from '../lib/geo'
 import { fetchWalkingRoute, formatDistance, formatDuration, type LngLat, type WalkingRoute } from '../lib/mapbox'
@@ -116,7 +117,10 @@ export default function RunnerMap({
               app abierta con la pantalla encendida.
             </p>
           )}
-          <button onClick={() => setEnabled(true)}>📍 Activar mi ubicación</button>
+          <button className="btn-block" onClick={() => setEnabled(true)}>
+            <LocateFixed size={20} aria-hidden="true" />
+            Activar mi ubicación
+          </button>
         </section>
       ) : (
         <section className="card">
@@ -131,8 +135,11 @@ export default function RunnerMap({
               </p>
               {firstStep && (
                 <p className="next-step">
-                  ➜ {firstStep.instruction}
-                  <small className="muted"> ({formatDistance(firstStep.distance)})</small>
+                  <Navigation size={22} aria-hidden="true" />
+                  <span>
+                    {firstStep.instruction}
+                    <small className="muted"> · {formatDistance(firstStep.distance)}</small>
+                  </span>
                 </p>
               )}
               <details>
@@ -150,15 +157,22 @@ export default function RunnerMap({
           {routeError && !route && <p className="warn">No se pudo calcular la ruta. Revisa tu conexión.</p>}
 
           {isTracker && (
-            <p className={uploadError ? 'error' : 'muted'}>
-              {uploadError
-                ? 'No se pudo compartir tu ubicación con el coordinador.'
-                : lastUpload
-                  ? `📡 Compartiendo con el coordinador (última vez ${lastUpload.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}). Deja la app abierta y la pantalla encendida.`
-                  : '📡 Conectando con el coordinador…'}
+            <p className={uploadError ? 'warn' : 'sharing'}>
+              {uploadError ? (
+                'No se pudo compartir tu ubicación con el coordinador.'
+              ) : (
+                <>
+                  <Radio size={18} aria-hidden="true" />
+                  <span>
+                    {lastUpload
+                      ? `Compartiendo con el coordinador · última vez ${lastUpload.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}. Deja la app abierta y la pantalla encendida.`
+                      : 'Conectando con el coordinador…'}
+                  </span>
+                </>
+              )}
             </p>
           )}
-          <button className="ghost" onClick={() => setEnabled(false)}>
+          <button className="ghost" style={{ marginTop: '.75rem' }} onClick={() => setEnabled(false)}>
             {isTracker ? 'Dejar de compartir mi ubicación' : 'Desactivar ubicación'}
           </button>
         </section>

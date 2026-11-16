@@ -1,9 +1,10 @@
-import '../ranking.css'
+import { Ban, Check, Compass, Flag, Route, Trophy } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import AppShell from '../components/AppShell'
 import BottomNav, { type NavTab } from '../components/BottomNav'
-import RunnerMap from '../components/RunnerMap'
+import Crest from '../components/Crest'
 import Ranking from '../components/Ranking'
+import RunnerMap from '../components/RunnerMap'
 import { useAuth } from '../lib/auth'
 import { useRealtimeReload } from '../lib/realtime'
 import { photoUrl } from '../lib/storage'
@@ -26,7 +27,7 @@ interface MyTeam {
 }
 
 // Only name and photo of the base: its information and questions are private to the base.
-interface RouteMatch {
+export interface RouteMatch {
   id: string
   round_number: number
   team_a: string
@@ -38,11 +39,12 @@ interface RouteMatch {
 }
 
 type Tab = 'ronda' | 'mapa' | 'ruta' | 'top'
+const ICON = { size: 22, strokeWidth: 1.9, 'aria-hidden': true } as const
 const TABS: NavTab<Tab>[] = [
-  { id: 'ronda', label: 'Ronda', icon: '🏃' },
-  { id: 'mapa', label: 'Mapa', icon: '🧭' },
-  { id: 'ruta', label: 'Ruta', icon: '🗺️' },
-  { id: 'top', label: 'Top', icon: '🏆' },
+  { id: 'ronda', label: 'Ronda', icon: <Flag {...ICON} /> },
+  { id: 'mapa', label: 'Mapa', icon: <Compass {...ICON} /> },
+  { id: 'ruta', label: 'Ruta', icon: <Route {...ICON} /> },
+  { id: 'top', label: 'Top', icon: <Trophy {...ICON} /> },
 ]
 
 export default function RunnerHome() {
@@ -95,44 +97,31 @@ export default function RunnerHome() {
   const totalRounds = matches.reduce((max, m) => Math.max(max, m.round_number), 0)
   const myRow = standings.find((r) => r.team_id === team?.id)
   const position = myRow ? standings.filter((r) => r.points > myRow.points).length + 1 : null
-  const teamPhoto = photoUrl(team?.photo_path ?? null)
-
-  const rivalOf = (m: RouteMatch) => teamById.get(m.team_a === team?.id ? m.team_b : m.team_a)
-  const pointsOf = (m: RouteMatch, id: string) => m.match_scores.filter((s) => s.winner_team_id === id).length
 
   return (
     <AppShell title="Mi grupo">
       {loading ? (
-        <p className="muted">Cargando…</p>
+        <p className="loading">Cargando…</p>
       ) : !team ? (
         <section className="card">
           <p>Todavía no estás en un grupo de la Carrera activa. Avísale al coordinador.</p>
         </section>
       ) : (
         <>
-          {/* Always visible, live: position and points */}
-          <div className="status-bar" role="status">
-            {teamPhoto ? <img src={teamPhoto} alt="" /> : <span className="noimg" aria-hidden="true">👥</span>}
-            <span className="grow">
-              <strong>{team.name}</strong>
-              <small className="muted">En vivo</small>
-            </span>
-            <span className="big">
-              Puesto {position} · {myRow?.points ?? 0} {myRow?.points === 1 ? 'pt' : 'pts'}
-            </span>
-          </div>
+          {/* Always visible and live: position and points */}
+          <StatusBar name={team.name} photoPath={team.photo_path} position={position} points={myRow?.points ?? 0} />
 
           {tab === 'ronda' && (
             <>
               {mine.length === 0 && <p className="warn">El coordinador aún no ha programado tus cruces.</p>}
-              {next && <CurrentRound match={next} rival={rivalOf(next)} teams={teamById} myId={team.id} />}
+              {next && <CurrentRound match={next} myId={team.id} teams={teamById} />}
               {!next && mine.length > 0 && <p className="ok-box">Terminaste todos tus cruces. ¡Buen trabajo!</p>}
               {lastFinished && (
                 <section className="card">
-                  <h2>Última ronda terminada (R{lastFinished.round_number})</h2>
-                  <p>
-                    vs <strong>{rivalOf(lastFinished)?.name}</strong>: {pointsOf(lastFinished, team.id)}–
-                    {pointsOf(lastFinished, lastFinished.team_a === team.id ? lastFinished.team_b : lastFinished.team_a)}
+                  <h2>Ronda {lastFinished.round_number} terminada</h2>
+                  <p className="muted">
+                    vs {teamById.get(rivalId(lastFinished, team.id))?.name} · {scoreOf(lastFinished, team.id)}–
+                    {scoreOf(lastFinished, rivalId(lastFinished, team.id))}
                   </p>
                   <ItemResults match={lastFinished} teams={teamById} />
                 </section>
@@ -154,40 +143,7 @@ export default function RunnerHome() {
           {tab === 'ruta' && (
             <section className="card">
               <h2>Tu ruta</h2>
-              {totalRounds === 0 && <p className="muted">Todavía no hay rondas programadas.</p>}
-              <ul className="route">
-                {Array.from({ length: totalRounds }, (_, i) => i + 1).map((round) => {
-                  const m = mine.find((x) => x.round_number === round)
-                  if (!m) {
-                    return (
-                      <li key={round}>
-                        <span className="round">R{round}</span>
-                        <span className="grow muted">Descansas</span>
-                      </li>
-                    )
-                  }
-                  const my = pointsOf(m, team.id)
-                  const their = pointsOf(m, m.team_a === team.id ? m.team_b : m.team_a)
-                  const chip =
-                    m.status === 'finished'
-                      ? {
-                          text: `${my}–${their} ${my > their ? 'Ganaron' : my < their ? 'Perdieron' : 'Igual'}`,
-                          cls: my > their ? 'win' : my < their ? 'lose' : '',
-                        }
-                      : { text: STATUS_LABEL[m.status], cls: '' }
-                  return (
-                    <li key={round} className={m.id === next?.id ? 'now' : undefined}>
-                      <span className="round">R{round}</span>
-                      <span className="grow">
-                        <strong>{m.bases?.name}</strong>
-                        <br />
-                        <small className="muted">vs {rivalOf(m)?.name}</small>
-                      </span>
-                      <span className={`chip ${chip.cls}`}>{chip.text}</span>
-                    </li>
-                  )
-                })}
-              </ul>
+              <RouteList mine={mine} totalRounds={totalRounds} myId={team.id} nextId={next?.id} teams={teamById} />
             </section>
           )}
 
@@ -212,8 +168,41 @@ export default function RunnerHome() {
   )
 }
 
+const rivalId = (m: RouteMatch, myId: string) => (m.team_a === myId ? m.team_b : m.team_a)
+const scoreOf = (m: RouteMatch, teamId: string) => m.match_scores.filter((s) => s.winner_team_id === teamId).length
+
+export function StatusBar({
+  name,
+  photoPath,
+  position,
+  points,
+}: {
+  name: string
+  photoPath: string | null
+  position: number | null
+  points: number
+}) {
+  return (
+    <div className="status-bar" role="status">
+      <Crest name={name} photoPath={photoPath} />
+      <div className="who">
+        <strong>{name}</strong>
+        <span className="live-label">En vivo</span>
+      </div>
+      <div className="stat">
+        <span className="stat-label">Puesto</span>
+        <span className="stat-value num">{position ?? '–'}</span>
+      </div>
+      <div className="stat">
+        <span className="stat-label">Pts</span>
+        <span className="stat-value num">{points}</span>
+      </div>
+    </div>
+  )
+}
+
 // What the base has scored so far in this match (live).
-function ItemResults({ match, teams }: { match: RouteMatch; teams: Map<string, StandingRow> }) {
+export function ItemResults({ match, teams }: { match: RouteMatch; teams: Map<string, StandingRow> }) {
   return (
     <ul className="item-results">
       {SCORE_ITEMS.map((item) => {
@@ -224,9 +213,13 @@ function ItemResults({ match, teams }: { match: RouteMatch; teams: Map<string, S
             {!row ? (
               <span className="pending">Por jugar</span>
             ) : row.voided ? (
-              <span className="pending">Invalidado</span>
+              <span className="pending won">
+                <Ban size={15} aria-hidden="true" /> Invalidado
+              </span>
             ) : (
-              <span className="won">Ganó {teams.get(row.winner_team_id ?? '')?.name ?? '—'}</span>
+              <span className="won">
+                <Check size={16} aria-hidden="true" /> Ganó {teams.get(row.winner_team_id ?? '')?.name ?? '—'}
+              </span>
             )}
           </li>
         )
@@ -235,38 +228,97 @@ function ItemResults({ match, teams }: { match: RouteMatch; teams: Map<string, S
   )
 }
 
-function CurrentRound({
+export function CurrentRound({
   match,
-  rival,
-  teams,
   myId,
+  teams,
 }: {
   match: RouteMatch
-  rival?: StandingRow
-  teams: Map<string, StandingRow>
   myId: string
+  teams: Map<string, StandingRow>
 }) {
+  const rival = teams.get(rivalId(match, myId))
   const baseUrl = photoUrl(match.bases?.location_photo_path ?? null)
-  const rivalUrl = photoUrl(rival?.photo_path ?? null)
-  const my = match.match_scores.filter((s) => s.winner_team_id === myId).length
-  const their = match.match_scores.filter((s) => s.winner_team_id && s.winner_team_id !== myId).length
   const playing = match.status === 'in_progress'
+  const my = scoreOf(match, myId)
+  const their = match.match_scores.filter((s) => s.winner_team_id && s.winner_team_id !== myId).length
   return (
     <section className="card next-base">
       <div className="match-head">
-        <span>Ronda {match.round_number}</span>
-        <span className={`badge ${playing ? 'ok' : 'idle'}`}>{playing ? 'En juego' : 'Dirígete a la base'}</span>
+        <span className="round-tag">Ronda {match.round_number}</span>
+        <span className={`badge ${playing ? 'ok live' : ''}`}>{playing ? 'En juego' : 'Dirígete a la base'}</span>
       </div>
       <h2>{match.bases?.name}</h2>
-      {baseUrl && <div className="photo-box"><img src={baseUrl} alt={`Dónde queda ${match.bases?.name}`} /></div>}
-      <div className="row">
-        {rivalUrl ? <img className="rival-img" src={rivalUrl} alt="" /> : null}
+      {baseUrl && (
+        <div className="photo-box">
+          <img src={baseUrl} alt={`Dónde queda ${match.bases?.name}`} />
+        </div>
+      )}
+      <h3>Tu rival</h3>
+      <div className="rival">
+        <Crest name={rival?.name} photoPath={rival?.photo_path} size="lg" />
         <p className="grow">
-          Tu rival: <strong>{rival?.name ?? '—'}</strong>
+          <strong>{rival?.name ?? '—'}</strong>
         </p>
-        {playing && <strong className="big-score">{my}–{their}</strong>}
+        {playing && (
+          <span className="big-score num" aria-label={`Marcador ${my} a ${their}`}>
+            {my}–{their}
+          </span>
+        )}
       </div>
+      <h3>Resultados de la base</h3>
       <ItemResults match={match} teams={teams} />
     </section>
+  )
+}
+
+export function RouteList({
+  mine,
+  totalRounds,
+  myId,
+  nextId,
+  teams,
+}: {
+  mine: RouteMatch[]
+  totalRounds: number
+  myId: string
+  nextId?: string
+  teams: Map<string, StandingRow>
+}) {
+  if (totalRounds === 0) return <p className="muted">Todavía no hay rondas programadas.</p>
+  return (
+    <ul className="route">
+      {Array.from({ length: totalRounds }, (_, i) => i + 1).map((round) => {
+        const m = mine.find((x) => x.round_number === round)
+        if (!m) {
+          return (
+            <li key={round} className="rest">
+              <span className="round num">R{round}</span>
+              <span className="muted">Descansas</span>
+              <span />
+            </li>
+          )
+        }
+        const my = scoreOf(m, myId)
+        const their = scoreOf(m, rivalId(m, myId))
+        const chip =
+          m.status === 'finished'
+            ? {
+                text: `${my}–${their} ${my > their ? 'Ganaron' : my < their ? 'Perdieron' : 'Igual'}`,
+                cls: my > their ? 'win' : my < their ? 'lose' : '',
+              }
+            : { text: STATUS_LABEL[m.status], cls: m.status === 'in_progress' ? 'win' : '' }
+        return (
+          <li key={round} className={m.id === nextId ? 'now' : undefined}>
+            <span className="round num">R{round}</span>
+            <span>
+              <strong>{m.bases?.name}</strong>
+              <small className="muted">vs {teams.get(rivalId(m, myId))?.name}</small>
+            </span>
+            <span className={`chip ${chip.cls}`}>{chip.text}</span>
+          </li>
+        )
+      })}
+    </ul>
   )
 }

@@ -6,7 +6,7 @@ import type { UserRole } from '../types'
 export default function RequireRole({ role, children }: { role: UserRole; children: ReactNode }) {
   const { session, profile, loading, signOut } = useAuth()
 
-  if (loading) return <p className="page muted">Cargando…</p>
+  if (loading) return <p className="page loading">Cargando…</p>
   if (!session) return <Navigate to="/login" replace />
   if (!profile) {
     return (
