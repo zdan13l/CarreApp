@@ -2,6 +2,18 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Rediseño visual (2026-11-15)
+**Hecho**
+- **Nuevo logo:** una C dorada con una aguja de brújula azul dentro, sobre azul noche (elegido entre 16 propuestas). Reemplaza al anterior en el icono de la app, el favicon y todas las pantallas.
+- **Nueva identidad visual:** paleta azul noche + dorado, tipografía Archivo (titulares condensados) y componentes coherentes; ver [Diseño](Diseno).
+- **Sin emojis:** iconos SVG de línea (Lucide) en pestañas, botones y avisos; los grupos sin foto muestran sus iniciales.
+- **Pantallas rehechas:** login, corredor (marcador en vivo con puesto y puntos, ronda, ruta y top), base (marcador del cruce, elección del ganador por escudo), panel del coordinador (menú lateral en computador con marca y usuario; barra superior en celular) y mapa con marcadores nuevos.
+- **Corrección de choques:** el selector de rondas ya no se amontona en celular, las filas de cruces separan base, grupos y estado, y el panel ocupa todo el ancho en computador.
+- Página `/preview/<pantalla>` (solo desarrollo) para revisar el diseño con datos de ejemplo en celular y computador.
+
+**Pendiente**
+- Probar el nuevo diseño en iPhone real durante el simulacro.
+
 ## Bloque 6 — Mapa 3D y GPS (2026-11-15)
 **Hecho**
 - **Mapa 3D con Mapbox** (estilo *Standard*: edificios en 3D, inclinado, centrado en la Javeriana). Se carga solo cuando una pantalla lo usa (no pesa en el resto de la app).
