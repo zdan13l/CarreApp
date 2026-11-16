@@ -99,7 +99,7 @@ src/
   lib/                    Cliente Supabase, autenticación, utilidades
   components/             RequireRole (guard de rutas), AppShell
   pages/                  Login, BaseHome, RunnerHome, NetworkCheck
-  pages/admin/            AdminLayout, Resumen, Grupos, Bases, Usuarios
+  pages/admin/            AdminLayout, EnVivo, Carrera, Puntajes, Mapa, Grupos, Bases, Cruces, Usuarios
 supabase/
   migrations/             Scripts SQL numerados (ver Registro SQL)
   seed_admin.sql          Crea el primer administrador
