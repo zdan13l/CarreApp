@@ -96,7 +96,7 @@ export default function RunnerHome() {
   }, [load])
 
   // Live: scores, matches and bases (photo) refresh the screen by themselves.
-  useRealtimeReload(['match_scores', 'matches', 'bases'], load)
+  useRealtimeReload(['match_scores', 'matches', 'bases', 'events'], load)
 
   const teamById = new Map(standings.map((r) => [r.team_id, r]))
   const mine = matches.filter((m) => m.team_a === team?.id || m.team_b === team?.id)

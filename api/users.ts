@@ -1,6 +1,6 @@
 // Serverless endpoint (Vercel) to manage users. It needs the Supabase service-role key,
 // which must NEVER reach the browser, so user creation/deletion lives here.
-//   POST   /api/users  { username, password, full_name, role }  -> create user + profile
+//   POST   /api/users  { username, password, full_name, role, event_id? } -> create user + profile (event_id: the Carrera of a runner/inductor)
 //   PATCH  /api/users  { user_id, password }                    -> reset password
 //   DELETE /api/users  { user_id }                              -> delete user
 // Only callers whose profile has role "admin" are allowed.
@@ -44,6 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const password = String(body.password ?? '')
     const fullName = String(body.full_name ?? '').trim()
     const role = String(body.role ?? '')
+    const eventId = role === 'admin' || !body.event_id ? null : String(body.event_id)
 
     if (!USERNAME_PATTERN.test(username))
       return fail(res, 400, 'El usuario debe tener 3-30 caracteres: letras minúsculas, números, punto, guion o guion bajo.')
@@ -64,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { error: profileError } = await admin
       .from('profiles')
-      .insert({ id: created.user.id, username, full_name: fullName, role })
+      .insert({ id: created.user.id, username, full_name: fullName, role, event_id: eventId })
     if (profileError) {
       await admin.auth.admin.deleteUser(created.user.id) // roll back
       return fail(res, 500, 'No se pudo crear el perfil del usuario.')
