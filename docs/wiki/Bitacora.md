@@ -7,17 +7,28 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 - El sonido de demora se repite **cada 30 segundos** (antes 10).
 - **Error corregido en el envío:** la función `/api/push` fallaba con un error 500 del servidor y por eso no llegaba ninguna notificación; ahora carga la librería de forma segura y devuelve el motivo exacto del fallo.
 
-## Bloque 8 — Carga masiva (2026-11-16)
+## Bloque 8 — Carga masiva de toda la Carrera (2026-11-16)
 **Hecho**
-- **Cargar desde un archivo** (Usuarios): sube una plantilla de **Word (.docx)**, **Excel (.xlsx)** o **CSV** y crea muchos usuarios de una vez. Plantillas descargables en la misma pantalla (`public/plantillas/`).
-- **Formato fijo:** una tabla con una persona por fila. Columnas: *Nombre completo*, *Rol* (Corredor o Base), *Grupo o base* y, opcionales, *Usuario*, *GPS* y *Contraseña*. El orden de las columnas no importa; no se distinguen mayúsculas ni tildes.
-- **Vista previa con validación** antes de crear nada: rol no válido, datos faltantes, usuario repetido (en el archivo o ya existente), persona repetida, contraseña corta. Solo se crea si todo está correcto.
-- **Qué crea:** los usuarios (con usuario y contraseña generados si no vienen), los **grupos y bases que no existan** (sin foto: se agrega después) y las asignaciones (corredor a su grupo, inductor a su base). El corredor marcado con *GPS* transmite la ubicación de su grupo; si no se marca ninguno, el primero de cada grupo.
+- **Cargar la Carrera desde un archivo** (Resumen): un solo documento de **Word (.docx)** o **Excel (.xlsx)** sirve para dejar lista una Carrera. Plantillas descargables en la misma pantalla (`public/plantillas/`); también hay una de solo personas en CSV.
+- **Todo es opcional:** el archivo trae hasta seis secciones y se incluyen solo las que se necesiten (en Word cada sección es una tabla; en Excel, una hoja). La app reconoce cada tabla por los títulos de sus columnas.
+
+| Sección | Columnas | Qué crea |
+|---|---|---|
+| Carrera | Dato · Valor | La Carrera (si es nueva queda en borrador) y su tiempo máximo general |
+| Grupos | Nombre del grupo | Los grupos (sin foto) |
+| Bases | Nombre de la base · Información · Pregunta 1, 2, 3 · Latitud · Longitud | Las bases con su información, preguntas y ubicación en el mapa (sin foto del lugar) |
+| Personas | Nombre completo · Rol · Grupo o base · Usuario · GPS · Contraseña | Los usuarios, con su asignación a grupo o base y el corredor del GPS |
+| Cruces | Ronda · Base · Grupo A · Grupo B | El cronograma |
+| Tiempos | Desde · Hasta · Minutos | El tiempo máximo de cada tramo entre bases |
+
+- **Vista previa con validación** antes de crear nada, por sección: datos que faltan, rol inválido, usuarios o personas repetidas, grupos o bases que no existen, **enfrentamientos repetidos**, un grupo en dos bases en la misma ronda, una base con dos cruces en una ronda, tramos repetidos o con minutos inválidos. También se revisa contra lo que ya existe en la Carrera. Solo se carga si todo está correcto.
+- **Qué hace al cargar:** crea o reutiliza la Carrera, crea los grupos y bases que falten (también los que solo se nombran en Personas o Cruces), carga la información de las bases, crea los usuarios, los asigna, programa los cruces y guarda los tiempos.
 - **Credenciales al final:** tabla con usuario y contraseña de cada persona, con *Copiar todo* y *Descargar CSV* (las contraseñas no se pueden consultar después).
-- Sin cambios de base de datos: usa `/api/users` y las reglas ya existentes (un corredor por grupo, un inductor por base).
+- **Las fotos** de los grupos y de las bases se suben después en la app; el archivo no las incluye.
+- Sin cambios de base de datos: usa `/api/users` y las reglas que ya existían.
 
 **Verificado**
-- Lectura probada con las plantillas reales (Word y CSV dan exactamente la misma tabla) y con archivos con errores (rol inválido, filas vacías, usuarios repetidos, columnas que faltan).
+- Las plantillas reales de Word y Excel se leen completas (6 secciones, 0 errores) y la de CSV también; archivos con errores (enfrentamientos repetidos, grupos o bases inexistentes, rondas inválidas, tramos repetidos) se detectan con un mensaje claro.
 
 **Pendiente**
 - Probar la carga con el archivo real del comité y con ~60 usuarios.
