@@ -39,6 +39,7 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 - **Desactivar la Carrera:** la base de datos y el botón funcionan (probado con permisos del coordinador); lo que faltaba era que corredores y bases lo notaran al instante (`events` en Realtime, también en `0014`).
 - **Segunda ejecución del agente** (ver [Informe de pruebas](Informe-de-pruebas)): migración `0015` (aplicada el 2026-11-15): el registro de cambios guarda su Carrera y los inductores solo califican, confirman llegada o avisan en la Carrera activa; Usuarios no deja crear corredores o inductores sin Carrera.
 - **Hallazgos menores corregidos:** el panel del coordinador escucha `events` en tiempo real; corredor y base no pierden la pantalla por un error de red; el aviso de usuario repetido explica que los nombres son únicos en todas las Carreras.
+- **Tercera ejecución, P0 corregidos:** alerta de demora falsa para quien descansa una ronda (migración `0016`, aplicada el 2026-11-15); el perfil ya no se pierde con mala red (se reintenta y se guarda el último en el teléfono); activar y desactivar la Carrera piden confirmación.
 
 ## Bloque 9 — Pruebas y organización de las pantallas (2026-11-16)
 **Hecho**

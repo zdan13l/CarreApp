@@ -28,6 +28,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0013 | [`0013_no_delay_same_base.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0013_no_delay_same_base.sql) | 2026-11-15 | Un grupo que juega de nuevo en la misma base no cuenta como "en demora" |
 | 0014 | [`0014_users_per_event.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0014_users_per_event.sql) | 2026-11-15 | Cada corredor/inductor pertenece a una Carrera; `events` entra a Realtime |
 | 0015 | [`0015_audit_event_and_active_scoring.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0015_audit_event_and_active_scoring.sql) | 2026-11-15 | El registro de cambios guarda su Carrera; los inductores solo actúan en la Carrera activa |
+| 0016 | [`0016_no_delay_when_resting.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0016_no_delay_when_resting.sql) | 2026-11-15 | Un grupo que descansa una ronda no recibe alerta de demora |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -314,6 +315,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/carreras.test.ts` ("what a switched-off Carrera allows" y "score audit log per Carrera"). En Supabase: `select count(*) from public.score_audit where event_id is null;` (solo deberían quedar filas de cruces ya borrados antes de esta migración).
 
 **Cómo revertir** `alter table public.score_audit drop column event_id;`, `drop trigger score_audit_event on public.score_audit; drop function public.audit_set_event();` y volver a crear `is_staff_of_match()` como en `0001_initial_schema.sql`.
+
+## 0016 — Sin demora si el grupo descansa
+
+**Qué cambia** `check_delays()` solo considera a un grupo cuyo último cruce fue en la ronda **inmediatamente anterior** (`p.round_number = m.round_number - 1`). `lateTeams` (`src/lib/delays.ts`) tiene la misma regla.
+
+**Por qué** Lo encontró la tercera ejecución del agente de pruebas: con número impar de grupos, o más grupos que el doble de bases, un grupo descansa una ronda y su tiempo de descanso contaba como traslado: sus corredores recibían sonido y notificación cada 30 s sin estar tarde. Si hace falta apurar a alguien en ese caso, el coordinador o la base avisan a mano.
+
+**Verificación** `tests/db/alerts.test.ts`, `tests/db/edge.test.ts` ("does not push the runners of a group that rests…"), `tests/unit/delays-edge.test.ts` y la prueba de paridad cliente/servidor.
+
+**Cómo revertir** Volver a ejecutar `check_delays()` de `0013_no_delay_same_base.sql`.
 
 ## Plantilla para nuevos registros
 
