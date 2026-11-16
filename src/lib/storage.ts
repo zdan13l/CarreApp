@@ -5,7 +5,7 @@ const BUCKET = 'photos'
 
 // Resizes and uploads a photo; returns the storage path to save in the DB.
 // A fresh file name per upload avoids stale caches when a photo is replaced.
-export async function uploadPhoto(folder: 'teams' | 'bases', file: File): Promise<string> {
+export async function uploadPhoto(folder: 'teams' | 'bases' | 'users', file: File): Promise<string> {
   if (!supabase) throw new Error('Supabase no está configurado.')
   const blob = await resizeImage(file)
   const path = `${folder}/${crypto.randomUUID()}.jpg`

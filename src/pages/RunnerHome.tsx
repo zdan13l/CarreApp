@@ -1,4 +1,4 @@
-import { Ban, Bell, Check, ChevronDown, Compass, Flag, Route, Trophy } from 'lucide-react'
+import { Ban, Bell, Check, ChevronDown, Compass, Flag, MapPin, Route, Trophy } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import AppShell from '../components/AppShell'
 import BottomNav, { type NavTab } from '../components/BottomNav'
@@ -173,14 +173,7 @@ export default function RunnerHome() {
               {next && <CurrentRound match={next} myId={team.id} teams={teamById} />}
               {!next && mine.length > 0 && <p className="ok-box">Terminaste todos tus cruces. ¡Buen trabajo!</p>}
               {after && (
-                <section className="card next">
-                  <h3>Después · Ronda {after.round_number}</h3>
-                  <p>
-                    <strong>{after.bases?.name}</strong>
-                    <span className="muted"> contra </span>
-                    <strong>{teamById.get(rivalId(after, team.id))?.name ?? '—'}</strong>
-                  </p>
-                </section>
+                <AfterCard match={after} myId={team.id} teams={teamById} />
               )}
             </>
           )}
@@ -225,6 +218,32 @@ export default function RunnerHome() {
 }
 
 const rivalId = (m: RouteMatch, myId: string) => (m.team_a === myId ? m.team_b : m.team_a)
+
+// "Después": the match after the current one, with the picture of the base and the crest of the rival (like the base screen).
+export function AfterCard({ match, myId, teams }: { match: RouteMatch; myId: string; teams: Map<string, StandingRow> }) {
+  const rival = teams.get(rivalId(match, myId))
+  const url = photoUrl(match.bases?.location_photo_path ?? null)
+  return (
+    <section className="card next">
+      <h3>Después · Ronda {match.round_number}</h3>
+      <div className="next-preview">
+        {url ? (
+          <img className="next-photo" src={url} alt={`Dónde queda ${match.bases?.name}`} />
+        ) : (
+          <span className="next-photo empty" aria-hidden="true"><MapPin size={26} /></span>
+        )}
+        <div className="next-info">
+          <strong>{match.bases?.name}</strong>
+          <span className="rival-line">
+            <span className="muted">contra</span>
+            <Crest name={rival?.name} photoPath={rival?.photo_path} />
+            <strong>{rival?.name ?? '—'}</strong>
+          </span>
+        </div>
+      </div>
+    </section>
+  )
+}
 const scoreOf = (m: RouteMatch, teamId: string) => m.match_scores.filter((s) => s.winner_team_id === teamId).length
 
 export function StatusBar({

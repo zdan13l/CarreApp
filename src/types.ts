@@ -6,6 +6,7 @@ export interface Profile {
   full_name: string
   role: UserRole
   event_id?: string | null
+  photo_path?: string | null
 }
 
 export interface EventRow {

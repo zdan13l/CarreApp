@@ -28,7 +28,7 @@ export default function Login() {
       <div className="login-theme"><ThemeToggle /></div>
       <section className="login-hero">
         <Logo size={72} />
-        <p className="tagline">Gestión en vivo de la Carrera de inducción.</p>
+        <p className="tagline">Gestión en vivo de Carrera</p>
       </section>
       <form className="card form login-card" onSubmit={onSubmit}>
         <label>
@@ -39,7 +39,7 @@ export default function Login() {
             autoCapitalize="none"
             autoCorrect="off"
             autoComplete="username"
-            placeholder="el que te dio el coordinador"
+            placeholder="Dado por el coordinador"
             required
           />
         </label>
@@ -70,7 +70,7 @@ export default function Login() {
           {submitting ? 'Entrando…' : 'Entrar'}
         </button>
       </form>
-      <p className="login-foot">Pontificia Universidad Javeriana · Semana de inducción</p>
+      <p className="login-foot">Semana de inducción</p>
     </main>
   )
 }

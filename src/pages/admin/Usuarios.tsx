@@ -1,7 +1,9 @@
-import { Copy, KeyRound, Trash2 } from 'lucide-react'
+import { Camera, Copy, KeyRound, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import Avatar from '../../components/Avatar'
 import { useAuth } from '../../lib/auth'
 import { generatePassword } from '../../lib/password'
+import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import { createUser, deleteUser, resetPassword } from '../../lib/usersApi'
 import { normalizeUsername, suggestUsername, USERNAME_PATTERN } from '../../lib/username'
@@ -28,11 +30,17 @@ export default function Usuarios() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<UserRole | 'all'>('all')
+  const [photosReady, setPhotosReady] = useState(true)
 
   const load = useCallback(async () => {
     if (!supabase) return
-    const { data } = await supabase.from('profiles').select('id, username, full_name, role, event_id').order('role').order('full_name')
-    setUsers(data ?? [])
+    const read = (columns: string) => supabase!.from('profiles').select(columns).order('role').order('full_name')
+    let { data, error: err } = await read('id, username, full_name, role, event_id, photo_path')
+    if (err) {
+      setPhotosReady(false) // the SQL of the photos (0018) is not applied yet: the list still works without them
+      ;({ data } = await read('id, username, full_name, role, event_id'))
+    } else setPhotosReady(true)
+    setUsers((data ?? []) as unknown as Profile[])
   }, [])
 
   useEffect(() => {
@@ -70,6 +78,20 @@ export default function Usuarios() {
       setUsername('')
       setUsernameEdited(false)
       setPassword(generatePassword())
+    })
+  }
+
+  // The coordinator gives each person a picture; it replaces their initials in their top bar and in this list.
+  function onPhoto(u: Profile, file: File) {
+    if (!supabase) return
+    void run(async () => {
+      const path = await uploadPhoto('users', file)
+      const { error: err } = await supabase!.from('profiles').update({ photo_path: path }).eq('id', u.id)
+      if (err) {
+        await deletePhoto(path)
+        throw new Error('No se pudo guardar la foto. Si acabas de actualizar la app, falta aplicar la migración 0018 de fotos.')
+      }
+      await deletePhoto(u.photo_path ?? null)
     })
   }
 
@@ -185,10 +207,28 @@ export default function Usuarios() {
         <ul className="list">
           {shown.map((u) => (
             <li key={u.id}>
+              <Avatar name={u.full_name} photoPath={u.photo_path} size={44} />
               <span className="grow">
                 {u.full_name}
                 <small className="muted"> @{u.username} · {ROLE_LABEL[u.role]}</small>
               </span>
+              {photosReady && (
+                <label className={`btn-like icon-only${busy ? ' disabled' : ''}`} title={u.photo_path ? 'Cambiar foto' : 'Agregar foto'}>
+                  <Camera size={18} aria-hidden="true" />
+                  <span className="sr-only">{u.photo_path ? `Cambiar la foto de ${u.full_name}` : `Agregar foto a ${u.full_name}`}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    disabled={busy}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      e.target.value = ''
+                      if (file) onPhoto(u, file)
+                    }}
+                  />
+                </label>
+              )}
               <button className="ghost" disabled={busy} onClick={() => onReset(u)} title="Generar una contraseña nueva">
                 <KeyRound size={16} aria-hidden="true" />
                 Contraseña

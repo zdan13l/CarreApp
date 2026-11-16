@@ -1,19 +1,17 @@
 import { LogOut, Moon, Sun } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '../lib/theme'
+import Avatar from './Avatar'
 
-const initials = (name: string) =>
-  name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('') || '?'
-
-// The person's avatar. Opens a small menu with who they are, the light / dark switch and "Cerrar sesión",
-// so the top bar stays clean on a phone (one button instead of three) and in the coordinator's side menu.
+// The person: their picture (or initials) with their name and @user beside it. Opens a small menu with
+// the light / dark switch and "Cerrar sesión", so the top bar stays clean on a phone.
 export default function AccountMenu({
   user,
   onSignOut,
   placement = 'down',
   roleLabel,
 }: {
-  user?: { full_name: string; username: string }
+  user?: { full_name: string; username: string; photo_path?: string | null }
   onSignOut: () => void
   placement?: 'down' | 'up'
   roleLabel?: string
@@ -41,13 +39,17 @@ export default function AccountMenu({
     <div className={`account ${placement}`} ref={ref}>
       <button
         type="button"
-        className="avatar"
+        className="account-btn"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Cuenta de ${name || 'la persona'}`}
       >
-        {initials(name)}
+        <Avatar name={name} photoPath={user?.photo_path} size={38} />
+        <span className="account-text">
+          <strong>{name}</strong>
+          <small>@{user?.username}</small>
+        </span>
       </button>
       {open && (
         <div className="account-pop" role="menu">
