@@ -5,6 +5,7 @@ import AdminLayout from './pages/admin/AdminLayout'
 import Bases from './pages/admin/Bases'
 import Cruces from './pages/admin/Cruces'
 import Grupos from './pages/admin/Grupos'
+import Mapa from './pages/admin/Mapa'
 import Puntajes from './pages/admin/Puntajes'
 import Resumen from './pages/admin/Resumen'
 import Usuarios from './pages/admin/Usuarios'
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="bases" element={<Bases />} />
             <Route path="cruces" element={<Cruces />} />
             <Route path="puntajes" element={<Puntajes />} />
+            <Route path="mapa" element={<Mapa />} />
             <Route path="usuarios" element={<Usuarios />} />
           </Route>
           <Route path="/base" element={<RequireRole role="base"><BaseHome /></RequireRole>} />

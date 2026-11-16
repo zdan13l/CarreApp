@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import BaseLocationEditor from '../../components/BaseLocationEditor'
 import PhotoField from '../../components/PhotoField'
 import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
@@ -20,7 +21,7 @@ export default function Bases() {
     const [b, p] = await Promise.all([
       supabase
         .from('bases')
-        .select('id, name, location_photo_path, sort_order, base_details(info), base_questions(position, question), base_staff(user_id)')
+        .select('id, name, location_photo_path, lat, lng, sort_order, base_details(info), base_questions(position, question), base_staff(user_id)')
         .eq('event_id', eventId)
         .order('sort_order')
         .order('name'),
@@ -201,6 +202,8 @@ function BaseCard({
         <button disabled={busy || !name.trim()} onClick={() => void save()}>Guardar base</button>
         {saved && <p className="ok-text">Guardado.</p>}
       </div>
+
+      <BaseLocationEditor baseId={base.id} name={base.name} lat={base.lat} lng={base.lng} onSaved={onChange} />
 
       <h3>Inductores de la base</h3>
       {base.base_staff.length === 0 && <p className="muted">Sin inductores asignados.</p>}

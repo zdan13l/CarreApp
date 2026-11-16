@@ -2,6 +2,7 @@ import '../ranking.css'
 import { useCallback, useEffect, useState } from 'react'
 import AppShell from '../components/AppShell'
 import BottomNav, { type NavTab } from '../components/BottomNav'
+import RunnerMap from '../components/RunnerMap'
 import Ranking from '../components/Ranking'
 import { useAuth } from '../lib/auth'
 import { useRealtimeReload } from '../lib/realtime'
@@ -21,6 +22,7 @@ interface MyTeam {
   name: string
   photo_path: string | null
   event_id: string
+  team_runners: { is_gps_tracker: boolean }[] // only this runner's own row
 }
 
 // Only name and photo of the base: its information and questions are private to the base.
@@ -31,13 +33,14 @@ interface RouteMatch {
   team_b: string
   status: MatchStatus
   arrived_at: string | null
-  bases: { name: string; location_photo_path: string | null } | null
+  bases: { name: string; location_photo_path: string | null; lat: number | null; lng: number | null } | null
   match_scores: MatchScore[]
 }
 
-type Tab = 'ronda' | 'ruta' | 'top'
+type Tab = 'ronda' | 'mapa' | 'ruta' | 'top'
 const TABS: NavTab<Tab>[] = [
   { id: 'ronda', label: 'Ronda', icon: '🏃' },
+  { id: 'mapa', label: 'Mapa', icon: '🧭' },
   { id: 'ruta', label: 'Ruta', icon: '🗺️' },
   { id: 'top', label: 'Top', icon: '🏆' },
 ]
@@ -45,6 +48,7 @@ const TABS: NavTab<Tab>[] = [
 export default function RunnerHome() {
   const { profile } = useAuth()
   const [tab, setTab] = useState<Tab>('ronda')
+  const [mapOpened, setMapOpened] = useState(false) // keep the map (and GPS sharing) alive once opened
   const [team, setTeam] = useState<MyTeam | null>(null)
   const [matches, setMatches] = useState<RouteMatch[]>([])
   const [standings, setStandings] = useState<StandingRow[]>([])
@@ -57,7 +61,7 @@ export default function RunnerHome() {
     // The team this runner belongs to in the ACTIVE Carrera.
     const { data: t } = await supabase
       .from('teams')
-      .select('id, name, photo_path, event_id, team_runners!inner(user_id), events!inner(is_active)')
+      .select('id, name, photo_path, event_id, team_runners!inner(user_id, is_gps_tracker), events!inner(is_active)')
       .eq('team_runners.user_id', userId)
       .eq('events.is_active', true)
       .maybeSingle()
@@ -67,7 +71,7 @@ export default function RunnerHome() {
       supabase
         .from('matches')
         .select(
-          'id, round_number, team_a, team_b, status, arrived_at, bases(name, location_photo_path), match_scores(item, winner_team_id, voided)',
+          'id, round_number, team_a, team_b, status, arrived_at, bases(name, location_photo_path, lat, lng), match_scores(item, winner_team_id, voided)',
         )
         .eq('event_id', t.event_id)
         .order('round_number'),
@@ -136,6 +140,17 @@ export default function RunnerHome() {
             </>
           )}
 
+          {/* Mounted after the first visit and only hidden afterwards, so GPS sharing keeps running. */}
+          {(mapOpened || tab === 'mapa') && (
+            <div hidden={tab !== 'mapa'}>
+              <RunnerMap
+                teamId={team.id}
+                isTracker={team.team_runners.some((r) => r.is_gps_tracker)}
+                target={next?.bases ? { name: next.bases.name, lat: next.bases.lat, lng: next.bases.lng } : null}
+              />
+            </div>
+          )}
+
           {tab === 'ruta' && (
             <section className="card">
               <h2>Tu ruta</h2>
@@ -183,7 +198,14 @@ export default function RunnerHome() {
             </section>
           )}
 
-          <BottomNav tabs={TABS} active={tab} onChange={setTab} />
+          <BottomNav
+            tabs={TABS}
+            active={tab}
+            onChange={(t) => {
+              if (t === 'mapa') setMapOpened(true)
+              setTab(t)
+            }}
+          />
         </>
       )}
     </AppShell>

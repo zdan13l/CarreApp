@@ -1,6 +1,7 @@
 import '../ranking.css'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell'
+import BaseLocationEditor from '../components/BaseLocationEditor'
 import BottomNav, { type NavTab } from '../components/BottomNav'
 import { useAuth } from '../lib/auth'
 import { useRealtimeReload } from '../lib/realtime'
@@ -25,6 +26,8 @@ interface MyBase {
   id: string
   name: string
   location_photo_path: string | null
+  lat: number | null
+  lng: number | null
   base_details: InfoEmbed
   event_id: string
   base_questions: BaseQuestion[]
@@ -71,7 +74,7 @@ export default function BaseHome() {
     const { data: b } = await supabase
       .from('bases')
       .select(
-        'id, name, location_photo_path, event_id, base_details(info), base_questions(position, question), base_staff!inner(user_id), events!inner(is_active)',
+        'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question), base_staff!inner(user_id), events!inner(is_active)',
       )
       .eq('base_staff.user_id', userId)
       .eq('events.is_active', true)
@@ -192,8 +195,9 @@ function BaseInfoCard({ base, onChanged }: { base: MyBase; onChanged: () => Prom
     <section className="card">
       <h2>{base.name}</h2>
       <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
-      <p className="muted">¿La base se movió? Cambia la foto para que los grupos la encuentren.</p>
+      <p className="muted">¿La base se movió? Cambia la foto y la ubicación en el mapa para que los grupos la encuentren.</p>
       {error && <p className="error">{error}</p>}
+      <BaseLocationEditor baseId={base.id} name={base.name} lat={base.lat} lng={base.lng} onSaved={onChanged} />
       <h3>Información que se da</h3>
       <p className="pre">{infoOf(base.base_details) ?? 'Sin información.'}</p>
       <h3>Posibles preguntas</h3>

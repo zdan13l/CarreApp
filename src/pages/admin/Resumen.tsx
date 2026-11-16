@@ -23,7 +23,7 @@ export default function Resumen() {
     const [probs, teams, bases] = await Promise.all([
       supabase.rpc('event_problems', { p_event: eventId }),
       supabase.from('teams').select('name, team_runners(is_gps_tracker)').eq('event_id', eventId),
-      supabase.from('bases').select('name, base_staff(user_id)').eq('event_id', eventId),
+      supabase.from('bases').select('name, lat, base_staff(user_id)').eq('event_id', eventId),
     ])
     setProblems((probs.data as string[] | null) ?? [])
     const warnings: string[] = []
@@ -34,6 +34,7 @@ export default function Resumen() {
     }
     for (const b of bases.data ?? []) {
       if (b.base_staff.length === 0) warnings.push(`La base "${b.name}" no tiene inductores asignados.`)
+      if (b.lat === null) warnings.push(`La base "${b.name}" no tiene ubicación en el mapa.`)
     }
     setCounts({ teams: teams.data?.length ?? 0, bases: bases.data?.length ?? 0, warnings })
   }, [eventId])
