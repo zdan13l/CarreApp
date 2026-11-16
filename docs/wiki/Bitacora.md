@@ -7,6 +7,21 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 - El sonido de demora se repite **cada 30 segundos** (antes 10).
 - **Error corregido en el envío:** la función `/api/push` fallaba con un error 500 del servidor y por eso no llegaba ninguna notificación; ahora carga la librería de forma segura y devuelve el motivo exacto del fallo.
 
+## Bloque 8 — Carga masiva (2026-11-16)
+**Hecho**
+- **Cargar desde un archivo** (Usuarios): sube una plantilla de **Word (.docx)**, **Excel (.xlsx)** o **CSV** y crea muchos usuarios de una vez. Plantillas descargables en la misma pantalla (`public/plantillas/`).
+- **Formato fijo:** una tabla con una persona por fila. Columnas: *Nombre completo*, *Rol* (Corredor o Base), *Grupo o base* y, opcionales, *Usuario*, *GPS* y *Contraseña*. El orden de las columnas no importa; no se distinguen mayúsculas ni tildes.
+- **Vista previa con validación** antes de crear nada: rol no válido, datos faltantes, usuario repetido (en el archivo o ya existente), persona repetida, contraseña corta. Solo se crea si todo está correcto.
+- **Qué crea:** los usuarios (con usuario y contraseña generados si no vienen), los **grupos y bases que no existan** (sin foto: se agrega después) y las asignaciones (corredor a su grupo, inductor a su base). El corredor marcado con *GPS* transmite la ubicación de su grupo; si no se marca ninguno, el primero de cada grupo.
+- **Credenciales al final:** tabla con usuario y contraseña de cada persona, con *Copiar todo* y *Descargar CSV* (las contraseñas no se pueden consultar después).
+- Sin cambios de base de datos: usa `/api/users` y las reglas ya existentes (un corredor por grupo, un inductor por base).
+
+**Verificado**
+- Lectura probada con las plantillas reales (Word y CSV dan exactamente la misma tabla) y con archivos con errores (rol inválido, filas vacías, usuarios repetidos, columnas que faltan).
+
+**Pendiente**
+- Probar la carga con el archivo real del comité y con ~60 usuarios.
+
 ## Mejoras de las alertas (2026-11-15)
 **Corregido**
 - **Sonido que no sonaba en tiempo real o dejaba de sonar:** el teléfono duerme el audio al bloquearse o al reabrir la app. Ahora cualquier toque en la app lo despierta, el botón avisa "Toca aquí para reactivar el sonido" cuando está dormido, y los avisos del coordinador se consultan también cada 10 segundos y al volver a la app (el bloqueo corta la conexión en vivo).

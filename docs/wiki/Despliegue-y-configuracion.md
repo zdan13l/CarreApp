@@ -30,7 +30,7 @@ Costo total: **$0**. Límites relevantes del plan gratuito de Supabase: la base 
 ## Preparar una Carrera nueva (resumen para el próximo coordinador)
 1. Entrar a la app como admin.
 2. Crear la Carrera (edición) y marcarla como activa.
-3. Cargar grupos (nombre y foto), bases (foto, información y 3 preguntas) y usuarios, a mano o con la plantilla (Bloques 2 y 8).
+3. Cargar usuarios con la **plantilla de Word o Excel** (Usuarios > Cargar desde un archivo), que también crea los grupos y bases con sus asignaciones; después, a cada grupo agregarle la foto y a cada base la foto, la información y las 3 preguntas.
 4. Armar los cruces; la app avisa si algo se repite o choca (Bloque 3).
 5. Hacer un simulacro antes del evento (Bloque 9).
 
