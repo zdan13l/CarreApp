@@ -297,7 +297,7 @@ export function completeRows(rows: BulkRow[], existingUsernames: Set<string>): B
   const explicitSeen = new Set<string>()
   for (const r of out) {
     if (!r.username || !USERNAME_PATTERN.test(r.username)) continue
-    if (existingUsernames.has(r.username)) r.errors.push(`El usuario "${r.username}" ya existe.`)
+    if (existingUsernames.has(r.username)) r.errors.push(`El usuario "${r.username}" ya existe (los usuarios son únicos en todas las Carreras: usa otro, por ejemplo con el año).`)
     else if (explicitSeen.has(r.username)) r.errors.push(`El usuario "${r.username}" está repetido en el archivo.`)
     explicitSeen.add(r.username)
     taken.add(r.username)

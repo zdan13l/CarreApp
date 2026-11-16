@@ -69,12 +69,13 @@ export default function RunnerHome() {
   const load = useCallback(async () => {
     if (!supabase || !userId) return
     // The team this runner belongs to in the ACTIVE Carrera.
-    const { data: t } = await supabase
+    const { data: t, error: teamErr } = await supabase
       .from('teams')
       .select('id, name, photo_path, event_id, team_runners!inner(user_id, is_gps_tracker), events!inner(is_active, max_travel_minutes)')
       .eq('team_runners.user_id', userId)
       .eq('events.is_active', true)
       .maybeSingle()
+    if (teamErr) return // a network error is not "no active Carrera": keep what is on screen until the next refresh
     setTeam((t as MyTeam | null) ?? null)
     if (!t) return
     const [m, s] = await Promise.all([
