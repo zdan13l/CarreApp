@@ -33,6 +33,18 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 **Pendiente**
 - Probar la carga con el archivo real del comité y con ~60 usuarios.
 
+## Bloque 9 — Pruebas y organización de las pantallas (2026-11-16)
+**Hecho**
+- **Suite de pruebas automáticas** (`npm test`, 263 pruebas, unos 12 s): lógica pura, funciones del servidor, contrato entre la app y el esquema, reglas de la base de datos y **una Carrera completa simulada** de punta a punta. Ver [Pruebas](Pruebas).
+- **Agente de pruebas** `carreapp-tester` (`.claude/agents/`): ejecuta todo, simula Carreras y casos nuevos, revisa el diseño y la ubicación de la información, y entrega retroalimentación (qué está bien, qué falló, qué hacer). Ver [Informe de pruebas](Informe-de-pruebas) para la primera ejecución.
+- **`CLAUDE.md`** con la arquitectura y las convenciones del proyecto, para quien continúe el trabajo.
+- **Información reorganizada** por pantalla (ver [Pantallas](Pantallas)): el panel del coordinador se divide en *Durante la Carrera* (**En vivo**, Puntajes, Mapa) y *Preparación* (Carrera, Grupos, Bases, Cruces, Usuarios); el corredor y la base tienen cada cosa donde la necesitan en el momento.
+- **Corregido gracias a las pruebas:** alertas de demora falsas para grupos que no caminan (migración `0013`), mapas Mapbox múltiples en Bases (riesgo de agotar WebGL), colores antiguos en la ruta del mapa, variables de entorno sin documentar y textos desactualizados.
+
+**Pendiente**
+- Aplicar `0013`.
+- Simulacro con teléfonos reales (sonido y notificaciones en iPhone, GPS, red de la Javeriana) y limpieza de los datos de prueba antes de la Carrera real.
+
 ## Mejoras de las alertas (2026-11-15)
 **Corregido**
 - **Sonido que no sonaba en tiempo real o dejaba de sonar:** el teléfono duerme el audio al bloquearse o al reabrir la app. Ahora cualquier toque en la app lo despierta, el botón avisa "Toca aquí para reactivar el sonido" cuando está dormido, y los avisos del coordinador se consultan también cada 10 segundos y al volver a la app (el bloqueo corta la conexión en vivo).

@@ -25,16 +25,13 @@ Importa el repositorio de GitHub con el preset **Vite** y agrega las variables d
 
 | Bloque | Descripción |
 |---|---|
-| 0 | Prueba de red y esqueleto del proyecto (actual) |
-| 1 | Modelo de datos y autenticación |
-| 2 | Panel de administrador: grupos, bases (con foto del lugar, información que se da en la base y 3 posibles preguntas), corredores y usuarios |
-| 3 | Cronograma, rotación y validación de cruces repetidos |
-| 4 | Vista de base (calificar enfrentamientos) |
-| 5 | Ranking en vivo y vista de corredor |
-| 6 | Mapa y GPS |
-| 7 | Alertas de demora |
-| 8 | Carga masiva desde plantilla |
-| 9 | Pruebas y ensayo |
+| 0–8 | Listos: esqueleto, modelo de datos, panel del coordinador, cronograma, vista de base, ranking y corredor, mapa y GPS, alertas de demora, carga masiva |
+| 9 | Pruebas automáticas (`npm test`), agente de pruebas y reorganización de pantallas (listo); falta el simulacro con teléfonos |
+
+El detalle actualizado está en la [wiki](docs/wiki/Home.md).
+
+## Pruebas
+`npm test` ejecuta unas 260 pruebas (incluye una Carrera simulada); `npm run check` corre además tipos, lint y build. Ver [Pruebas](docs/wiki/Pruebas.md).
 
 ## Base de datos (Supabase)
 

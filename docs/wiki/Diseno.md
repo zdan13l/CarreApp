@@ -32,6 +32,7 @@ Los fondos de avisos y etiquetas se derivan del color con `color-mix`, así siem
 - **Botones:** dorado (acción principal), `ghost` (secundaria), `danger` (eliminar), `icon-btn` (solo icono, 44 px). Acciones principales de 52–56 px.
 - **Tarjetas** `card`, **listas** con líneas finas, **etiquetas** `badge`/`chip`, **avisos** `warn` / `ok-box` / `fail-box` (con icono automático).
 - **Escudo** `Crest` (foto o iniciales), **Ranking** (posición, escudo, nombre, puntos), **Marcador** del corredor siempre visible, **pestañas inferiores** `BottomNav` (corredor y base) y menú lateral / pestañas del coordinador `AdminNav`.
+- **Navegación del coordinador:** menú lateral en dos grupos (*Durante la Carrera* y *Preparación*); en el celular, barra inferior con las pantallas en vivo y un botón *Preparar* que abre las de preparación.
 - **Mapa:** marcadores propios (base azul con bandera, grupo con su escudo y borde dorado, destino dorado pulsante, tú en azul).
 
 ## Reglas para pantallas nuevas

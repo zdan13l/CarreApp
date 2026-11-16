@@ -25,6 +25,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0010 | [`0010_delay_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0010_delay_alerts.sql) | _pendiente_ | Tiempo máximo de traslado, hora de término de cada cruce y avisos manuales |
 | 0011 | [`0011_push_and_travel_times.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0011_push_and_travel_times.sql) | _pendiente_ | Tiempo de traslado por tramo, suscripciones push y revisión de demoras en el servidor |
 | 0012 | [`0012_runner_only_push.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0012_runner_only_push.sql) | _pendiente_ | Las notificaciones push son solo para corredores; la base también puede mandar avisos |
+| 0013 | [`0013_no_delay_same_base.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0013_no_delay_same_base.sql) | _pendiente_ | Un grupo que juega de nuevo en la misma base no cuenta como "en demora" |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -281,6 +282,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** Probado en Postgres en memoria (envío simulado): una demora genera un solo aviso para los corredores del grupo; el aviso manual llega a los corredores de los dos grupos y a nadie más; la base del cruce puede enviar avisos, otra base o un corredor no.
 
 **Cómo revertir** Volver a ejecutar `check_delays()` y `alerts_push()` de `0011` y `drop policy alerts_base_insert on public.alerts;`.
+
+## 0013 — Sin demora si el grupo no camina (pendiente de aplicar)
+
+**Qué cambia** `check_delays()` ignora a un grupo cuya siguiente base es **la misma** donde ya está (`p.base_id <> m.base_id`). La versión de la app (`lateTeams` en `src/lib/delays.ts`) tiene la misma regla.
+
+**Por qué** Lo encontró la suite de pruebas: con pocas bases es normal que un grupo juegue dos rondas seguidas en la misma base. Ese grupo recibía "Llevas N min en el traslado" y la notificación cada 30 s sin haberse movido, solo porque su rival tardaba en llegar. Ahora solo avisan los grupos que de verdad tienen que caminar a otra base.
+
+**Verificación** `tests/db/alerts.test.ts` ("does NOT warn a group whose next match is at the same base…"), `tests/unit/delays.test.ts` y la prueba de paridad cliente/servidor.
+
+**Cómo revertir** Volver a ejecutar `check_delays()` de `0012_runner_only_push.sql`.
 
 ## Plantilla para nuevos registros
 
