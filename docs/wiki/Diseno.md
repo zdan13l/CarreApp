@@ -25,6 +25,15 @@ Una **C** dorada (la Carrera) con una **aguja de brújula** azul en su interior 
 
 Los fondos de avisos y etiquetas se derivan del color con `color-mix`, así siempre combinan.
 
+### Modo claro y oscuro
+Cada persona elige su modo con el botón de **sol / luna** de la barra superior (corredor, base, coordinador y pantalla de entrada). La elección se guarda en el teléfono (`localStorage`, clave `carreapp.theme`); la primera vez la app es **oscura**, como siempre. Un pequeño script de `index.html` aplica el modo guardado antes de pintar, así no hay parpadeo, y el color de la barra del navegador (`theme-color`) cambia con él.
+
+- La paleta clara está en `:root[data-theme='light']` (`src/index.css`) con **las mismas variables** que la oscura: los componentes no saben en qué modo están.
+- El dorado de marca sigue en los botones; **como texto** se usa `--gold-ink`, que en modo claro es un ámbar oscuro (el dorado sobre blanco no se lee). Los colores de estado (`--sky`, `--ok`, `--warn`, `--danger`) también son más profundos en modo claro.
+- Las pruebas exigen que ambas paletas definan las mismas variables y que todos los colores de texto tengan contraste AA (4,5:1) sobre `--bg`, `--surface` y `--surface-2` en los dos modos.
+- El mapa del coordinador pasa de *dusk* (oscuro) a *day* (claro) según el modo; el del corredor sigue en *day*.
+- Lógica en `src/lib/theme.ts` (`useTheme`) y `src/components/ThemeToggle.tsx`.
+
 ## Tipografía
 **Archivo** (variable, se sirve desde la propia app, sin depender de internet). Los titulares usan la versión **condensada** en peso 800; el texto, ancho normal. Los números del marcador usan cifras tabulares. Campos de 16 px o más (evita el zoom automático de iOS).
 
