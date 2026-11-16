@@ -4,7 +4,6 @@
 //   POST /api/push   header x-push-secret   { notifications: [{ user_ids, title, body, tag }] }
 import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import webpush from 'web-push'
 
 interface Notification {
   user_ids: string[]
@@ -14,6 +13,14 @@ interface Notification {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    return await run(req, res)
+  } catch (e) {
+    return res.status(500).json({ error: `Error inesperado: ${(e as Error).message}` })
+  }
+}
+
+async function run(req: VercelRequest, res: VercelResponse) {
   const url = process.env.VITE_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const secret = process.env.PUSH_SECRET
@@ -29,19 +36,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const notifications: Notification[] = Array.isArray(req.body?.notifications) ? req.body.notifications : []
   if (notifications.length === 0) return res.status(200).json({ sent: 0 })
 
-  webpush.setVapidDetails(subject, publicKey, privateKey)
+  // An invalid key (a stray space, quote or line break when pasting it) throws here; report it as a
+  // readable error instead of crashing the function.
+  let webpush: typeof import('web-push')
+  try {
+    // Loaded here (not at the top) so a problem loading the library is reported instead of crashing.
+    webpush = (await import('web-push')).default as unknown as typeof import('web-push')
+    webpush.setVapidDetails(subject, publicKey.trim(), privateKey.trim())
+  } catch (e) {
+    return res.status(500).json({ error: `No se pudo preparar el envío (claves VAPID o librería): ${(e as Error).message}` })
+  }
   const db = createClient(url, serviceKey, { auth: { persistSession: false } })
 
   const userIds = [...new Set(notifications.flatMap((n) => n.user_ids ?? []))]
-  const { data: subs } = await db
+  const { data: subs, error: subsError } = await db
     .from('push_subscriptions')
     .select('user_id, endpoint, p256dh, auth')
     .in('user_id', userIds)
+  if (subsError) return res.status(500).json({ error: `No se pudieron leer las suscripciones: ${subsError.message}` })
   const byUser = new Map<string, NonNullable<typeof subs>>()
   for (const s of subs ?? []) byUser.set(s.user_id, [...(byUser.get(s.user_id) ?? []), s])
 
   let sent = 0
   const gone: string[] = []
+  const failures: string[] = []
   await Promise.all(
     notifications.flatMap((n) =>
       (n.user_ids ?? []).flatMap((userId) =>
@@ -56,11 +74,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           } catch (e) {
             const status = (e as { statusCode?: number }).statusCode
             if (status === 404 || status === 410) gone.push(s.endpoint) // the phone unsubscribed
+            else failures.push(`${status ?? 'error'}: ${(e as Error).message}`.slice(0, 160))
           }
         }),
       ),
     ),
   )
   if (gone.length > 0) await db.from('push_subscriptions').delete().in('endpoint', gone)
-  return res.status(200).json({ sent, removed: gone.length })
+  return res.status(200).json({ sent, removed: gone.length, failures: failures.slice(0, 3) })
 }
