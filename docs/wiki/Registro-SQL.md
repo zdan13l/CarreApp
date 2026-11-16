@@ -22,6 +22,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0007 | [`0007_arrival_and_base_photo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0007_arrival_and_base_photo.sql) | 2026-11-15 | Llegada de los grupos y foto de la base editable por sus inductores |
 | 0008 | [`0008_private_base_info.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0008_private_base_info.sql) | _pendiente_ | Información y preguntas de la base privadas; bases en tiempo real |
 | 0009 | [`0009_map_and_gps.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0009_map_and_gps.sql) | 2026-11-15 | Ubicación de las bases y última ubicación de cada grupo (GPS) |
+| 0010 | [`0010_delay_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0010_delay_alerts.sql) | _pendiente_ | Tiempo máximo de traslado, hora de término de cada cruce y avisos manuales |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
 ---
@@ -216,6 +217,28 @@ Mapa en vivo del coordinador (Bloque 6). Un solo corredor por grupo transmite; l
 drop table public.team_locations;
 drop function public.stamp_team_location();
 alter table public.bases drop column lat, drop column lng;
+```
+
+## 0010 — Alertas de demora (pendiente de aplicar)
+
+**Qué cambia**
+- `events.max_travel_minutes` (1 a 120, por defecto 10): el tiempo máximo de traslado entre bases lo configura el coordinador.
+- `matches.finished_at`: hora en que un cruce terminó (sus 3 ítems puntuados o invalidados). `after_score_change()` la guarda y la borra si el cruce deja de estar terminado. Los cruces ya terminados toman la hora de su último puntaje.
+- Tabla `alerts` (aviso manual del coordinador para un cruce): la leen los usuarios autenticados y **solo el coordinador** crea o borra. Entra a tiempo real.
+
+**Por qué**
+Avisar a los corredores y a la base cuando un grupo tarda demasiado entre bases. Cuánto lleva un grupo en camino se calcula como "ahora menos la hora en que terminó su cruce anterior", mientras la base no confirme que llegaron ambos.
+
+**Verificación** Probado en Postgres en memoria: la hora de término se guarda y se limpia con el estado del cruce; el máximo fuera de rango se rechaza; el admin crea avisos, el corredor y la base solo los leen y no los crean; un mensaje vacío se rechaza.
+
+**Importante** El código de esta versión ya lee `max_travel_minutes`: aplicar el SQL justo después del despliegue.
+
+**Cómo revertir**
+```sql
+drop table public.alerts;
+alter table public.matches drop column finished_at;
+alter table public.events drop column max_travel_minutes;
+-- y volver a ejecutar after_score_change() de 0007
 ```
 
 ## Plantilla para nuevos registros

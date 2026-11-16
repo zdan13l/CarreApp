@@ -2,6 +2,22 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Bloque 7 — Alertas de demora (2026-11-15)
+**Hecho**
+- **Tiempo máximo de traslado** configurable por el coordinador (Resumen > Alertas de demora; por defecto 10 min).
+- **Alerta automática:** un grupo está "en demora" cuando pasó ese tiempo desde que terminó su cruce anterior y la base aún no confirmó que llegaron ambos. Se calcula en cada teléfono con los datos compartidos (no necesita un servidor).
+  - **Corredor:** aviso rojo con los minutos y la base a la que debe ir, más sonido.
+  - **Base:** aviso con los grupos que están en demora en su cruce, más sonido.
+  - **Coordinador:** panel *Demoras en el traslado* en Cruces y en Mapa, con los minutos de cada grupo y, si comparte GPS, a qué distancia está de la base.
+- **Aviso manual:** botón *Avisar* en la demora y campana en cada cruce; el coordinador escribe (o acepta) un mensaje que reciben al instante los corredores de los dos grupos y la base de ese cruce.
+- **Sonido y vibración:** hay que activar el sonido con un botón (iPhone y navegadores exigen un toque primero). Suena una vez al aparecer una alerta y se repite cada 3 minutos mientras siga la demora.
+
+**Límite conocido**
+- Los avisos suenan y se ven **con la app abierta**. Una notificación con la app cerrada (web push) exigiría un servidor de notificaciones y claves propias; queda como mejora opcional.
+
+**Pendiente**
+- Aplicar `0010` y probar con teléfonos reales en el simulacro.
+
 ## Rediseño visual (2026-11-15)
 **Hecho**
 - **Nuevo logo:** una C dorada con una aguja de brújula azul dentro, sobre azul noche (elegido entre 16 propuestas). Reemplaza al anterior en el icono de la app, el favicon y todas las pantallas.

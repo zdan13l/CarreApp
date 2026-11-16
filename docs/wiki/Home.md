@@ -33,7 +33,7 @@ Ver la [Bitácora](Bitacora) para el detalle. Hoja de ruta:
 | 4 | Vista de base (calificar) | Código listo, falta probar en campo |
 | 5 | Ranking en vivo y vista del corredor | Hecho, falta probar con corredores reales |
 | 6 | Mapa y GPS | Hecho, falta probar con teléfonos en el campus |
-| 7 | Alertas de demora | Pendiente |
+| 7 | Alertas de demora | Código listo, falta aplicar `0010` y probar |
 | 8 | Carga masiva (plantilla Word/Excel) | Pendiente |
 | 9 | Pruebas y ensayo | Pendiente |
 
