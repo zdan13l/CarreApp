@@ -59,13 +59,34 @@ describe('schedule rules', () => {
 })
 
 describe('staffing rules', () => {
-  it('lets an inductor staff only ONE base per Carrera, but another one in a different Carrera', async () => {
+  it('lets an inductor staff only ONE base per Carrera', async () => {
     const c = await seedCarrera(db, { teams: 2, bases: 2 })
     await expect(db.sql(`insert into public.base_staff (base_id, user_id) values ($1, $2)`, [c.bases[1].id, c.bases[0].staff])).rejects.toThrow(
       /ya está asignado a otra base de esta Carrera/,
     )
+  })
+
+  it('keeps users inside their own Carrera: assigning adopts, another Carrera is refused', async () => {
+    const c = await seedCarrera(db, { teams: 2, bases: 1 })
     const other = await seedCarrera(db, { teams: 2, bases: 1 })
-    await db.sql(`insert into public.base_staff (base_id, user_id) values ($1, $2)`, [other.bases[0].id, c.bases[0].staff])
+    const prof = async (id: string) => (await db.sql<{ event_id: string | null }>(`select event_id from public.profiles where id = $1`, [id]))[0].event_id
+    // seeded staff and runners were adopted by the Carrera they were assigned to
+    expect(await prof(c.bases[0].staff)).toBe(c.eventId)
+    expect(await prof(c.teams[0].runners[0])).toBe(c.eventId)
+    // ...and cannot work in a different one
+    await expect(db.sql(`insert into public.base_staff (base_id, user_id) values ($1, $2)`, [other.bases[0].id, c.bases[0].staff])).rejects.toThrow(/pertenece a otra Carrera/)
+    await expect(db.sql(`insert into public.team_runners (team_id, user_id) values ($1, $2)`, [other.teams[0].id, c.teams[0].runners[0]])).rejects.toThrow(/pertenece a otra Carrera/)
+    // a user created for no Carrera yet is adopted by the first one that assigns them
+    const free = await addUser(db, 'libre' + Math.random().toString(36).slice(2, 7), 'runner')
+    expect(await prof(free)).toBeNull()
+    await db.sql(`insert into public.team_runners (team_id, user_id) values ($1, $2)`, [other.teams[0].id, free])
+    expect(await prof(free)).toBe(other.eventId)
+  })
+
+  it('does not give a Carrera to the coordinator', async () => {
+    const admin = await getAdmin(db)
+    const [p] = await db.sql<{ event_id: string | null }>(`select event_id from public.profiles where id = $1`, [admin])
+    expect(p.event_id).toBeNull()
   })
 
   it('lets a runner belong to only ONE group per Carrera', async () => {
