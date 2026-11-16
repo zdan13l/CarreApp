@@ -15,7 +15,8 @@ Hay **tres roles**. Los permisos se aplican en la **base de datos** (RLS), no so
 | Corregir o borrar un puntaje ya enviado | **Sí (único)** | No | No |
 | Invalidar un ítem que no se jugó | **Sí (único)** | No | No |
 | Configurar el tiempo de traslado (general y por tramo) y enviar avisos de demora | **Sí (único)** | No | No |
-| Activar las notificaciones push en su teléfono | Sí | Sí | Sí |
+| Mandar un aviso a los grupos de un cruce | Sí (todos) | **Solo de su base** | No |
+| Recibir notificaciones y sonido de demora | — | — | **Sí** |
 | Recibir los avisos de su cruce | — | Sí | Sí |
 | Ver el registro de auditoría | Sí | No | No |
 | Ver perfiles de otros usuarios | Sí | No (solo el suyo) | No (solo el suyo) |

@@ -24,6 +24,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0009 | [`0009_map_and_gps.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0009_map_and_gps.sql) | 2026-11-15 | Ubicación de las bases y última ubicación de cada grupo (GPS) |
 | 0010 | [`0010_delay_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0010_delay_alerts.sql) | _pendiente_ | Tiempo máximo de traslado, hora de término de cada cruce y avisos manuales |
 | 0011 | [`0011_push_and_travel_times.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0011_push_and_travel_times.sql) | _pendiente_ | Tiempo de traslado por tramo, suscripciones push y revisión de demoras en el servidor |
+| 0012 | [`0012_runner_only_push.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0012_runner_only_push.sql) | _pendiente_ | Las notificaciones push son solo para corredores; la base también puede mandar avisos |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -267,6 +268,19 @@ drop function public.alerts_push(), public.check_delays(), public.push_send(json
   public.save_push_subscription(text, text, text), public.remove_push_subscription(text);
 drop table public.push_config, public.push_subscriptions, public.base_travel_times;
 ```
+
+## 0012 — Notificaciones solo para corredores (pendiente de aplicar)
+
+**Qué cambia**
+- `check_delays()` y el aviso manual mandan la notificación **solo a los corredores** de los grupos implicados (antes también a la base y al coordinador).
+- Política `alerts_base_insert`: la base puede mandar avisos a los grupos de **sus propios cruces** (antes solo el coordinador).
+
+**Por qué**
+Quienes tienen que apurarse son los corredores; el coordinador y la base son quienes mandan los avisos.
+
+**Verificación** Probado en Postgres en memoria (envío simulado): una demora genera un solo aviso para los corredores del grupo; el aviso manual llega a los corredores de los dos grupos y a nadie más; la base del cruce puede enviar avisos, otra base o un corredor no.
+
+**Cómo revertir** Volver a ejecutar `check_delays()` y `alerts_push()` de `0011` y `drop policy alerts_base_insert on public.alerts;`.
 
 ## Plantilla para nuevos registros
 
