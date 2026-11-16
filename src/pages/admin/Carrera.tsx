@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../../lib/supabase'
+import { deleteUser } from '../../lib/usersApi'
 import { errMsg, useAdmin } from './AdminContext'
 import BulkImport from './BulkImport'
 import TravelTimes from './TravelTimes'
@@ -19,6 +20,7 @@ export default function Carrera() {
   const [newName, setNewName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const eventId = event?.id
 
@@ -102,6 +104,7 @@ export default function Carrera() {
   return (
     <>
       <h1>Carrera</h1>
+      {notice && <p className="ok-box">{notice}</p>}
       <p className="muted">Prepara la Carrera: estado y activación, carga desde un archivo, tiempos de traslado y nuevas ediciones.</p>
 
       {event && (
@@ -154,6 +157,8 @@ export default function Carrera() {
       {event && <h2 className="section-title">Alertas de demora</h2>}
       {event && <TravelSetting key={event.id} eventId={event.id} minutes={event.max_travel_minutes} onSaved={reload} />}
       {event && <TravelTimes key={`t-${event.id}`} eventId={event.id} defaultMinutes={event.max_travel_minutes} />}
+
+      {event && <DeleteEvent key={`d-${event.id}`} eventId={event.id} name={event.name} active={event.is_active} onDone={async (msg) => { setNotice(msg); await reload() }} />}
 
       <section className="card">
         <h2>{event ? 'Nueva edición de la Carrera' : 'Crea tu primera Carrera'}</h2>
@@ -210,6 +215,76 @@ function TravelSetting({ eventId, minutes, onSaved }: { eventId: string; minutes
       {!valid && <p className="error">Escribe un número entero entre 1 y 120.</p>}
       {message && <p className="ok-text">{message}</p>}
       {error && <p className="error">{error}</p>}
+    </section>
+  )
+}
+
+// Deletes a Carrera with everything inside it (groups, bases, schedule, scores, locations, alerts, times).
+// The people of that Carrera are kept unless the coordinator also asks to delete them. Photos stay in storage.
+function DeleteEvent({ eventId, name, active, onDone }: { eventId: string; name: string; active: boolean; onDone: (message: string) => Promise<void> }) {
+  const [typed, setTyped] = useState('')
+  const [withUsers, setWithUsers] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const matches = typed.trim().toLowerCase() === name.trim().toLowerCase()
+
+  async function remove() {
+    if (!supabase || !matches || active) return
+    setBusy(true)
+    setError(null)
+    try {
+      // The people are listed BEFORE deleting: afterwards they no longer point to the Carrera.
+      const { data: people } = await supabase.from('profiles').select('id').eq('event_id', eventId).neq('role', 'admin')
+      const { error: err } = await supabase.from('events').delete().eq('id', eventId)
+      if (err) throw new Error('No se pudo eliminar la Carrera.')
+      let failed = 0
+      if (withUsers) {
+        for (const p of people ?? []) {
+          try {
+            await deleteUser(p.id)
+          } catch {
+            failed++
+          }
+        }
+      }
+      const message =
+        withUsers
+          ? failed === 0 ? `Carrera eliminada con sus ${people?.length ?? 0} usuarios.` : `Carrera eliminada. ${failed} usuarios no se pudieron eliminar: quedan en Usuarios, "Sin Carrera asignada".`
+          : 'Carrera eliminada. Sus usuarios quedaron en Usuarios, "Sin Carrera asignada".'
+      setTyped('')
+      await onDone(message)
+    } catch (e) {
+      setError(errMsg(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="card danger-zone">
+      <h2>Eliminar esta Carrera</h2>
+      {active ? (
+        <p className="muted">Está activa: desactívala primero para poder eliminarla.</p>
+      ) : (
+        <>
+          <p className="muted">
+            Borra "{name}" con todo lo que tiene: grupos, bases, cruces, puntajes, ubicaciones, avisos y tiempos. No se puede deshacer.
+            Las fotos quedan guardadas.
+          </p>
+          <label className="check">
+            <input type="checkbox" checked={withUsers} onChange={(e) => setWithUsers(e.target.checked)} />
+            Eliminar también a sus corredores e inductores (si no, quedan en "Sin Carrera asignada")
+          </label>
+          <label>
+            Para confirmar, escribe el nombre de la Carrera
+            <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={name} autoComplete="off" />
+          </label>
+          {error && <p className="error">{error}</p>}
+          <button className="ghost danger" disabled={busy || !matches} onClick={() => void remove()}>
+            {busy ? 'Eliminando…' : 'Eliminar Carrera'}
+          </button>
+        </>
+      )}
     </section>
   )
 }

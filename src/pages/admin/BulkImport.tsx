@@ -296,6 +296,9 @@ export default function BulkImport() {
         <a className="btn-like" href="/plantillas/plantilla-personas.csv" download>
           <FileText size={18} aria-hidden="true" /> Solo personas (CSV)
         </a>
+        <a className="btn-like" href="/plantillas/carrera-de-prueba.xlsx" download>
+          <FileSpreadsheet size={18} aria-hidden="true" /> Carrera de prueba (ejemplo completo)
+        </a>
       </div>
 
       <div className="row">
