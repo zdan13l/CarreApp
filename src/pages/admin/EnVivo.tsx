@@ -2,9 +2,10 @@ import { BellRing, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DelaysPanel, { sendMatchAlert } from '../../components/DelaysPanel'
+import Kpi from '../../components/Kpi'
 import Ranking from '../../components/Ranking'
 import { useNow } from '../../lib/alerts'
-import { DEFAULT_ALERT_MESSAGE } from '../../lib/delays'
+import { DEFAULT_ALERT_MESSAGE, lateTeams } from '../../lib/delays'
 import { useRealtimeReload } from '../../lib/realtime'
 import { currentRound, formatTime } from '../../lib/schedule'
 import { supabase } from '../../lib/supabase'
@@ -116,13 +117,20 @@ export default function EnVivo() {
     else setNotice('Aviso enviado a los grupos y a la base.')
   }
 
+  const late = active ? lateTeams(matches, event.max_travel_minutes, now, travel).length : 0
+
   return (
     <>
-      <h1>En vivo</h1>
-      <p className="muted">
-        <strong>{event.name}</strong> <span className={`badge ${active ? 'ok live' : ''}`}>{active ? 'Activa' : 'Borrador'}</span>
-        {matches.length > 0 && ` · Ronda ${round} de ${totalRounds} · ${finished} de ${matches.length} cruces terminados`}
-      </p>
+      <header className="page-head">
+        <div>
+          <p className="eyebrow">{event.name}</p>
+          <h1>En vivo</h1>
+        </div>
+        <div className="head-meta">
+          <span className={`badge ${active ? 'ok live' : ''}`}>{active ? 'Activa' : 'Borrador'}</span>
+          {matches.length > 0 && <span>Ronda {round} de {totalRounds}</span>}
+        </div>
+      </header>
 
       {!active && (
         <div className="warn">
@@ -139,7 +147,16 @@ export default function EnVivo() {
       {error && <p className="error">{error}</p>}
       {notice && <p className="ok-text">{notice}</p>}
 
-      <div className="grid">
+      {matches.length > 0 && (
+        <div className="kpis">
+          <Kpi tone="accent" label="Ronda en curso" value={`${round}/${totalRounds}`} sub={`${inRound.filter((m) => m.status === 'finished').length} de ${inRound.length} cruces terminados`} />
+          <Kpi label="Cruces" value={`${finished}/${matches.length}`} sub="terminados en la Carrera" to="/admin/cruces" />
+          <Kpi tone={late > 0 ? 'hot' : undefined} label="Demoras" value={late} sub={late === 1 ? 'grupo tarde al traslado' : 'grupos tarde al traslado'} />
+          <Kpi label="Ubicación" value={`${sharing.length}/${teams.length}`} sub="grupos compartiendo GPS" to="/admin/mapa" />
+        </div>
+      )}
+
+      <div className="live-grid">
         <div>
           {inRound.length > 0 && (
             <section className="card">
@@ -151,27 +168,27 @@ export default function EnVivo() {
                 {inRound.map((m) => {
                   const resolved = m.match_scores.length
                   return (
-                    <li key={m.id}>
-                      <span className="grow">
+                    <li key={m.id} className="mrow">
+                      <span className="mbase">
                         <strong>{baseName.get(m.base_id)}</strong>
-                        <span className="match-names">
-                          {teamName.get(m.team_a)} <span className="muted">vs</span> {teamName.get(m.team_b)}
-                        </span>
-                        <span className="meta">
-                          <span className={`badge ${m.status === 'finished' ? 'ok' : m.status === 'in_progress' ? 'ok live' : ''}`}>{STATUS_LABEL[m.status]}</span>
-                          {resolved > 0 && (
-                            <span className="num">{wins(m, m.team_a)}–{wins(m, m.team_b)}</span>
-                          )}
-                          <small className="muted">
-                            {resolved}/3 ítems{m.arrived_at ? ` · llegaron a las ${formatTime(m.arrived_at)}` : ''}
-                          </small>
-                        </span>
                       </span>
-                      {m.status !== 'finished' && (
-                        <button className="ghost icon-btn" onClick={() => void hurry(m)} aria-label="Enviar aviso" title="Enviar aviso a los grupos y la base">
-                          <BellRing size={18} />
-                        </button>
-                      )}
+                      <span className="mteams">
+                        {teamName.get(m.team_a)} <span className="muted">vs</span> {teamName.get(m.team_b)}
+                      </span>
+                      <span className="mmeta">
+                        <span className={`badge ${m.status === 'finished' ? 'ok' : m.status === 'in_progress' ? 'ok live' : ''}`}>{STATUS_LABEL[m.status]}</span>
+                      </span>
+                      <span className="mscore num">{resolved > 0 ? `${wins(m, m.team_a)}–${wins(m, m.team_b)}` : '–'}</span>
+                      <span className="mact">
+                        {m.status !== 'finished' && (
+                          <button className="ghost icon-btn" onClick={() => void hurry(m)} aria-label="Enviar aviso" title="Enviar aviso a los grupos y la base">
+                            <BellRing size={18} />
+                          </button>
+                        )}
+                      </span>
+                      <span className="mdetail">
+                        {resolved}/3 ítems{m.arrived_at ? ` · llegaron a las ${formatTime(m.arrived_at)}` : ''}
+                      </span>
                     </li>
                   )
                 })}
@@ -204,18 +221,6 @@ export default function EnVivo() {
               <Link className="btn-like" to="/admin/puntajes">Ranking y puntajes <ChevronRight size={16} aria-hidden="true" /></Link>
             </div>
           </section>
-
-          {active && (
-            <section className="card">
-              <h2>Ubicación de los grupos</h2>
-              <p>
-                <strong>{sharing.length} de {teams.length}</strong> grupos comparten su ubicación ahora.
-              </p>
-              <div className="row">
-                <Link className="btn-like" to="/admin/mapa">Abrir el mapa <ChevronRight size={16} aria-hidden="true" /></Link>
-              </div>
-            </section>
-          )}
         </div>
       </div>
     </>

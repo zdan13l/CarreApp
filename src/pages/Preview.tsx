@@ -7,7 +7,9 @@ import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import BottomNav from '../components/BottomNav'
 import Crest from '../components/Crest'
+import Kpi from '../components/Kpi'
 import LazyMap from '../components/LazyMap'
+import LogoGallery from './LogoGallery'
 import PhotoField from '../components/PhotoField'
 import Ranking from '../components/Ranking'
 import RoundPager from '../components/RoundPager'
@@ -70,6 +72,8 @@ const noopAsync = async () => {}
 
 export default function Preview() {
   const { screen } = useParams()
+
+  if (screen === 'logos') return <LogoGallery />
 
   if (screen === 'runner-alertas') {
     return (
@@ -171,15 +175,27 @@ export default function Preview() {
       <div className="admin">
         <AdminNav eventName="Carrera 2027-1" user={user} onSignOut={noop} />
         <main className="admin-main">
-          <AdminTopbar onSignOut={noop} />
+          <AdminTopbar user={user} onSignOut={noop} />
           {screen === 'admin' || screen === 'admin-carrera' ? (
             screen === 'admin' ? (
               <>
-                <h1>En vivo</h1>
-                <p className="muted">
-                  <strong>Carrera 2027-1</strong> <span className="badge ok live">Activa</span> · Ronda 2 de 3 · 3 de 6 cruces terminados
-                </p>
-                <div className="grid">
+                <header className="page-head">
+                  <div>
+                    <p className="eyebrow">Carrera 2027-1</p>
+                    <h1>En vivo</h1>
+                  </div>
+                  <div className="head-meta">
+                    <span className="badge ok live">Activa</span>
+                    <span>Ronda 2 de 3</span>
+                  </div>
+                </header>
+                <div className="kpis">
+                  <Kpi tone="accent" label="Ronda en curso" value="2/3" sub="1 de 3 cruces terminados" />
+                  <Kpi label="Cruces" value="3/6" sub="terminados en la Carrera" to="#" />
+                  <Kpi tone="hot" label="Demoras" value={1} sub="grupo tarde al traslado" />
+                  <Kpi label="Ubicación" value="3/4" sub="grupos compartiendo GPS" to="#" />
+                </div>
+                <div className="live-grid">
                   <div>
                     <section className="card">
                       <div className="match-head">
@@ -187,28 +203,29 @@ export default function Preview() {
                         <span className="chip">1 de 3 terminados</span>
                       </div>
                       <ul className="list">
-                        <li>
-                          <span className="grow">
-                            <strong>Atrio</strong>
-                            <span className="match-names">Dioses Griegos <span className="muted">vs</span> Samuráis</span>
-                            <span className="meta"><span className="badge ok live">En juego</span><span className="num">1–0</span><small className="muted">1/3 ítems · llegaron a las 10:08 a. m.</small></span>
-                          </span>
-                          <button className="ghost icon-btn" aria-label="Enviar aviso"><BellRing size={18} /></button>
+                        <li className="mrow">
+                          <span className="mbase"><strong>Atrio</strong></span>
+                          <span className="mteams">Dioses Griegos <span className="muted">vs</span> Samuráis</span>
+                          <span className="mmeta"><span className="badge ok live">En juego</span></span>
+                          <span className="mscore num">1–0</span>
+                          <span className="mact"><button className="ghost icon-btn" aria-label="Enviar aviso"><BellRing size={18} /></button></span>
+                          <span className="mdetail">1/3 ítems · llegaron a las 10:08 a. m.</span>
                         </li>
-                        <li>
-                          <span className="grow">
-                            <strong>Cancha de Fútbol</strong>
-                            <span className="match-names">Dioses Nórdicos <span className="muted">vs</span> Guerreros Aztecas</span>
-                            <span className="meta"><span className="badge">Pendiente</span><small className="muted">0/3 ítems</small></span>
-                          </span>
-                          <button className="ghost icon-btn" aria-label="Enviar aviso"><BellRing size={18} /></button>
+                        <li className="mrow">
+                          <span className="mbase"><strong>Cancha de Fútbol</strong></span>
+                          <span className="mteams">Dioses Nórdicos <span className="muted">vs</span> Guerreros Aztecas</span>
+                          <span className="mmeta"><span className="badge">Pendiente</span></span>
+                          <span className="mscore num">–</span>
+                          <span className="mact"><button className="ghost icon-btn" aria-label="Enviar aviso"><BellRing size={18} /></button></span>
+                          <span className="mdetail">0/3 ítems</span>
                         </li>
-                        <li>
-                          <span className="grow">
-                            <strong>Biblioteca</strong>
-                            <span className="match-names">Grupo 5 <span className="muted">vs</span> Grupo 6</span>
-                            <span className="meta"><span className="badge ok">Terminado</span><span className="num">2–1</span><small className="muted">3/3 ítems</small></span>
-                          </span>
+                        <li className="mrow">
+                          <span className="mbase"><strong>Biblioteca</strong></span>
+                          <span className="mteams">Samuráis Rojos <span className="muted">vs</span> Gladiadores</span>
+                          <span className="mmeta"><span className="badge ok">Terminado</span></span>
+                          <span className="mscore num">2–1</span>
+                          <span className="mact" />
+                          <span className="mdetail">3/3 ítems</span>
                         </li>
                       </ul>
                       <div className="row"><a className="btn-like" href="#">Cronograma completo <ChevronRight size={16} aria-hidden="true" /></a></div>
@@ -231,11 +248,6 @@ export default function Preview() {
                       <h2>Top equipos</h2>
                       <Ranking rows={standings.slice(0, 3)} />
                       <div className="row"><a className="btn-like" href="#">Ranking y puntajes <ChevronRight size={16} aria-hidden="true" /></a></div>
-                    </section>
-                    <section className="card">
-                      <h2>Ubicación de los grupos</h2>
-                      <p><strong>3 de 4</strong> grupos comparten su ubicación ahora.</p>
-                      <div className="row"><a className="btn-like" href="#">Abrir el mapa <ChevronRight size={16} aria-hidden="true" /></a></div>
                     </section>
                   </div>
                 </div>
@@ -371,5 +383,5 @@ export default function Preview() {
     )
   }
 
-  return <p className="page">Pantallas: map, runner, runner-ruta, runner-alertas, runner-top, base, base-info, admin, admin-carrera, admin-forms</p>
+  return <p className="page">Pantallas: logos, map, runner, runner-ruta, runner-alertas, runner-top, base, base-info, admin, admin-carrera, admin-forms</p>
 }

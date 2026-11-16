@@ -1,9 +1,8 @@
-import { LogOut } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useAuth } from '../lib/auth'
 import ConnectionBanner from './ConnectionBanner'
 import Logo from './Logo'
-import ThemeToggle from './ThemeToggle'
+import AccountMenu from './AccountMenu'
 
 export default function AppShell({
   title,
@@ -23,15 +22,8 @@ export default function AppShell({
       <ConnectionBanner />
       <header className="topbar">
         <Logo size={30} />
-        <div className="topbar-user">
-          <strong>{who?.full_name}</strong>
-          <small>@{who?.username}</small>
-        </div>
         {topActions}
-        <ThemeToggle />
-        <button className="ghost icon-btn" onClick={() => { if (window.confirm('¿Cerrar sesión?')) void signOut() }} aria-label="Cerrar sesión" title="Cerrar sesión">
-          <LogOut size={20} />
-        </button>
+        <AccountMenu user={who ?? undefined} onSignOut={() => { if (window.confirm('¿Cerrar sesión?')) void signOut() }} />
       </header>
       <h1 className="page-title">{title}</h1>
       {children}

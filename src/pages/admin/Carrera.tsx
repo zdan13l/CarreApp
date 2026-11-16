@@ -103,10 +103,17 @@ export default function Carrera() {
 
   return (
     <>
-      <h1>Carrera</h1>
+      <header className="page-head">
+        <div>
+          <p className="eyebrow">Preparación</p>
+          <h1>Carrera</h1>
+        </div>
+        <p className="head-meta">Estado y activación, carga desde un archivo, tiempos de traslado y nuevas ediciones.</p>
+      </header>
       {notice && <p className="ok-box">{notice}</p>}
-      <p className="muted">Prepara la Carrera: estado y activación, carga desde un archivo, tiempos de traslado y nuevas ediciones.</p>
 
+      <div className="live-grid">
+      <div>
       {event && (
         <section className="card">
           <h2>{event.name}</h2>
@@ -153,7 +160,9 @@ export default function Carrera() {
       )}
 
       <BulkImport />
+      </div>
 
+      <div>
       {event && <h2 className="section-title">Alertas de demora</h2>}
       {event && <TravelSetting key={event.id} eventId={event.id} minutes={event.max_travel_minutes} onSaved={reload} />}
       {event && <TravelTimes key={`t-${event.id}`} eventId={event.id} defaultMinutes={event.max_travel_minutes} />}
@@ -170,6 +179,8 @@ export default function Carrera() {
           <button type="submit" disabled={busy || !newName.trim()}>Crear Carrera</button>
         </form>
       </section>
+      </div>
+      </div>
     </>
   )
 }

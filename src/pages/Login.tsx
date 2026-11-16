@@ -24,11 +24,13 @@ export default function Login() {
   }
 
   return (
-    <main className="page login">
+    <main className="login-screen">
       <div className="login-theme"><ThemeToggle /></div>
-      <Logo size={72} />
-      <p className="tagline">Gestión en vivo de la Carrera de inducción.</p>
-      <form className="card form" onSubmit={onSubmit}>
+      <section className="login-hero">
+        <Logo size={72} />
+        <p className="tagline">Gestión en vivo de la Carrera de inducción.</p>
+      </section>
+      <form className="card form login-card" onSubmit={onSubmit}>
         <label>
           Usuario
           <input
@@ -68,6 +70,7 @@ export default function Login() {
           {submitting ? 'Entrando…' : 'Entrar'}
         </button>
       </form>
+      <p className="login-foot">Pontificia Universidad Javeriana · Semana de inducción</p>
     </main>
   )
 }
