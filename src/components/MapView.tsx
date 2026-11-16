@@ -11,6 +11,7 @@ export interface MapMarker {
   kind: 'base' | 'team' | 'me' | 'target'
   photo?: string | null
   stale?: boolean // no recent signal
+  late?: boolean // walking longer than allowed to its next base
 }
 
 export interface MapViewProps {
@@ -20,6 +21,9 @@ export interface MapViewProps {
   height?: string
   lightPreset?: 'day' | 'dusk' | 'night' | 'dawn'
 }
+
+// Mapbox paints with WebGL and cannot read CSS variables, so the route takes its colours from them.
+const cssColor = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
 // Glyphs (Lucide paths) drawn inside the markers.
 const GLYPH = {
@@ -36,7 +40,7 @@ function initialsOf(name: string): string {
 
 function buildElement(m: MapMarker): HTMLElement {
   const el = document.createElement('div')
-  el.className = `mk mk-${m.kind}${m.stale ? ' stale' : ''}`
+  el.className = `mk mk-${m.kind}${m.stale ? ' stale' : ''}${m.late ? ' late' : ''}`
   const pin = document.createElement('span')
   pin.className = 'mk-pin'
   if (m.kind === 'base' || m.kind === 'target') {
@@ -98,7 +102,7 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
         source: 'route',
         slot: 'middle',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: { 'line-color': '#0b0f17', 'line-width': 11, 'line-emissive-strength': 1 },
+        paint: { 'line-color': cssColor('--bg'), 'line-width': 11, 'line-emissive-strength': 1 },
       })
       map.addLayer({
         id: 'route-line',
@@ -106,7 +110,7 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
         source: 'route',
         slot: 'middle',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: { 'line-color': '#ffa94d', 'line-width': 6, 'line-emissive-strength': 1 },
+        paint: { 'line-color': cssColor('--gold'), 'line-width': 6, 'line-emissive-strength': 1 },
       })
       loaded.current = true
     })
@@ -136,7 +140,7 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
     for (const m of markers) {
       seen.add(m.id)
       const existing = domMarkers.current.get(m.id)
-      const signature = `${m.label}|${m.photo ?? ''}|${m.stale ? 1 : 0}|${m.kind}`
+      const signature = `${m.label}|${m.photo ?? ''}|${m.stale ? 1 : 0}|${m.late ? 1 : 0}|${m.kind}`
       if (existing && existing.getElement().dataset.sig === signature) {
         existing.setLngLat([m.lng, m.lat])
         continue

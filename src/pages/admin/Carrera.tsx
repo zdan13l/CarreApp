@@ -10,7 +10,9 @@ interface Counts {
   warnings: string[]
 }
 
-export default function Resumen() {
+// Setup of the Carrera: its state and activation checklist, loading it from a file, the delay times
+// and creating a new edition. What happens DURING the race lives in "En vivo".
+export default function Carrera() {
   const { events, event, selectEvent, reload } = useAdmin()
   const [problems, setProblems] = useState<string[]>([])
   const [counts, setCounts] = useState<Counts>({ teams: 0, bases: 0, warnings: [] })
@@ -94,7 +96,8 @@ export default function Resumen() {
 
   return (
     <>
-      <h1>Resumen de la Carrera</h1>
+      <h1>Carrera</h1>
+      <p className="muted">Prepara la Carrera: estado y activación, carga desde un archivo, tiempos de traslado y nuevas ediciones.</p>
 
       {event && (
         <section className="card">
@@ -141,13 +144,14 @@ export default function Resumen() {
         </section>
       )}
 
+      <BulkImport />
+
+      {event && <h2 className="section-title">Alertas de demora</h2>}
       {event && <TravelSetting key={event.id} eventId={event.id} minutes={event.max_travel_minutes} onSaved={reload} />}
       {event && <TravelTimes key={`t-${event.id}`} eventId={event.id} defaultMinutes={event.max_travel_minutes} />}
 
-      <BulkImport />
-
       <section className="card">
-        <h2>{event ? 'Nueva Carrera' : 'Crea tu primera Carrera'}</h2>
+        <h2>{event ? 'Nueva edición de la Carrera' : 'Crea tu primera Carrera'}</h2>
         <form className="form" onSubmit={createEvent}>
           <label>
             Nombre (por ejemplo "Carrera 2027-2")
@@ -185,11 +189,11 @@ function TravelSetting({ eventId, minutes, onSaved }: { eventId: string; minutes
 
   return (
     <section className="card">
-      <h2>Alertas de demora: tiempo general</h2>
+      <h2>Tiempo general de traslado</h2>
       <p className="muted">
         Si un grupo pasa más de este tiempo entre que termina una base y llega a la siguiente, suena una alerta a sus
-        corredores, a la base y a ti (cada 10 segundos mientras siga la demora), y también llega como notificación al
-        teléfono. Este tiempo vale para los tramos que no tengan el suyo (abajo).
+        corredores (sonido cada 30 segundos mientras siga la demora y notificación al teléfono) y la ves en "En vivo".
+        Este tiempo vale para los tramos que no tengan el suyo (abajo).
       </p>
       <div className="row">
         <label className="inline-field grow">

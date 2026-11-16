@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import DelaysPanel from '../../components/DelaysPanel'
 import LazyMap, { type MapMarker } from '../../components/LazyMap'
-import type { TimedMatch } from '../../lib/delays'
+import { lateTeams, type TimedMatch } from '../../lib/delays'
 import { timeAgo } from '../../lib/geo'
 import { useTravelTimes } from '../../lib/travel'
 import { useRealtimeReload } from '../../lib/realtime'
@@ -75,6 +74,12 @@ export default function Mapa() {
 
   const locationByTeam = useMemo(() => new Map(locations.map((l) => [l.team_id, l])), [locations])
 
+  // Groups that are walking longer than allowed (the full list with the "Avisar" button is in "En vivo").
+  const lateIds = useMemo(
+    () => new Set(lateTeams(matches, event?.max_travel_minutes ?? 10, now, travel).map((l) => l.teamId)),
+    [matches, event?.max_travel_minutes, now, travel],
+  )
+
   const markers = useMemo<MapMarker[]>(() => {
     const list: MapMarker[] = []
     for (const b of bases) {
@@ -91,13 +96,14 @@ export default function Mapa() {
           kind: 'team',
           photo: photoUrl(t.photo_path),
           stale: now - new Date(loc.updated_at).getTime() > STALE_MS,
+          late: lateIds.has(t.id),
         })
       }
     }
     return list
-  }, [bases, teams, locationByTeam, now])
+  }, [bases, teams, locationByTeam, now, lateIds])
 
-  if (!event) return <p className="warn">Primero crea una Carrera en "Resumen".</p>
+  if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
 
   const withoutLocation = bases.filter((b) => b.lat === null || b.lng === null)
 
@@ -111,17 +117,6 @@ export default function Mapa() {
       <section className="card map-card">
         <LazyMap markers={markers} height="min(70vh, 560px)" lightPreset="dusk" />
       </section>
-
-      <DelaysPanel
-        eventId={event.id}
-        matches={matches}
-        maxMinutes={event.max_travel_minutes}
-        teamName={new Map(teams.map((t) => [t.id, t.name]))}
-        baseName={new Map(bases.map((b) => [b.id, b.name]))}
-        baseCoords={new Map(bases.filter((b) => b.lat !== null && b.lng !== null).map((b) => [b.id, [b.lng!, b.lat!] as [number, number]]))}
-        teamCoords={new Map(locations.map((l) => [l.team_id, [l.lng, l.lat] as [number, number]]))}
-        travel={travel}
-      />
 
       {withoutLocation.length > 0 && (
         <p className="warn">
@@ -138,6 +133,7 @@ export default function Mapa() {
             return (
               <li key={t.id}>
                 <span className="grow">{t.name}</span>
+                {lateIds.has(t.id) && <span className="chip lose">En demora</span>}
                 {!loc ? (
                   <span className="chip">Sin señal</span>
                 ) : (
@@ -149,7 +145,8 @@ export default function Mapa() {
         </ul>
         <p className="muted">
           "Sin señal": el corredor designado aún no activó su ubicación. En rojo: más de 2 minutos sin actualizar
-          (app cerrada, pantalla apagada o sin datos).
+          (app cerrada, pantalla apagada o sin datos). "En demora": el grupo lleva más del tiempo permitido caminando
+          hacia su siguiente base; el detalle y el botón para avisarles están en "En vivo".
         </p>
       </section>
     </>

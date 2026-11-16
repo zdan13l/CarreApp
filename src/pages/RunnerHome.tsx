@@ -1,4 +1,4 @@
-import { Ban, Check, Compass, Flag, Route, Trophy } from 'lucide-react'
+import { Ban, Bell, Check, ChevronDown, Compass, Flag, Route, Trophy } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import AppShell from '../components/AppShell'
 import BottomNav, { type NavTab } from '../components/BottomNav'
@@ -7,7 +7,7 @@ import Ranking from '../components/Ranking'
 import RunnerMap from '../components/RunnerMap'
 import { AlertBanner, AlertSettings } from '../components/Alerts'
 import { useAuth } from '../lib/auth'
-import { useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
+import { soundEnabled, useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
 import { lateTeams } from '../lib/delays'
 import { useTravelTimes } from '../lib/travel'
 import { useRealtimeReload } from '../lib/realtime'
@@ -57,6 +57,7 @@ const TABS: NavTab<Tab>[] = [
 export default function RunnerHome() {
   const { profile } = useAuth()
   const [tab, setTab] = useState<Tab>('ronda')
+  const [showAlerts, setShowAlerts] = useState(false) // sound and notification settings
   const [mapOpened, setMapOpened] = useState(false) // keep the map (and GPS sharing) alive once opened
   const [team, setTeam] = useState<MyTeam | null>(null)
   const [matches, setMatches] = useState<RouteMatch[]>([])
@@ -100,7 +101,8 @@ export default function RunnerHome() {
   const teamById = new Map(standings.map((r) => [r.team_id, r]))
   const mine = matches.filter((m) => m.team_a === team?.id || m.team_b === team?.id)
   const next = mine.find((m) => m.status !== 'finished')
-  const lastFinished = [...mine].reverse().find((m) => m.status === 'finished')
+  const upcoming = mine.filter((m) => m.status !== 'finished')
+  const after = upcoming[1] // the match that follows the current one
   const totalRounds = matches.reduce((max, m) => Math.max(max, m.round_number), 0)
   const myRow = standings.find((r) => r.team_id === team?.id)
   const events = team?.events
@@ -113,7 +115,23 @@ export default function RunnerHome() {
   const position = myRow ? standings.filter((r) => r.points > myRow.points).length + 1 : null
 
   return (
-    <AppShell title="Mi grupo">
+    <AppShell
+      title="Mi grupo"
+      topActions={
+        team && (
+          <button
+            className="ghost icon-btn bell"
+            onClick={() => setShowAlerts((v) => !v)}
+            aria-label="Ajustes de alertas"
+            aria-expanded={showAlerts}
+            title="Ajustes de alertas"
+          >
+            <Bell size={20} />
+            {!soundEnabled() && <span className="dot" aria-hidden="true" />}
+          </button>
+        )
+      }
+    >
       {loading ? (
         <p className="loading">Cargando…</p>
       ) : !team ? (
@@ -125,6 +143,16 @@ export default function RunnerHome() {
           {/* Always visible and live: position and points */}
           <StatusBar name={team.name} photoPath={team.photo_path} position={position} points={myRow?.points ?? 0} />
 
+          {showAlerts && (
+            <section className="card">
+              <h2>Alertas</h2>
+              <p className="muted">
+                Para que te avisemos cuando vayas tarde a la siguiente base: con el sonido activado suena cada 30
+                segundos mientras dure la demora; con las notificaciones te llega aunque el teléfono esté bloqueado.
+              </p>
+              <AlertSettings />
+            </section>
+          )}
           {manual.alerts.map((a) => (
             <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => manual.dismiss(a.id)}>
               {a.message}
@@ -140,17 +168,16 @@ export default function RunnerHome() {
           {tab === 'ronda' && (
             <>
               {mine.length === 0 && <p className="warn">El coordinador aún no ha programado tus cruces.</p>}
-              <AlertSettings />
               {next && <CurrentRound match={next} myId={team.id} teams={teamById} />}
               {!next && mine.length > 0 && <p className="ok-box">Terminaste todos tus cruces. ¡Buen trabajo!</p>}
-              {lastFinished && (
-                <section className="card">
-                  <h2>Ronda {lastFinished.round_number} terminada</h2>
-                  <p className="muted">
-                    vs {teamById.get(rivalId(lastFinished, team.id))?.name} · {scoreOf(lastFinished, team.id)}–
-                    {scoreOf(lastFinished, rivalId(lastFinished, team.id))}
+              {after && (
+                <section className="card next">
+                  <h3>Después · Ronda {after.round_number}</h3>
+                  <p>
+                    <strong>{after.bases?.name}</strong>
+                    <span className="muted"> contra </span>
+                    <strong>{teamById.get(rivalId(after, team.id))?.name ?? '—'}</strong>
                   </p>
-                  <ItemResults match={lastFinished} teams={teamById} />
                 </section>
               )}
             </>
@@ -299,6 +326,8 @@ export function CurrentRound({
   )
 }
 
+// Every round of the group: base, rival and result. A finished round opens to show what the base
+// scored item by item (this is where the results of past rounds live).
 export function RouteList({
   mine,
   totalRounds,
@@ -312,7 +341,14 @@ export function RouteList({
   nextId?: string
   teams: Map<string, StandingRow>
 }) {
+  const [open, setOpen] = useState<Set<string>>(new Set())
   if (totalRounds === 0) return <p className="muted">Todavía no hay rondas programadas.</p>
+  const toggle = (id: string) =>
+    setOpen((prev) => {
+      const next = new Set(prev)
+      if (!next.delete(id)) next.add(id)
+      return next
+    })
   return (
     <ul className="route">
       {Array.from({ length: totalRounds }, (_, i) => i + 1).map((round) => {
@@ -320,29 +356,43 @@ export function RouteList({
         if (!m) {
           return (
             <li key={round} className="rest">
-              <span className="round num">R{round}</span>
-              <span className="muted">Descansas</span>
-              <span />
+              <div className="route-row">
+                <span className="round num">R{round}</span>
+                <span className="muted">Descansas</span>
+                <span />
+              </div>
             </li>
           )
         }
         const my = scoreOf(m, myId)
         const their = scoreOf(m, rivalId(m, myId))
-        const chip =
-          m.status === 'finished'
-            ? {
-                text: `${my}–${their} ${my > their ? 'Ganaron' : my < their ? 'Perdieron' : 'Igual'}`,
-                cls: my > their ? 'win' : my < their ? 'lose' : '',
-              }
-            : { text: STATUS_LABEL[m.status], cls: m.status === 'in_progress' ? 'win' : '' }
-        return (
-          <li key={round} className={m.id === nextId ? 'now' : undefined}>
+        const done = m.status === 'finished'
+        const chip = done
+          ? { text: `${my}–${their} ${my > their ? 'Ganaron' : my < their ? 'Perdieron' : 'Igual'}`, cls: my > their ? 'win' : my < their ? 'lose' : '' }
+          : { text: STATUS_LABEL[m.status], cls: m.status === 'in_progress' ? 'win' : '' }
+        const row = (
+          <>
             <span className="round num">R{round}</span>
             <span>
               <strong>{m.bases?.name}</strong>
               <small className="muted">vs {teams.get(rivalId(m, myId))?.name}</small>
             </span>
-            <span className={`chip ${chip.cls}`}>{chip.text}</span>
+            <span className={`chip ${chip.cls}`}>
+              {chip.text}
+              {done && <ChevronDown size={14} aria-hidden="true" className={open.has(m.id) ? 'flip' : undefined} />}
+            </span>
+          </>
+        )
+        return (
+          <li key={round} className={m.id === nextId ? 'now' : undefined}>
+            {done ? (
+              <button type="button" className="route-row" aria-expanded={open.has(m.id)} onClick={() => toggle(m.id)}>
+                {row}
+              </button>
+            ) : (
+              <div className="route-row">{row}</div>
+            )}
+            {done && open.has(m.id) && <ItemResults match={m} teams={teams} />}
           </li>
         )
       })}

@@ -101,7 +101,7 @@ export default function Puntajes() {
     return teams.map((t) => ({ team_id: t.id, name: t.name, photo_path: t.photo_path ?? null, points: pts.get(t.id) ?? 0 }))
   }, [matches, teams])
 
-  if (!event) return <p className="warn">Primero crea una Carrera en "Resumen".</p>
+  if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
 
   const totalRounds = Math.max(1, ...matches.map((m) => m.round_number))
   const shownRound = Math.min(selected ?? currentRound(matches), totalRounds)
@@ -196,8 +196,8 @@ export default function Puntajes() {
         })}
       </div>
 
-      <section className="card">
-        <h2>Registro de cambios</h2>
+      <details className="card audit-log">
+        <summary>Registro de cambios ({audit.length})</summary>
         {audit.length === 0 && <p className="muted">Todavía no hay movimientos.</p>}
         <ul className="list">
           {audit.map((r) => {
@@ -221,7 +221,7 @@ export default function Puntajes() {
             )
           })}
         </ul>
-      </section>
+      </details>
     </>
   )
 }

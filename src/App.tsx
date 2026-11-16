@@ -4,11 +4,12 @@ import RequireRole from './components/RequireRole'
 import { AuthProvider, homePathForRole, useAuth } from './lib/auth'
 import AdminLayout from './pages/admin/AdminLayout'
 import Bases from './pages/admin/Bases'
+import Carrera from './pages/admin/Carrera'
 import Cruces from './pages/admin/Cruces'
+import EnVivo from './pages/admin/EnVivo'
 import Grupos from './pages/admin/Grupos'
 import Mapa from './pages/admin/Mapa'
 import Puntajes from './pages/admin/Puntajes'
-import Resumen from './pages/admin/Resumen'
 import Usuarios from './pages/admin/Usuarios'
 import BaseHome from './pages/BaseHome'
 import Login from './pages/Login'
@@ -37,7 +38,8 @@ export default function App() {
             <Route path="/preview/:screen" element={<Suspense fallback={null}><Preview /></Suspense>} />
           )}
           <Route path="/admin" element={<RequireRole role="admin"><AdminLayout /></RequireRole>}>
-            <Route index element={<Resumen />} />
+            <Route index element={<EnVivo />} />
+            <Route path="carrera" element={<Carrera />} />
             <Route path="grupos" element={<Grupos />} />
             <Route path="bases" element={<Bases />} />
             <Route path="cruces" element={<Cruces />} />

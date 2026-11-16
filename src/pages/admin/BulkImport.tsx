@@ -111,7 +111,7 @@ export default function BulkImport() {
       } else if (event) {
         t = { id: event.id, name: event.name }
       }
-      if (!t) throw new Error('Primero crea una Carrera en Resumen, o incluye la sección "Carrera" en el archivo.')
+      if (!t) throw new Error('Primero crea una Carrera (pestaña "Carrera"), o incluye la sección "Carrera" en el archivo.')
       const ld = await loadExisting(t.id)
       setTarget(t)
       setLoaded(ld)

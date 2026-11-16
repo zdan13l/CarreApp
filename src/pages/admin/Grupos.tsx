@@ -36,7 +36,7 @@ export default function Grupos() {
     void load()
   }, [load])
 
-  if (!event) return <p className="warn">Primero crea una Carrera en "Resumen".</p>
+  if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
 
   async function addTeam(e: FormEvent) {
     e.preventDefault()

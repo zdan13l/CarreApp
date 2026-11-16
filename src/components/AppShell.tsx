@@ -7,10 +7,12 @@ export default function AppShell({
   title,
   children,
   user,
+  topActions,
 }: {
   title: string
   children: ReactNode
   user?: { full_name: string; username: string } // overrides the signed-in user (design preview)
+  topActions?: ReactNode // extra buttons in the top bar, before "Cerrar sesión"
 }) {
   const { profile, signOut } = useAuth()
   const who = user ?? profile
@@ -22,6 +24,7 @@ export default function AppShell({
           <strong>{who?.full_name}</strong>
           <small>@{who?.username}</small>
         </div>
+        {topActions}
         <button className="ghost icon-btn" onClick={signOut} aria-label="Cerrar sesión" title="Cerrar sesión">
           <LogOut size={20} />
         </button>
