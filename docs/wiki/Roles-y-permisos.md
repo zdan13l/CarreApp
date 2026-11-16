@@ -18,6 +18,8 @@ Hay **tres roles**. Los permisos se aplican en la **base de datos** (RLS), no so
 | Ver perfiles de otros usuarios | Sí | No (solo el suyo) | No (solo el suyo) |
 | Ver el mapa con la ubicación de todos | Sí | No | No |
 | Transmitir su ubicación | — | — | Solo el corredor designado del grupo |
+| Fijar la ubicación de una base en el mapa | Sí | **Solo la suya** | No |
+| Ver su ruta a pie a la siguiente base | — | — | Sí (su posición queda en su teléfono) |
 
 ## Notas
 - Hay **un solo admin**: el coordinador del comité de Carrera, que cambia cada semestre. Para traspasarlo se crea otro admin y se elimina el anterior.

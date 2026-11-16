@@ -13,6 +13,7 @@ erDiagram
   bases ||--o{ base_staff : "es atendida por"
   bases ||--o{ base_questions : "hasta 3"
   bases ||--o| base_details : "información privada"
+  teams ||--o| team_locations : "última ubicación"
   teams ||--o{ team_runners : "es acompañado por"
   profiles ||--o{ team_runners : corre
   bases ||--o{ matches : "se juega en"
@@ -43,6 +44,14 @@ erDiagram
     uuid event_id FK
     text name
     text location_photo_path "foto del lugar"
+    float lat "ubicación en el mapa"
+    float lng
+  }
+  team_locations {
+    uuid team_id PK_FK
+    float lat
+    float lng
+    timestamptz updated_at "última ubicación del corredor GPS"
   }
   base_details {
     uuid base_id PK_FK

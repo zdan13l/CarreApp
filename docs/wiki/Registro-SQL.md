@@ -21,6 +21,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0006 | [`0006_void_items.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0006_void_items.sql) | 2026-11-15 | Ítems invalidados por el coordinador |
 | 0007 | [`0007_arrival_and_base_photo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0007_arrival_and_base_photo.sql) | 2026-11-15 | Llegada de los grupos y foto de la base editable por sus inductores |
 | 0008 | [`0008_private_base_info.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0008_private_base_info.sql) | _pendiente_ | Información y preguntas de la base privadas; bases en tiempo real |
+| 0009 | [`0009_map_and_gps.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0009_map_and_gps.sql) | 2026-11-15 | Ubicación de las bases y última ubicación de cada grupo (GPS) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
 ---
@@ -195,6 +196,26 @@ create policy base_questions_read on public.base_questions for select to authent
 drop function public.is_staff_of_base(uuid);
 alter publication supabase_realtime drop table public.bases;
 -- y volver a ejecutar event_problems() de 0003 y restrict_base_staff_update() de 0007
+```
+
+## 0009 — Mapa y GPS (2026-11-15)
+
+**Qué cambia**
+- `bases.lat` / `bases.lng`: ubicación de cada base. La fija el coordinador, o la propia base si se mueve (el trigger de `0007` ya le permite cambiar solo foto y ubicación).
+- Tabla `team_locations` (una fila por grupo con su **última** ubicación: lat, lng, precisión, rumbo, velocidad, hora). El servidor pone quién la envió y la hora (trigger `team_locations_stamp`).
+- RLS: **solo el corredor designado para el GPS de ese grupo** escribe su fila; lo lee el coordinador (todas) y ese corredor (solo la de su grupo, necesario para el *upsert*). Las demás bases y corredores no ven la ubicación de nadie.
+- `team_locations` entra a la publicación de tiempo real (mueve los marcadores del mapa del coordinador al instante).
+
+**Por qué**
+Mapa en vivo del coordinador (Bloque 6). Un solo corredor por grupo transmite; la ubicación es privada.
+
+**Verificación** Probado en Postgres en memoria: el designado sube y actualiza la ubicación de su grupo, no la de otro; un corredor no designado no escribe ni lee; la base no lee ubicaciones y sí fija la ubicación de su base; el admin lee todo; el servidor sella quién y cuándo; coordenadas fuera de rango se rechazan.
+
+**Cómo revertir**
+```sql
+drop table public.team_locations;
+drop function public.stamp_team_location();
+alter table public.bases drop column lat, drop column lng;
 ```
 
 ## Plantilla para nuevos registros

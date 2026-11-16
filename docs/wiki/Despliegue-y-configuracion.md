@@ -17,6 +17,7 @@ Costo total: **$0**. Límites relevantes del plan gratuito de Supabase: la base 
 |---|---|---|
 | `VITE_SUPABASE_URL` | Vercel y `.env.local` | URL del proyecto Supabase |
 | `VITE_SUPABASE_ANON_KEY` | Vercel y `.env.local` | Clave pública (protegida por RLS) |
+| `VITE_MAPBOX_TOKEN` | Vercel y `.env.local` | Token **público** de Mapbox (`pk.*`) para el mapa 3D y las rutas a pie. En Mapbox > Access tokens, restringirlo a la URL de la app |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Solo Vercel** | Clave secreta para `/api/users` (crear/eliminar usuarios) |
 
 > Después de cambiar variables en Vercel hay que hacer **Redeploy** para que apliquen.
