@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useAuth } from '../../lib/auth'
+import { useRealtimeReload } from '../../lib/realtime'
 import { supabase } from '../../lib/supabase'
 import type { EventRow } from '../../types'
 import { AdminContext, type AdminCtx } from './AdminContext'
@@ -25,6 +26,9 @@ export default function AdminLayout() {
   useEffect(() => {
     void reload().finally(() => setLoading(false))
   }, [reload])
+
+  // another coordinator session (or a restored connection) can activate / deactivate a Carrera
+  useRealtimeReload(['events'], reload)
 
   const event = events.find((e) => e.id === selectedId) ?? events.find((e) => e.is_active) ?? events[0] ?? null
 

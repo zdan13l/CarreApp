@@ -60,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
     if (createError || !created.user) {
       const taken = /already|registered|exists/i.test(createError?.message ?? '')
-      return fail(res, taken ? 409 : 500, taken ? 'Ese usuario ya existe.' : 'No se pudo crear el usuario.')
+      return fail(res, taken ? 409 : 500, taken ? 'Ese usuario ya existe (los nombres de usuario son únicos en todas las Carreras: prueba con otro, por ejemplo con el año).' : 'No se pudo crear el usuario.')
     }
 
     const { error: profileError } = await admin

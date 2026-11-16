@@ -79,7 +79,7 @@ export default function BaseHome() {
   const load = useCallback(async () => {
     if (!supabase || !userId) return
     // The base this inductor staffs in the ACTIVE Carrera.
-    const { data: b } = await supabase
+    const { data: b, error: baseErr } = await supabase
       .from('bases')
       .select(
         'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question), base_staff!inner(user_id), events!inner(is_active, max_travel_minutes)',
@@ -87,6 +87,7 @@ export default function BaseHome() {
       .eq('base_staff.user_id', userId)
       .eq('events.is_active', true)
       .maybeSingle()
+    if (baseErr) return // a network error is not "no active Carrera": keep what is on screen until the next refresh
     setBase((b as MyBase | null) ?? null)
     if (!b) return
     const [m, t, st, all] = await Promise.all([
