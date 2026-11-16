@@ -20,14 +20,14 @@ En el computador el menú lateral tiene dos grupos; en el celular la barra infer
 | **Grupos** | Nombre, foto y corredores (con el que transmite el GPS). | |
 | **Bases** | Nombre, foto del lugar, información, 3 preguntas, inductores y ubicación (el mapa se abre solo si se necesita). | |
 | **Cruces** | Generador del cronograma, revisión (descansos, bases repetidas) y edición ronda por ronda. | Armar y ajustar el cronograma. |
-| **Usuarios** | Los de la Carrera elegida (más los coordinadores): crear, cambiar contraseña y eliminar. Los usuarios anteriores a esta regla aparecen en *Sin Carrera asignada* para adoptarlos o eliminarlos. Corredores e inductores se crean siempre dentro de una Carrera. | |
+| **Usuarios** | Los de la Carrera elegida, cada uno con su **foto** (botón de cámara; reemplaza la inicial en su cabecera y en la lista) (más los coordinadores): crear, cambiar contraseña y eliminar. Los usuarios anteriores a esta regla aparecen en *Sin Carrera asignada* para adoptarlos o eliminarlos. Corredores e inductores se crean siempre dentro de una Carrera. | |
 
 ## Corredor (`/corredor`)
 Una **barra de estado siempre visible** (grupo, puesto y puntos en vivo) y cuatro pestañas:
 
 | Pestaña | Contenido |
 |---|---|
-| **Ronda** | Avisos de demora y del coordinador, la ronda actual (base con foto, rival y resultados que la base ha calificado ítem por ítem) y la que viene después. |
+| **Ronda** | Avisos de demora y del coordinador, la ronda actual (base con foto, rival y resultados que la base ha calificado ítem por ítem) y **Después**: la siguiente con la foto de la base y el escudo del rival. |
 | **Mapa** | Ruta a pie a la siguiente base (y, para el corredor designado, compartir la ubicación). |
 | **Ruta** | Todas sus rondas; cada ronda terminada se abre para ver el resultado ítem por ítem. |
 | **Top** | Ranking con su grupo resaltado. |
@@ -37,9 +37,9 @@ Los ajustes de **sonido y notificaciones** están en la campana de la barra supe
 ## Base (`/base`)
 | Pestaña | Contenido |
 |---|---|
-| **Ronda** | Avisos de demora, el cruce actual (confirmar llegada, *Apurar a los grupos*, calificar), el próximo y la **guía de la base** (información y preguntas) plegable: se necesita justo mientras se califica. |
+| **Ronda** | Avisos de demora, el cruce actual (confirmar llegada, *Apurar a los grupos*, calificar) y el próximo. |
 | **Resultados** | Top equipos y los cruces ya terminados de la base. |
-| **Mi base** | Foto y ubicación en el mapa (se cambian solo si la base se mueve). |
+| **Mi base** | El espacio informativo del inductor: **lo que se explica** en la base, las **posibles preguntas**, la foto de dónde queda y la ubicación. El mapa solo se abre al pulsar *Cambiar ubicación* (o si la base aún no tiene ubicación). |
 
 ## Qué se movió en la revisión y por qué
 - **Resumen → En vivo + Carrera.** "Resumen" mezclaba el estado en vivo con ajustes, carga de archivos y creación de ediciones. Lo que se prepara una vez pasó a *Carrera*; lo que se mira cada minuto quedó en *En vivo*.
