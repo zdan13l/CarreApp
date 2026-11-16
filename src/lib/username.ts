@@ -13,3 +13,16 @@ export function usernameToEmail(username: string): string {
 }
 
 export const USERNAME_PATTERN = /^[a-z0-9._-]{3,30}$/
+
+// "María José Pérez" -> "maria.perez" (just a suggestion, the admin can edit it)
+export function suggestUsername(fullName: string): string {
+  const parts = fullName
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, '')
+    .split(/\s+/)
+    .filter(Boolean)
+  if (parts.length === 0) return ''
+  return parts.length === 1 ? parts[0] : `${parts[0]}.${parts[parts.length - 1]}`
+}
