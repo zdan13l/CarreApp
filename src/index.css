@@ -720,3 +720,5 @@ a.btn-like { color: var(--text); text-decoration: none; }
 
 /* Connection banner (offline) */
 .conn-banner { position: sticky; top: 0; z-index: 60; background: var(--warn); color: #1a1206; text-align: center; font-weight: 700; font-size: .85rem; padding: .45rem 1rem; }
+
+.danger-zone { border-color: var(--danger); }
