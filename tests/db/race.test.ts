@@ -197,7 +197,7 @@ describe('the final result', () => {
   })
 
   it('the database standings equal an independent count of every point', async () => {
-    const table = await db.asUser(c.teams[0].runners[0]).sql<{ team_id: string; name: string; points: string }>(
+    const table = await db.asUser(c.admin).sql<{ team_id: string; name: string; points: string }>(
       `select team_id, name, points from public.team_standings where event_id = $1`,
       [c.eventId],
     )

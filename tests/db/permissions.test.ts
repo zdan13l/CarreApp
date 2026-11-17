@@ -27,18 +27,30 @@ const admin = () => db.asUser(c.admin)
 
 const count = async (r: ReturnType<TestDb['asUser']>, table: string) => (await r.sql(`select 1 from public.${table}`)).length
 
-describe('what every signed-in user can read', () => {
-  it.each(['events', 'teams', 'bases', 'team_runners', 'base_staff', 'matches', 'match_scores', 'base_travel_times'])('%s', async (table) => {
-    for (const who of [runnerA(), staff0(), admin()]) {
-      if (table === 'match_scores' || table === 'base_travel_times') continue // empty until used; covered below
-      expect(await count(who, table)).toBeGreaterThan(0)
-    }
+describe('what every signed-in user can read (0019: only their own Carrera)', () => {
+  it.each(['events', 'teams', 'bases', 'matches'])('%s of their Carrera', async (table) => {
+    for (const who of [runnerA(), staff0(), admin()]) expect(await count(who, table)).toBeGreaterThan(0)
   })
 
-  it('shows the whole ranking to everyone', async () => {
+  it('team_runners and base_staff: each person sees only their own assignment; the coordinator sees all', async () => {
+    expect(await count(runnerA(), 'team_runners')).toBe(1)
+    expect(await count(staff0(), 'team_runners')).toBe(0)
+    expect(await count(staff0(), 'base_staff')).toBe(1)
+    expect(await count(runnerA(), 'base_staff')).toBe(0)
+    expect(await count(admin(), 'team_runners')).toBeGreaterThan(2)
+    expect(await count(admin(), 'base_staff')).toBeGreaterThan(1)
+  })
+
+  it('lists every team of the Carrera for everyone, but the points only to the coordinator (no one knows who leads)', async () => {
     for (const who of [runnerA(), staff1(), admin()]) {
       expect(await who.sql(`select * from public.team_standings where event_id = $1`, [c.eventId])).toHaveLength(4)
     }
+    const total = async (who: ReturnType<TestDb['asUser']>) =>
+      (await who.sql<{ p: string }>(`select coalesce(sum(points), 0)::text as p from public.team_standings where event_id = $1`, [c.eventId]))[0].p
+    // 3 items were scored in the first match of the setup of this file? whatever is scored, a runner only adds up their own matches
+    const all = Number(await total(admin()))
+    const mine = Number(await total(runnerA()))
+    expect(mine).toBeLessThanOrEqual(all)
   })
 })
 
