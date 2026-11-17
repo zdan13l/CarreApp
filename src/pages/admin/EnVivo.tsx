@@ -1,4 +1,4 @@
-import { BellRing, ChevronRight } from 'lucide-react'
+import { BellRing, ChevronRight, Flag } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DelaysPanel, { sendMatchAlert } from '../../components/DelaysPanel'
@@ -107,14 +107,19 @@ export default function EnVivo() {
   const sharing = positions.filter((p) => teams.some((t) => t.id === p.team_id) && now - new Date(p.updated_at).getTime() < NO_SIGNAL_MS)
   const wins = (m: LiveMatch, id: string) => m.match_scores.filter((s) => s.winner_team_id === id).length
 
-  async function hurry(m: LiveMatch) {
-    const message = window.prompt('Mensaje para los grupos y la base de este cruce:', DEFAULT_ALERT_MESSAGE)
+  // The coordinator can hurry the two groups of a match, or the BASE (e.g. it is taking too long in a game):
+  // either gets a notification and the phone rings.
+  async function hurry(m: LiveMatch, target: 'groups' | 'base') {
+    const message = window.prompt(
+      target === 'base' ? 'Mensaje para la base (le suena el teléfono):' : 'Mensaje para los dos grupos (les suena el teléfono):',
+      target === 'base' ? 'Apúrense con el juego: el siguiente cruce está esperando.' : DEFAULT_ALERT_MESSAGE,
+    )
     if (!message?.trim()) return
     setError(null)
     setNotice(null)
-    const err = await sendMatchAlert(event!.id, m.id, message)
+    const err = await sendMatchAlert(event!.id, m.id, message, target)
     if (err) setError(err)
-    else setNotice('Aviso enviado a los grupos y a la base.')
+    else setNotice(target === 'base' ? 'Aviso enviado a la base.' : 'Aviso enviado a los dos grupos.')
   }
 
   const late = active ? lateTeams(matches, event.max_travel_minutes, now, travel).length : 0
@@ -181,9 +186,14 @@ export default function EnVivo() {
                       <span className="mscore num">{resolved > 0 ? `${wins(m, m.team_a)}–${wins(m, m.team_b)}` : '–'}</span>
                       <span className="mact">
                         {m.status !== 'finished' && (
-                          <button className="ghost icon-btn" onClick={() => void hurry(m)} aria-label="Enviar aviso" title="Enviar aviso a los grupos y la base">
-                            <BellRing size={18} />
-                          </button>
+                          <>
+                            <button className="ghost icon-btn" onClick={() => void hurry(m, 'groups')} aria-label="Avisar a los grupos" title="Avisar a los dos grupos">
+                              <BellRing size={18} />
+                            </button>
+                            <button className="ghost icon-btn" onClick={() => void hurry(m, 'base')} aria-label="Avisar a la base" title="Avisar a la base">
+                              <Flag size={18} />
+                            </button>
+                          </>
                         )}
                       </span>
                       <span className="mdetail">

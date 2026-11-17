@@ -138,6 +138,7 @@ export interface ManualAlert {
   match_id: string
   message: string
   created_at: string
+  target?: 'groups' | 'base' // 0019; rows from before it are for the groups
 }
 
 const RECENT_MS = 20 * 60 * 1000 // alerts stay visible for 20 minutes
@@ -146,7 +147,7 @@ const FRESH_MS = 90 * 1000 // and sound repeatedly (every 30 s) during their fir
 // Manual alerts sent by the coordinator for the given matches. They arrive live, and the list is
 // also refreshed every 10 s and whenever the app comes back to the foreground (a locked phone
 // drops the live connection), so an alert is never missed.
-export function useManualAlerts(matchIds: string[]) {
+export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 'groups') {
   const [alerts, setAlerts] = useState<ManualAlert[]>([])
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const now = useNow(5000)
@@ -167,11 +168,11 @@ export function useManualAlerts(matchIds: string[]) {
       const since = new Date(serverNow() - RECENT_MS).toISOString()
       const { data } = await client
         .from('alerts')
-        .select('id, match_id, message, created_at')
+        .select('*')
         .in('match_id', matchIds)
         .gte('created_at', since)
         .order('created_at', { ascending: false })
-      if (!cancelled && data) setAlerts(data)
+      if (!cancelled && data) setAlerts((data as ManualAlert[]).filter((a) => (a.target ?? 'groups') === target))
     }
     void refresh()
     const poll = setInterval(() => void refresh(), 10_000)
@@ -184,7 +185,7 @@ export function useManualAlerts(matchIds: string[]) {
       .channel(`alerts-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, (payload) => {
         const row = payload.new as ManualAlert
-        if (!idsRef.current.has(row.match_id)) return
+        if (!idsRef.current.has(row.match_id) || (row.target ?? 'groups') !== target) return
         setAlerts((prev) => (prev.some((a) => a.id === row.id) ? prev : [row, ...prev]))
       })
       .subscribe()

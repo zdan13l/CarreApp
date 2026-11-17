@@ -2,7 +2,7 @@
 // look can be reviewed without signing in. Not included in the production build.
 //   /preview/runner  /preview/runner-ruta  /preview/runner-top
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
-import { Bell, BellRing, Camera, ChevronRight, KeyRound, Trash2, Compass, Flag, MapPin, Route, Trophy } from 'lucide-react'
+import { Bell, BellRing, Camera, ChevronRight, KeyRound, LocateFixed, Trash2, Flag, MapPin, Route, Trophy } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import Avatar from '../components/Avatar'
@@ -17,7 +17,9 @@ import AdminNav, { AdminTopbar } from './admin/AdminNav'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
 import { BaseGuide, BaseWhere, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
-import { AfterCard, CurrentRound, RouteList, StatusBar, type RouteMatch } from './RunnerHome'
+import { AfterCard, CurrentRound, RouteList, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
+import NoActiveCarrera from '../components/NoActiveCarrera'
+import TeamNames from '../components/TeamNames'
 import type { MatchRow, StandingRow, TeamRow } from '../types'
 
 const user = { full_name: 'Daniel Rodríguez', username: 'daniel' }
@@ -58,7 +60,7 @@ const adminMatches: MatchRow[] = [
 const ic = { size: 22, strokeWidth: 1.9 } as const
 const runnerTabs = [
   { id: 'ronda', label: 'Ronda', icon: <Flag {...ic} /> },
-  { id: 'mapa', label: 'Mapa', icon: <Compass {...ic} /> },
+  { id: 'ubicacion', label: 'Ubicación', icon: <LocateFixed {...ic} /> },
   { id: 'ruta', label: 'Ruta', icon: <Route {...ic} /> },
   { id: 'top', label: 'Top', icon: <Trophy {...ic} /> },
 ]
@@ -75,10 +77,18 @@ export default function Preview() {
 
   if (screen === 'logos') return <LogoGallery />
 
+  if (screen === 'sin-carrera' || screen === 'sin-carrera-base') {
+    return (
+      <AppShell title={screen === 'sin-carrera' ? 'Mi grupo' : 'Mi base'} user={user}>
+        <NoActiveCarrera role={screen === 'sin-carrera' ? 'runner' : 'base'} />
+      </AppShell>
+    )
+  }
+
   if (screen === 'runner-alertas') {
     return (
       <AppShell title="Mi grupo" user={user}>
-        <StatusBar name="Dioses Griegos" photoPath={null} position={2} points={5} />
+        <StatusBar name="Dioses Griegos" photoPath={null} />
         <section className="card">
           <h2>Alertas</h2>
           <p className="muted">Para que te avisemos cuando vayas tarde a la siguiente base: con el sonido activado suena cada 30 segundos mientras dure la demora; con las notificaciones te llega aunque el teléfono esté bloqueado.</p>
@@ -107,7 +117,7 @@ export default function Preview() {
           </button>
         }
       >
-        <StatusBar name="Dioses Griegos" photoPath={null} position={1} points={7} />
+        <StatusBar name="Dioses Griegos" photoPath={null} />
         {tab === 'ronda' && (
           <>
             <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} />
@@ -120,13 +130,27 @@ export default function Preview() {
             <RouteList mine={routeMatches} totalRounds={4} myId="t0" nextId="m2" teams={teamById} />
           </section>
         )}
-        {tab === 'top' && (
-          <section className="card">
-            <h2>Top equipos</h2>
-            <Ranking rows={standings} highlightId="t0" />
-          </section>
-        )}
+        {tab === 'top' && <TopTab teamId="t0" points={7} teams={standings.map((r) => ({ team_id: r.team_id, name: r.name, photo_path: r.photo_path }))} />}
         <BottomNav tabs={runnerTabs} active={tab} onChange={noop} />
+      </AppShell>
+    )
+  }
+
+  if (screen === 'base-resultados') {
+    return (
+      <AppShell title="Atrio" user={{ full_name: 'Valeria Gómez', username: 'valeria' }}>
+        <section className="card">
+          <h2>Equipos de la Carrera</h2>
+          <TeamNames teams={[...teams.values()]} />
+        </section>
+        <section className="card">
+          <h2>Cruces de tu base (2)</h2>
+          <ul className="list">
+            <li><span className="round-tag">R1</span><span className="grow">Dioses Griegos <span className="muted">vs</span> Samuráis</span><strong className="num">2–1</strong></li>
+            <li><span className="round-tag">R2</span><span className="grow">Dioses Nórdicos <span className="muted">vs</span> Guerreros Aztecas</span><strong className="num">1–2</strong></li>
+          </ul>
+        </section>
+        <BottomNav tabs={baseTabs} active="resultados" onChange={noop} />
       </AppShell>
     )
   }
@@ -199,7 +223,7 @@ export default function Preview() {
                           <span className="mteams">Dioses Griegos <span className="muted">vs</span> Samuráis</span>
                           <span className="mmeta"><span className="badge ok live">En juego</span></span>
                           <span className="mscore num">1–0</span>
-                          <span className="mact"><button className="ghost icon-btn" aria-label="Enviar aviso"><BellRing size={18} /></button></span>
+                          <span className="mact"><button className="ghost icon-btn" aria-label="Avisar a los grupos" title="Avisar a los dos grupos"><BellRing size={18} /></button><button className="ghost icon-btn" aria-label="Avisar a la base" title="Avisar a la base"><Flag size={18} /></button></span>
                           <span className="mdetail">1/3 ítems · llegaron a las 10:08 a. m.</span>
                         </li>
                         <li className="mrow">
@@ -207,7 +231,7 @@ export default function Preview() {
                           <span className="mteams">Dioses Nórdicos <span className="muted">vs</span> Guerreros Aztecas</span>
                           <span className="mmeta"><span className="badge">Pendiente</span></span>
                           <span className="mscore num">–</span>
-                          <span className="mact"><button className="ghost icon-btn" aria-label="Enviar aviso"><BellRing size={18} /></button></span>
+                          <span className="mact"><button className="ghost icon-btn" aria-label="Avisar a los grupos" title="Avisar a los dos grupos"><BellRing size={18} /></button><button className="ghost icon-btn" aria-label="Avisar a la base" title="Avisar a la base"><Flag size={18} /></button></span>
                           <span className="mdetail">0/3 ítems</span>
                         </li>
                         <li className="mrow">
@@ -245,8 +269,15 @@ export default function Preview() {
               </>
             ) : (
               <>
-                <h1>Carrera</h1>
-                <p className="muted">Prepara la Carrera: estado y activación, carga desde un archivo, tiempos de traslado y nuevas ediciones.</p>
+                <header className="page-head">
+                  <div>
+                    <p className="eyebrow">Preparación</p>
+                    <h1>Carrera</h1>
+                  </div>
+                  <p className="head-meta">Estado y activación, carga desde un archivo, tiempos de traslado y nuevas ediciones.</p>
+                </header>
+                <div className="live-grid">
+                  <div>
                 <section className="card">
                   <h2>Carrera 2027-1</h2>
                   <p>
@@ -256,7 +287,7 @@ export default function Preview() {
                   <div className="fail-box">
                     <strong>Pendientes de la Carrera activa:</strong>
                     <ul>
-                      <li>El grupo "Samuráis" tiene 1 de 2 corredores como mínimo.</li>
+                      <li>El grupo "Samuráis" no tiene ningún corredor (usuario) asignado.</li>
                       <li>La base "Atrio" tiene 2 de 3 preguntas.</li>
                     </ul>
                   </div>
@@ -270,12 +301,32 @@ export default function Preview() {
                     <button className="ghost">Desactivar Carrera</button>
                   </div>
                 </section>
+                <section className="card">
+                  <h2>Cargar la Carrera desde un archivo</h2>
+                  <p className="muted">Crea la Carrera, los grupos, las bases, los usuarios y los cruces de una vez con una plantilla.</p>
+                  <div className="row"><a className="btn-like" href="#">Plantilla Word</a><a className="btn-like" href="#">Plantilla Excel</a><a className="btn-like" href="#">Carrera de prueba</a></div>
+                </section>
+                  </div>
+                  <div>
                 <h2 className="section-title">Alertas de demora</h2>
                 <section className="card">
                   <h2>Tiempo general de traslado</h2>
                   <p className="muted">Si un grupo pasa más de este tiempo entre que termina una base y llega a la siguiente, suena una alerta a sus corredores.</p>
                   <div className="row"><label className="inline-field grow">Tiempo máximo general (minutos)<input defaultValue="10" /></label><button>Guardar</button></div>
                 </section>
+                <section className="card">
+                  <h2>Nueva edición de la Carrera</h2>
+                  <label>Nombre (por ejemplo "Carrera 2027-2")<input defaultValue="" /></label>
+                  <div className="row"><button>Crear Carrera</button></div>
+                </section>
+                <section className="card danger-zone">
+                  <h2>Eliminar esta Carrera</h2>
+                  <p className="muted">Borra "Carrera 2027-1" con TODO lo suyo: grupos, bases, cruces, puntajes, registro de cambios, avisos, ubicaciones, tiempos, fotos y sus usuarios (corredores e inductores). No se puede deshacer.</p>
+                  <label>Para confirmar, escribe el nombre de la Carrera<input placeholder="Carrera 2027-1" /></label>
+                  <div className="row"><button className="ghost danger" disabled>Eliminar Carrera</button></div>
+                </section>
+                  </div>
+                </div>
                 <h2 className="section-title">Rondas</h2>
                 <RoundPager round={2} total={3} matches={2} finished={1} onChange={noop} showAll={false} onToggleAll={noop} />
                 <div className="grid">
@@ -370,29 +421,28 @@ export default function Preview() {
   if (screen === 'map') {
     const c: [number, number] = [-74.0647, 4.6286]
     return (
-      <AppShell title="Mapa" user={user}>
+      <AppShell title="Ubicación" user={user}>
         <section className="card map-card">
           <LazyMap
-            height="520px"
+            height="420px"
+            interactive={false}
             markers={[
               { id: 'b1', lng: c[0] + 0.0006, lat: c[1] + 0.0004, label: 'Atrio', kind: 'base' },
               { id: 'b2', lng: c[0] - 0.0007, lat: c[1] - 0.0003, label: 'Cancha de Fútbol', kind: 'base' },
-              { id: 't1', lng: c[0] + 0.0001, lat: c[1] + 0.0001, label: 'Dioses Griegos', kind: 'team' },
-              { id: 't2', lng: c[0] - 0.0003, lat: c[1] + 0.0005, label: 'Samuráis', kind: 'team', stale: true },
-              { id: 'me', lng: c[0] - 0.0002, lat: c[1] - 0.0001, label: 'Tú', kind: 'me' },
-              { id: 'target', lng: c[0] + 0.0006, lat: c[1] + 0.0004, label: 'Atrio', kind: 'target' },
+              { id: 'b3', lng: c[0] - 0.0001, lat: c[1] - 0.0002, label: 'Biblioteca Alfonso Borrero', kind: 'base' },
+              { id: 'me', lng: c[0] - 0.0002, lat: c[1] - 0.0001, label: 'Tu grupo', kind: 'me' },
             ]}
-            route={[[c[0] - 0.0002, c[1] - 0.0001], [c[0] + 0.0001, c[1] + 0.0001], [c[0] + 0.0004, c[1] + 0.0003], [c[0] + 0.0006, c[1] + 0.0004]]}
           />
         </section>
         <section className="card">
-          <h2>Cómo llegar a Atrio</h2>
-          <p className="route-summary"><strong>240 m</strong> · 4 min a pie</p>
-          <p className="next-step"><Compass size={22} aria-hidden="true" /><span>Gira a la derecha en la Carrera 7<small className="muted"> · 90 m</small></span></p>
+          <h2>Ubicación del grupo</h2>
+          <p className="muted">Eres el usuario designado para el GPS del grupo: tu ubicación se comparte con el coordinador. Deja la app abierta con la pantalla encendida mientras caminan.</p>
+          <button className="btn-block"><LocateFixed size={20} aria-hidden="true" /> Compartir mi ubicación</button>
         </section>
+        <BottomNav tabs={runnerTabs} active="ubicacion" onChange={noop} />
       </AppShell>
     )
   }
 
-  return <p className="page">Pantallas: logos, map, runner, runner-ruta, runner-alertas, runner-top, base, base-info, admin, admin-carrera, admin-forms</p>
+  return <p className="page">Pantallas: base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, base, base-info, admin, admin-carrera, admin-forms</p>
 }

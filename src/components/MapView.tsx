@@ -21,6 +21,7 @@ export interface MapViewProps {
   onPick?: (lng: number, lat: number) => void
   height?: string
   lightPreset?: 'day' | 'dusk' | 'night' | 'dawn'
+  interactive?: boolean // false: a fixed map to look at (no pan, zoom or rotation)
 }
 
 // Mapbox paints with WebGL and cannot read CSS variables, so the route takes its colours from them.
@@ -58,7 +59,25 @@ function buildElement(m: MapMarker): HTMLElement {
 }
 
 // Mapbox GL map in 3D (Standard style: buildings, terrain and landmarks), tilted by default.
-export default function MapView({ markers, route, onPick, height = '360px', lightPreset = 'day' }: MapViewProps) {
+// Labels that would sit on top of each other: the one that matters most keeps its text, the others hide theirs
+// (the pins stay). Runs after the map moves, so zooming in brings the hidden names back.
+const LABEL_PRIORITY: Record<MapMarker['kind'], number> = { me: 0, target: 1, team: 2, base: 3 }
+function declutterLabels(markers: Map<string, mapboxgl.Marker>) {
+  const els = [...markers.values()].map((m) => m.getElement())
+  els.forEach((el) => el.classList.remove('hide-label'))
+  const items = els
+    .map((el) => ({ el, rect: el.querySelector('.mk-label')?.getBoundingClientRect(), p: LABEL_PRIORITY[(el.className.match(/mk-(\w+)/)?.[1] ?? 'base') as MapMarker['kind']] ?? 9 }))
+    .filter((x): x is { el: HTMLElement; rect: DOMRect; p: number } => Boolean(x.rect))
+    .sort((a, b) => a.p - b.p)
+  const kept: DOMRect[] = []
+  for (const it of items) {
+    const clash = kept.some((r) => it.rect.left < r.right + 4 && it.rect.right > r.left - 4 && it.rect.top < r.bottom + 2 && it.rect.bottom > r.top - 2)
+    if (clash) it.el.classList.add('hide-label')
+    else kept.push(it.rect)
+  }
+}
+
+export default function MapView({ markers, route, onPick, height = '360px', lightPreset = 'day', interactive = true }: MapViewProps) {
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const loaded = useRef(false)
@@ -83,9 +102,14 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
       pitch: 62,
       bearing: -18,
       antialias: true,
+      interactive,
     })
     mapRef.current = map
-    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
+    if (interactive) map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
+    const declutter = () => declutterLabels(domMarkers.current)
+    map.on('idle', declutter)
+    map.on('zoomend', declutter)
+    map.on('moveend', declutter)
 
     map.on('style.load', () => {
       try {
@@ -129,7 +153,7 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
       map.remove()
       mapRef.current = null
     }
-    // The map is created once; the light preset is applied at load time.
+    // The map is created once; the light preset is applied at load time (and `interactive` never changes).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -182,6 +206,7 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
       if (markers.length === 1 && !route?.length) map.easeTo({ center: [markers[0].lng, markers[0].lat], zoom: 17.5, duration: 800 })
       else map.fitBounds(bounds, { padding: 70, maxZoom: 18, duration: 800 })
     }
+    requestAnimationFrame(() => declutterLabels(domMarkers.current))
   }, [markers, route])
 
   // Draw the route.
