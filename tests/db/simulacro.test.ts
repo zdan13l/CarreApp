@@ -162,7 +162,7 @@ async function runImport(db: TestDb, admin: string, file: ParsedFile, target: { 
   return { eventId, report: out }
 }
 
-const ORPHAN_AUDIT_ROWS = 45 // see the KNOWN DEFECT test in section 5
+const ORPHAN_AUDIT_ROWS = 0 // 0019: deleting a Carrera leaves no orphan audit rows
 const TABLES = ['events', 'teams', 'bases', 'base_details', 'base_questions', 'matches', 'match_scores', 'score_audit', 'alerts',
   'team_locations', 'base_travel_times', 'team_runners', 'base_staff', 'push_subscriptions', 'profiles'] as const
 async function counts(db: TestDb): Promise<Record<string, number>> {
@@ -332,14 +332,15 @@ describe('2. Prueba-en-vivo, steps 2-4: photos, then activate', () => {
     say('Fotos subidas y Carrera ACTIVA (la otra se desactivó primero: solo puede haber una).')
   })
 
-  it('a runner sees the Carrera; the private data of the OTHER Carrera stays private (its schedule is readable: the phone only filters it out)', async () => {
+  it('a runner sees their Carrera; nothing of the OTHER Carrera is readable (0019), nor private data', async () => {
     const g = teams.get('Samuráis')!
     const r = db.asUser(g.runners[0])
     expect(await r.sql(`select id from public.matches where event_id = $1`, [imp.eventId])).toHaveLength(15)
-    // CHARACTERISATION: matches / teams / bases / scores have "using (true)" policies, so any logged-in user can read
-    // the schedule and results of an inactive or other Carrera with a hand-made query. The app hides them by filtering
-    // on the active Carrera, not the database. Nothing private is in those tables (info, questions, GPS and audit are).
-    expect(await r.sql(`select id from public.matches where event_id = $1`, [other.eventId])).toHaveLength(4)
+    // 0019: every table of a Carrera is readable only by the people of that Carrera (and the coordinator).
+    expect(await r.sql(`select id from public.matches where event_id = $1`, [other.eventId])).toHaveLength(0)
+    expect(await r.sql(`select id from public.teams where event_id = $1`, [other.eventId])).toHaveLength(0)
+    expect(await r.sql(`select id from public.bases where event_id = $1`, [other.eventId])).toHaveLength(0)
+    expect(await r.sql(`select id from public.events where id = $1`, [other.eventId])).toHaveLength(0)
     expect(await r.sql(`select base_id from public.base_details where base_id = any($1)`, [other.bases.map((b) => b.id)])).toHaveLength(0)
     expect(await r.sql(`select base_id from public.base_questions where base_id = any($1)`, [other.bases.map((b) => b.id)])).toHaveLength(0)
     expect(await r.sql(`select id from public.alerts where event_id = $1`, [other.eventId])).toHaveLength(0)
@@ -594,7 +595,7 @@ describe('3. playing the 5 rounds as the real roles', () => {
     const m5 = roundOf(5)[0]
     await db.asUser(admin).sql(`update public.events set is_active = false where id = $1`, [imp.eventId])
     // "Cambio de Carrera": the phones drop it because events is in Realtime and they filter on is_active (client-side).
-    // The database still lets them READ the schedule (see the characterisation above) but not ACT on it:
+    // They cannot ACT on it:
     await expect(db.asUser(m5.base.staff).sql(`select public.confirm_arrival($1)`, [m5.id])).rejects.toThrow()
     await expect(db.asUser(m5.base.staff).sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, 'barra', $2)`, [m5.id, m5.a.id])).rejects.toThrow()
     expect(await db.sql(`select 1 from public.match_scores where match_id = $1`, [m5.id])).toHaveLength(0)
@@ -623,7 +624,7 @@ describe('4. the final result and privacy', () => {
   })
 
   it('the database standings equal an independent count of every point (voided items count for nobody)', async () => {
-    const table = await db.asUser(teams.get('Vikingos')!.runners[1]).sql<{ team_id: string; name: string; points: string }>(`select team_id, name, points from public.team_standings where event_id = $1`, [imp.eventId])
+    const table = await db.asUser(admin).sql<{ team_id: string; name: string; points: string }>(`select team_id, name, points from public.team_standings where event_id = $1`, [imp.eventId])
     const actual = new Map(table.map((r) => [r.team_id, Number(r.points)]))
     for (const t of teams.values()) expect(actual.get(t.id), `points of ${t.name}`).toBe(expected.get(t.id))
     expect(voided).toBe(4)
@@ -688,20 +689,15 @@ describe('4. the final result and privacy', () => {
 })
 
 describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera.tsx (DeleteEvent)', () => {
-  it('the screen blocks deleting an active Carrera; the database does not (characterisation: the guard is only in the UI)', async () => {
-    await db.pg.exec('begin')
-    try {
-      const n = await db.asUser(admin).affected(`delete from public.events where id = $1`, [imp.eventId])
-      expect(n).toBe(1) // a second client could delete the active Carrera: only DeleteEvent (active -> message) protects it
-    } finally {
-      await db.pg.exec('rollback')
-    }
+  it('only a DEACTIVATED Carrera can be deleted: the database refuses to delete an active one (0019)', async () => {
+    await expect(db.asUser(admin).sql(`delete from public.events where id = $1`, [imp.eventId])).rejects.toThrow(/Desactiva la Carrera antes de eliminarla/)
     expect(await db.sql(`select 1 from public.events where id = $1`, [imp.eventId])).toHaveLength(1)
   })
 
   it('listing the people AFTER deleting the Carrera finds nobody (why DeleteEvent lists them first)', async () => {
     await db.pg.exec('begin')
     try {
+      await db.asUser(admin).sql(`update public.events set is_active = false where id = $1`, [imp.eventId])
       await db.asUser(admin).sql(`delete from public.events where id = $1`, [imp.eventId])
       const people = await db.asUser(admin).sql(`select id from public.profiles where event_id = $1 and role <> 'admin'`, [imp.eventId])
       expect(people).toHaveLength(0)
@@ -734,7 +730,7 @@ describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera
 
     // ---- nothing of it is left ----
     const after = await counts(db)
-    // every table is exactly as before the file was loaded… except the audit log: KNOWN DEFECT, see the test below
+    // every table is exactly as before the file was loaded, the audit log included (0019)
     expect(after).toEqual({ ...baseline, score_audit: baseline.score_audit + ORPHAN_AUDIT_ROWS })
     const ev = imp.eventId
     expect(await db.sql(`select 1 from public.teams where event_id = $1`, [ev])).toHaveLength(0)
@@ -749,12 +745,7 @@ describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera
     say('\nEliminar Carrera: se borraron 1 Carrera, 6 grupos, 3 bases, 15 cruces, puntajes, auditoría, avisos, 6 ubicaciones, 6 tiempos, suscripciones y los 15 usuarios. Todas las tablas quedaron igual que antes de cargar el archivo.')
   })
 
-  // Deleting the Carrera cascades matches -> match_scores, and the audit trigger writes one 'delete' row per score
-  // while its match is already gone, so audit_set_event() cannot find the Carrera: the row is stored with event_id NULL
-  // and no later delete can reach it. 45 meaningless rows stay forever. Proposed fix (0018): in after_score_change(),
-  // `if tg_op = 'DELETE' and not exists (select 1 from public.matches where id = old.match_id) then return null; end if;`
-  // When that is fixed this test starts passing: remove `.fails` and set ORPHAN_AUDIT_ROWS to 0.
-  it.fails('KNOWN DEFECT: deleting a Carrera leaves no orphan audit rows', async () => {
+  it('deleting a Carrera leaves no orphan audit rows (0019)', async () => {
     const orphans = await db.sql(`select 1 from public.score_audit where event_id is null`)
     expect(orphans).toHaveLength(0)
   })

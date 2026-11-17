@@ -128,10 +128,10 @@ describe('activating a Carrera', () => {
   })
 
   it('lists and blocks every missing piece', async () => {
-    const c = await seedCarrera(db, { complete: false, runnersPerTeam: 1 })
+    const c = await seedCarrera(db, { complete: false, runnersPerTeam: 0 })
     const list = (await problems(c.eventId)).join(' | ')
     expect(list).toContain('El grupo "Grupo 1" no tiene foto')
-    expect(list).toContain('tiene 1 de 2 corredores')
+    expect(list).toContain('no tiene ningún corredor')
     expect(list).toContain('La base "Base 1" no tiene foto del lugar')
     expect(list).toContain('no tiene la información que se da')
     expect(list).toContain('tiene 0 de 3 preguntas')
@@ -295,7 +295,7 @@ describe('scoring rules', () => {
     await score(base, m1.id, 'barra', m1.teamA)
     await score(base, m1.id, 'pregunta', m1.teamA)
     await score(base, m1.id, 'minijuego', m1.teamB)
-    const table = await db.asUser(c.teams[3].runners[0]).sql<{ team_id: string; points: string }>(`select team_id, points from public.team_standings where event_id = $1`, [c.eventId])
+    const table = await db.asUser(c.admin).sql<{ team_id: string; points: string }>(`select team_id, points from public.team_standings where event_id = $1`, [c.eventId])
     const points = Object.fromEntries(table.map((r) => [r.team_id, Number(r.points)]))
     expect(points[m1.teamA]).toBe(2)
     expect(points[m1.teamB]).toBe(1)
