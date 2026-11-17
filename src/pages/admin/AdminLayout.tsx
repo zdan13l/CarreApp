@@ -7,6 +7,7 @@ import type { EventRow } from '../../types'
 import { AdminContext, type AdminCtx } from './AdminContext'
 import ConnectionBanner from '../../components/ConnectionBanner'
 import AdminNav, { AdminTopbar } from './AdminNav'
+import { confirmDialog } from '../../lib/dialog'
 
 // Adaptive shell: side menu on computers, bottom tabs on phones.
 export default function AdminLayout() {
@@ -31,8 +32,8 @@ export default function AdminLayout() {
   // another coordinator session (or a restored connection) can activate / deactivate a Carrera
   useRealtimeReload(['events'], reload)
 
-  const askSignOut = () => {
-    if (window.confirm('¿Cerrar sesión?')) void signOut()
+  const askSignOut = async () => {
+    if (await confirmDialog({ title: '¿Cerrar sesión?', confirmLabel: 'Cerrar sesión', icon: 'logout' })) void signOut()
   }
 
   const event = events.find((e) => e.id === selectedId) ?? events.find((e) => e.is_active) ?? events[0] ?? null

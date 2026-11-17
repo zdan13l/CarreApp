@@ -1,4 +1,4 @@
-import { Ban, Bell, Check, ChevronDown, Flag, LocateFixed, MapPin, Route, Trophy } from 'lucide-react'
+import { Ban, Bell, BellRing, Check, ChevronDown, Flag, LocateFixed, MapPin, Route, Trophy } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import AppShell from '../components/AppShell'
 import BottomNav, { type NavTab } from '../components/BottomNav'
@@ -141,7 +141,7 @@ export default function RunnerHome() {
             aria-expanded={showAlerts}
             title="Ajustes de alertas"
           >
-            <Bell size={20} />
+            {showAlerts ? <BellRing size={20} /> : <Bell size={20} />}
             {!soundEnabled() && <span className="dot" aria-hidden="true" />}
           </button>
         )

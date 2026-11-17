@@ -12,6 +12,7 @@ import { supabase } from '../../lib/supabase'
 import { useTravelTimes } from '../../lib/travel'
 import { STATUS_LABEL, type MatchScore, type MatchStatus, type StandingRow } from '../../types'
 import { useAdmin } from './AdminContext'
+import { promptDialog } from '../../lib/dialog'
 
 interface Named {
   id: string
@@ -110,11 +111,15 @@ export default function EnVivo() {
   // The coordinator can hurry the two groups of a match, or the BASE (e.g. it is taking too long in a game):
   // either gets a notification and the phone rings.
   async function hurry(m: LiveMatch, target: 'groups' | 'base') {
-    const message = window.prompt(
-      target === 'base' ? 'Mensaje para la base (le suena el teléfono):' : 'Mensaje para los dos grupos (les suena el teléfono):',
-      target === 'base' ? 'Apúrense con el juego: el siguiente cruce está esperando.' : DEFAULT_ALERT_MESSAGE,
-    )
-    if (!message?.trim()) return
+    const message = await promptDialog({
+      title: target === 'base' ? 'Avisar a la base' : 'Avisar a los dos grupos',
+      message: 'Les llega como notificación y les suena el teléfono.',
+      label: 'Mensaje',
+      defaultValue: target === 'base' ? 'Apúrense con el juego: el siguiente cruce está esperando.' : DEFAULT_ALERT_MESSAGE,
+      confirmLabel: 'Enviar aviso',
+      icon: 'bell',
+    })
+    if (!message) return
     setError(null)
     setNotice(null)
     const err = await sendMatchAlert(event!.id, m.id, message, target)

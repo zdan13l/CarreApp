@@ -19,6 +19,7 @@ import { RoundCard } from './admin/Cruces'
 import { BaseGuide, BaseWhere, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
 import { AfterCard, CurrentRound, RouteList, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
 import NoActiveCarrera from '../components/NoActiveCarrera'
+import { confirmDialog, promptDialog } from '../lib/dialog'
 import TeamNames from '../components/TeamNames'
 import type { MatchRow, StandingRow, TeamRow } from '../types'
 
@@ -76,6 +77,23 @@ export default function Preview() {
   const { screen } = useParams()
 
   if (screen === 'logos') return <LogoGallery />
+
+  if (screen === 'dialogs') {
+    return (
+      <AppShell title="Ventanas" user={user}>
+        <section className="card">
+          <h2>Ventanas emergentes</h2>
+          <p className="muted">Toca cada botón para ver cómo se ve.</p>
+          <div className="row">
+            <button onClick={() => void promptDialog({ title: 'Avisar a la base', message: 'Les llega como notificación y les suena el teléfono.', label: 'Mensaje', defaultValue: 'Apúrense con el juego: el siguiente cruce está esperando.', confirmLabel: 'Enviar aviso', icon: 'bell' })}>Mensaje</button>
+            <button className="ghost" onClick={() => void confirmDialog({ title: '¿Enviar los resultados?', message: 'Una vez enviados solo el coordinador puede corregirlos.', details: ['Barra: Dioses Griegos', 'Pregunta: Samuráis', 'Minijuego: Dioses Griegos'], confirmLabel: 'Enviar resultados', icon: 'send' })}>Resultados</button>
+            <button className="ghost danger" onClick={() => void confirmDialog({ title: '¿Eliminar la base "Atrio"?', message: 'Se borran también sus cruces y los puntos registrados.', confirmLabel: 'Eliminar base', tone: 'danger', icon: 'trash' })}>Eliminar</button>
+            <button className="ghost" onClick={() => void confirmDialog({ title: '¿Cerrar sesión?', message: 'Este teléfono dejará de recibir los avisos de la Carrera.', confirmLabel: 'Cerrar sesión', icon: 'logout' })}>Salir</button>
+          </div>
+        </section>
+      </AppShell>
+    )
+  }
 
   if (screen === 'sin-carrera' || screen === 'sin-carrera-base') {
     return (
@@ -146,8 +164,10 @@ export default function Preview() {
         <section className="card">
           <h2>Cruces de tu base (2)</h2>
           <ul className="list">
-            <li><span className="round-tag">R1</span><span className="grow">Dioses Griegos <span className="muted">vs</span> Samuráis</span><strong className="num">2–1</strong></li>
-            <li><span className="round-tag">R2</span><span className="grow">Dioses Nórdicos <span className="muted">vs</span> Guerreros Aztecas</span><strong className="num">1–2</strong></li>
+            <li className="with-items"><span className="round-tag">R1</span><span className="grow">Dioses Griegos <span className="muted">vs</span> Samuráis</span><strong className="num">2–1</strong>
+              <ul className="won-items"><li><span>Barra</span><b>Dioses Griegos</b></li><li><span>Pregunta</span><b>Samuráis</b></li><li><span>Minijuego</span><b>Dioses Griegos</b></li></ul></li>
+            <li className="with-items"><span className="round-tag">R2</span><span className="grow">Dioses Nórdicos <span className="muted">vs</span> Guerreros Aztecas</span><strong className="num">1–2</strong>
+              <ul className="won-items"><li><span>Barra</span><b>Guerreros Aztecas</b></li><li><span>Pregunta</span><b>Invalidado</b></li><li><span>Minijuego</span><b>Dioses Nórdicos</b></li></ul></li>
           </ul>
         </section>
         <BottomNav tabs={baseTabs} active="resultados" onChange={noop} />
@@ -444,5 +464,5 @@ export default function Preview() {
     )
   }
 
-  return <p className="page">Pantallas: base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, base, base-info, admin, admin-carrera, admin-forms</p>
+  return <p className="page">Pantallas: dialogs, base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, base, base-info, admin, admin-carrera, admin-forms</p>
 }

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import DialogHost from './components/DialogHost'
 import RequireRole from './components/RequireRole'
 import { AuthProvider, homePathForRole, useAuth } from './lib/auth'
 import AdminLayout from './pages/admin/AdminLayout'
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
+      <DialogHost />
     </BrowserRouter>
   )
 }

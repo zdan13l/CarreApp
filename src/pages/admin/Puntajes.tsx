@@ -14,6 +14,7 @@ import {
   type StandingRow,
 } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
+import { confirmDialog } from '../../lib/dialog'
 
 interface Named {
   id: string
@@ -111,7 +112,7 @@ export default function Puntajes() {
   async function setScore(m: MatchWithScores, item: ScoreItem, value: string) {
     if (!supabase) return
     const what = value === 'none' ? 'Se BORRARÁ el resultado' : value === 'void' ? 'Se INVALIDARÁ el ítem' : `Ganador: ${teamName.get(value) ?? 'el grupo elegido'}`
-    if (!window.confirm(`${ITEM_LABEL[item]} · ${what}. Queda en el registro de cambios. ¿Continuar?`)) return
+    if (!(await confirmDialog({ title: `${ITEM_LABEL[item]}: ${what}`, message: 'Queda en el registro de cambios.', confirmLabel: 'Continuar', tone: value === 'none' || value === 'void' ? 'danger' : 'default', icon: 'question' }))) return
     setBusy(true)
     setError(null)
     try {
