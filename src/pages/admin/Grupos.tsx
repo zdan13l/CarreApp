@@ -5,6 +5,7 @@ import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import type { Profile, TeamRow } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
+import { confirmDialog } from '../../lib/dialog'
 
 export default function Grupos() {
   const { event } = useAdmin()
@@ -169,8 +170,8 @@ export function TeamCard({
       if (err) throw new Error('No se pudo designar el GPS.')
     })
 
-  const remove = () => {
-    if (!window.confirm(`¿Eliminar el grupo "${team.name}"? Se borran también sus cruces y puntos.`)) return
+  const remove = async () => {
+    if (!(await confirmDialog({ title: `¿Eliminar el grupo "${team.name}"?`, message: 'Se borran también sus cruces y los puntos registrados.', confirmLabel: 'Eliminar grupo', tone: 'danger', icon: 'trash' }))) return
     void run(async () => {
       const { error: err } = await sb.from('teams').delete().eq('id', team.id)
       if (err) throw new Error('No se pudo eliminar el grupo.')

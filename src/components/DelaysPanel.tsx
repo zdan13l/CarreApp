@@ -5,6 +5,7 @@ import { DEFAULT_ALERT_MESSAGE, lateTeams, type TimedMatch } from '../lib/delays
 import { distanceMeters } from '../lib/geo'
 import { formatDistance } from '../lib/mapbox'
 import { supabase } from '../lib/supabase'
+import { promptDialog } from '../lib/dialog'
 
 export async function sendMatchAlert(eventId: string, matchId: string, message: string, target: 'groups' | 'base' = 'groups'): Promise<string | null> {
   if (!supabase) return 'Supabase no está configurado.'
@@ -40,8 +41,8 @@ export default function DelaysPanel({
   const [error, setError] = useState<string | null>(null)
 
   async function alert(matchId: string) {
-    const message = window.prompt('Mensaje para los grupos y la base de este cruce:', DEFAULT_ALERT_MESSAGE)
-    if (!message?.trim()) return
+    const message = await promptDialog({ title: 'Avisar a los grupos y a la base', message: 'Les llega como notificación y les suena el teléfono.', label: 'Mensaje', defaultValue: DEFAULT_ALERT_MESSAGE, confirmLabel: 'Enviar aviso', icon: 'bell' })
+    if (!message) return
     setError(null)
     const err = await sendMatchAlert(eventId, matchId, message)
     if (err) setError(err)

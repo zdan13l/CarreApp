@@ -6,6 +6,7 @@ import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import { infoOf, type BaseRow, type Profile } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
+import { confirmDialog } from '../../lib/dialog'
 
 export default function Bases() {
   const { event } = useAdmin()
@@ -164,8 +165,8 @@ export function BaseCard({
       if (err) throw new Error('No se pudo quitar el inductor.')
     })
 
-  const remove = () => {
-    if (!window.confirm(`¿Eliminar la base "${base.name}"? Se borran también sus cruces y puntos.`)) return
+  const remove = async () => {
+    if (!(await confirmDialog({ title: `¿Eliminar la base "${base.name}"?`, message: 'Se borran también sus cruces y los puntos registrados.', confirmLabel: 'Eliminar base', tone: 'danger', icon: 'trash' }))) return
     void run(async () => {
       const { error: err } = await sb.from('bases').delete().eq('id', base.id)
       if (err) throw new Error('No se pudo eliminar la base.')

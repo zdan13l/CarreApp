@@ -3,6 +3,7 @@ import { useAuth } from '../lib/auth'
 import ConnectionBanner from './ConnectionBanner'
 import Logo from './Logo'
 import AccountMenu from './AccountMenu'
+import { confirmDialog } from '../lib/dialog'
 
 export default function AppShell({
   title,
@@ -23,7 +24,9 @@ export default function AppShell({
       <header className="topbar">
         <Logo size={30} />
         {topActions}
-        <AccountMenu user={who ?? undefined} onSignOut={() => { if (window.confirm('¿Cerrar sesión?')) void signOut() }} />
+        <AccountMenu user={who ?? undefined} onSignOut={async () => {
+          if (await confirmDialog({ title: '¿Cerrar sesión?', message: 'Este teléfono dejará de recibir los avisos de la Carrera.', confirmLabel: 'Cerrar sesión', icon: 'logout' })) void signOut()
+        }} />
       </header>
       <h1 className="page-title">{title}</h1>
       {children}

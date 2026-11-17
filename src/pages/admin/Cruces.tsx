@@ -9,6 +9,7 @@ import { DEFAULT_ALERT_MESSAGE } from '../../lib/delays'
 import { supabase } from '../../lib/supabase'
 import { STATUS_LABEL, type MatchRow } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
+import { confirmDialog, promptDialog } from '../../lib/dialog'
 
 interface Named {
   id: string
@@ -74,10 +75,10 @@ export default function Cruces() {
     }
   }
 
-  function clearAll() {
+  async function clearAll() {
     if (!supabase || !eventId || matches.length === 0) return
     const withScores = matches.some((m) => m.status !== 'pending')
-    if (!window.confirm(`¿Borrar los ${matches.length} cruces${withScores ? ' y TODOS los puntos registrados' : ''}?`)) return
+    if (!(await confirmDialog({ title: `¿Borrar los ${matches.length} cruces?`, message: withScores ? 'Se borran también TODOS los puntos registrados.' : undefined, confirmLabel: 'Borrar cruces', tone: 'danger', icon: 'trash' }))) return
     void run(async () => {
       const { error: err } = await supabase!.from('matches').delete().eq('event_id', eventId)
       if (err) throw new Error('No se pudieron borrar los cruces.')
@@ -221,8 +222,8 @@ export function RoundCard({
   }
 
   async function notify(m: MatchRow) {
-    const message = window.prompt('Mensaje para los grupos y la base de este cruce:', DEFAULT_ALERT_MESSAGE)
-    if (!message?.trim()) return
+    const message = await promptDialog({ title: 'Avisar a los grupos y a la base', message: 'Les llega como notificación y les suena el teléfono.', label: 'Mensaje', defaultValue: DEFAULT_ALERT_MESSAGE, confirmLabel: 'Enviar aviso', icon: 'bell' })
+    if (!message) return
     setError(null)
     setNotice(null)
     const err = await sendMatchAlert(eventId, m.id, message)
@@ -232,7 +233,7 @@ export function RoundCard({
 
   async function remove(m: MatchRow) {
     if (!supabase) return
-    if (m.status !== 'pending' && !window.confirm('Este cruce ya tiene puntos registrados. ¿Borrarlo con sus puntos?')) return
+    if (m.status !== 'pending' && !(await confirmDialog({ title: '¿Borrar este cruce?', message: 'Ya tiene puntos registrados: se borran con él.', confirmLabel: 'Borrar cruce', tone: 'danger', icon: 'trash' }))) return
     setBusy(true)
     const { error: err } = await supabase.from('matches').delete().eq('id', m.id)
     if (err) setError('No se pudo borrar el cruce.')

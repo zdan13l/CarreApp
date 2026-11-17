@@ -27,6 +27,7 @@ import {
   type MatchStatus,
   type ScoreItem,
 } from '../types'
+import { confirmDialog, promptDialog } from '../lib/dialog'
 
 interface MyBase {
   id: string
@@ -139,7 +140,7 @@ export default function BaseHome() {
             aria-expanded={showAlerts}
             title="Ajustes de alertas"
           >
-            <Bell size={20} />
+            {showAlerts ? <BellRing size={20} /> : <Bell size={20} />}
             {!soundEnabled() && <span className="dot" aria-hidden="true" />}
           </button>
         )
@@ -209,7 +210,7 @@ export default function BaseHome() {
                 {finished.length === 0 && <p className="muted">Todavía no has terminado ningún cruce.</p>}
                 <ul className="list">
                   {finished.map((m) => (
-                    <li key={m.id}>
+                    <li key={m.id} className="with-items">
                       <span className="round-tag">R{m.round_number}</span>
                       <span className="grow">
                         {teams.get(m.team_a)?.name} <span className="muted">vs</span> {teams.get(m.team_b)?.name}
@@ -218,6 +219,7 @@ export default function BaseHome() {
                         {m.match_scores.filter((x) => x.winner_team_id === m.team_a).length}–
                         {m.match_scores.filter((x) => x.winner_team_id === m.team_b).length}
                       </strong>
+                      <WonItems match={m} teams={teams} />
                     </li>
                   ))}
                 </ul>
@@ -326,6 +328,23 @@ export function BaseGuide({ info, questions: raw }: { info: string | null; quest
   )
 }
 
+// Who won each item of a finished match (what this base scored): "Barra: Dioses Griegos".
+export function WonItems({ match, teams }: { match: BaseMatch; teams: Map<string, Team> }) {
+  return (
+    <ul className="won-items">
+      {SCORE_ITEMS.map((item) => {
+        const row = match.match_scores.find((x) => x.item === item)
+        return (
+          <li key={item}>
+            <span>{ITEM_LABEL[item]}</span>
+            <b>{!row ? '—' : row.voided ? 'Invalidado' : (teams.get(row.winner_team_id ?? '')?.name ?? '—')}</b>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
 export function TeamFace({ team }: { team?: Team }) {
   return (
     <div className="face">
@@ -369,7 +388,7 @@ export function MatchCard({
 
   async function confirmArrival() {
     if (!supabase) return
-    if (!window.confirm(`¿Ya llegaron los dos grupos?\n\n${a?.name} y ${b?.name}`)) return
+    if (!(await confirmDialog({ title: '¿Ya llegaron los dos grupos?', details: [a?.name ?? '', b?.name ?? ''].filter(Boolean), confirmLabel: 'Sí, ya llegaron', icon: 'check' }))) return
     setBusy(true)
     setError(null)
     const { error: err } = await supabase.rpc('confirm_arrival', { p_match: match.id })
@@ -381,8 +400,8 @@ export function MatchCard({
   // The base can hurry the groups: they get the message (and a notification) on their phones.
   async function hurry() {
     if (!eventId) return
-    const message = window.prompt('Mensaje para los dos grupos:', 'Apúrense: la base los está esperando.')
-    if (!message?.trim()) return
+    const message = await promptDialog({ title: 'Apurar a los grupos', message: 'Les llega como notificación y les suena el teléfono.', label: 'Mensaje', defaultValue: 'Apúrense: la base los está esperando.', confirmLabel: 'Enviar aviso', icon: 'bell' })
+    if (!message) return
     setError(null)
     setNotice(null)
     const err = await sendMatchAlert(eventId, match.id, message)
@@ -392,8 +411,8 @@ export function MatchCard({
 
   async function send() {
     if (!supabase || toSend.length === 0) return
-    const summary = toSend.map((i) => `${ITEM_LABEL[i]}: ${label(picks[i])}`).join('\n')
-    if (!window.confirm(`Una vez enviado solo el coordinador puede corregirlo.\n\n${summary}\n\n¿Enviar?`)) return
+    const summary = toSend.map((i) => `${ITEM_LABEL[i]}: ${label(picks[i])}`)
+    if (!(await confirmDialog({ title: '¿Enviar los resultados?', message: 'Una vez enviados solo el coordinador puede corregirlos.', details: summary, confirmLabel: 'Enviar resultados', icon: 'send' }))) return
     setBusy(true)
     setError(null)
     const { error: err } = await supabase.from('match_scores').insert(

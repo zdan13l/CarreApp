@@ -9,6 +9,7 @@ import { createUser, deleteUser, resetPassword } from '../../lib/usersApi'
 import { normalizeUsername, suggestUsername, USERNAME_PATTERN } from '../../lib/username'
 import { ROLE_LABEL, type Profile, type UserRole } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
+import { confirmDialog } from '../../lib/dialog'
 
 interface Credentials {
   username: string
@@ -95,17 +96,17 @@ export default function Usuarios() {
     })
   }
 
-  function onReset(u: Profile) {
+  async function onReset(u: Profile) {
     const next = generatePassword()
-    if (!window.confirm(`¿Cambiar la contraseña de ${u.full_name}? Se genera una nueva.`)) return
+    if (!(await confirmDialog({ title: `¿Cambiar la contraseña de ${u.full_name}?`, message: 'Se genera una nueva y se muestra una sola vez.', confirmLabel: 'Generar nueva', icon: 'question' }))) return
     void run(async () => {
       await resetPassword(u.id, next)
       setCreds({ username: u.username, password: next, label: `Nueva contraseña de ${u.full_name}` })
     })
   }
 
-  function onDelete(u: Profile) {
-    if (!window.confirm(`¿Eliminar a ${u.full_name} (@${u.username})? No se puede deshacer.`)) return
+  async function onDelete(u: Profile) {
+    if (!(await confirmDialog({ title: `¿Eliminar a ${u.full_name}?`, message: `@${u.username}. No se puede deshacer.`, confirmLabel: 'Eliminar', tone: 'danger', icon: 'trash' }))) return
     void run(async () => {
       await deleteUser(u.id)
     })

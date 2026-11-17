@@ -5,6 +5,7 @@ import { deleteUser } from '../../lib/usersApi'
 import { errMsg, useAdmin } from './AdminContext'
 import BulkImport from './BulkImport'
 import TravelTimes from './TravelTimes'
+import { confirmDialog } from '../../lib/dialog'
 
 interface Counts {
   teams: number
@@ -76,13 +77,13 @@ export default function Carrera() {
     })
   }
 
-  function activate() {
+  async function activate() {
     if (!supabase || !event) return
     const previous = events.find((x) => x.is_active && x.id !== event.id)
     const msg = previous
-      ? `¿Activar "${event.name}"? Se desactivará "${previous.name}" y todos los teléfonos pasarán a la nueva Carrera.`
-      : `¿Activar "${event.name}"? Los corredores y las bases la verán de inmediato.`
-    if (!window.confirm(msg)) return
+      ? `Se desactivará "${previous.name}" y todos los teléfonos pasarán a la nueva Carrera.`
+      : 'Los corredores y las bases la verán de inmediato.'
+    if (!(await confirmDialog({ title: `¿Activar "${event.name}"?`, message: msg, confirmLabel: 'Activar Carrera', icon: 'check' }))) return
     void run(async () => {
       if (previous) await supabase!.from('events').update({ is_active: false }).eq('id', previous.id)
       const { error: err } = await supabase!.from('events').update({ is_active: true }).eq('id', event.id)
@@ -93,9 +94,9 @@ export default function Carrera() {
     })
   }
 
-  function deactivate() {
+  async function deactivate() {
     if (!supabase || !event) return
-    if (!window.confirm(`¿Desactivar "${event.name}"? Los corredores y las bases dejarán de ver la Carrera de inmediato.`)) return
+    if (!(await confirmDialog({ title: `¿Desactivar "${event.name}"?`, message: 'Los corredores y las bases dejarán de ver la Carrera de inmediato.', confirmLabel: 'Desactivar', icon: 'warning' }))) return
     void run(async () => {
       const { error: err } = await supabase!.from('events').update({ is_active: false }).eq('id', event.id)
       if (err) throw new Error('No se pudo desactivar la Carrera.')
