@@ -19,8 +19,10 @@ interface PushPayload {
   url?: string
 }
 
-// A notification arrives even with the phone locked or the app closed. The same `tag` replaces
-// the previous one and `renotify` makes it sound again, so a repeating delay keeps ringing.
+// A notification arrives even with the phone locked or the app closed.
+// Phones only ring when a notification is "new": a repeated alert with the same tag replaces the old one silently, and
+// with a notification still on the screen some phones stay quiet for the next one. So every alert is shown as a brand
+// new notification (a unique tag) AFTER the old ones are taken down: each one behaves like the first and rings.
 self.addEventListener('push', (event) => {
   let data: PushPayload = {}
   try {
@@ -29,14 +31,18 @@ self.addEventListener('push', (event) => {
     data = { body: event.data?.text() }
   }
   event.waitUntil(
-    self.registration.showNotification(data.title ?? 'CarreApp', {
-      body: data.body,
-      tag: data.tag,
-      icon: '/pwa-192.png',
-      badge: '/favicon.png',
-      data: { url: data.url ?? '/' },
-      ...({ renotify: true, vibrate: [300, 120, 300, 120, 300] } as object),
-    }),
+    (async () => {
+      const previous = await self.registration.getNotifications()
+      previous.forEach((n) => n.close())
+      await self.registration.showNotification(data.title ?? 'CarreApp', {
+        body: data.body,
+        tag: `${data.tag ?? 'carreapp'}-${Date.now()}`,
+        icon: '/pwa-192.png',
+        badge: '/favicon.png',
+        data: { url: data.url ?? '/' },
+        ...({ vibrate: [300, 120, 300, 120, 300], requireInteraction: true, silent: false } as object),
+      })
+    })(),
   )
 })
 
