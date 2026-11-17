@@ -201,8 +201,18 @@ export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 
   }, [idsKey])
 
   const visible = alerts.filter((a) => !dismissed.has(a.id) && now - new Date(a.created_at).getTime() < RECENT_MS)
-  const fresh = visible.some((a) => now - new Date(a.created_at).getTime() < FRESH_MS)
+  const freshAlerts = visible.filter((a) => now - new Date(a.created_at).getTime() < FRESH_MS)
+  const fresh = freshAlerts.length > 0
   useRepeatingAlert(fresh)
+
+  // A NEW alert rings at once even when an earlier one is still on the screen (the repeating sound only starts when the
+  // first fresh alert appears, so without this the second one would stay silent until the next 30 s tick).
+  const newestFresh = freshAlerts.reduce<ManualAlert | null>((n, a) => (!n || a.created_at > n.created_at ? a : n), null)?.id ?? null
+  const lastRung = useRef<string | null>(null)
+  useEffect(() => {
+    if (newestFresh && lastRung.current !== null && lastRung.current !== newestFresh) playAlertSound()
+    lastRung.current = newestFresh ?? lastRung.current
+  }, [newestFresh])
 
   return {
     alerts: visible,

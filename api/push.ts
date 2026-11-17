@@ -79,7 +79,7 @@ async function run(req: VercelRequest, res: VercelResponse) {
             await webpush.sendNotification(
               { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
               JSON.stringify({ title: n.title, body: n.body, tag: n.tag }),
-              { TTL: 60, urgency: 'high' },
+              { TTL: 180, urgency: 'high' },
             )
             sent++
           } catch (e) {
