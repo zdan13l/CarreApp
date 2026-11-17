@@ -41,3 +41,9 @@ Si la `service_role` se llega a exponer, se **regenera** en Supabase (Project Se
 
 ## Usuarios y Carreras
 Corredores e inductores pertenecen a **una** Carrera (`profiles.event_id`) y no pueden asignarse a otra; el coordinador no pertenece a ninguna y ve todas. Ver [Registro SQL](Registro-SQL) `0014`.
+
+## Lo que cada rol puede leer (desde la migración 0019)
+- Cada persona lee solo los datos de **su Carrera**; el coordinador lee todas.
+- **Puntajes** (y el ranking): solo el coordinador, el inductor de esa base y los corredores de ese cruce. Los demás no pueden saber quién va ganando.
+- **Avisos**: los corredores ven los avisos para grupos de sus cruces; el inductor ve los de su base; solo el coordinador puede avisar a una base.
+- **Eliminar una Carrera** solo es posible si está desactivada.

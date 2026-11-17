@@ -9,7 +9,7 @@ En el computador el menú lateral tiene dos grupos; en el celular la barra infer
 ### Durante la Carrera
 | Pantalla | Qué muestra | Para qué |
 |---|---|---|
-| **En vivo** | Cuatro **indicadores** arriba (ronda en curso, cruces terminados, demoras, grupos con ubicación; los dos últimos y el de cruces llevan a su pantalla), la ronda como **tabla** (base, cruce, estado, marcador, ítems y hora de llegada, con el botón *Avisar*), las **demoras en el traslado** y el top 3. Si la Carrera está en borrador, avisa qué falta y lleva a *Carrera*. | Es el tablero de control: todo lo que cambia mientras se juega, en un solo lugar. |
+| **En vivo** | Cuatro **indicadores** arriba (ronda en curso, cruces terminados, demoras, grupos con ubicación; los dos últimos y el de cruces llevan a su pantalla), la ronda como **tabla** (base, cruce, estado, marcador, ítems y hora de llegada, con el botón *Avisar*), las **demoras en el traslado** y el top 3 (con marco **oro, plata y bronce**). En cada cruce hay dos botones de aviso: a los **grupos** o a la **base** (por ejemplo si se demora en un juego): suena el teléfono. Si la Carrera está en borrador, avisa qué falta y lleva a *Carrera*. | Es el tablero de control: todo lo que cambia mientras se juega, en un solo lugar. |
 | **Puntajes** | Ranking completo, corrección o invalidación de cualquier ítem por cruce (de a una ronda) y el registro de cambios (plegable). | Corregir lo que envió una base y dejar rastro. |
 | **Mapa** | Mapa 3D con las bases y la posición de cada grupo; los grupos sin señal o en demora se marcan. Una posición que lleva **más de 1 hora sin actualizarse desaparece** del mapa (el grupo queda como "Sin señal"), así que si alguien olvida apagar el GPS no queda un punto fantasma al terminar la Carrera. | Ver dónde está cada grupo. |
 
@@ -19,27 +19,29 @@ En el computador el menú lateral tiene dos grupos; en el celular la barra infer
 | **Carrera** | Estado y lista de pendientes para activar, **carga desde un archivo** (Word/Excel, con una *Carrera de prueba* lista para ensayar), tiempo general y por tramo de las alertas, nueva edición y **eliminar la Carrera** (la desactivada, escribiendo su nombre; con la opción de borrar también a sus usuarios). | Dejar lista la Carrera. |
 | **Grupos** | Nombre, foto y corredores (con el que transmite el GPS). | |
 | **Bases** | Nombre, foto del lugar, información, 3 preguntas, inductores y ubicación (el mapa se abre solo si se necesita). | |
-| **Cruces** | Generador del cronograma, revisión (descansos, bases repetidas) y edición ronda por ronda. | Armar y ajustar el cronograma. |
+| **Cruces** | El cronograma se arma **a mano**, ronda por ronda (no hay generador automático); revisión (descansos, bases repetidas). | Armar y ajustar el cronograma. |
 | **Usuarios** | Los de la Carrera elegida, cada uno con su **foto** (botón de cámara; reemplaza la inicial en su cabecera y en la lista) (más los coordinadores): crear, cambiar contraseña y eliminar. Los usuarios anteriores a esta regla aparecen en *Sin Carrera asignada* para adoptarlos o eliminarlos. Corredores e inductores se crean siempre dentro de una Carrera. | |
 
 ## Corredor (`/corredor`)
-Una **barra de estado siempre visible** (grupo, puesto y puntos en vivo) y cuatro pestañas:
+Una **barra de estado siempre visible** (el grupo y "En vivo"; **sin puesto ni puntos**: nadie debe saber quién va ganando antes de que se anuncie) y tres pestañas (cuatro para el usuario designado del GPS). Un grupo puede compartir **un solo usuario** entre la pareja de corredores.
 
 | Pestaña | Contenido |
 |---|---|
 | **Ronda** | Avisos de demora y del coordinador, la ronda actual (base con foto, rival y resultados que la base ha calificado ítem por ítem) y **Después**: la siguiente con la foto de la base y el escudo del rival. |
-| **Mapa** | Ruta a pie a la siguiente base (y, para el corredor designado, compartir la ubicación). |
-| **Ruta** | Todas sus rondas; cada ronda terminada se abre para ver el resultado ítem por ítem. |
-| **Top** | Ranking con su grupo resaltado. |
+| **Ubicación** *(solo el usuario designado)* | Un mapa **fijo** (no se mueve ni se acerca) con las bases y la posición del grupo, que se actualiza, y el botón para **compartir la ubicación** con el coordinador. No hay mapa de ruta: los corredores saben llegar. |
+| **Ruta** | El historial de encuentros: todas sus rondas; cada ronda terminada se abre para ver el resultado ítem por ítem. |
+| **Top** | **Tu equipo** con su nombre y sus puntos, y debajo **todos los equipos** solo con foto y nombre (sin puntos y en orden alfabético). |
 
-Los ajustes de **sonido y notificaciones** están en la campana de la barra superior (con un punto si el sonido está apagado): se configuran una vez y no estorban la ronda.
+Los ajustes de **sonido y notificaciones** están en la campana de la barra superior (con un punto si el sonido está apagado). Sin Carrera activa para su usuario se ve una explicación tranquila ("No hay ninguna Carrera activa para tu usuario").
 
 ## Base (`/base`)
 | Pestaña | Contenido |
 |---|---|
-| **Ronda** | Avisos de demora, el cruce actual (confirmar llegada, *Apurar a los grupos*, calificar) y el próximo. |
-| **Resultados** | Top equipos y los cruces ya terminados de la base. |
+| **Ronda** | Avisos de demora y **avisos del coordinador** (con sonido), el cruce actual (confirmar llegada, *Apurar a los grupos*, calificar) y el próximo. |
+| **Resultados** | Todos los equipos con su foto y nombre (**sin puntos**) y *Cruces de tu base*: el historial de lo que ha calificado. |
 | **Mi base** | El espacio informativo del inductor: **lo que se explica** en la base, las **posibles preguntas**, la foto de dónde queda y la ubicación. El mapa solo se abre al pulsar *Cambiar ubicación* (o si la base aún no tiene ubicación). |
+
+La campana de la barra superior abre los ajustes de **sonido y notificaciones**, para que el teléfono suene cuando el coordinador avise a la base. Si la Carrera no está activa para su usuario, la pantalla lo explica y, si intenta calificar, el mensaje dice que la Carrera no está activa.
 
 ## Qué se movió en la revisión y por qué
 - **Resumen → En vivo + Carrera.** "Resumen" mezclaba el estado en vivo con ajustes, carga de archivos y creación de ediciones. Lo que se prepara una vez pasó a *Carrera*; lo que se mira cada minuto quedó en *En vivo*.

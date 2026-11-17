@@ -31,6 +31,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0016 | [`0016_no_delay_when_resting.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0016_no_delay_when_resting.sql) | 2026-11-15 | Un grupo que descansa una ronda no recibe alerta de demora |
 | 0017 | [`0017_hardening.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0017_hardening.sql) | 2026-11-15 | Hora del servidor, avisos con alcance y límite, auditoría sin ruido |
 | 0018 | [`0018_profile_photo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0018_profile_photo.sql) | 2026-11-17 | Foto de cada usuario (`profiles.photo_path`) |
+| 0019 | [`0019_clean_delete_privacy_and_base_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0019_clean_delete_privacy_and_base_alerts.sql) | 2026-11-17 | Borrado limpio, solo se elimina una Carrera desactivada, privacidad entre Carreras y de los puntajes, un usuario por grupo basta, avisos a la base |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -350,6 +351,22 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/profile-photo.test.ts`. La app sigue funcionando sin esta migración (entrar y listar usuarios leen el perfil sin la foto si la columna no existe), pero subir fotos falla hasta aplicarla.
 
 **Cómo revertir** `alter table public.profiles drop column photo_path;` (las imágenes quedan en el almacenamiento).
+
+## 0019 — Borrado limpio, privacidad y avisos a la base
+
+**Qué cambia**
+- **Borrado limpio:** `after_score_change()` ya no audita el borrado de un puntaje cuando su cruce ya no existe (el caso de eliminar toda una Carrera); y se borran las filas de `score_audit` sin Carrera que ya habían quedado. Eliminar una Carrera no deja nada.
+- **Solo se elimina una Carrera desactivada:** el trigger `events_delete_guard` lo exige en la base de datos ("Desactiva la Carrera antes de eliminarla.").
+- **Privacidad entre Carreras:** `events`, `teams`, `bases`, `matches` y `base_travel_times` solo los lee el coordinador o quien pertenece a esa Carrera (`my_event_id()`); `team_runners` y `base_staff` solo los ve cada persona (su propia fila).
+- **Nadie sabe quién va ganando:** `match_scores` (y por tanto `team_standings`, que respeta esas políticas) solo lo leen el coordinador, el inductor de esa base y los corredores de ese cruce.
+- **Un usuario por grupo basta:** `event_problems()` exige al menos 1 corredor (antes 2), para que la pareja comparta un solo usuario.
+- **Avisos a la base:** `alerts.target` (`groups` por defecto, o `base`). Con `base` llegan como notificación a los inductores de la base del cruce; los corredores no los ven y una base no puede mandarlos.
+
+**Por qué** Eliminar una Carrera dejaba 45 filas huérfanas; la privacidad entre Carreras era solo un filtro del teléfono; los puntajes eran legibles por todos aunque la app no los mostrara; el coordinador necesita apurar a una base que se demora en un juego.
+
+**Verificación** `tests/db/privacy-0019.test.ts`, `tests/db/simulacro.test.ts` (sección 5: eliminar la Carrera no deja nada ni siquiera en el registro) y las pruebas de permisos. En Supabase: `select count(*) from public.score_audit where event_id is null;` debe dar 0.
+
+**Cómo revertir** Recrear las políticas `*_read` con `using (true)` (como en `0001` y `0011`), `scores_read` con `using (true)`, `drop trigger events_delete_guard on public.events;`, `alter table public.alerts drop column target;`, restaurar `alerts_push()` de `0012`, `alerts_read`/`alerts_base_insert` de `0017`, `event_problems()` de `0008` y `after_score_change()` de `0017`; `drop function public.my_event_id();`.
 
 ## Plantilla para nuevos registros
 
