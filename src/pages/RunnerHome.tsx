@@ -1,10 +1,11 @@
-import { Ban, Bell, Check, ChevronDown, Compass, Flag, MapPin, Route, Trophy } from 'lucide-react'
+import { Ban, Bell, Check, ChevronDown, Flag, LocateFixed, MapPin, Route, Trophy } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import AppShell from '../components/AppShell'
 import BottomNav, { type NavTab } from '../components/BottomNav'
 import Crest from '../components/Crest'
-import Ranking from '../components/Ranking'
-import RunnerMap from '../components/RunnerMap'
+import LocationShare from '../components/LocationShare'
+import TeamNames from '../components/TeamNames'
+import NoActiveCarrera from '../components/NoActiveCarrera'
 import { AlertBanner, AlertSettings } from '../components/Alerts'
 import { useAuth } from '../lib/auth'
 import { soundEnabled, useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
@@ -19,8 +20,15 @@ import {
   STATUS_LABEL,
   type MatchScore,
   type MatchStatus,
-  type StandingRow,
 } from '../types'
+
+// Name and picture of a group. The runner never loads the points of the other groups: nobody knows who leads
+// until it is announced.
+export interface TeamLite {
+  team_id: string
+  name: string
+  photo_path: string | null
+}
 
 interface MyTeam {
   id: string
@@ -45,23 +53,25 @@ export interface RouteMatch {
   match_scores: MatchScore[]
 }
 
-type Tab = 'ronda' | 'mapa' | 'ruta' | 'top'
+type Tab = 'ronda' | 'ubicacion' | 'ruta' | 'top'
 const ICON = { size: 22, strokeWidth: 1.9, 'aria-hidden': true } as const
 const TABS: NavTab<Tab>[] = [
   { id: 'ronda', label: 'Ronda', icon: <Flag {...ICON} /> },
-  { id: 'mapa', label: 'Mapa', icon: <Compass {...ICON} /> },
   { id: 'ruta', label: 'Ruta', icon: <Route {...ICON} /> },
   { id: 'top', label: 'Top', icon: <Trophy {...ICON} /> },
 ]
+// Only the group's designated runner shares the location (the group's shared user), so only they get this tab.
+const LOCATION_TAB: NavTab<Tab> = { id: 'ubicacion', label: 'Ubicación', icon: <LocateFixed {...ICON} /> }
 
 export default function RunnerHome() {
   const { profile } = useAuth()
   const [tab, setTab] = useState<Tab>('ronda')
   const [showAlerts, setShowAlerts] = useState(false) // sound and notification settings
-  const [mapOpened, setMapOpened] = useState(false) // keep the map (and GPS sharing) alive once opened
+  const [locationOpened, setLocationOpened] = useState(false) // keep the map (and GPS sharing) alive once opened
   const [team, setTeam] = useState<MyTeam | null>(null)
   const [matches, setMatches] = useState<RouteMatch[]>([])
-  const [standings, setStandings] = useState<StandingRow[]>([])
+  const [teams, setTeams] = useState<TeamLite[]>([])
+  const [bases, setBases] = useState<{ id: string; name: string; lat: number | null; lng: number | null }[]>([])
   const [loading, setLoading] = useState(true)
 
   const userId = profile?.id
@@ -78,7 +88,7 @@ export default function RunnerHome() {
     if (teamErr) return // a network error is not "no active Carrera": keep what is on screen until the next refresh
     setTeam((t as MyTeam | null) ?? null)
     if (!t) return
-    const [m, s] = await Promise.all([
+    const [m, tm, bs] = await Promise.all([
       supabase
         .from('matches')
         .select(
@@ -86,11 +96,13 @@ export default function RunnerHome() {
         )
         .eq('event_id', t.event_id)
         .order('round_number'),
-      supabase.from('team_standings').select('team_id, name, photo_path, points').eq('event_id', t.event_id),
+      supabase.from('teams').select('id, name, photo_path').eq('event_id', t.event_id),
+      supabase.from('bases').select('id, name, lat, lng').eq('event_id', t.event_id),
     ])
-    if (m.error || s.error) return // keep what is on screen: an empty list would look like no rounds
+    if (m.error || tm.error || bs.error) return // keep what is on screen: an empty list would look like no rounds
     setMatches((m.data ?? []) as unknown as RouteMatch[])
-    setStandings(((s.data ?? []) as StandingRow[]).map((r) => ({ ...r, points: Number(r.points) })))
+    setTeams((tm.data ?? []).map((x) => ({ team_id: x.id, name: x.name, photo_path: x.photo_path })))
+    setBases(bs.data ?? [])
   }, [userId])
 
   useEffect(() => {
@@ -100,13 +112,15 @@ export default function RunnerHome() {
   // Live: scores, matches and bases (photo) refresh the screen by themselves.
   useRealtimeReload(['match_scores', 'matches', 'bases', 'events'], load, 1500)
 
-  const teamById = new Map(standings.map((r) => [r.team_id, r]))
+  const teamById = new Map(teams.map((r) => [r.team_id, r]))
   const mine = matches.filter((m) => m.team_a === team?.id || m.team_b === team?.id)
   const next = mine.find((m) => m.status !== 'finished')
   const upcoming = mine.filter((m) => m.status !== 'finished')
   const after = upcoming[1] // the match that follows the current one
   const totalRounds = matches.reduce((max, m) => Math.max(max, m.round_number), 0)
-  const myRow = standings.find((r) => r.team_id === team?.id)
+  // The group's own points, counted from its own matches (the database shows a runner no other score).
+  const myPoints = mine.reduce((n, m) => n + m.match_scores.filter((x) => x.winner_team_id === team?.id).length, 0)
+  const isTracker = Boolean(team?.team_runners.some((r) => r.is_gps_tracker))
   const events = team?.events
   const maxMinutes = (Array.isArray(events) ? events[0]?.max_travel_minutes : events?.max_travel_minutes) ?? 10
   const now = useNow()
@@ -114,7 +128,6 @@ export default function RunnerHome() {
   const myLate = team ? lateTeams(matches, maxMinutes, now, travel).filter((l) => l.teamId === team.id) : []
   const manual = useManualAlerts(mine.map((m) => m.id))
   useRepeatingAlert(myLate.length > 0) // every 30 s while the delay lasts
-  const position = myRow ? standings.filter((r) => r.points > myRow.points).length + 1 : null
 
   return (
     <AppShell
@@ -137,13 +150,11 @@ export default function RunnerHome() {
       {loading ? (
         <p className="loading">Cargando…</p>
       ) : !team ? (
-        <section className="card">
-          <p>Todavía no estás en un grupo de la Carrera activa. Avísale al coordinador.</p>
-        </section>
+        <NoActiveCarrera role="runner" />
       ) : (
         <>
-          {/* Always visible and live: position and points */}
-          <StatusBar name={team.name} photoPath={team.photo_path} position={position} points={myRow?.points ?? 0} />
+          {/* Always visible: who we are (no ranking and no score here: nobody knows who leads) */}
+          <StatusBar name={team.name} photoPath={team.photo_path} />
 
           {showAlerts && (
             <section className="card">
@@ -179,13 +190,9 @@ export default function RunnerHome() {
           )}
 
           {/* Mounted after the first visit and only hidden afterwards, so GPS sharing keeps running. */}
-          {(mapOpened || tab === 'mapa') && (
-            <div hidden={tab !== 'mapa'}>
-              <RunnerMap
-                teamId={team.id}
-                isTracker={team.team_runners.some((r) => r.is_gps_tracker)}
-                target={next?.bases ? { name: next.bases.name, lat: next.bases.lat, lng: next.bases.lng } : null}
-              />
+          {isTracker && (locationOpened || tab === 'ubicacion') && (
+            <div hidden={tab !== 'ubicacion'}>
+              <LocationShare teamId={team.id} bases={bases} />
             </div>
           )}
 
@@ -196,18 +203,13 @@ export default function RunnerHome() {
             </section>
           )}
 
-          {tab === 'top' && (
-            <section className="card">
-              <h2>Top equipos</h2>
-              <Ranking rows={standings} highlightId={team.id} />
-            </section>
-          )}
+          {tab === 'top' && <TopTab teamId={team.id} points={myPoints} teams={teams} />}
 
           <BottomNav
-            tabs={TABS}
+            tabs={isTracker ? [TABS[0], LOCATION_TAB, TABS[1], TABS[2]] : TABS}
             active={tab}
             onChange={(t) => {
-              if (t === 'mapa') setMapOpened(true)
+              if (t === 'ubicacion') setLocationOpened(true)
               setTab(t)
             }}
           />
@@ -220,7 +222,7 @@ export default function RunnerHome() {
 const rivalId = (m: RouteMatch, myId: string) => (m.team_a === myId ? m.team_b : m.team_a)
 
 // "Después": the match after the current one, with the picture of the base and the crest of the rival (like the base screen).
-export function AfterCard({ match, myId, teams }: { match: RouteMatch; myId: string; teams: Map<string, StandingRow> }) {
+export function AfterCard({ match, myId, teams }: { match: RouteMatch; myId: string; teams: Map<string, TeamLite> }) {
   const rival = teams.get(rivalId(match, myId))
   const url = photoUrl(match.bases?.location_photo_path ?? null)
   return (
@@ -246,38 +248,44 @@ export function AfterCard({ match, myId, teams }: { match: RouteMatch; myId: str
 }
 const scoreOf = (m: RouteMatch, teamId: string) => m.match_scores.filter((s) => s.winner_team_id === teamId).length
 
-export function StatusBar({
-  name,
-  photoPath,
-  position,
-  points,
-}: {
-  name: string
-  photoPath: string | null
-  position: number | null
-  points: number
-}) {
+export function StatusBar({ name, photoPath }: { name: string; photoPath: string | null }) {
   return (
     <div className="status-bar" role="status">
-      <Crest name={name} photoPath={photoPath} />
+      <Crest name={name} photoPath={photoPath} size="lg" />
       <div className="who">
         <strong>{name}</strong>
         <span className="live-label">En vivo</span>
-      </div>
-      <div className="stat">
-        <span className="stat-label">Puesto</span>
-        <span className="stat-value num">{position ?? '–'}</span>
-      </div>
-      <div className="stat">
-        <span className="stat-label">Pts</span>
-        <span className="stat-value num">{points}</span>
       </div>
     </div>
   )
 }
 
+// "Top": the group's own name and points, then every group of the Carrera by name (no points and no order of merit).
+export function TopTab({ teamId, points, teams }: { teamId: string; points: number; teams: TeamLite[] }) {
+  const mine = teams.find((t) => t.team_id === teamId)
+  return (
+    <>
+      <section className="card my-team">
+        <h3>Tu equipo</h3>
+        <div className="my-team-row">
+          <Crest name={mine?.name} photoPath={mine?.photo_path} size="lg" />
+          <strong className="grow">{mine?.name ?? '—'}</strong>
+          <span className="my-points num" aria-label={`${points} puntos`}>
+            {points}
+            <small>{points === 1 ? 'pt' : 'pts'}</small>
+          </span>
+        </div>
+      </section>
+      <section className="card">
+        <h2>Equipos de la Carrera</h2>
+        <TeamNames teams={teams.map((t) => ({ id: t.team_id, name: t.name, photo_path: t.photo_path }))} highlightId={teamId} />
+      </section>
+    </>
+  )
+}
+
 // What the base has scored so far in this match (live).
-export function ItemResults({ match, teams }: { match: RouteMatch; teams: Map<string, StandingRow> }) {
+export function ItemResults({ match, teams }: { match: RouteMatch; teams: Map<string, TeamLite> }) {
   return (
     <ul className="item-results">
       {SCORE_ITEMS.map((item) => {
@@ -310,7 +318,7 @@ export function CurrentRound({
 }: {
   match: RouteMatch
   myId: string
-  teams: Map<string, StandingRow>
+  teams: Map<string, TeamLite>
 }) {
   const rival = teams.get(rivalId(match, myId))
   const baseUrl = photoUrl(match.bases?.location_photo_path ?? null)
@@ -360,7 +368,7 @@ export function RouteList({
   totalRounds: number
   myId: string
   nextId?: string
-  teams: Map<string, StandingRow>
+  teams: Map<string, TeamLite>
 }) {
   const [open, setOpen] = useState<Set<string>>(new Set())
   if (totalRounds === 0) return <p className="muted">Todavía no hay rondas programadas.</p>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../../lib/supabase'
+import { deletePhotos } from '../../lib/storage'
 import { deleteUser } from '../../lib/usersApi'
 import { errMsg, useAdmin } from './AdminContext'
 import BulkImport from './BulkImport'
@@ -133,7 +134,7 @@ export default function Carrera() {
           <p className="muted">{counts.teams} grupos · {counts.bases} bases</p>
 
           {problems.length === 0 ? (
-            <p className="ok-box">Todo completo: fotos, 2 corredores por grupo, información y 3 preguntas por base.</p>
+            <p className="ok-box">Todo completo: fotos, un usuario por grupo, información y 3 preguntas por base.</p>
           ) : (
             <div className="fail-box">
               <strong>{event.is_active ? 'Pendientes de la Carrera activa:' : 'Falta para poder activar la Carrera:'}</strong>
@@ -230,11 +231,11 @@ function TravelSetting({ eventId, minutes, onSaved }: { eventId: string; minutes
   )
 }
 
-// Deletes a Carrera with everything inside it (groups, bases, schedule, scores, locations, alerts, times).
-// The people of that Carrera are kept unless the coordinator also asks to delete them. Photos stay in storage.
+// Deletes a Carrera with EVERYTHING that belongs to it, so nothing is left behind: groups, bases, schedule, scores, the
+// score log, alerts, locations, times, the photos in storage and its users (runners and inductors). The database only
+// accepts it when the Carrera is deactivated. It cannot be undone.
 function DeleteEvent({ eventId, name, active, onDone }: { eventId: string; name: string; active: boolean; onDone: (message: string) => Promise<void> }) {
   const [typed, setTyped] = useState('')
-  const [withUsers, setWithUsers] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const matches = typed.trim().toLowerCase() === name.trim().toLowerCase()
@@ -244,26 +245,33 @@ function DeleteEvent({ eventId, name, active, onDone }: { eventId: string; name:
     setBusy(true)
     setError(null)
     try {
-      // The people are listed BEFORE deleting: afterwards they no longer point to the Carrera.
-      const { data: people } = await supabase.from('profiles').select('id').eq('event_id', eventId).neq('role', 'admin')
+      // Everything that points to the Carrera is listed BEFORE deleting: afterwards nothing links to it any more.
+      const [people, teams, bases] = await Promise.all([
+        supabase.from('profiles').select('id, photo_path').eq('event_id', eventId).neq('role', 'admin'),
+        supabase.from('teams').select('photo_path').eq('event_id', eventId),
+        supabase.from('bases').select('location_photo_path').eq('event_id', eventId),
+      ])
       const { error: err } = await supabase.from('events').delete().eq('id', eventId)
-      if (err) throw new Error('No se pudo eliminar la Carrera.')
+      if (err) throw new Error(/Desactiva/.test(err.message) ? 'Desactiva la Carrera antes de eliminarla.' : 'No se pudo eliminar la Carrera.')
       let failed = 0
-      if (withUsers) {
-        for (const p of people ?? []) {
-          try {
-            await deleteUser(p.id)
-          } catch {
-            failed++
-          }
+      for (const p of people.data ?? []) {
+        try {
+          await deleteUser(p.id)
+        } catch {
+          failed++
         }
       }
-      const message =
-        withUsers
-          ? failed === 0 ? `Carrera eliminada con sus ${people?.length ?? 0} usuarios.` : `Carrera eliminada. ${failed} usuarios no se pudieron eliminar: quedan en Usuarios, "Sin Carrera asignada".`
-          : 'Carrera eliminada. Sus usuarios quedaron en Usuarios, "Sin Carrera asignada".'
+      await deletePhotos([
+        ...(teams.data ?? []).map((t) => t.photo_path),
+        ...(bases.data ?? []).map((b) => b.location_photo_path),
+        ...(people.data ?? []).map((p) => (p as { photo_path?: string | null }).photo_path),
+      ])
       setTyped('')
-      await onDone(message)
+      await onDone(
+        failed === 0
+          ? `Carrera eliminada con todo lo suyo: ${people.data?.length ?? 0} usuarios y sus fotos.`
+          : `Carrera eliminada. ${failed} usuarios no se pudieron eliminar: quedan en Usuarios, "Sin Carrera asignada".`,
+      )
     } catch (e) {
       setError(errMsg(e))
     } finally {
@@ -279,13 +287,9 @@ function DeleteEvent({ eventId, name, active, onDone }: { eventId: string; name:
       ) : (
         <>
           <p className="muted">
-            Borra "{name}" con todo lo que tiene: grupos, bases, cruces, puntajes, ubicaciones, avisos y tiempos. No se puede deshacer.
-            Las fotos quedan guardadas.
+            Borra "{name}" con TODO lo suyo: grupos, bases, cruces, puntajes, registro de cambios, avisos, ubicaciones, tiempos, fotos y sus
+            usuarios (corredores e inductores). No se puede deshacer.
           </p>
-          <label className="check">
-            <input type="checkbox" checked={withUsers} onChange={(e) => setWithUsers(e.target.checked)} />
-            Eliminar también a sus corredores e inductores (si no, quedan en "Sin Carrera asignada")
-          </label>
           <label>
             Para confirmar, escribe el nombre de la Carrera
             <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={name} autoComplete="off" />

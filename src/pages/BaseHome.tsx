@@ -1,15 +1,16 @@
-import { Ban, BellRing, Check, Flag, MapPin, Send, Trophy, UsersRound } from 'lucide-react'
+import { Ban, Bell, BellRing, Check, Flag, MapPin, Send, Trophy, UsersRound } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AppShell from '../components/AppShell'
-import { AlertBanner } from '../components/Alerts'
+import { AlertBanner, AlertSettings } from '../components/Alerts'
 import { sendMatchAlert } from '../components/DelaysPanel'
 import BaseLocationEditor from '../components/BaseLocationEditor'
 import BottomNav, { type NavTab } from '../components/BottomNav'
 import Crest from '../components/Crest'
 import PhotoField from '../components/PhotoField'
-import Ranking from '../components/Ranking'
+import NoActiveCarrera from '../components/NoActiveCarrera'
+import TeamNames from '../components/TeamNames'
 import { useAuth } from '../lib/auth'
-import { useNow } from '../lib/alerts'
+import { soundEnabled, useManualAlerts, useNow } from '../lib/alerts'
 import { lateTeams, type TimedMatch } from '../lib/delays'
 import { useTravelTimes } from '../lib/travel'
 import { useRealtimeReload } from '../lib/realtime'
@@ -25,7 +26,6 @@ import {
   type MatchScore,
   type MatchStatus,
   type ScoreItem,
-  type StandingRow,
 } from '../types'
 
 interface MyBase {
@@ -70,7 +70,7 @@ export default function BaseHome() {
   const [base, setBase] = useState<MyBase | null>(null)
   const [matches, setMatches] = useState<BaseMatch[]>([])
   const [teams, setTeams] = useState<Map<string, Team>>(new Map())
-  const [standings, setStandings] = useState<StandingRow[]>([])
+  const [showAlerts, setShowAlerts] = useState(false) // sound and notification settings
   const [eventMatches, setEventMatches] = useState<TimedMatch[]>([]) // every match, to know when teams left their previous base
   const [loading, setLoading] = useState(true)
 
@@ -90,22 +90,20 @@ export default function BaseHome() {
     if (baseErr) return // a network error is not "no active Carrera": keep what is on screen until the next refresh
     setBase((b as MyBase | null) ?? null)
     if (!b) return
-    const [m, t, st, all] = await Promise.all([
+    const [m, t, all] = await Promise.all([
       supabase
         .from('matches')
         .select('id, round_number, team_a, team_b, status, arrived_at, match_scores(item, winner_team_id, voided)')
         .eq('base_id', b.id)
         .order('round_number'),
       supabase.from('teams').select('id, name, photo_path').eq('event_id', b.event_id),
-      supabase.from('team_standings').select('team_id, name, photo_path, points').eq('event_id', b.event_id),
       supabase
         .from('matches')
         .select('id, round_number, base_id, team_a, team_b, status, arrived_at, finished_at')
         .eq('event_id', b.event_id),
     ])
-    if (m.error || t.error || st.error || all.error) return // keep what is on screen on a failed request
+    if (m.error || t.error || all.error) return // keep what is on screen on a failed request
     setEventMatches((all.data ?? []) as TimedMatch[])
-    setStandings(((st.data ?? []) as StandingRow[]).map((r) => ({ ...r, points: Number(r.points) })))
     setMatches((m.data ?? []) as BaseMatch[])
     setTeams(new Map((t.data ?? []).map((x) => [x.id, x])))
   }, [userId])
@@ -127,17 +125,47 @@ export default function BaseHome() {
   const myMatchIds = new Set(matches.map((m) => m.id))
   const travel = useTravelTimes(base?.event_id)
   const late = lateTeams(eventMatches, maxMinutes, now, travel).filter((l) => myMatchIds.has(l.matchId))
+  const fromCoordinator = useManualAlerts(matches.map((m) => m.id), 'base') // rings the phone while it is fresh
 
   return (
-    <AppShell title={base?.name ?? 'Mi base'}>
+    <AppShell
+      title={base?.name ?? 'Mi base'}
+      topActions={
+        base && (
+          <button
+            className="ghost icon-btn bell"
+            onClick={() => setShowAlerts((v) => !v)}
+            aria-label="Ajustes de alertas"
+            aria-expanded={showAlerts}
+            title="Ajustes de alertas"
+          >
+            <Bell size={20} />
+            {!soundEnabled() && <span className="dot" aria-hidden="true" />}
+          </button>
+        )
+      }
+    >
       {loading ? (
         <p className="loading">Cargando…</p>
       ) : !base ? (
-        <section className="card">
-          <p>Todavía no tienes una base asignada en la Carrera activa. Avísale al coordinador.</p>
-        </section>
+        <NoActiveCarrera role="base" />
       ) : (
         <>
+          {showAlerts && (
+            <section className="card">
+              <h2>Alertas</h2>
+              <p className="muted">
+                Para que el teléfono suene cuando el coordinador te avise (por ejemplo si tardas mucho en un juego): activa el sonido, y las
+                notificaciones para recibirlas aunque el teléfono esté bloqueado.
+              </p>
+              <AlertSettings />
+            </section>
+          )}
+          {fromCoordinator.alerts.map((a) => (
+            <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => fromCoordinator.dismiss(a.id)}>
+              {a.message}
+            </AlertBanner>
+          ))}
           {[...new Set(late.map((l) => l.matchId))].map((matchId) => {
             const m = matches.find((x) => x.id === matchId)
             const names = late
@@ -173,8 +201,8 @@ export default function BaseHome() {
           {tab === 'resultados' && (
             <>
               <section className="card">
-                <h2>Top equipos</h2>
-                <Ranking rows={standings} />
+                <h2>Equipos de la Carrera</h2>
+                <TeamNames teams={[...teams.values()]} />
               </section>
               <section className="card">
                 <h2>Cruces de tu base ({finished.length})</h2>
@@ -309,6 +337,10 @@ export function TeamFace({ team }: { team?: Team }) {
 
 type Pick = string // team id
 
+// The database refuses a base that acts while its Carrera is not active (row-level security): say it in plain words.
+const NOT_ACTIVE = 'La Carrera no está activa para tu usuario, así que no puedes registrar nada ahora. Avísale al coordinador.'
+export const friendlyError = (message: string, fallback: string) => (/row-level security|permission denied|no está asignado/i.test(message) ? NOT_ACTIVE : fallback)
+
 export function MatchCard({
   match,
   teams,
@@ -341,7 +373,7 @@ export function MatchCard({
     setBusy(true)
     setError(null)
     const { error: err } = await supabase.rpc('confirm_arrival', { p_match: match.id })
-    if (err) setError('No se pudo confirmar. Revisa tu conexión e inténtalo de nuevo.')
+    if (err) setError(friendlyError(err.message, 'No se pudo confirmar. Revisa tu conexión e inténtalo de nuevo.'))
     await onSent()
     setBusy(false)
   }
@@ -373,7 +405,7 @@ export function MatchCard({
           ? 'Primero termina de calificar la ronda anterior.'
           : /duplicate|unique/i.test(err.message)
             ? 'Alguien ya registró uno de esos ítems. Se actualizó la pantalla.'
-            : 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.',
+            : friendlyError(err.message, 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.'),
       )
     } else {
       setPicks({})

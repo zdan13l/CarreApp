@@ -6,9 +6,9 @@ import { distanceMeters } from '../lib/geo'
 import { formatDistance } from '../lib/mapbox'
 import { supabase } from '../lib/supabase'
 
-export async function sendMatchAlert(eventId: string, matchId: string, message: string): Promise<string | null> {
+export async function sendMatchAlert(eventId: string, matchId: string, message: string, target: 'groups' | 'base' = 'groups'): Promise<string | null> {
   if (!supabase) return 'Supabase no está configurado.'
-  const { error } = await supabase.from('alerts').insert({ event_id: eventId, match_id: matchId, message: message.trim() })
+  const { error } = await supabase.from('alerts').insert({ event_id: eventId, match_id: matchId, message: message.trim(), ...(target === 'base' ? { target } : {}) })
   return error ? 'No se pudo enviar el aviso.' : null
 }
 

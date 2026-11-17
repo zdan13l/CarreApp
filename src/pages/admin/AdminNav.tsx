@@ -61,7 +61,7 @@ export default function AdminNav({
   )
 
   return (
-    <aside className="admin-nav">
+    <aside className={`admin-nav${open ? ' sheet-open' : ''}`}>
       <div className="admin-brand">
         <Logo size={34} />
         <p className="event">

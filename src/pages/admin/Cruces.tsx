@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BellRing } from 'lucide-react'
 import { sendMatchAlert } from '../../components/DelaysPanel'
 import RoundPager from '../../components/RoundPager'
-import { analyzeSchedule, currentRound, formatTime, generateSchedule, matchErrorMessage, type PlannedMatch } from '../../lib/schedule'
+import { analyzeSchedule, currentRound, formatTime, matchErrorMessage } from '../../lib/schedule'
 import { useRealtimeReload } from '../../lib/realtime'
 import { DEFAULT_ALERT_MESSAGE } from '../../lib/delays'
 import { supabase } from '../../lib/supabase'
@@ -23,8 +23,6 @@ export default function Cruces() {
   const [extraRounds, setExtraRounds] = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
   const [showAll, setShowAll] = useState(false)
-  const [proposal, setProposal] = useState<PlannedMatch[] | null>(null)
-  const [roundsToGenerate, setRoundsToGenerate] = useState(3)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -55,10 +53,6 @@ export default function Cruces() {
   const teamName = useMemo(() => new Map(teams.map((t) => [t.id, t.name])), [teams])
   const baseName = useMemo(() => new Map(bases.map((b) => [b.id, b.name])), [bases])
   const analysis = useMemo(() => analyzeSchedule(matches, teams, bases), [matches, teams, bases])
-  const proposalAnalysis = useMemo(
-    () => (proposal ? analyzeSchedule(proposal, teams, bases) : null),
-    [proposal, teams, bases],
-  )
 
   if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
 
@@ -66,7 +60,6 @@ export default function Cruces() {
   const roundCount = Math.max(maxRound, extraRounds, 1)
   const shownRound = Math.min(selected ?? currentRound(matches), roundCount)
   const roundMatches = matches.filter((m) => m.round_number === shownRound)
-  const maxPossibleRounds = Math.max(teams.length - (teams.length % 2 === 0 ? 1 : 0), 1)
 
   async function run(action: () => Promise<void>) {
     setBusy(true)
@@ -79,35 +72,6 @@ export default function Cruces() {
     } finally {
       setBusy(false)
     }
-  }
-
-  function propose() {
-    setProposal(
-      generateSchedule(
-        teams.map((t) => t.id),
-        bases.map((b) => b.id),
-        roundsToGenerate,
-      ),
-    )
-  }
-
-  function saveProposal() {
-    if (!proposal || !supabase || !eventId) return
-    const withScores = matches.some((m) => m.status !== 'pending')
-    const msg = matches.length
-      ? `Esto reemplaza los ${matches.length} cruces actuales${withScores ? ' y BORRA los puntos ya registrados' : ''}. ¿Continuar?`
-      : null
-    if (msg && !window.confirm(msg)) return
-    void run(async () => {
-      const del = await supabase!.from('matches').delete().eq('event_id', eventId)
-      if (del.error) throw new Error('No se pudieron borrar los cruces actuales.')
-      const { error: err } = await supabase!
-        .from('matches')
-        .insert(proposal.map((p) => ({ ...p, event_id: eventId })))
-      if (err) throw new Error(matchErrorMessage(err.message))
-      setProposal(null)
-      setExtraRounds(0)
-    })
   }
 
   function clearAll() {
@@ -135,58 +99,12 @@ export default function Cruces() {
       {notEnough ? (
         <p className="warn">Necesitas al menos 2 grupos y 1 base para armar cruces.</p>
       ) : (
-        <section className="card">
-          <h2>Generar propuesta automática</h2>
-          <p className="muted">
-            Reparte los grupos para que nadie repita rival ni se cruce en dos bases a la vez, y rota las bases.
-            Con {teams.length} grupos puedes tener hasta {maxPossibleRounds} rondas sin repetir rivales.
-            Puedes ajustar a mano después.
+        matches.length === 0 && (
+          <p className="ok-box">
+            El cronograma se arma a mano: en cada ronda agrega los cruces eligiendo la base y los dos grupos. La app no deja repetir rivales ni
+            poner un grupo en dos bases a la vez.
           </p>
-          <div className="row">
-            <label className="inline-field grow">
-              Rondas a generar
-              <input
-                type="number"
-                min={1}
-                max={maxPossibleRounds}
-                value={roundsToGenerate}
-                onChange={(e) => setRoundsToGenerate(Math.max(1, Math.min(maxPossibleRounds, Number(e.target.value) || 1)))}
-              />
-            </label>
-            <button disabled={busy} onClick={propose}>Ver propuesta</button>
-          </div>
-
-          {proposal && proposalAnalysis && (
-            <div className="proposal">
-              <h3>Propuesta ({proposal.length} cruces)</h3>
-              {Array.from({ length: Math.max(...proposal.map((p) => p.round_number), 0) }, (_, i) => i + 1).map((r) => (
-                <div key={r}>
-                  <strong>Ronda {r}</strong>
-                  <ul className="list">
-                    {proposal.filter((p) => p.round_number === r).map((p) => (
-                      <li key={p.base_id}>
-                        <span className="grow">{teamName.get(p.team_a)} vs {teamName.get(p.team_b)}</span>
-                        <span className="badge idle">{baseName.get(p.base_id)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-              {proposalAnalysis.warnings.length > 0 && (
-                <div className="warn">
-                  <strong>Ojo:</strong>
-                  <ul>{proposalAnalysis.warnings.map((w) => <li key={w}>{w}</li>)}</ul>
-                </div>
-              )}
-              <div className="row">
-                <button disabled={busy || proposal.length === 0} onClick={saveProposal}>
-                  {matches.length ? 'Guardar (reemplaza los cruces actuales)' : 'Guardar propuesta'}
-                </button>
-                <button className="ghost" onClick={() => setProposal(null)}>Descartar</button>
-              </div>
-            </div>
-          )}
-        </section>
+        )
       )}
 
       {matches.length > 0 && (

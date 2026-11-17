@@ -22,6 +22,12 @@ export async function deletePhoto(path: string | null) {
   await supabase.storage.from(BUCKET).remove([path])
 }
 
+export async function deletePhotos(paths: (string | null | undefined)[]) {
+  const list = paths.filter((p): p is string => Boolean(p))
+  if (!supabase || list.length === 0) return
+  await supabase.storage.from(BUCKET).remove(list)
+}
+
 export function photoUrl(path: string | null): string | null {
   if (!supabase || !path) return null
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
