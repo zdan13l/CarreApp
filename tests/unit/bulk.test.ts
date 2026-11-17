@@ -113,7 +113,7 @@ describe('people', () => {
       ['María', 'Base', 'Atrio', '', '', ''],
     ])
     expect(rows.map((r) => r.username)).toEqual(['juan.perez', 'juan.perez2', 'maria'])
-    expect(rows.every((r) => r.password.length === 8 && r.errors.length === 0)).toBe(true)
+    expect(rows.every((r) => /^[A-Za-z0-9]{8,40}$/.test(r.password) && r.errors.length === 0)).toBe(true)
   })
 
   it('keeps explicit usernames and passwords, and accepts the full internal email', () => {
