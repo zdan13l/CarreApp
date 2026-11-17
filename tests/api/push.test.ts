@@ -93,7 +93,7 @@ describe('sending', () => {
     const [subscription, payload, options] = state.sendNotification.mock.calls[0]
     expect(subscription).toEqual({ endpoint: 'https://push/1', keys: { p256dh: 'k1', auth: 'a1' } })
     expect(JSON.parse(payload)).toEqual({ title: 'Llevas 12 min', body: 'Apúrate', tag: 't1' })
-    expect(options).toEqual({ TTL: 60, urgency: 'high' })
+    expect(options).toEqual({ TTL: 180, urgency: 'high' })
   })
 
   it('skips users who never subscribed', async () => {

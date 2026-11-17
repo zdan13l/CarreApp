@@ -78,12 +78,12 @@ describe('resilience of the screens (third QA run)', () => {
     expect(read('src/pages/admin/AdminLayout.tsx')).toMatch(/<ConnectionBanner/)
   })
   it('signing out asks first and removes the push subscription of the phone', () => {
-    expect(read('src/components/AppShell.tsx')).toMatch(/window\.confirm\('¿Cerrar sesión\?'\)/)
-    expect(read('src/pages/admin/AdminLayout.tsx')).toMatch(/window\.confirm\('¿Cerrar sesión\?'\)/)
+    expect(read('src/components/AppShell.tsx')).toMatch(/confirmDialog\(\{ title: '¿Cerrar sesión\?'/)
+    expect(read('src/pages/admin/AdminLayout.tsx')).toMatch(/confirmDialog\(\{ title: '¿Cerrar sesión\?'/)
     expect(read('src/lib/auth.tsx')).toMatch(/disablePush\(\)/)
   })
   it('changing or deleting a score asks first; the push secret is compared in constant time', () => {
-    expect(read('src/pages/admin/Puntajes.tsx')).toMatch(/window\.confirm\(`\$\{ITEM_LABEL\[item\]\}/)
+    expect(read('src/pages/admin/Puntajes.tsx')).toMatch(/confirmDialog\(\{ title: `\$\{ITEM_LABEL\[item\]\}/)
     expect(read('api/push.ts')).toMatch(/timingSafeEqual/)
   })
   it('the text is never smaller than 12px', () => {

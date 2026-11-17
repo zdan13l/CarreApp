@@ -26,15 +26,22 @@ describe('usernames', () => {
 })
 
 describe('generated passwords', () => {
-  it('are readable (no look-alike characters), 8 long by default and different each time', () => {
+  it('are silly leet-speak words (like D3lF1nZ4p4t0): letters and digits only, 8 or more long, with a digit and a capital, and different each time', () => {
     const seen = new Set<string>()
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 300; i++) {
       const p = generatePassword()
-      expect(p).toMatch(/^[a-hj-km-np-zA-HJ-NP-Z2-9]{8}$/)
+      expect(p).toMatch(/^[A-Za-z0-9]{8,40}$/)
+      expect(p).toMatch(/\d/)
+      expect(p.slice(1)).toMatch(/[A-Z]/)
+      expect(p[0]).toMatch(/[A-Z0-9]/)
       seen.add(p)
     }
-    expect(seen.size).toBeGreaterThan(195)
-    expect(generatePassword(12)).toHaveLength(12)
+    expect(seen.size).toBeGreaterThan(280)
+    expect(generatePassword(12).length).toBeGreaterThanOrEqual(12)
+  })
+
+  it('stay above the minimum the server and the templates accept (6 characters)', () => {
+    for (let i = 0; i < 100; i++) expect(generatePassword().length).toBeGreaterThanOrEqual(6)
   })
 })
 
