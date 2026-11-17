@@ -5,7 +5,7 @@ Guía para ensayar una Carrera de verdad con teléfonos, antes del día. Usa la 
 ## Qué trae la Carrera de prueba
 - **6 grupos:** Dioses Griegos, Dioses Nórdicos, Samuráis, Guerreros Aztecas, Vikingos, Gladiadores.
 - **3 bases** con información, 3 preguntas y ubicación en el campus: Atrio, Cancha de Fútbol, Biblioteca.
-- **15 usuarios:** 12 corredores (2 por grupo, el primero transmite el GPS) y 3 inductores, con usuarios `prueba.c1a`, `prueba.c1b`, … `prueba.i1` … `prueba.i3`. **Las contraseñas se generan al subir el archivo** y se muestran una sola vez: cópialas (no están en el archivo ni en el repositorio).
+- **15 usuarios:** 12 corredores (2 por grupo, el primero transmite el GPS; en la Carrera real basta un usuario por grupo, compartido por la pareja) y 3 inductores, con usuarios `prueba.c1a`, `prueba.c1b`, … `prueba.i1` … `prueba.i3`. **Las contraseñas se generan al subir el archivo** y se muestran una sola vez: cópialas (no están en el archivo ni en el repositorio).
 - **15 cruces en 5 rondas** (cada grupo juega contra los otros 5, nadie juega dos veces en una ronda) y los **tiempos entre bases** (3 a 5 min; el general es de 8).
 
 ## Paso a paso
