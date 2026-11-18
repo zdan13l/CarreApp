@@ -40,12 +40,26 @@ describe('control tower (coordinator)', () => {
   })
 })
 
-describe('official logo', () => {
-  it('is used from its own files, with its natural proportions (width and height attributes of the file, never stretched)', () => {
-    for (const f of ['src/pages/Login.tsx', 'src/components/Passport.tsx', 'src/pages/admin/AdminNav.tsx']) {
-      expect(read(f), f).toMatch(/width=\{480\} height=\{627\}/)
-    }
-    expect(css).toMatch(/\.uni-mark \{[^}]*width: auto/)
-    expect(css).toMatch(/\.tower-uni \{[^}]*width: auto/)
+describe('CarreApp logo (the crest, dorado)', () => {
+  it('is one component painted with masks, used on the login, the menus and the bars, and never stretched (width follows the height)', () => {
+    const logo = read('src/components/Logo.tsx')
+    expect(logo).toMatch(/logo-crest/)
+    expect(logo).toMatch(/logo-word/)
+    expect(css).toMatch(/\.logo-crest \{[^}]*width: calc\(var\(--logo-s, 34px\) \* \.915\)/)
+    for (const f of ['src/pages/Login.tsx', 'src/pages/admin/AdminNav.tsx', 'src/components/AppShell.tsx']) expect(read(f), f).toMatch(/<Logo/)
+  })
+
+  it('the cover of the passport shows the gold crest and the identity page the compact one, with the proportions of their files', () => {
+    const pass = read('src/components/Passport.tsx')
+    expect(pass).toMatch(/src="\/crest-dorado\.svg" alt="CarreApp" width=\{1110\} height=\{1215\}/)
+    expect(pass).toMatch(/src="\/crest-simple\.svg" alt="CarreApp" width=\{569\} height=\{622\}/)
+    expect(css).toMatch(/\.cover-uni \{[^}]*width: auto/)
+  })
+
+  it('the installable icons and the favicon are the gold crest without the name, and the old logo gallery is gone', () => {
+    expect(fs.existsSync(rootPath('src/components/logos.tsx'))).toBe(false)
+    expect(fs.existsSync(rootPath('src/pages/LogoGallery.tsx'))).toBe(false)
+    expect(read('vite.config.ts')).toMatch(/pwa-maskable-512\.png/)
+    expect(read('public/favicon.svg')).not.toMatch(/<text/)
   })
 })

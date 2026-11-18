@@ -44,13 +44,13 @@ La foto de la base ocupa la tarjeta (4:5) con la **señalética**: puerta, códi
 - Menú con el escudo de la Universidad, la marca y la **hora local** (corregida con la del servidor).
 
 ### Entrada
-La portada del pasaporte: la **foto del campus** (`public/campus.jpg` y `campus-800.jpg` para teléfonos) con velo azul, el **escudo oficial** de la Universidad (`javeriana-logo-white.png`, con sus proporciones), el título "Pasaporte de la Carrera" en lámina y el formulario en una hoja de papel (arriba en el celular, a la derecha en PC). Los archivos del escudo (`javeriana-logo.png` sobre fondos claros y `javeriana-logo-white.png` sobre oscuros) son el escudo oficial con el fondo transparente; solo se cambió el fondo, no el dibujo ni las proporciones.
+La portada del pasaporte: la **foto del campus** (`public/campus.jpg` y `campus-800.jpg` para teléfonos) con velo azul, el **logo de CarreApp** arriba a la izquierda (frente al interruptor de modo claro u oscuro), el título "Pasaporte" en lámina y el formulario en una hoja de papel (arriba en el celular, a la derecha en PC). Ya no lleva el escudo de la Universidad.
 
 ### Movimiento
 CSS puro, sin librerías. Cambiar de pestaña = **pasar la página** (transición de vista de 150 a 240 ms con la API View Transitions, con las barras de navegación fuera de la animación; sin ella o con "reducir movimiento" el cambio es inmediato). Entradas de 350 a 700 ms con desaceleración; el sello y su momento son lo único con rebote corto. Todos los `@keyframes` solo describen el inicio, así que con "reducir movimiento" cada elemento queda en su estado final (regla global en `index.css`, vigilada por `tests/static/visado.test.ts`).
 
 ## Logo
-Una **C** dorada (la Carrera) con una **aguja de brújula** azul en su interior (la ruta que hay que seguir). Archivos en `public/`: `logo.svg`, `favicon.svg` y los PNG de la app instalada (`pwa-192.png`, `pwa-512.png`, `pwa-maskable-512.png`, `apple-touch-icon.png`). El componente `Logo` dibuja la marca y el nombre "Carre**App**".
+El **escudo** (versión del logo elegida el 2026-11-18, sin la C ni la brújula anteriores). El **ícono de la app no lleva texto**: escudo en lámina dorada sobre el azul de la app, que es la portada del pasaporte. Archivos de la app en `public/`: `crest-dorado.svg` (portada del pasaporte), `crest-simple.svg` y `wordmark.svg` (se pintan con máscara en el componente `Logo`, del color del lugar: `--logo-ink`, blanco sobre las portadas azules), `favicon.svg` y los PNG (`pwa-192`, `pwa-512`, `pwa-maskable-512`, `apple-touch-icon`, `favicon`). Todos los formatos (isotipo, logotipo, imagotipo, isologo para impresos, versiones azul, blanca y dorada) están en `docs/logo/final/` con sus reglas de uso. **Importante:** este escudo es una reinterpretación, no el escudo oficial de la Universidad; conviene confirmar con ella que aprueba esta versión. Para volver a la brújula anterior hay que cambiar esos archivos y el componente `Logo`.
 
 ## Paleta · papel y pasaporte de noche
 Todos los colores son variables en `src/index.css`. **Claro** = papel de seguridad (azul grisáceo muy pálido con tinta azul marino); **oscuro** = "pasaporte de noche".
@@ -80,7 +80,7 @@ Los fondos de avisos y etiquetas se derivan con `color-mix`. Todos los pares de 
 - **Tipografía:** Archivo condensado y en mayúsculas para títulos y marcadores, Archivo normal para el texto y la monoespaciada del sistema para etiquetas de campo y líneas de lectura.
 
 ### Logo
-Seis opciones listas (`src/components/logos.tsx`, galería en `/preview/logos`): **Brújula** (en uso: una C dorada con la aguja azul que marca el camino), C con destino, Podio, Pista, Bandera y Doble paso. Cambiar de logo es cambiar `LOGO_VARIANT` en `src/components/Logo.tsx`. Los íconos de la app (favicon, iPhone, PWA) se generan con el mismo dibujo; si cambias de logo hay que regenerarlos.
+La galería de seis opciones se retiró: el logo es el escudo (ver arriba).
 
 ### Modo claro y oscuro
 Cada persona elige su modo con el botón de **sol / luna** de la barra superior (corredor, base, coordinador y pantalla de entrada). La elección se guarda en el teléfono (`localStorage`, clave `carreapp.theme`); la primera vez la app es **clara** (el papel); el oscuro es el "pasaporte de noche". Un pequeño script de `index.html` aplica el modo guardado antes de pintar, así no hay parpadeo, y el color de la barra del navegador (`theme-color`) cambia con él.
