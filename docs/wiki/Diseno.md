@@ -5,7 +5,7 @@ Guía visual de CarreApp. Sirve para que cualquier pantalla nueva se vea igual q
 ## Idea · "Visado": un mismo universo, dos experiencias
 **Un viaje internacional.** Cada grupo es un vuelo, cada base es un destino con puerta y código de aeropuerto, y el pasaporte es la prueba del viaje. Un mismo lenguaje (sellos, códigos de tres letras, indicativos de vuelo, el escudo de la Universidad) y dos experiencias distintas:
 
-- **Corredores: viajeros.** Papel de seguridad (una trama muy tenue de rosetas, *guilloché*), portada azul con **lámina dorada**, fotografías inmersivas y un pasaporte digital con **los sellos de las bases**. **Claro por defecto** (el papel se lee mejor al sol) y un modo oscuro "pasaporte de noche".
+- **Corredores: viajeros.** Papel limpio (sin tramas de fondo), portada azul con **lámina dorada**, fotografías inmersivas y un pasaporte digital con **los sellos de las bases**. **Claro por defecto** (el papel se lee mejor al sol) y un modo oscuro "pasaporte de noche".
 - **Coordinador: torre de control.** Un centro de operaciones **siempre oscuro** (sin importar el modo de la app), con rejilla de cartografía, radar, tablero de vuelos y colores de instrumento (verde radar, ámbar, cian, rojo). Las mismas variables de color de siempre, con otros valores dentro de `.tower`.
 
 Sin emojis: iconos de línea (Lucide) y escudos con iniciales. Sin fuentes nuevas. Todo el vocabulario aeroportuario sale de datos reales (grupos, bases, cruces), nunca se guarda ni se inventa: `src/lib/flight.ts`.
@@ -17,7 +17,7 @@ Sin emojis: iconos de línea (Lucide) y escudos con iniciales. Sin fuentes nueva
 - **Las tres etapas** de un destino (barra, pregunta, minijuego) están hechas cuando la base las calificó (gane quien gane, o invalidada). **Cuando las tres están hechas el cruce termina y el grupo recibe el sello**: no se tocó la lógica de validación.
 
 ### Qué se repite en todas las pantallas
-- **Papel de seguridad:** trama de rosetas fija detrás del contenido (`body::before`, variable `--guilloche`) y la misma trama, en blanco, sobre los bloques azules.
+- **Sin tramas ni círculos de fondo:** se retiraron las rosetas (el diseño pide fondos limpios).
 - **Lámina dorada** (`--foil`): línea bajo la cabecera, borde inferior de la portada del corredor, de la oficina de control y de las tarjetas destacadas, y título de la entrada.
 - **Etiquetas de campo** en monoespaciada del sistema y mayúsculas (como los campos de un documento): `h3`, `.eyebrow`, etiquetas de formulario, indicadores. Las **líneas de lectura** (`Mrz`) cierran la entrada y el pasaporte con datos reales (grupo, sellos, rondas).
 - **Perforación de estampilla** en el borde inferior de la foto del visado y alrededor de las miniaturas ("Próximo visado").
@@ -44,7 +44,7 @@ La foto de la base ocupa la tarjeta (4:5) con la **señalética**: puerta, códi
 - Menú con el escudo de la Universidad, la marca y la **hora local** (corregida con la del servidor).
 
 ### Entrada
-La portada del pasaporte: la **foto del campus** (`public/campus.jpg` y `campus-800.jpg` para teléfonos) con velo azul, el **logo de CarreApp** arriba a la izquierda (frente al interruptor de modo claro u oscuro), el título "Pasaporte" en lámina y el formulario en una hoja de papel (arriba en el celular, a la derecha en PC). Ya no lleva el escudo de la Universidad.
+El login es **la foto del campus a pantalla completa** (`public/campus.jpg` y `campus-800.jpg` para teléfonos), el logo de CarreApp arriba a la izquierda (frente al interruptor de modo claro u oscuro), la frase "Un sello por cada base que alcances" y el formulario como una **tarjeta de embarque** (PUJ → 2710, perforación con talón, código de barras y líneas de lectura). **En el celular cabe entera, sin scroll** (100dvh): si la pantalla es baja, la tarjeta se compacta (sin código de barras y, en las muy bajas, sin talón). En PC, la foto a la izquierda y la tarjeta a la derecha. Ya no aparece la palabra "Pasaporte" en el login.
 
 ### Movimiento
 CSS puro, sin librerías. Cambiar de pestaña = **pasar la página** (transición de vista de 150 a 240 ms con la API View Transitions, con las barras de navegación fuera de la animación; sin ella o con "reducir movimiento" el cambio es inmediato). Entradas de 350 a 700 ms con desaceleración; el sello y su momento son lo único con rebote corto. Todos los `@keyframes` solo describen el inicio, así que con "reducir movimiento" cada elemento queda en su estado final (regla global en `index.css`, vigilada por `tests/static/visado.test.ts`).
