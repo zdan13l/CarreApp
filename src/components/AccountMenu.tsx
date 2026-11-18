@@ -10,11 +10,13 @@ export default function AccountMenu({
   onSignOut,
   placement = 'down',
   roleLabel,
+  showTheme = true,
 }: {
   user?: { full_name: string; username: string; photo_path?: string | null }
   onSignOut: () => void
   placement?: 'down' | 'up'
   roleLabel?: string
+  showTheme?: boolean // the coordinator's panel is always dark: no switch there
 }) {
   const [open, setOpen] = useState(false)
   const [theme, setTheme] = useTheme()
@@ -57,10 +59,12 @@ export default function AccountMenu({
             <strong>{name}</strong>
             <small>@{user?.username}{roleLabel ? ` · ${roleLabel}` : ''}</small>
           </div>
-          <button type="button" role="menuitem" className="account-item" onClick={() => setTheme(next)}>
-            {next === 'light' ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
-            {next === 'light' ? 'Modo claro' : 'Modo oscuro'}
-          </button>
+          {showTheme && (
+            <button type="button" role="menuitem" className="account-item" onClick={() => setTheme(next)}>
+              {next === 'light' ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
+              {next === 'light' ? 'Modo claro' : 'Modo oscuro'}
+            </button>
+          )}
           <button
             type="button"
             role="menuitem"

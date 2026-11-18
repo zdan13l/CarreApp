@@ -2,6 +2,8 @@ import { MapPin, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import BaseLocationEditor from '../../components/BaseLocationEditor'
 import PhotoField from '../../components/PhotoField'
+import Stamp from '../../components/Stamp'
+import { airportCode } from '../../lib/flight'
 import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import { infoOf, type BaseRow, type Profile } from '../../types'
@@ -61,8 +63,9 @@ export default function Bases() {
 
   return (
     <>
-      <h1>Bases</h1>
-      <p className="muted">{bases.length} bases en {event.name}</p>
+      <p className="eyebrow">Gate Management</p>
+      <h1>Puertas</h1>
+      <p className="muted">{bases.length} bases (destinos) en {event.name}. Cada una tiene su código de aeropuerto y su propio sello.</p>
 
       <section className="card">
         <h2>Agregar base</h2>
@@ -178,6 +181,13 @@ export function BaseCard({
 
   return (
     <section className="card">
+      <div className="base-stamp">
+        <Stamp seed={base.id} name={base.name} photoPath={base.location_photo_path} round={0} state="stamped" size={84} straight />
+        <p>
+          <strong>Destino <span className="mono gate-code">{airportCode(base.name)}</span></strong>
+          Así es su sello en el pasaporte de los grupos. Sale de la foto del lugar.
+        </p>
+      </div>
       <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
 
       <div className="form">

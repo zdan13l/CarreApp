@@ -8,7 +8,7 @@ import { photoUrl } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import { useAdmin } from './AdminContext'
 import { serverNow } from '../../lib/clock'
-import { useTheme } from '../../lib/theme'
+import { airportCode, flightCodes } from '../../lib/flight'
 
 interface BasePoint {
   id: string
@@ -34,7 +34,6 @@ interface TeamLocation {
 const STALE_MS = 2 * 60 * 1000 // no signal for 2 minutes
 
 export default function Mapa() {
-  const [theme] = useTheme()
   const { event } = useAdmin()
   const [bases, setBases] = useState<BasePoint[]>([])
   const [teams, setTeams] = useState<TeamInfo[]>([])
@@ -94,10 +93,12 @@ export default function Mapa() {
     [matches, event?.max_travel_minutes, now, travel],
   )
 
+  const codes = useMemo(() => flightCodes(teams), [teams])
+
   const markers = useMemo<MapMarker[]>(() => {
     const list: MapMarker[] = []
     for (const b of bases) {
-      if (b.lat !== null && b.lng !== null) list.push({ id: `b-${b.id}`, lng: b.lng, lat: b.lat, label: b.name, kind: 'base' })
+      if (b.lat !== null && b.lng !== null) list.push({ id: `b-${b.id}`, lng: b.lng, lat: b.lat, label: `${airportCode(b.name)} · ${b.name}`, kind: 'base' })
     }
     for (const t of teams) {
       const loc = locationByTeam.get(t.id)
@@ -106,7 +107,7 @@ export default function Mapa() {
           id: `t-${t.id}`,
           lng: loc.lng,
           lat: loc.lat,
-          label: t.name,
+          label: `${codes.get(t.id) ?? ''} · ${t.name}`,
           kind: 'team',
           photo: photoUrl(t.photo_path),
           stale: now - new Date(loc.updated_at).getTime() > STALE_MS,
@@ -115,7 +116,7 @@ export default function Mapa() {
       }
     }
     return list
-  }, [bases, teams, locationByTeam, now, lateIds])
+  }, [bases, teams, locationByTeam, now, lateIds, codes])
 
   if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
 
@@ -123,13 +124,17 @@ export default function Mapa() {
 
   return (
     <>
-      <h1>Mapa en vivo</h1>
+      <p className="eyebrow">Flight Radar</p>
+      <h1>Radar de vuelos</h1>
       <p className="muted">
-        Cada grupo aparece con la ubicación del corredor designado para el GPS. Se actualiza solo.
+        Cada vuelo (grupo) aparece con la ubicación del corredor designado para el GPS. Se actualiza solo.
       </p>
 
       <section className="card map-card">
-        <LazyMap markers={markers} height="min(70vh, 560px)" lightPreset={theme === 'dark' ? 'dusk' : 'day'} />
+        <div className="radar-frame">
+          <LazyMap markers={markers} height="min(70vh, 560px)" lightPreset="night" />
+          <div className="radar-sweep" aria-hidden="true" />
+        </div>
       </section>
 
       {withoutLocation.length > 0 && (
@@ -139,13 +144,15 @@ export default function Mapa() {
       )}
 
       <section className="card">
-        <h2>Grupos</h2>
-        <ul className="list">
+        <p className="eyebrow">Vuelos</p>
+        <h2>Señal de cada vuelo</h2>
+        <ul className="list radar-list">
           {teams.map((t) => {
             const loc = locationByTeam.get(t.id)
             const stale = loc ? now - new Date(loc.updated_at).getTime() > STALE_MS : false
             return (
               <li key={t.id}>
+                <span className="fl-code mono">{codes.get(t.id)}</span>
                 <span className="grow">{t.name}</span>
                 {lateIds.has(t.id) && <span className="chip lose">En demora</span>}
                 {!loc ? (

@@ -2,9 +2,12 @@ import { BellRing, ChevronRight, Flag } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DelaysPanel, { sendMatchAlert } from '../../components/DelaysPanel'
+import FlightBoard from '../../components/FlightBoard'
+import OpsLog, { buildOpEvents } from '../../components/OpsLog'
 import Kpi from '../../components/Kpi'
 import Ranking from '../../components/Ranking'
 import { useNow } from '../../lib/alerts'
+import { airportCode, flightCodes, flightOf } from '../../lib/flight'
 import { DEFAULT_ALERT_MESSAGE, lateTeams } from '../../lib/delays'
 import { useRealtimeReload } from '../../lib/realtime'
 import { currentRound, formatTime } from '../../lib/schedule'
@@ -53,6 +56,7 @@ export default function EnVivo() {
   const [matches, setMatches] = useState<LiveMatch[]>([])
   const [standings, setStandings] = useState<StandingRow[]>([])
   const [positions, setPositions] = useState<Position[]>([])
+  const [alerts, setAlerts] = useState<{ id: string; match_id: string; message: string; created_at: string }[]>([])
   const [pending, setPending] = useState(0) // what still prevents activating a draft Carrera
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -64,7 +68,7 @@ export default function EnVivo() {
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
-    const [t, b, m, s, p] = await Promise.all([
+    const [t, b, m, s, p, al] = await Promise.all([
       supabase.from('teams').select('id, name').eq('event_id', eventId).order('sort_order'),
       supabase.from('bases').select('id, name, lat, lng').eq('event_id', eventId).order('sort_order'),
       supabase
@@ -74,7 +78,9 @@ export default function EnVivo() {
         .order('round_number'),
       supabase.from('team_standings').select('team_id, name, photo_path, points').eq('event_id', eventId),
       active ? Promise.resolve(null) : supabase.rpc('event_problems', { p_event: eventId }),
+      supabase.from('alerts').select('id, match_id, message, created_at').eq('event_id', eventId).order('created_at', { ascending: false }).limit(20),
     ])
+    setAlerts(al.data ?? [])
     setTeams(t.data ?? [])
     setBases(b.data ?? [])
     setMatches((m.data ?? []) as LiveMatch[])
@@ -94,7 +100,7 @@ export default function EnVivo() {
     void loadPositions()
   }, [load, loadPositions])
 
-  useRealtimeReload(['matches', 'match_scores', 'bases'], load)
+  useRealtimeReload(['matches', 'match_scores', 'bases', 'alerts'], load)
   useRealtimeReload(['team_locations'], loadPositions)
 
   const teamName = useMemo(() => new Map(teams.map((t) => [t.id, t.name])), [teams])
@@ -105,7 +111,6 @@ export default function EnVivo() {
   const round = currentRound(matches)
   const totalRounds = matches.reduce((max, m) => Math.max(max, m.round_number), 0)
   const inRound = matches.filter((m) => m.round_number === round)
-  const finished = matches.filter((m) => m.status === 'finished').length
   const sharing = positions.filter((p) => teams.some((t) => t.id === p.team_id) && now - new Date(p.updated_at).getTime() < NO_SIGNAL_MS)
   const wins = (m: LiveMatch, id: string) => m.match_scores.filter((s) => s.winner_team_id === id).length
 
@@ -147,14 +152,25 @@ export default function EnVivo() {
     else await reload()
   }
 
-  const late = active ? lateTeams(matches, event.max_travel_minutes, now, travel).length : 0
+  const lateList = active ? lateTeams(matches, event.max_travel_minutes, now, travel) : []
+  const late = lateList.length
+  const lateIds = new Set(lateList.map((l) => l.teamId))
+  const codes = flightCodes(teams)
+  const flights = teams.map((t) => flightOf(t.id, matches))
+  const enRuta = flights.filter((f) => f.state === 'en-ruta').length
+  const enPuerta = flights.filter((f) => f.state === 'en-puerta').length
+  const aterrizados = flights.filter((f) => f.state === 'aterrizado').length
+
+  // Operations Log: only things that really happened (a base confirming an arrival, a match finished, an alert sent).
+  const sign = (id: string) => codes.get(id) ?? teamName.get(id) ?? '—'
+  const ops = buildOpEvents({ matches, alerts, baseName, teamName, codes })
 
   return (
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">{event.name}</p>
-          <h1>En vivo</h1>
+          <p className="eyebrow">Live Monitoring · {event.name}</p>
+          <h1>Control de vuelos</h1>
         </div>
         <div className="head-meta">
           <span className={`badge ${active ? 'ok live' : ''}`}>{active ? 'Activa' : 'Borrador'}</span>
@@ -182,18 +198,25 @@ export default function EnVivo() {
       {matches.length > 0 && (
         <div className="kpis">
           <Kpi tone="accent" label="Ronda en curso" value={`${round}/${totalRounds}`} sub={`${inRound.filter((m) => m.status === 'finished').length} de ${inRound.length} cruces terminados`} />
-          <Kpi label="Cruces" value={`${finished}/${matches.length}`} sub="terminados en la Carrera" to="/admin/cruces" />
-          <Kpi tone={late > 0 ? 'hot' : undefined} label="Demoras" value={late} sub={late === 1 ? 'grupo tarde al traslado' : 'grupos tarde al traslado'} />
-          <Kpi label="Ubicación" value={`${sharing.length}/${teams.length}`} sub="grupos compartiendo GPS" to="/admin/mapa" />
+          <Kpi label="En ruta" value={enRuta} sub={enRuta === 1 ? 'vuelo hacia su destino' : 'vuelos hacia su destino'} />
+          <Kpi label="En puerta" value={enPuerta} sub="la base confirmó su llegada" />
+          <Kpi label="Aterrizados" value={`${aterrizados}/${teams.length}`} sub="con todos sus sellos" />
+          <Kpi tone={late > 0 ? 'hot' : undefined} label="Demoras" value={late} sub={late === 1 ? 'vuelo tarde al traslado' : 'vuelos tarde al traslado'} />
+          <Kpi label="Radar" value={`${sharing.length}/${teams.length}`} sub="vuelos con GPS" to="/admin/mapa" />
         </div>
       )}
+
+      {matches.length > 0 && <FlightBoard teams={teams} matches={matches} baseName={baseName} codes={codes} lateIds={lateIds} />}
 
       <div className="live-grid">
         <div>
           {inRound.length > 0 && (
             <section className="card">
               <div className="match-head">
-                <h2>Ronda {round}</h2>
+                <div>
+                  <p className="eyebrow">Gate Management</p>
+                  <h2>Puertas · Ronda {round}</h2>
+                </div>
                 <span className="chip">{inRound.filter((m) => m.status === 'finished').length} de {inRound.length} terminados</span>
               </div>
               <ul className="list">
@@ -202,10 +225,11 @@ export default function EnVivo() {
                   return (
                     <li key={m.id} className="mrow">
                       <span className="mbase">
+                        <b className="mono gate-code">{airportCode(baseName.get(m.base_id) ?? '')}</b>
                         <strong>{baseName.get(m.base_id)}</strong>
                       </span>
                       <span className="mteams">
-                        {teamName.get(m.team_a)} <span className="muted">vs</span> {teamName.get(m.team_b)}
+                        {teamName.get(m.team_a)} <span className="muted mono">{sign(m.team_a)}</span> <span className="muted">vs</span> {teamName.get(m.team_b)} <span className="muted mono">{sign(m.team_b)}</span>
                       </span>
                       <span className="mmeta">
                         <span className={`badge ${m.status === 'finished' ? 'ok' : m.status === 'in_progress' ? 'ok live' : ''}`}>{STATUS_LABEL[m.status]}</span>
@@ -224,7 +248,7 @@ export default function EnVivo() {
                         )}
                       </span>
                       <span className="mdetail">
-                        {resolved}/3 ítems{m.arrived_at ? ` · llegaron a las ${formatTime(m.arrived_at)}` : ''}
+                        {resolved}/3 etapas{m.arrived_at ? ` · en puerta desde las ${formatTime(m.arrived_at)}` : ''}
                       </span>
                     </li>
                   )
@@ -250,6 +274,8 @@ export default function EnVivo() {
               travel={travel}
             />
           )}
+
+          <OpsLog events={ops.slice(0, 14)} />
 
           <section className="card">
             <h2>Top equipos</h2>
