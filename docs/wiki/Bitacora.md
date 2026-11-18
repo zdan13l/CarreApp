@@ -2,6 +2,12 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Hallazgos de la quinta ejecución del tester (2026-11-18)
+- **Resultados antes de reiniciar:** *Finalizar Carrera* y *Desactivar* descargan un CSV con la clasificación y el detalle por cruce antes de borrar el avance (si no se puede leer, se pregunta antes de seguir); botón *Descargar resultados* en En vivo y en Puntajes. Nuevo `src/lib/results.ts` con pruebas.
+- Pruebas nuevas del tester en `tests/db/qa-extra.test.ts` (Carrera de 20 grupos, calificación simultánea, 30 avisos a la vez, escalada de rol, reinicio). Total: 426 pruebas.
+- `CLAUDE.md` al día (número de pruebas y vistas previas). Sin cambio: casillas de 22 px (el área tocable es la etiqueta de 44 px) y tabla ancha de `admin-forms` (se desplaza dentro de su contenedor).
+- **No se tocó** la lectura de `matches`, `teams` y `bases` entre Carreras (pide migración y cambia lo que ve cada rol; queda pendiente).
+
 ## Carrera de prueba con un usuario por grupo (2026-11-18)
 - `carrera-de-prueba.xlsx` ahora trae **9 usuarios**: un corredor por grupo (`prueba.c1` … `prueba.c6`, el mismo que transmite el GPS) y 3 inductores, como en la Carrera real. Las pruebas (`simulacro.test.ts`, `bulk.test.ts`) se ajustaron a 9 usuarios.
 - La guía [Prueba en vivo](Prueba-en-vivo) explica ahora los dos modos del coordinador (Preparación / En carrera) y que *Finalizar Carrera* reinicia el avance.

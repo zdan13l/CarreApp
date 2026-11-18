@@ -6,7 +6,7 @@ Dónde vive cada información y por qué. El criterio es sencillo: **cada dato v
 
 En el computador el menú lateral tiene dos grupos; en el celular la barra inferior muestra las pantallas en vivo y un botón **Preparar** que abre las de preparación.
 
-El panel tiene **dos modos** que se eligen arriba del menú lateral: **Preparación** (crear la Carrera) y **En carrera** (verla correr). Cambia solo de modo al activar o terminar la Carrera; mientras corre, Preparación sigue disponible con un aviso. **Finalizar Carrera** (en *En vivo*) o desactivarla **reinicia todo su avance** (puntajes, llegadas, avisos, ubicaciones, registro) y conserva grupos, bases, usuarios y cronograma.
+El panel tiene **dos modos** que se eligen arriba del menú lateral: **Preparación** (crear la Carrera) y **En carrera** (verla correr). Cambia solo de modo al activar o terminar la Carrera; mientras corre, Preparación sigue disponible con un aviso. **Finalizar Carrera** (en *En vivo*) o desactivarla **reinicia todo su avance**, pero antes **descarga los resultados** (CSV con la clasificación y el detalle por cruce; también hay un botón *Descargar resultados* en *En vivo* y en *Puntajes*) (puntajes, llegadas, avisos, ubicaciones, registro) y conserva grupos, bases, usuarios y cronograma.
 
 ### Durante la Carrera (modo En carrera)
 | Pantalla | Qué muestra | Para qué |

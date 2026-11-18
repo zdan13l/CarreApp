@@ -1,68 +1,62 @@
 # Informe de pruebas
 
-Cuarta ejecución, 2026-11-16 (simulacro de la Carrera de prueba en código, modo claro/oscuro, Eliminar Carrera, migración `0017`, ocultar posiciones viejas). Cada vez que se use el agente `carreapp-tester` este informe se actualiza con la fecha. Las ejecuciones anteriores están resumidas al final.
+Quinta ejecución, 2026-11-18 (panel del coordinador en dos modos, reinicio al desactivar `0020`, notificaciones, ventanas propias, contraseñas chistosas, privacidad de puntajes `0019`, Carrera de prueba con un usuario por grupo). Cada vez que se use el agente `carreapp-tester` este informe se actualiza con la fecha. Las ejecuciones anteriores están resumidas al final.
 
 ## Qué se probó
-- Puertas estáticas: `npx tsc -b`, `npx tsc -p api/tsconfig.json` y `npm run build` sin errores; `npm run lint`: 0 errores y 22 advertencias de los mismos tipos de siempre (`set-state-in-effect`, `only-export-components`, `exhaustive-deps`), ninguna en archivos nuevos.
-- **375 pruebas automáticas pasan** (`npm test`, 23 archivos) más **1 "fallo esperado"** (`it.fails`, el defecto 1 de abajo); `npm run test:race`: 14 pruebas.
-- **Simulacro en código** (`tests/db/simulacro.test.ts`, 39 pruebas; `npx vitest run tests/db/simulacro.test.ts --reporter=verbose` cuenta la historia). Carga el archivo real `public/plantillas/carrera-de-prueba.xlsx` con el mismo código de la app (`readTablesFromFile` + `parseTables` + `validateFile`), repite paso a paso lo que hace `BulkImport.tsx` contra la base en memoria (Carrera, 6 grupos, 3 bases con información, 3 preguntas y coordenadas, 9 usuarios (un corredor por grupo y 3 inductores) con `event_id` como `api/users.ts`, GPS, asignaciones, 15 cruces, 6 tiempos, 8 min general) y recorre `Prueba-en-vivo.md` como cada rol con RLS:
-  - activación bloqueada sin las 9 fotos y con otra Carrera activa; luego activa;
-  - 5 rondas con inductores (llegada y 3 ítems), un ítem invalidado por el coordinador (el inductor no puede), una corrección del coordinador (la base no puede), un cruce cancelado;
-  - un grupo lento con tiempos por tramo (3 a 5 min contra 8 general): a los 4 min 20 s solo Vikingos y Dioses Nórdicos (tramo de 4 min) reciben push y **solo sus 4 corredores**; con 8 min general nadie; los grupos que repiten base (Samuráis, Guerreros Aztecas) y el que descansa (en una transacción que se revierte) nunca; pantalla (`lateTeams`) y servidor (`check_delays`) coinciden con un modelo escrito a mano;
-  - avisos manuales del coordinador (sin límite) y de una base (1 cada 20 s por cruce; el segundo se rechaza y no genera push; otra base no se bloquea);
-  - GPS de los 6 corredores designados; ni el segundo corredor ni otro grupo escribe; una posición de 61 min se oculta (`isLocationFresh`, con límites exactos);
-  - privacidad (el corredor no lee información, preguntas, GPS ajeno ni auditoría; la llave pública no lee nada), intentos de subir de rol, desactivar a mitad de la Carrera (el inductor no puede confirmar ni calificar, no hay alertas) y reactivar;
-  - ranking final contra un conteo independiente (41 puntos = 45 menos 4 invalidados) y 45 filas de auditoría más 1 corrección;
-  - **Eliminar Carrera** igual que `DeleteEvent` (listar perfiles, borrar la Carrera, borrar los usuarios): todas las tablas vuelven a su estado previo (salvo el defecto 1), la otra Carrera y el coordinador quedan intactos y el mismo archivo se puede volver a cargar;
-  - **cargar el mismo archivo dos veces**: la vista previa marca los 9 usuarios y el botón queda bloqueado; forzando la carga, cada usuario falla con "Ese usuario ya existe", los 15 cruces se rechazan y ninguna tabla cambia.
-- 2 roturas deliberadas sobre el simulacro (`TEST_MUTATION_SQL`), ambas **detectadas**: quitar `alerts_rate_limit` y quitar `events_validate_activation` (una tercera tenía el nombre de la política mal escrito y no se aplicó: no cuenta).
-- Pruebas nuevas fuera del simulacro: `tests/static/theme-contrast.test.ts` (contraste real de los pares de color, claro y oscuro, incluidas las cajas teñidas con `color-mix`) y `tests/unit/theme.test.ts` (tema por defecto, guardado, valor corrupto, almacenamiento bloqueado).
-- **Revisión visual** con `npm run dev` y `/preview/*` más `/login`, a 390 y 1280 px, en tema claro y oscuro (`localStorage 'carreapp.theme'`), con un script que mide desbordamiento, contraste real calculado y objetivos táctiles. Se restauró el visor, se apagó el servidor y se borró la clave del tema.
-- No se probó con teléfonos reales, ni contra Supabase real, ni con credenciales.
+- Puertas estáticas: `npx tsc -b`, `npx tsc -p api/tsconfig.json` y `npm run build` sin errores; `npm run lint`: 0 errores (solo las advertencias conocidas `set-state-in-effect` / `only-export-components`).
+- **423 pruebas pasan** (`npm test`, 31 archivos, ~17 s); `npm run test:race`: 14 pruebas, historia correcta (5 rondas, un ítem invalidado, demora de 4 grupos avisada solo a sus corredores, corrección del coordinador, cruce cancelado; ranking final 9-9-7-6-6-4 con empate en el primer puesto y 45 registros de auditoría más 1 corrección).
+- **Casos nuevos** en `tests/db/qa-extra.test.ts` (9 pruebas, se conservan): Carrera de 20 grupos y 10 bases (50 cruces, 60 puntos en 20 cruces jugados); un ítem invalidado por el coordinador cambia el ganador y la base no puede invalidar; calificación simultánea del mismo ítem (queda exactamente 1 fila); intentos de subir de rol con sentencias estilo PostgREST (corredor e inductor: cambiar su rol, entrar a una base o un grupo, activar una Carrera, borrar cruces, renombrar grupos, leer auditoría, llamar `reset_event_progress`); 30 avisos simultáneos del coordinador (30 pushes con etiqueta única, cada uno a los 4 corredores); mover un cruce de base a mitad de carrera (el inductor viejo lo pierde, el nuevo lo puede confirmar, la doble reserva se rechaza); finalizar destruye la clasificación final; desactivar una Carrera no toca otra; un usuario nuevo tras el reinicio funciona al reactivar.
+- **10 roturas deliberadas** (`TEST_MUTATION_SQL` sobre `tests/db`), todas **detectadas**: quitar el trigger de reinicio `0020` (3 fallos), abrir `scores_read` (1), quitar `events_single_active` (4), quitar `scores_validate` (18), abrir `base_details_read` (6), quitar `events_delete_guard` (3), abrir `alerts_base_insert` (5), quitar `matches_validate` (2), abrir el INSERT del GPS (2) y anular `reset_event_progress` (5). Ninguna regla probada pasa inadvertida.
+- **Pantallas**: `npm run dev`, 14 vistas previas (`runner`, `runner-ruta`, `runner-top`, `runner-alertas`, `base`, `base-info`, `base-resultados`, `admin`, `admin-carrera`, `admin-forms`, `map`, `dialogs`, `sin-carrera`, `sin-carrera-base`) a 390 y 1440 px, en claro y oscuro (56 combinaciones, cargadas en iframes y medidas con script: desbordamiento horizontal, elementos fuera del ancho, objetivos táctiles menores de 36 px, tema aplicado) más una captura de `admin` en el visor. Servidor detenido; clave de tema borrada.
+- No se probó con teléfonos reales, ni contra Supabase real, ni con credenciales. No se midió contraste real esta vez (lo cubre `tests/static/theme-contrast.test.ts`); tampoco se revisó cada captura a ojo (solo `admin`).
 
 ## Lo que está bien
-- El simulacro entero pasa en reglas: carga, activación, rondas, demoras por tramo, avisos, GPS, privacidad, ranking y borrado. El borrado de la Carrera es completo salvo el defecto 1.
-- Modo claro: sin desbordamiento horizontal en ninguna pantalla a 390 ni a 1280 px; en oscuro **cero** pares de texto bajo 4.5:1; botones, login y barras se ven bien en ambos temas. El tema se guarda, no falla con el almacenamiento bloqueado, se aplica antes del primer pintado y el mapa lo sigue.
-- Las alertas por tramo, repetir base y descansar se comportan igual en pantalla y servidor.
+- Todas las reglas de la base de datos de los últimos bloques están cubiertas y las roturas se detectan: un solo activo, borrado solo desactivada, reinicio al desactivar (y solo de esa Carrera), puntajes legibles solo por coordinador / inductor de la base / corredores del cruce, avisos a la base, un usuario por grupo.
+- Sin desbordamiento horizontal del documento en ninguna de las 56 combinaciones; el tema (claro/oscuro) se aplica en todas. `admin` (En vivo) se ve ordenado: indicadores, ronda, demoras, top 3.
+- La escala grande (20 grupos) y la concurrencia no rompen reglas; el borrado de una Carrera ya no deja filas huérfanas de auditoría (`ORPHAN_AUDIT_ROWS = 0`, `0019`).
 
 ## Lo que falló
+No hay fallos de reglas ni pantallas rotas. Hallazgos menores:
+
 | # | Hallazgo | Reproducción / causa | Gravedad |
 |---|---|---|---|
-| 1 | **Eliminar una Carrera deja 45 filas huérfanas en `score_audit`** (una "delete" por cada puntaje, con `event_id` nulo, que ninguna Carrera puede borrar después) | `tests/db/simulacro.test.ts` > "KNOWN DEFECT" (`it.fails`). El borrado en cascada de `matches` borra `match_scores`; el trigger `after_score_change` escribe una fila "delete" cuando el cruce ya no existe, así que `audit_set_event()` no encuentra la Carrera | P1: solo basura en el registro, pero rompe la promesa "no queda nada" |
-| 2 | **Modo claro: el texto de estado verde (`badge ok`, `chip.win`) queda entre 3.7 y 4.4:1 sobre su caja teñida** (`En juego` 3.74, `2–1 Ganaron` 3.90, `Activa` 4.04, `Terminado` 4.34); también las iniciales del `crest` (4.39), `--gold-ink` y `--text-faint` sobre `--surface-3` (4.4) y los avisos teñidos de ok/warn/danger | Medido en el navegador y reproducido en `theme-contrast.test.ts` (lista `KNOWN_BELOW_AA`, 24 pares). Texto de 12 px en negrita | P2 |
-| 3 | Modo oscuro: `--text-muted` sobre la opción dorada seleccionada al 22 % da 4.12:1 | `theme-contrast.test.ts` | P2 |
-| 4 | Las tablas `matches`, `teams`, `bases`, `match_scores` las lee cualquier usuario autenticado, también de otra Carrera o inactiva (`using (true)`): "dejan de ver la Carrera" es un filtro del teléfono, no de la base de datos | Prueba "a runner sees the Carrera…" (caracterización). Lo privado (información, preguntas, GPS, auditoría, avisos de otras Carreras) sí está cerrado | P2, bajo (nada sensible) |
-| 5 | La vista previa `/preview/admin-carrera` no muestra la zona "Eliminar esta Carrera" | `Preview.tsx` | P2: no se pudo revisar visualmente en claro/oscuro |
-| 6 | Con la Carrera desactivada, el inductor recibe un error genérico de permisos al confirmar o calificar | Simulacro, "switching the Carrera off mid-race" | P2 |
+| 1 | **Finalizar la Carrera borra la clasificación final y no hay forma de exportarla antes** | `tests/db/qa-extra.test.ts` > "finishing the Carrera destroys the final standings". `EnVivo.tsx` `finish()` pide confirmación (bien redactada) pero no ofrece descargar el ranking; en `src/` solo `BulkImport.tsx` tiene descargas | **Corregido el 2026-11-18**: finalizar y desactivar descargan antes un CSV de resultados (`src/lib/results.ts`), y hay *Descargar resultados* en En vivo y Puntajes. P1 (un toque equivocado o un cierre sin captura pierde el resultado oficial; es el diseño de `0020`) |
+| 2 | Casillas de verificación de 22x22 px en `admin-carrera` (390 y 1440 px) | Medido con script; solo del coordinador | P2 |
+| 3 | `admin-forms` a 390 px: la tabla `data-table` sobrepasa el ancho de la pantalla (el documento no desborda, desplaza dentro de su contenedor) | Medido con script | P2 (solo coordinador) |
+| 4 | Enlace "Mapbox" del mapa de 88x23 px | De la librería, `/preview/map` | P2, no es de la app |
+| 5 | `CLAUDE.md` dice "~260 tests" (ya son 423) y su lista de vistas previas no incluye `base-resultados`, `dialogs`, `sin-carrera`, `sin-carrera-base` | `CLAUDE.md` | P2 (documentación) |
+| 6 | Las tablas `matches`, `teams`, `bases` las lee cualquier usuario autenticado de cualquier Carrera (hallazgo de la ejecución anterior, sin cambios) | prueba de caracterización en `tests/db/permissions.test.ts` | P2, bajo |
 
 ## Lo que no convence
-- `DeleteEvent` solo bloquea borrar una Carrera activa en la pantalla; la base de datos la borraría (caracterizado en el simulacro). Un cliente viejo o un `delete` a mano lo evita.
-- El mapa de la vista previa superpone las etiquetas cuando dos grupos están cerca (conocido).
-- Los controles de zoom de Mapbox miden 32x48 px (de la librería, no de la app).
-- Errores de teselas de Mapbox en la consola en localhost (token por URL): esperado.
+- `reset_event_progress` también borra `score_audit` de esa Carrera: tras finalizar no queda rastro de quién corrigió qué.
+- El mapa de la vista previa superpone etiquetas si dos grupos están cerca (conocido); las teselas de Mapbox no cargan en localhost (esperado).
 
 ## Ubicación de la información
-Sin cambios respecto a la tercera ejecución. *Eliminar esta Carrera* al final de *Carrera* (zona de peligro, solo aparece desactivada) está bien ubicada: se usa una vez, al terminar.
+- **En carrera** (En vivo, Puntajes, Mapa) y **Preparación** (pasos, Grupos, Bases, Usuarios, Cruces) separan bien lo que se usa cada minuto de lo que se usa una vez; mantener.
+- *Finalizar Carrera* está junto al estado en *En vivo*, que se mira todo el día: es un botón de uso único y destructivo en la zona más consultada. Opción: moverlo al final de *Puntajes*, junto a una exportación del resultado.
+- Corredor (Ronda / Ruta / Top) y base (Ronda / Resultados / Mi base): sin cambios necesarios; el Top del corredor muestra solo nombres de los demás, coherente con `0019`.
 
 ## Riesgos para la Carrera real (siguen necesitando teléfonos)
-- Sonido y push en iPhone con la pantalla bloqueada, instalación de la PWA y permisos.
-- GPS real (iOS suspende con la pantalla apagada) y precisión en el campus.
-- Red de la Javeriana con ~60 teléfonos y Realtime en el plan gratuito; 6 corredores GPS cada 10 s.
-- Mapbox con token por URL, mapa claro/oscuro con teselas reales y brillo al sol.
-- Tema claro al sol: la lectura real de los chips de estado.
-- Publicar en `main` durante el evento (service worker).
+- Sonido y push en iPhone con la pantalla bloqueada; varias notificaciones seguidas (cada una con etiqueta única) sin que iOS las agrupe o silencie.
+- GPS real del usuario designado (iOS suspende con la pantalla apagada) y precisión en el campus.
+- Red de la Javeriana con ~60 teléfonos y Realtime/polling cada 20 s; los 30 avisos simultáneos de la prueba cubren solo la base de datos.
+- Mapbox con token por URL y teselas reales, brillo al sol del tema claro, márgenes seguros del iPhone.
+- Publicar en `main` durante la Carrera (el mapa no está en el precaché).
+- Pulsar "Finalizar" por error o antes de anotar el resultado (hallazgo 1).
 
 ## Recomendaciones
-**P0:** ninguna nueva; falta el simulacro con teléfonos reales ([Prueba en vivo](Prueba-en-vivo)).
+**P0:** ninguna nueva; sigue pendiente el simulacro con teléfonos ([Prueba en vivo](Prueba-en-vivo)).
 
 **P1**
-- Hallazgo 1: migración `0018` que no audite el borrado en cascada (en `after_score_change`: `if tg_op = 'DELETE' and not exists (select 1 from public.matches where id = old.match_id) then return null; end if;`) y borre las filas huérfanas existentes; al arreglarlo, quitar `.fails` y poner `ORPHAN_AUDIT_ROWS = 0` en el simulacro. **S**
+- Hallazgo 1: antes de reiniciar, ofrecer "Descargar resultado" (CSV con puesto, grupo y puntos) en el diálogo de *Finalizar* y/o en *Puntajes*; o una migración que conserve un resumen al desactivar. **M**
 
 **P2**
-- Hallazgos 2 y 3: ajustar `--ok`, `--warn`, `--danger`, `--gold-ink`, `--text-faint` (claro) y el 22 % de la opción dorada (oscuro) y vaciar `KNOWN_BELOW_AA`. **S**
-- Hallazgo 4: acotar `matches`/`teams`/`bases` a la Carrera activa para quien no es coordinador, o documentarlo en Roles y permisos. **M**
-- Hallazgo 5: añadir la zona de eliminar a `/preview/admin-carrera`. **S**
-- Hallazgo 6 y `DeleteEvent`: mensaje claro al inductor ("la Carrera no está activa") y un trigger que impida borrar una Carrera activa. **S**
+- Casillas y tabla de `admin-carrera` / `admin-forms` (hallazgos 2 y 3). **S**
+- Actualizar `CLAUDE.md` (conteo de pruebas y lista de vistas previas). **S**
+- Hallazgo 6: acotar la lectura de `matches`/`teams`/`bases` o documentarlo. **M**
+
+## Cuarta ejecución (2026-11-16)
+375 pruebas, simulacro en código de la Carrera de prueba, claro/oscuro, Eliminar Carrera y `0017`. Hallazgos entonces: filas huérfanas de auditoría al eliminar una Carrera (corregido en `0019`), contraste del texto de estado verde en claro y de `--text-muted` sobre la opción dorada (lista `KNOWN_BELOW_AA` en `theme-contrast.test.ts`, sigue por revisar), lectura abierta de `matches`/`teams`/`bases`, falta la zona "Eliminar" en la vista previa, error genérico al inductor con la Carrera apagada.
 
 ## Tercera ejecución (2026-11-15)
 306 pruebas, seis roturas deliberadas detectadas y revisión visual a 390 y 1280 px. Hallazgos corregidos después: perfil con mala red, alerta falsa por descanso (`0016`), confirmación al activar/desactivar y los P1 y P2 (`0017`: `server_now()`, avisos con lectura acotada y límite de 20 s, auditoría sin ruido). No se tocó: contraseñas de mínimo 6 caracteres y un límite de intentos en `/api/users`. Quedó pendiente el simulacro con teléfonos y la regla de no publicar en `main` durante la Carrera.

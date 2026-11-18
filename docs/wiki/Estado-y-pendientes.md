@@ -26,8 +26,9 @@ Una Carrera activa a la vez; solo se elimina una Carrera desactivada; cada perso
 1. **Simulacro con teléfonos reales** (lo único que la automatización no cubre), siguiendo [Prueba en vivo](Prueba-en-vivo): sonido y notificaciones en iPhone con la pantalla bloqueada (probar 3 o 4 avisos seguidos sin quitar ninguno), GPS del usuario designado, avisos del coordinador a la base, unos 60 teléfonos a la vez con la red del campus, Mapbox con teselas reales, el diseño nuevo y los márgenes seguros del iPhone, subir una foto de usuario real.
 2. ~~Actualizar la Carrera de prueba~~ **Hecho (2026-11-18):** ahora trae un usuario por grupo (9 usuarios).
 3. **Volver a correr el agente `carreapp-tester`** tras los últimos bloques (admin en dos modos, reinicio al desactivar, notificaciones, privacidad 0019) y actualizar `Informe-de-pruebas.md`.
-4. Menores: la guía "Prueba en vivo" ya explica los dos modos y el reinicio al finalizar; las contraseñas de 6 caracteres siguen permitidas (lo exige Supabase y las plantillas).
-5. Antes del día real: no publicar en `main` durante la Carrera (el mapa no está en el precaché), limpiar la Carrera de prueba con *Eliminar esta Carrera*, dejar la real activa.
+4. Pendiente de la 5.ª ejecución del tester: `matches`, `teams` y `bases` aún los lee cualquier usuario autenticado de cualquier Carrera (hallazgo P2; exige migración 0021).
+5. Menores: la guía "Prueba en vivo" ya explica los dos modos y el reinicio al finalizar; las contraseñas de 6 caracteres siguen permitidas (lo exige Supabase y las plantillas).
+6. Antes del día real: no publicar en `main` durante la Carrera (el mapa no está en el precaché), limpiar la Carrera de prueba con *Eliminar esta Carrera*, dejar la real activa.
 
 ## Cómo trabajar (convenciones del usuario)
 - Habla en español; el código y los comentarios van en inglés, la interfaz en español.
