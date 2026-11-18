@@ -82,9 +82,14 @@ export function mrzText(text: string, width = 30): string {
   return (clean + '<'.repeat(width)).slice(0, width)
 }
 
+/** A line of the machine-readable zone from words: `mrzJoin(['P<PUJ', 'CARRERA', '2710'])` -> P<PUJ<<CARRERA<<2710<<<<<<<<<< */
+export function mrzJoin(parts: string[], width = 30): string {
+  return parts.map((p) => mrzText(p, p.length).replace(/<+$/, '')).join('<<').padEnd(width, '<').slice(0, width)
+}
+
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
 /** The two lines at the bottom of a passport page. Only real numbers: stamps collected and rounds in the Carrera. */
 export function mrzLines(teamName: string, stamps: number, rounds: number): [string, string] {
-  return [`P<JAV<<${mrzText(teamName, 23)}`, `SELLOS${pad2(stamps)}<<RONDAS${pad2(rounds)}`.padEnd(30, '<')]
+  return [`P<PUJ<<${mrzText(teamName, 23)}`, `SELLOS${pad2(stamps)}<<RONDAS${pad2(rounds)}`.padEnd(30, '<')]
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mrzLines, mrzText, stampLook, stampTime, STAMP_SHAPES } from '../../src/lib/stamp'
+import { mrzJoin, mrzLines, mrzText, stampLook, stampTime, STAMP_SHAPES } from '../../src/lib/stamp'
 
 describe('stamps of the passport', () => {
   it('a base always gets the same shape, ink and tilt (so its stamp is recognisable everywhere)', () => {
@@ -28,7 +28,9 @@ describe('stamps of the passport', () => {
     const [a, b] = mrzLines('Guerreros Aztecas', 2, 5)
     expect(a).toHaveLength(30)
     expect(b).toHaveLength(30)
-    expect(a.startsWith('P<JAV<<GUERREROS<AZTECAS')).toBe(true)
+    expect(a.startsWith('P<PUJ<<GUERREROS<AZTECAS')).toBe(true)
+    expect(mrzJoin(['P<PUJ', 'CARRERA', '2710'])).toBe('P<PUJ<<CARRERA<<2710<<<<<<<<<<')
+    expect(mrzJoin(['INDUCCION', 'BIENVENIDOS', 'NEOS'])).toBe('INDUCCION<<BIENVENIDOS<<NEOS<<')
     expect(b.startsWith('SELLOS02<<RONDAS05')).toBe(true)
   })
 })
