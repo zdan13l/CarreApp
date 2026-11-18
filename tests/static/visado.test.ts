@@ -42,11 +42,12 @@ describe('the passport', () => {
 })
 
 describe('the cover', () => {
-  it('uses the photo of the campus (two sizes) and the official logo on the login, and ships them with the app', () => {
+  it('uses the photo of the campus (two sizes) and the CarreApp logo (not the University one) on the login, and ships them with the app', () => {
     const login = read('src/pages/Login.tsx')
     expect(login).toMatch(/srcSet="\/campus-800\.jpg 800w, \/campus\.jpg 1600w"/)
-    expect(login).toMatch(/src="\/javeriana-logo-white\.png"/)
-    for (const f of ['campus.jpg', 'campus-800.jpg', 'javeriana-logo.png', 'javeriana-logo-white.png']) expect(fs.existsSync(rootPath(`public/${f}`)), f).toBe(true)
+    expect(login).toMatch(/<Logo \/>/)
+    expect(login).not.toMatch(/javeriana-logo|<Logo size/)
+    for (const f of ['campus.jpg', 'campus-800.jpg', 'crest-dorado.svg', 'crest-simple.svg', 'wordmark.svg', 'favicon.svg', 'favicon.png', 'apple-touch-icon.png', 'pwa-192.png', 'pwa-512.png', 'pwa-maskable-512.png']) expect(fs.existsSync(rootPath(`public/${f}`)), f).toBe(true)
   })
 
   it('the app starts in light mode (the paper) and keeps "dark" as the passport by night', () => {

@@ -2,6 +2,11 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Logo nuevo: el escudo dorado (2026-11-18)
+- Se eligió la opción A (escudo) y se mejoró: simétrico, trazado al doble de resolución y con versiones azul, blanca, dorada y compacta. **El ícono de la app no lleva el nombre**: escudo dorado sobre el azul de la app (192, 512, maskable, iPhone y favicon regenerados).
+- Componente `Logo` nuevo (escudo compacto y nombre pintados con máscara, del color del lugar). Login con el logo de CarreApp arriba a la izquierda y **sin el escudo de la Universidad ni la brújula**; portada del pasaporte con el escudo dorado; menú del coordinador y barras de la app con el imagotipo.
+- Se retiró la galería de seis logos y los archivos del escudo oficial. Archivos fuente en `docs/logo/final/`. El escudo es una reinterpretación: pendiente confirmar con la Universidad.
+
 ## Dos experiencias en un universo: el viaje y la torre de control (2026-11-18)
 - **Concepto:** la Carrera como un viaje internacional. Cada grupo es un vuelo (`JV 200`…), cada base un destino con puerta y código de aeropuerto, y el pasaporte la prueba del viaje. Detalle en [Diseño](Diseno).
 - **Corredores (viajeros):** el pasaporte tiene **portada** que se abre, **página de identidad** con equipo, vuelo y **mapa del recorrido** (posiciones reales de las bases), barra de progreso del viaje, itinerario y **páginas de sellos** con paso de página. Cada base tiene un **sello único** (foto en una tinta, nombre, código, símbolo del lugar, forma y composición). La pestaña *Visado* es la tarjeta del destino (foto grande, puerta, código, estado y las **tres etapas**) y el siguiente destino es una tarjeta de embarque.
