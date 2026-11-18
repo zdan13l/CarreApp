@@ -128,14 +128,33 @@ describe('activating and switching Carreras', () => {
     expect(pub.map((p) => p.tablename)).toContain('events')
   })
 
-  it('keeps the data of a deactivated Carrera intact for the coordinator (standings do not change)', async () => {
+  it('deactivating a Carrera resets its whole progress (0020) but keeps what was prepared', async () => {
     const a = await seedCarrera(db, { teams: 2, bases: 1 })
     const m = await insertMatch(db, a, 1, a.bases[0].id, a.teams[0].id, a.teams[1].id)
-    await playMatch(db, a, m, [a.teams[0].id, a.teams[0].id, a.teams[1].id])
+    await playMatch(db, a, m, [a.teams[0].id, a.teams[0].id, a.teams[1].id]) // activates a
+    await db.sql(`insert into public.alerts (event_id, match_id, message) values ($1, $2, 'aviso')`, [a.eventId, m.id])
+    await db.sql(`insert into public.team_locations (team_id, lat, lng) values ($1, 4.6, -74.06)`, [a.teams[0].id])
+    expect((await db.sql(`select 1 from public.match_scores where match_id = $1`, [m.id])).length).toBe(3)
+    await setActive(null) // the coordinator ends the Carrera
+    const n = async (sql: string) => (await db.sql(sql, [a.eventId])).length
+    // reset: scores, audit, alerts, positions, and the match goes back to pending with no arrival
+    expect((await db.sql(`select 1 from public.match_scores where match_id = $1`, [m.id])).length).toBe(0)
+    expect(await n(`select 1 from public.score_audit where event_id = $1`)).toBe(0)
+    expect(await n(`select 1 from public.alerts where event_id = $1`)).toBe(0)
+    expect((await db.sql(`select 1 from public.team_locations where team_id = $1`, [a.teams[0].id])).length).toBe(0)
+    const [row] = await db.sql<{ status: string; arrived_at: string | null; finished_at: string | null }>(`select status, arrived_at, finished_at from public.matches where id = $1`, [m.id])
+    expect(row).toMatchObject({ status: 'pending', arrived_at: null, finished_at: null })
+    // kept: groups, bases, users and the schedule
+    expect(await n(`select 1 from public.teams where event_id = $1`)).toBe(2)
+    expect(await n(`select 1 from public.bases where event_id = $1`)).toBe(1)
+    expect(await n(`select 1 from public.matches where event_id = $1`)).toBe(1)
+    expect((await db.sql(`select 1 from public.team_runners where team_id = $1`, [a.teams[0].id])).length).toBeGreaterThan(0)
+    expect((await db.sql(`select 1 from public.base_staff where base_id = $1`, [a.bases[0].id])).length).toBe(1)
+    // and switching it on again starts from zero
     await setActive(a.eventId)
+    const rows = await db.asUser(a.admin).sql<{ points: string }>(`select points from public.team_standings where event_id = $1`, [a.eventId])
+    expect(rows.map((r) => Number(r.points))).toEqual([0, 0])
     await setActive(null)
-    const rows = await db.asUser(a.admin).sql<{ points: string }>(`select points from public.team_standings where event_id = $1 order by points desc`, [a.eventId])
-    expect(rows.map((r) => Number(r.points))).toEqual([2, 1])
   })
 })
 
@@ -162,8 +181,11 @@ describe('score audit log per Carrera', () => {
     const b = await seedCarrera(db, { teams: 2, bases: 1 })
     const ma = await insertMatch(db, a, 1, a.bases[0].id, a.teams[0].id, a.teams[1].id)
     const mb = await insertMatch(db, b, 1, b.bases[0].id, b.teams[0].id, b.teams[1].id)
-    await playMatch(db, a, ma, [a.teams[0].id, a.teams[0].id, a.teams[1].id])
-    await playMatch(db, b, mb, [b.teams[0].id, b.teams[1].id, b.teams[1].id])
+    // only one Carrera can be active, and deactivating one resets it (0020): the coordinator scores both directly
+    const score = (who: string, m: { id: string }, w: [string, string, string]) =>
+      Promise.all(['barra', 'pregunta', 'minijuego'].map((item, i) => db.asUser(who).sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, $2, $3)`, [m.id, item, w[i]])))
+    await score(a.admin, ma, [a.teams[0].id, a.teams[0].id, a.teams[1].id])
+    await score(b.admin, mb, [b.teams[0].id, b.teams[1].id, b.teams[1].id])
     return { a, b, ma, mb }
   }
 

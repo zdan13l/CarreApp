@@ -97,7 +97,7 @@ describe('people who leave or are replaced during the day', () => {
 })
 
 describe('switching or retuning things while the race is running', () => {
-  it('switching the active Carrera mid-match freezes that base; switching back lets it finish with no data lost', async () => {
+  it('switching the active Carrera mid-match freezes that base; switching back restarts it from zero (0020)', async () => {
     const a = await seedCarrera(db, { teams: 2, bases: 1 })
     const b = await seedCarrera(db, { teams: 2, bases: 1 })
     const [t1, t2] = a.teams
@@ -110,8 +110,12 @@ describe('switching or retuning things while the race is running', () => {
     await expect(staff.sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, 'pregunta', $2)`, [m.id, t1.id])).rejects.toThrow()
     expect(await db.asUser(a.teams[0].runners[0]).sql(`select t.id from public.teams t join public.events e on e.id = t.event_id where e.is_active and t.id = $1`, [t1.id])).toHaveLength(0)
     await activate(db, a)
-    await staff.sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, 'pregunta', $2)`, [m.id, t1.id])
-    await staff.sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, 'minijuego', $2)`, [m.id, t2.id])
+    // deactivating a Carrera reset its progress: the match is pending again and nothing was scored
+    expect((await points(a.eventId))[t1.id] ?? 0).toBe(0)
+    await staff.sql(`select public.confirm_arrival($1)`, [m.id])
+    for (const [item, w] of [['barra', t1.id], ['pregunta', t1.id], ['minijuego', t2.id]] as const) {
+      await staff.sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, $2, $3)`, [m.id, item, w])
+    }
     expect((await points(a.eventId))[t1.id]).toBe(2)
   })
 
