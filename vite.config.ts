@@ -11,7 +11,7 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.ts',
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'favicon.svg', 'apple-touch-icon.png', 'logo.png'],
+      includeAssets: ['favicon.png', 'favicon.svg', 'apple-touch-icon.png'],
       // The 3D map is heavy (~1.9 MB): load it on demand instead of precaching it on every phone.
       injectManifest: { globPatterns: ['**/*.{js,css,html,woff2,svg,png}'], globIgnores: ['**/MapView-*', '**/*vietnamese*', '**/mammoth*', '**/*excel*'] },
       manifest: {
