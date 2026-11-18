@@ -141,6 +141,24 @@ export interface ManualAlert {
   target?: 'groups' | 'base' // 0019; rows from before it are for the groups
 }
 
+// Alerts the person already closed stay closed after a reload (kept on the phone, per account): without this every reload
+// brought back the whole pile of past alerts.
+const DISMISSED_KEY = 'carreapp.dismissedAlerts'
+function loadDismissed(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(DISMISSED_KEY) ?? '[]') as string[])
+  } catch {
+    return new Set()
+  }
+}
+function saveDismissed(ids: Set<string>) {
+  try {
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify([...ids].slice(-300)))
+  } catch {
+    /* storage blocked: it just will not persist */
+  }
+}
+
 const RECENT_MS = 20 * 60 * 1000 // alerts stay visible for 20 minutes
 const FRESH_MS = 90 * 1000 // and sound repeatedly (every 30 s) during their first minute and a half
 
@@ -149,7 +167,7 @@ const FRESH_MS = 90 * 1000 // and sound repeatedly (every 30 s) during their fir
 // drops the live connection), so an alert is never missed.
 export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 'groups') {
   const [alerts, setAlerts] = useState<ManualAlert[]>([])
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  const [dismissed, setDismissed] = useState<Set<string>>(loadDismissed)
   const now = useNow(5000)
   const idsKey = matchIds.join(',')
   const idsRef = useRef(new Set(matchIds))
@@ -214,8 +232,19 @@ export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 
     lastRung.current = newestFresh ?? lastRung.current
   }, [newestFresh])
 
+  // Only the NEWEST alert is shown (a newer one replaces the older ones, which are no longer news).
+  const newest = visible.reduce<ManualAlert | null>((n, a) => (!n || a.created_at > n.created_at ? a : n), null)
   return {
-    alerts: visible,
-    dismiss: (id: string) => setDismissed((prev) => new Set(prev).add(id)),
+    alerts: newest ? [newest] : [],
+    // closing the newest one also closes the older ones: after a reload none of them comes back
+    dismiss: (id: string) => {
+      const upTo = alerts.find((a) => a.id === id)?.created_at
+      setDismissed((prev) => {
+        const next = new Set(prev).add(id)
+        for (const a of alerts) if (!upTo || a.created_at <= upTo) next.add(a.id)
+        saveDismissed(next)
+        return next
+      })
+    },
   }
 }
