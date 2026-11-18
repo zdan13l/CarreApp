@@ -68,6 +68,7 @@ export default function Grupos() {
 
   return (
     <>
+      <p className="eyebrow">Flight roster</p>
       <h1>Grupos</h1>
       <p className="muted">{teams.length} grupos en {event.name}</p>
 

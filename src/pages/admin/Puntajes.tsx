@@ -16,6 +16,8 @@ import {
 import { errMsg, useAdmin } from './AdminContext'
 import { confirmDialog } from '../../lib/dialog'
 import { exportResults } from '../../lib/results'
+import PassportMatrix from '../../components/PassportMatrix'
+import { flightCodes } from '../../lib/flight'
 
 interface Named {
   id: string
@@ -31,6 +33,7 @@ interface MatchWithScores {
   team_b: string
   status: MatchStatus
   arrived_at: string | null
+  finished_at: string | null
   match_scores: MatchScore[]
 }
 
@@ -70,7 +73,7 @@ export default function Puntajes() {
       supabase.from('bases').select('id, name').eq('event_id', eventId),
       supabase
         .from('matches')
-        .select('id, round_number, base_id, team_a, team_b, status, arrived_at, match_scores(item, winner_team_id, voided)')
+        .select('id, round_number, base_id, team_a, team_b, status, arrived_at, finished_at, match_scores(item, winner_team_id, voided)')
         .eq('event_id', eventId)
         .order('round_number'),
       supabase.from('score_audit').select('*').eq('event_id', eventId).order('changed_at', { ascending: false }).limit(200),
@@ -109,6 +112,7 @@ export default function Puntajes() {
   const shownRound = Math.min(selected ?? currentRound(matches), totalRounds)
   const roundMatches = matches.filter((m) => m.round_number === shownRound)
   const visible = showAll ? matches : roundMatches
+  const codes = flightCodes(teams)
 
   async function setScore(m: MatchWithScores, item: ScoreItem, value: string) {
     if (!supabase) return
@@ -144,7 +148,10 @@ export default function Puntajes() {
   return (
     <>
       <header className="page-head">
-        <h1>Puntajes</h1>
+        <div>
+          <p className="eyebrow">Passport Verification</p>
+          <h1>Pasaportes</h1>
+        </div>
         <div className="head-meta">
           <button className="ghost" onClick={() => void exportResults(event.id, event.name)}>Descargar resultados</button>
         </div>
@@ -153,6 +160,8 @@ export default function Puntajes() {
         Las bases envían los puntos. Aquí el coordinador puede corregirlos, borrarlos o <strong>invalidar</strong> un ítem que no se alcance a jugar (nadie suma y la base no lo puede puntuar). Todo queda en el registro.
       </p>
       {error && <p className="error">{error}</p>}
+
+      <PassportMatrix teams={teams} matches={matches} baseName={baseName} codes={codes} />
 
       <section className="card">
         <h2>Ranking</h2>

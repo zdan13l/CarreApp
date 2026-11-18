@@ -90,6 +90,7 @@ export default function Cruces() {
 
   return (
     <>
+      <p className="eyebrow">Flight schedule</p>
       <h1>Cruces y rotación</h1>
       <p className="muted">
         {teams.length} grupos · {bases.length} bases · {matches.length} cruces en {maxRound} rondas.

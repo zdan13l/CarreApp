@@ -1,8 +1,9 @@
-import { Activity, Flag, KeyRound, Map, MapPin, SlidersHorizontal, Swords, Trophy, Users } from 'lucide-react'
+import { Flag, KeyRound, MapPin, Radar, ShieldCheck, SlidersHorizontal, Swords, TowerControl, Users } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import AccountMenu from '../../components/AccountMenu'
 import Logo from '../../components/Logo'
+import TowerClock from '../../components/TowerClock'
 import type { AdminMode } from './AdminContext'
 
 const ICON = { size: 22, strokeWidth: 1.9, 'aria-hidden': true } as const
@@ -16,9 +17,9 @@ interface NavItem {
 
 // What the coordinator watches and acts on while the Carrera is running…
 export const LIVE_TABS: NavItem[] = [
-  { to: '/admin', label: 'En vivo', icon: <Activity {...ICON} />, end: true },
-  { to: '/admin/puntajes', label: 'Puntajes', icon: <Trophy {...ICON} /> },
-  { to: '/admin/mapa', label: 'Mapa', icon: <Map {...ICON} /> },
+  { to: '/admin', label: 'Control', icon: <TowerControl {...ICON} />, end: true },
+  { to: '/admin/puntajes', label: 'Pasaportes', icon: <ShieldCheck {...ICON} /> },
+  { to: '/admin/mapa', label: 'Radar', icon: <Radar {...ICON} /> },
 ]
 // …and what is set up beforehand (and corrected now and then).
 export const SETUP_TABS: NavItem[] = [
@@ -34,7 +35,7 @@ export function AdminTopbar({ user, onSignOut }: { user?: { full_name: string; u
   return (
     <header className="topbar admin-topbar">
       <Logo size={30} />
-      <AccountMenu user={user} onSignOut={onSignOut} roleLabel="Coordinador" />
+      <AccountMenu user={user} onSignOut={onSignOut} roleLabel="Coordinador" showTheme={false} />
     </header>
   )
 }
@@ -64,7 +65,7 @@ export default function AdminNav({
   const inSetup = SETUP_TABS.some((t) => pathname.startsWith(t.to))
 
   const link = (t: NavItem, onClick?: () => void) => (
-    <NavLink key={t.to} to={t.to} end={t.end} className="tab" onClick={onClick}>
+    <NavLink key={t.to} to={t.to} end={t.end} className="tab" onClick={onClick} viewTransition>
       {t.icon}
       <span>{t.label}</span>
     </NavLink>
@@ -73,11 +74,20 @@ export default function AdminNav({
   return (
     <aside className={`admin-nav${open ? ' sheet-open' : ''}`}>
       <div className="admin-brand">
-        <Logo size={34} />
+        <div className="tower-brand">
+          <img className="tower-uni" src="/javeriana-logo-white.png" alt="Pontificia Universidad Javeriana" width={480} height={627} />
+          <span className="tower-rule" aria-hidden="true" />
+          <Logo size={30} />
+        </div>
+        <p className="doc-kicker office">Torre de control · Control tower</p>
         <p className="event">
           <Flag size={15} aria-hidden="true" />
           <strong>{eventName ?? 'Sin Carrera'}</strong>
           {eventName && <span className={`badge ${eventActive ? 'ok live' : ''}`}>{eventActive ? 'En curso' : 'Borrador'}</span>}
+        </p>
+        <p className="tower-hour">
+          <small>Hora local</small>
+          <TowerClock />
         </p>
         <div className="mode-switch" role="tablist" aria-label="Modo del panel">
           <button type="button" role="tab" aria-selected={mode === 'setup'} className="mode" onClick={() => onMode?.('setup')}>
@@ -119,7 +129,7 @@ export default function AdminNav({
       )}
 
       <div className="admin-user">
-        <AccountMenu user={user} onSignOut={onSignOut} placement="up" roleLabel="Coordinador" />
+        <AccountMenu user={user} onSignOut={onSignOut} placement="up" roleLabel="Coordinador" showTheme={false} />
       </div>
     </aside>
   )

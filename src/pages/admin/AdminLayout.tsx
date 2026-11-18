@@ -67,7 +67,7 @@ export default function AdminLayout() {
   )
 
   return (
-    <div className="admin">
+    <div className="admin tower">
       <AdminNav eventName={event?.name} eventActive={event?.is_active} mode={mode} running={running} onMode={setMode} user={profile ?? undefined} onSignOut={askSignOut} />
       <main className="admin-main">
         <ConnectionBanner />
