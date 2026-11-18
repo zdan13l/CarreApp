@@ -175,6 +175,17 @@ async function counts(db: TestDb): Promise<Record<string, number>> {
 // ───────────────────────────── the simulacro ─────────────────────────────
 let db: TestDb
 let admin: string
+// Switching a Carrera off now resets its progress (0020). These tests need ANOTHER Carrera that keeps its played data while
+// it is off (to prove nothing leaks between Carreras), so the reset trigger is paused just for that switch-off.
+async function switchOffKeepingProgress(id: string) {
+  await db.sql(`alter table public.events disable trigger events_reset_on_deactivate`)
+  try {
+    await db.sql(`update public.events set is_active = false where id = $1`, [id])
+  } finally {
+    await db.sql(`alter table public.events enable trigger events_reset_on_deactivate`)
+  }
+}
+
 let other: CarreraSeed // another Carrera (e.g. the real one) that must survive the whole thing
 let baseline: Record<string, number>
 let imp: Imported
@@ -207,7 +218,7 @@ beforeAll(async () => {
   await db.asUser(other.teams[0].tracker).sql(`insert into public.team_locations (team_id, lat, lng) values ($1, 4.6, -74.0)`, [other.teams[0].id])
   await db.sql(`insert into public.base_travel_times (event_id, from_base_id, to_base_id, minutes) values ($1, $2, $3, 6)`, [other.eventId, other.bases[0].id, other.bases[1].id])
   await db.sql(`insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ($1, 'https://push.test/other', 'k', 'a')`, [other.teams[0].runners[0]])
-  await db.sql(`update public.events set is_active = false where id = $1`, [other.eventId])
+  await switchOffKeepingProgress(other.eventId)
   baseline = await counts(db)
   file = await readFile()
 })
@@ -325,7 +336,7 @@ describe('2. Prueba-en-vivo, steps 2-4: photos, then activate', () => {
     expect((await db.asUser(admin).sql<{ p: string[] }>(`select public.event_problems($1) as p`, [imp.eventId]))[0].p).toEqual([])
     await db.sql(`update public.events set is_active = true where id = $1`, [other.eventId]) // the real Carrera was active
     await expect(db.asUser(admin).sql(`update public.events set is_active = true where id = $1`, [imp.eventId])).rejects.toThrow(/events_single_active/)
-    await db.asUser(admin).sql(`update public.events set is_active = false where id = $1`, [other.eventId])
+    await switchOffKeepingProgress(other.eventId)
     await db.asUser(admin).sql(`update public.events set is_active = true where id = $1`, [imp.eventId])
     const [ev] = await db.sql<{ is_active: boolean }>(`select is_active from public.events where id = $1`, [imp.eventId])
     expect(ev.is_active).toBe(true)
@@ -593,22 +604,33 @@ describe('3. playing the 5 rounds as the real roles', () => {
 
   it('switching the Carrera off mid-race: the phones lose it at once and the inductor cannot act; switching it on again resumes', async () => {
     const m5 = roundOf(5)[0]
-    await db.asUser(admin).sql(`update public.events set is_active = false where id = $1`, [imp.eventId])
-    // "Cambio de Carrera": the phones drop it because events is in Realtime and they filter on is_active (client-side).
-    // They cannot ACT on it:
-    await expect(db.asUser(m5.base.staff).sql(`select public.confirm_arrival($1)`, [m5.id])).rejects.toThrow()
-    await expect(db.asUser(m5.base.staff).sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, 'barra', $2)`, [m5.id, m5.a.id])).rejects.toThrow()
-    expect(await db.sql(`select 1 from public.match_scores where match_id = $1`, [m5.id])).toHaveLength(0)
-    // the coordinator still sees and can correct
-    expect((await db.asUser(admin).sql(`select id from public.matches where event_id = $1`, [imp.eventId])).length).toBe(15)
-    // no alert while it is off
-    await db.sql(`update public.matches set finished_at = now() - interval '30 minutes' where event_id = $1 and round_number = 4`, [imp.eventId])
-    await db.clearHttpCalls()
-    await db.sql(`select public.check_delays()`)
-    expect(await pushes()).toHaveLength(0)
-    await db.asUser(admin).sql(`update public.events set is_active = true where id = $1`, [imp.eventId])
-    expect(await db.asUser(m5.a.runners[0]).sql(`select id from public.matches where event_id = $1`, [imp.eventId])).toHaveLength(15)
-    say('\nDesactivar a mitad de la Carrera: corredores e inductores dejan de verla, el inductor no puede confirmar ni calificar, no hay alertas. Reactivada, todo vuelve.')
+    await db.pg.exec('begin') // 0020: switching a Carrera off resets it, so this check is rolled back
+    try {
+      await db.asUser(admin).sql(`update public.events set is_active = false where id = $1`, [imp.eventId])
+      // "Cambio de Carrera": the phones drop it because events is in Realtime and they filter on is_active (client-side).
+      // They cannot ACT on it:
+      // (a refused statement aborts the transaction, so each one runs inside a savepoint)
+      const refused = async (run: () => Promise<unknown>) => {
+        await db.pg.exec('savepoint refused')
+        await expect(run()).rejects.toThrow()
+        await db.pg.exec('rollback to savepoint refused')
+      }
+      await refused(() => db.asUser(m5.base.staff).sql(`select public.confirm_arrival($1)`, [m5.id]))
+      await refused(() => db.asUser(m5.base.staff).sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, 'barra', $2)`, [m5.id, m5.a.id]))
+      expect(await db.sql(`select 1 from public.match_scores where match_id = $1`, [m5.id])).toHaveLength(0)
+      // the coordinator still sees and can correct
+      expect((await db.asUser(admin).sql(`select id from public.matches where event_id = $1`, [imp.eventId])).length).toBe(15)
+      // no alert while it is off
+      await db.sql(`update public.matches set finished_at = now() - interval '30 minutes' where event_id = $1 and round_number = 4`, [imp.eventId])
+      await db.clearHttpCalls()
+      await db.sql(`select public.check_delays()`)
+      expect(await pushes()).toHaveLength(0)
+      await db.asUser(admin).sql(`update public.events set is_active = true where id = $1`, [imp.eventId])
+      expect(await db.asUser(m5.a.runners[0]).sql(`select id from public.matches where event_id = $1`, [imp.eventId])).toHaveLength(15)
+      say('\nDesactivar a mitad de la Carrera: corredores e inductores dejan de verla, el inductor no puede confirmar ni calificar, no hay alertas. Reactivada, todo vuelve.')
+    } finally {
+      await db.pg.exec('rollback')
+    }
   })
 
   it('round 5', async () => {
@@ -709,13 +731,22 @@ describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera
   })
 
   it('deactivate, list the profiles, delete the event, delete those users: nothing of the Carrera is left', async () => {
-    await db.asUser(admin).sql(`update public.events set is_active = false where id = $1`, [imp.eventId])
     // the Carrera has real leftovers to clean: scores, audit, alerts, positions, times, subscriptions
     const before = await counts(db)
     expect(before.score_audit).toBeGreaterThan(baseline.score_audit + 40)
     expect(before.alerts).toBeGreaterThan(baseline.alerts)
     expect(before.team_locations).toBe(baseline.team_locations + 6)
     expect(before.push_subscriptions).toBe(baseline.push_subscriptions + 3)
+    // switching it off RESETS the progress (0020): scores, audit, alerts and positions are gone, the structure stays
+    await db.asUser(admin).sql(`update public.events set is_active = false where id = $1`, [imp.eventId])
+    const reset = await counts(db)
+    expect(reset.score_audit).toBe(baseline.score_audit)
+    expect(reset.alerts).toBe(baseline.alerts)
+    expect(reset.team_locations).toBe(baseline.team_locations)
+    expect(reset.match_scores).toBe(baseline.match_scores)
+    expect(reset.matches).toBe(before.matches) // the schedule stays
+    expect(reset.teams).toBe(before.teams)
+    expect(reset.bases).toBe(before.bases)
 
     // ---- DeleteEvent.remove(), step by step, with RLS as the coordinator ----
     const sb = db.asUser(admin)
