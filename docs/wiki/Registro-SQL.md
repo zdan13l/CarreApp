@@ -32,6 +32,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0017 | [`0017_hardening.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0017_hardening.sql) | 2026-11-15 | Hora del servidor, avisos con alcance y límite, auditoría sin ruido |
 | 0018 | [`0018_profile_photo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0018_profile_photo.sql) | 2026-11-17 | Foto de cada usuario (`profiles.photo_path`) |
 | 0019 | [`0019_clean_delete_privacy_and_base_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0019_clean_delete_privacy_and_base_alerts.sql) | 2026-11-17 | Borrado limpio, solo se elimina una Carrera desactivada, privacidad entre Carreras y de los puntajes, un usuario por grupo basta, avisos a la base |
+| 0020 | [`0020_reset_on_deactivate.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0020_reset_on_deactivate.sql) | _pendiente_ | Desactivar una Carrera reinicia todo su avance |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -367,6 +368,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/privacy-0019.test.ts`, `tests/db/simulacro.test.ts` (sección 5: eliminar la Carrera no deja nada ni siquiera en el registro) y las pruebas de permisos. En Supabase: `select count(*) from public.score_audit where event_id is null;` debe dar 0.
 
 **Cómo revertir** Recrear las políticas `*_read` con `using (true)` (como en `0001` y `0011`), `scores_read` con `using (true)`, `drop trigger events_delete_guard on public.events;`, `alter table public.alerts drop column target;`, restaurar `alerts_push()` de `0012`, `alerts_read`/`alerts_base_insert` de `0017`, `event_problems()` de `0008` y `after_score_change()` de `0017`; `drop function public.my_event_id();`.
+
+## 0020 — Desactivar reinicia el avance (pendiente de aplicar)
+
+**Qué cambia** Al pasar una Carrera de activa a desactivada, el trigger `events_reset_on_deactivate` llama a `reset_event_progress()`: borra los puntajes, el registro de cambios, los avisos y las ubicaciones de los grupos, y cada cruce vuelve a "pendiente" sin llegada confirmada. **Se conserva** lo que se preparó: grupos, bases, usuarios, fotos, tiempos de traslado y el cronograma.
+
+**Por qué** Al desactivar y volver a activar una Carrera, seguía "como si nada" (con los puntajes y llegadas de antes). Ahora se reinicia por completo y arranca desde cero.
+
+**Verificación** `tests/db/carreras.test.ts` ("deactivating a Carrera resets its whole progress"), `tests/db/simulacro.test.ts` (sección 5) y `tests/db/edge.test.ts`. En Supabase, tras desactivar una Carrera: `select count(*) from public.match_scores where match_id in (select id from public.matches where event_id = '<id de la Carrera>');` debe dar 0.
+
+**Cómo revertir** `drop trigger events_reset_on_deactivate on public.events; drop function public.events_reset_on_deactivate(); drop function public.reset_event_progress(uuid);` (lo ya reiniciado no se recupera).
 
 ## Plantilla para nuevos registros
 

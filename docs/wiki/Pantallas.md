@@ -6,14 +6,18 @@ Dónde vive cada información y por qué. El criterio es sencillo: **cada dato v
 
 En el computador el menú lateral tiene dos grupos; en el celular la barra inferior muestra las pantallas en vivo y un botón **Preparar** que abre las de preparación.
 
-### Durante la Carrera
+El panel tiene **dos modos** que se eligen arriba del menú lateral: **Preparación** (crear la Carrera) y **En carrera** (verla correr). Cambia solo de modo al activar o terminar la Carrera; mientras corre, Preparación sigue disponible con un aviso. **Finalizar Carrera** (en *En vivo*) o desactivarla **reinicia todo su avance** (puntajes, llegadas, avisos, ubicaciones, registro) y conserva grupos, bases, usuarios y cronograma.
+
+### Durante la Carrera (modo En carrera)
 | Pantalla | Qué muestra | Para qué |
 |---|---|---|
 | **En vivo** | Cuatro **indicadores** arriba (ronda en curso, cruces terminados, demoras, grupos con ubicación; los dos últimos y el de cruces llevan a su pantalla), la ronda como **tabla** (base, cruce, estado, marcador, ítems y hora de llegada, con el botón *Avisar*), las **demoras en el traslado** y el top 3 (con marco **oro, plata y bronce**). En cada cruce hay dos botones de aviso: a los **grupos** o a la **base** (por ejemplo si se demora en un juego): suena el teléfono. Si la Carrera está en borrador, avisa qué falta y lleva a *Carrera*. | Es el tablero de control: todo lo que cambia mientras se juega, en un solo lugar. |
 | **Puntajes** | Ranking completo, corrección o invalidación de cualquier ítem por cruce (de a una ronda) y el registro de cambios (plegable). | Corregir lo que envió una base y dejar rastro. |
 | **Mapa** | Mapa 3D con las bases y la posición de cada grupo; los grupos sin señal o en demora se marcan. Una posición que lleva **más de 1 hora sin actualizarse desaparece** del mapa (el grupo queda como "Sin señal"), así que si alguien olvida apagar el GPS no queda un punto fantasma al terminar la Carrera. | Ver dónde está cada grupo. |
 
-### Preparación
+### Preparación (modo Preparación)
+*Carrera* abre con los **pasos para crear la Carrera**, en orden, cada uno con su estado: Grupos, Bases, Usuarios, Cruces y Activar.
+
 | Pantalla | Qué muestra | Para qué |
 |---|---|---|
 | **Carrera** | Estado y lista de pendientes para activar, **carga desde un archivo** (Word/Excel, con una *Carrera de prueba* lista para ensayar), tiempo general y por tramo de las alertas, nueva edición y **eliminar la Carrera** (la desactivada, escribiendo su nombre; con la opción de borrar también a sus usuarios). | Dejar lista la Carrera. |
