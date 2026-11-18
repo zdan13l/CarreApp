@@ -14,6 +14,7 @@ import LogoGallery from './LogoGallery'
 import Ranking from '../components/Ranking'
 import RoundPager from '../components/RoundPager'
 import AdminNav, { AdminTopbar } from './admin/AdminNav'
+import { PrepSteps } from './admin/Carrera'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
 import { BaseGuide, BaseWhere, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
@@ -208,7 +209,7 @@ export default function Preview() {
   if (screen === 'admin' || screen === 'admin-carrera' || screen === 'admin-forms') {
     return (
       <div className="admin">
-        <AdminNav eventName="Carrera 2027-1" user={user} onSignOut={noop} />
+        <AdminNav eventName="Carrera 2027-1" eventActive mode={screen === 'admin' ? 'live' : 'setup'} running onMode={noop} user={user} onSignOut={noop} />
         <main className="admin-main">
           <AdminTopbar user={user} onSignOut={noop} />
           {screen === 'admin' || screen === 'admin-carrera' ? (
@@ -222,6 +223,7 @@ export default function Preview() {
                   <div className="head-meta">
                     <span className="badge ok live">Activa</span>
                     <span>Ronda 2 de 3</span>
+                    <button className="ghost danger">Finalizar Carrera</button>
                   </div>
                 </header>
                 <div className="kpis">
@@ -298,6 +300,7 @@ export default function Preview() {
                 </header>
                 <div className="live-grid">
                   <div>
+                <PrepSteps counts={{ teams: 4, bases: 3, users: 11, matches: 6, warnings: [] }} problems={['La base "Atrio" tiene 2 de 3 preguntas.']} active={false} />
                 <section className="card">
                   <h2>Carrera 2027-1</h2>
                   <p>
