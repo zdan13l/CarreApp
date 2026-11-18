@@ -33,6 +33,10 @@ describe('creating the Carrera and ending it', () => {
     const ev = read('src/pages/admin/EnVivo.tsx')
     expect(ev).toMatch(/Finalizar Carrera/)
     expect(ev).toMatch(/Se REINICIA todo su avance/)
+    // the final results are saved to a file before anything is erased
+    expect(ev).toMatch(/exportResults/)
+    expect(read('src/pages/admin/Carrera.tsx')).toMatch(/exportResults/)
+    expect(read('src/pages/admin/Puntajes.tsx')).toMatch(/Descargar resultados/)
     expect(read('src/pages/admin/Carrera.tsx')).toMatch(/se REINICIA todo su avance/)
   })
 })

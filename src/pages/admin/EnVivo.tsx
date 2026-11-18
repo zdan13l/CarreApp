@@ -13,6 +13,7 @@ import { useTravelTimes } from '../../lib/travel'
 import { STATUS_LABEL, type MatchScore, type MatchStatus, type StandingRow } from '../../types'
 import { useAdmin } from './AdminContext'
 import { confirmDialog, promptDialog } from '../../lib/dialog'
+import { exportResults } from '../../lib/results'
 
 interface Named {
   id: string
@@ -132,12 +133,15 @@ export default function EnVivo() {
     if (!supabase || !event) return
     const ok = await confirmDialog({
       title: `¿Finalizar "${event.name}"?`,
-      message: 'Se REINICIA todo su avance: puntajes, llegadas, avisos, ubicaciones y registro de cambios. Se conservan grupos, bases, usuarios y el cronograma. Los teléfonos dejan de verla.',
-      confirmLabel: 'Finalizar y reiniciar',
+      message: 'Se REINICIA todo su avance: puntajes, llegadas, avisos, ubicaciones y registro de cambios. Se conservan grupos, bases, usuarios y el cronograma. Los teléfonos dejan de verla. Antes se descargan los resultados (clasificación y detalle por cruce) en un archivo.',
+      confirmLabel: 'Descargar y finalizar',
       tone: 'danger',
       icon: 'warning',
     })
     if (!ok) return
+    // The progress is about to be erased: save the final results first. If they cannot be read, ask again.
+    const saved = await exportResults(event.id, event.name)
+    if (!saved && !(await confirmDialog({ title: 'No se pudieron descargar los resultados', message: 'Si sigues, el avance se borra sin copia. ¿Continuar de todos modos?', confirmLabel: 'Continuar sin copia', tone: 'danger', icon: 'warning' }))) return
     const { error: err } = await supabase.from('events').update({ is_active: false }).eq('id', event.id)
     if (err) setError('No se pudo finalizar la Carrera.')
     else await reload()
@@ -155,6 +159,7 @@ export default function EnVivo() {
         <div className="head-meta">
           <span className={`badge ${active ? 'ok live' : ''}`}>{active ? 'Activa' : 'Borrador'}</span>
           {matches.length > 0 && <span>Ronda {round} de {totalRounds}</span>}
+          {matches.length > 0 && <button className="ghost" onClick={() => void exportResults(event.id, event.name)}>Descargar resultados</button>}
           {active && <button className="ghost danger" onClick={() => void finish()}>Finalizar Carrera</button>}
         </div>
       </header>

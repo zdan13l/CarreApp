@@ -8,6 +8,7 @@ import { errMsg, useAdmin } from './AdminContext'
 import BulkImport from './BulkImport'
 import TravelTimes from './TravelTimes'
 import { confirmDialog } from '../../lib/dialog'
+import { exportResults } from '../../lib/results'
 
 export interface Counts {
   teams: number
@@ -102,8 +103,9 @@ export default function Carrera() {
 
   async function deactivate() {
     if (!supabase || !event) return
-    if (!(await confirmDialog({ title: `¿Desactivar "${event.name}"?`, message: 'Los corredores y las bases dejarán de verla de inmediato y se REINICIA todo su avance: puntajes, llegadas, avisos, ubicaciones y registro de cambios. Se conservan grupos, bases, usuarios y el cronograma.', confirmLabel: 'Desactivar y reiniciar', tone: 'danger', icon: 'warning' }))) return
+    if (!(await confirmDialog({ title: `¿Desactivar "${event.name}"?`, message: 'Los corredores y las bases dejarán de verla de inmediato y se REINICIA todo su avance: puntajes, llegadas, avisos, ubicaciones y registro de cambios. Se conservan grupos, bases, usuarios y el cronograma. Antes se descargan los resultados en un archivo.', confirmLabel: 'Descargar y desactivar', tone: 'danger', icon: 'warning' }))) return
     void run(async () => {
+      if (!(await exportResults(event.id, event.name)) && !(await confirmDialog({ title: 'No se pudieron descargar los resultados', message: 'Si sigues, el avance se borra sin copia. ¿Continuar de todos modos?', confirmLabel: 'Continuar sin copia', tone: 'danger', icon: 'warning' }))) return
       const { error: err } = await supabase!.from('events').update({ is_active: false }).eq('id', event.id)
       if (err) throw new Error('No se pudo desactivar la Carrera.')
     })
