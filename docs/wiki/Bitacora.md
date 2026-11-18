@@ -2,6 +2,10 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Carrera de prueba con un usuario por grupo (2026-11-18)
+- `carrera-de-prueba.xlsx` ahora trae **9 usuarios**: un corredor por grupo (`prueba.c1` … `prueba.c6`, el mismo que transmite el GPS) y 3 inductores, como en la Carrera real. Las pruebas (`simulacro.test.ts`, `bulk.test.ts`) se ajustaron a 9 usuarios.
+- La guía [Prueba en vivo](Prueba-en-vivo) explica ahora los dos modos del coordinador (Preparación / En carrera) y que *Finalizar Carrera* reinicia el avance.
+
 ## Ajustes de las alertas, 2.ª ronda (2026-11-16)
 - **Las notificaciones y el sonido son solo para los corredores** (son quienes deben apurarse). El coordinador y la base **mandan** los avisos: el coordinador desde Cruces y Mapa; la base con el botón *Apurar a los grupos* de su cruce actual. Los botones de activar sonido y notificaciones solo aparecen en la vista del corredor.
 - El sonido de demora se repite **cada 30 segundos** (antes 10).
