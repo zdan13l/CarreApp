@@ -1,8 +1,8 @@
 /*
   CarreApp · sistema de diseño
   ------------------------------------------------------------
-  Identidad: marcador de carrera. Fondo azul noche, dorado como color de marca, azul cielo
-  para información. Tipografía Archivo (titulares condensados, texto normal).
+  Identidad: "Visado". La app es un pasaporte: papel de seguridad, sellos con las fotos de las bases, portada azul con lámina dorada.
+  Tipografía Archivo (titulares condensados, texto normal) y monoespaciada del sistema para etiquetas y líneas de lectura.
   Pensado para el celular al aire libre: contraste alto, objetivos táctiles >= 44 px
   (acciones principales 52 px) y texto >= 16 px en campos (evita el zoom de iOS).
 */
@@ -10,12 +10,12 @@
   color-scheme: dark;
 
   /* Superficies (de más profunda a más elevada): azul noche */
-  --bg: #070b18;
-  --surface: #0e1630;
-  --surface-2: #152045;
-  --surface-3: #1e2c5c;
-  --inset: #0a1128;
-  --border: #1c2a52;
+  --bg: #060a1b;
+  --surface: #0d1430;
+  --surface-2: #141d44;
+  --surface-3: #1d2a5a;
+  --inset: #090f26;
+  --border: #1b2850;
   --border-strong: #2e4180;
 
   /* Texto */
@@ -49,8 +49,8 @@
   --shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 14px 34px -20px rgba(0, 0, 0, .85);
   --shadow-pop: 0 18px 44px -14px rgba(0, 0, 0, .75);
 
-  --radius: 16px;
-  --radius-sm: 12px;
+  --radius: 14px;
+  --radius-sm: 10px;
   --nav-h: 64px;
 
   font-family: 'Archivo Variable', 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -58,30 +58,59 @@
   line-height: 1.5;
   color: var(--text);
   background: var(--bg);
+
+  /* Visado: tintas de los sellos (cada base tiene la suya), lámina dorada y trama de seguridad */
+  --ink-1: #86adff;
+  --ink-2: #ff8f86;
+  --ink-3: #62e3ac;
+  --ink-4: #c7a6ff;
+  --ink-5: #ffb862;
+  --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
+  --guilloche-ink: rgba(143, 168, 255, .09);
+  --guilloche: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='black' stroke-width='.55'%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(0.00 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(12.86 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(25.71 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(38.57 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(51.43 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(64.29 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(77.14 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(90.00 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(102.86 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(115.71 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(128.57 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(141.43 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(154.29 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(167.14 60 60)'/%3E%3Ccircle cx='60' cy='60' r='52'/%3E%3Ccircle cx='60' cy='60' r='27'/%3E%3C/g%3E%3Cg fill='none' stroke='black' stroke-width='.4'%3E%3Ccircle cx='0' cy='0' r='26'/%3E%3Ccircle cx='120' cy='0' r='26'/%3E%3Ccircle cx='0' cy='120' r='26'/%3E%3Ccircle cx='120' cy='120' r='26'/%3E%3C/g%3E%3C/svg%3E");
+
+  /* Torre de control (coordinador): siempre oscura, con colores de instrumento */
+  --tw-bg: #060b13;
+  --tw-surface: #0b131e;
+  --tw-surface-2: #111c2a;
+  --tw-surface-3: #182739;
+  --tw-inset: #070d16;
+  --tw-border: #1a2b3f;
+  --tw-border-strong: #34506c;
+  --tw-text: #e8f0f9;
+  --tw-text-muted: #a3b6cb;
+  --tw-text-faint: #8ea4bc;
+  --tw-radar: #3df5ab;
+  --tw-amber: #ffb43c;
+  --tw-cyan: #5ccbff;
+  --tw-red: #ff6f7d;
+  --tw-hero-a: #123a6e;
+  --tw-hero-b: #081b34;
+  --tw-grid: rgba(92, 203, 255, .055);
 }
 
 /* Modo claro: mismas variables, otros valores (el dorado de marca sigue en botones; como texto usa --gold-ink). */
 :root[data-theme='light'] {
   color-scheme: light;
 
-  --bg: #f4f2ec;
-  --surface: #ffffff;
-  --surface-2: #f0ede4;
-  --surface-3: #e6e2d6;
-  --inset: #edeae0;
-  --border: #e1dccd;
-  --border-strong: #c7c0ab;
+  --bg: #e8ecf4;
+  --surface: #fafbfd;
+  --surface-2: #eef1f8;
+  --surface-3: #dfe5f1;
+  --inset: #ffffff;
+  --border: #cbd3e5;
+  --border-strong: #8e9bc0;
 
-  --text: #0d1633;
-  --text-muted: #465073;
-  --text-faint: #566083;
+  --text: #0c1740;
+  --text-muted: #404c78;
+  --text-faint: #525e88;
 
   --gold: #ffc53d;
   --gold-hover: #f2b31f;
-  --gold-ink: #7c4f00;
+  --gold-ink: #7a5000;
   --on-gold: #1a1200;
-  --sky: #1a57c8;
-  --ok: #08694a;
+  --sky: #1a4dc0;
+  --ok: #066543;
   --warn: #8f4300;
   --danger: #a71c26;
 
@@ -99,6 +128,34 @@
 
   --shadow: 0 1px 2px rgba(13, 22, 51, .06), 0 14px 32px -22px rgba(13, 22, 51, .35);
   --shadow-pop: 0 18px 44px -14px rgba(13, 22, 51, .35);
+
+  --ink-1: #1f49b8;
+  --ink-2: #b3261e;
+  --ink-3: #1b7a52;
+  --ink-4: #6a3fa0;
+  --ink-5: #a85a00;
+  --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
+  --guilloche-ink: rgba(26, 77, 192, .1);
+  --guilloche: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='black' stroke-width='.55'%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(0.00 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(12.86 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(25.71 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(38.57 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(51.43 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(64.29 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(77.14 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(90.00 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(102.86 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(115.71 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(128.57 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(141.43 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(154.29 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='52' ry='16' transform='rotate(167.14 60 60)'/%3E%3Ccircle cx='60' cy='60' r='52'/%3E%3Ccircle cx='60' cy='60' r='27'/%3E%3C/g%3E%3Cg fill='none' stroke='black' stroke-width='.4'%3E%3Ccircle cx='0' cy='0' r='26'/%3E%3Ccircle cx='120' cy='0' r='26'/%3E%3Ccircle cx='0' cy='120' r='26'/%3E%3Ccircle cx='120' cy='120' r='26'/%3E%3C/g%3E%3C/svg%3E");
+
+  /* Torre de control (coordinador): siempre oscura, con colores de instrumento */
+  --tw-bg: #060b13;
+  --tw-surface: #0b131e;
+  --tw-surface-2: #111c2a;
+  --tw-surface-3: #182739;
+  --tw-inset: #070d16;
+  --tw-border: #1a2b3f;
+  --tw-border-strong: #34506c;
+  --tw-text: #e8f0f9;
+  --tw-text-muted: #a3b6cb;
+  --tw-text-faint: #8ea4bc;
+  --tw-radar: #3df5ab;
+  --tw-amber: #ffb43c;
+  --tw-cyan: #5ccbff;
+  --tw-red: #ff6f7d;
+  --tw-hero-a: #123a6e;
+  --tw-hero-b: #081b34;
+  --tw-grid: rgba(92, 203, 255, .055);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -870,35 +927,6 @@ a.btn-like { color: var(--text); text-decoration: none; }
   border-radius: 15px; background: color-mix(in srgb, var(--gold) 20%, transparent);
 }
 
-/* Entrada: panel azul con la marca arriba (celular) o a la izquierda (PC) y la tarjeta del formulario */
-.login-screen { position: relative; min-height: 100dvh; max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; }
-.login-hero {
-  position: relative; overflow: hidden; display: grid; justify-items: center; align-content: center; gap: .9rem; text-align: center;
-  min-height: 46dvh; padding: 3.5rem 1.5rem 4.5rem; color: var(--on-hero);
-  border-radius: 0 0 36px 36px;
-  background:
-    repeating-radial-gradient(circle at 108% 112%, transparent 0 46px, rgba(255, 255, 255, .10) 46px 48px),
-    repeating-radial-gradient(circle at -12% -8%, transparent 0 46px, rgba(255, 255, 255, .06) 46px 48px),
-    radial-gradient(120% 120% at 85% 0%, rgba(255, 255, 255, .16), transparent 55%),
-    linear-gradient(150deg, var(--hero-a), var(--hero-b));
-}
-.login-hero .brand { flex-direction: column; gap: .8rem; color: var(--on-hero); }
-.login-hero .wordmark { font-size: 2.7rem; color: var(--on-hero); }
-.login-hero .wordmark b { color: var(--on-hero-gold); }
-.login-hero .tagline { margin: 0; max-width: 24ch; color: var(--on-hero-muted); font-size: 1.05rem; }
-.login-card { position: relative; margin: -2.75rem 1rem 0; padding: 1.5rem 1.25rem; box-shadow: var(--shadow-pop); }
-.login-foot { margin: 1.25rem 0 2rem; text-align: center; color: var(--text-faint); font-size: .8125rem; }
-.login-theme { position: absolute; z-index: 5; top: max(1rem, env(safe-area-inset-top)); right: 1rem; }
-.login-theme .icon-btn { background: rgba(255, 255, 255, .12); border-color: var(--hero-line); color: var(--on-hero); }
-@media (min-width: 900px) {
-  .login-screen { max-width: none; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; }
-  .login-hero { min-height: 100dvh; border-radius: 0; padding: 4rem; }
-  .login-hero .wordmark { font-size: 3.4rem; }
-  .login-card { width: min(420px, 100% - 4rem); margin: 0 auto; }
-  .login-foot { grid-column: 2; }
-  .login-theme { right: 1.5rem; }
-}
-
 /* PC · menú lateral */
 @media (min-width: 900px) {
   .admin { grid-template-columns: 272px minmax(0, 1fr); }
@@ -1022,7 +1050,7 @@ button.icon-btn { padding: 0; }
 .dialog {
   display: grid; justify-items: center; gap: .6rem; width: min(440px, 100%); padding: 1.6rem 1.35rem 1.25rem; text-align: center;
   background: var(--surface); border: 1px solid var(--border-strong); border-radius: 22px; box-shadow: var(--shadow-pop);
-  animation: dialog-pop .2s cubic-bezier(.2, .9, .3, 1.2);
+  animation: dialog-pop .2s cubic-bezier(.2, .8, .2, 1);
 }
 .dialog h2 { margin: .15rem 0 0; font-size: 1.4rem; }
 .dialog-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; color: var(--on-hero); background: linear-gradient(145deg, var(--hero-a), var(--hero-b)); box-shadow: var(--shadow); }
@@ -1059,7 +1087,7 @@ button.icon-btn { padding: 0; }
 
 /* Modo del panel: Preparación / En carrera */
 .mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-top: .9rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; }
-.mode-switch .mode { display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 38px; padding: 0 .5rem; background: transparent; color: var(--text-muted); border-radius: 9px; font-size: .85rem; }
+.mode-switch .mode { white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 38px; padding: 0 .5rem; background: transparent; color: var(--text-muted); border-radius: 9px; font-size: .85rem; }
 .mode-switch .mode:hover:not(:disabled) { background: transparent; color: var(--text); }
 .mode-switch .mode[aria-selected='true'] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s ease-in-out infinite; }
@@ -1078,3 +1106,524 @@ a.prep-step:hover { border-color: var(--border-strong); transform: translateY(-1
 .page-head .head-meta .ghost { min-height: 38px; }
 
 .admin-brand .event { flex-wrap: wrap; }
+
+/* =====================================================================
+   Capa de diseño 3 · "Visado"
+   La app es un pasaporte: cada pantalla es una página de papel de seguridad (trama de rosetas), los sellos son las fotos
+   de las bases impresas en una sola tinta y la portada es azul con lámina dorada. Sin fuentes nuevas: Archivo condensado
+   para títulos, monoespaciada del sistema para las líneas de lectura (MRZ) y las etiquetas de campo.
+   ===================================================================== */
+
+/* Papel de seguridad: una trama muy tenue detrás de todo (fija, no se desplaza) */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--guilloche-ink);
+  -webkit-mask: var(--guilloche) 0 0 / 200px 200px repeat; mask: var(--guilloche) 0 0 / 200px 200px repeat;
+}
+.guilloche { position: relative; overflow: hidden; isolation: isolate; }
+.guilloche::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: var(--guilloche-ink);
+  -webkit-mask: var(--guilloche) 0 0 / 150px 150px repeat; mask: var(--guilloche) 0 0 / 150px 150px repeat;
+}
+
+/* Etiquetas de campo: monoespaciada, como los campos de un documento */
+h3, .label, .stat-label, .kpi-label, .eyebrow, .nav-label, .round-tag, .dialog-field span, .doc-kicker {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+}
+.eyebrow, .doc-kicker { font-size: .75rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.round-tag { font-stretch: 100%; font-size: .78rem; letter-spacing: .12em; }
+.mrz {
+  margin: 1.1rem 0 0; padding-top: .6rem; border-top: 1px dashed var(--border-strong); overflow: hidden; white-space: nowrap;
+  color: var(--text-faint); font: 600 .75rem/1.5 ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace; letter-spacing: .18em; user-select: none;
+}
+
+/* Cabecera: una línea de lámina dorada bajo la marca */
+.topbar { position: relative; padding-bottom: .75rem; }
+.topbar::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 2px; background: var(--foil); }
+.admin-topbar::after { opacity: .9; }
+
+/* Botones: el dorado es lámina, con un brillo fino arriba */
+button:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.account-item):not(.eye):not(.mode):not(.choice):not(.slot-btn):not(.route-row):not(.cover) {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 55%);
+}
+button.btn-danger { background-image: none; }
+
+/* ---------- Escudo, portada del documento (marcador del corredor) ---------- */
+.status-bar { position: sticky; overflow: hidden; isolation: isolate; border-radius: var(--radius); }
+.status-bar::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: var(--on-hero); opacity: .09;
+  -webkit-mask: var(--guilloche) 100% 0 / 130px 130px repeat; mask: var(--guilloche) 100% 0 / 130px 130px repeat;
+}
+.status-bar::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--foil); }
+.status-bar .doc-kicker { display: block; color: var(--on-hero-gold); font-size: .75rem; letter-spacing: .16em; }
+.status-bar .who strong { margin: .1rem 0 .2rem; font-stretch: 76%; font-weight: 800; font-size: 1.3rem; line-height: 1; text-transform: uppercase; letter-spacing: .01em; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.doc-count { display: grid; justify-items: end; line-height: 1; color: var(--on-hero-gold); font-size: 1.9rem; }
+.doc-count small { color: var(--on-hero-muted); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-stretch: 100%; margin-top: .25rem; }
+
+/* ---------- Visado: la base de la ronda actual ---------- */
+.visa { position: relative; margin-top: 1rem; overflow: hidden; background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: var(--radius); box-shadow: var(--shadow-pop); animation: rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+.visa-photo { position: relative; aspect-ratio: 16 / 11; background: var(--surface-3); color: var(--on-hero); isolation: isolate;
+  -webkit-mask: linear-gradient(#000, #000) top / 100% calc(100% - 7px) no-repeat, radial-gradient(circle at 7px 7px, transparent 3.4px, #000 3.8px) bottom left / 14px 14px repeat-x;
+  mask: linear-gradient(#000, #000) top / 100% calc(100% - 7px) no-repeat, radial-gradient(circle at 7px 7px, transparent 3.4px, #000 3.8px) bottom left / 14px 14px repeat-x; }
+.visa-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 1.2s cubic-bezier(.2, .7, .2, 1); }
+.visa:hover .visa-photo img { transform: scale(1.04); }
+.visa-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 10, 40, .5) 0%, rgba(5, 10, 40, 0) 34%, rgba(5, 10, 40, .88) 100%); }
+.visa-nophoto { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-faint); }
+.visa-cap { position: absolute; z-index: 2; left: 1rem; right: 1rem; bottom: 1.1rem; }
+.visa-kicker { display: block; color: var(--on-hero-gold); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; }
+.visa-cap h2 { margin: .3rem 0 0; font-stretch: 76%; font-weight: 800; font-size: 2.3rem; line-height: .98; text-transform: uppercase; color: var(--on-hero); text-shadow: 0 2px 16px rgba(0, 0, 0, .45); }
+.visa-photo .badge { position: absolute; z-index: 2; top: .8rem; right: .8rem; background: rgba(255, 255, 255, .92); color: var(--text); }
+.visa-photo .badge.ok { color: var(--ok); }
+.visa-body { padding: .35rem 1.15rem 1.15rem; }
+.visa-fields { display: grid; grid-template-columns: 1fr auto; gap: .7rem 1rem; margin: .9rem 0 0; }
+.visa-fields dt { color: var(--text-faint); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.visa-fields dd { display: flex; align-items: center; gap: .5rem; margin: .35rem 0 0; font-weight: 700; font-size: 1.05rem; }
+.visa-fields .big-score { font-size: 2.4rem; }
+.visa-slot { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .9rem; margin-top: 1rem; padding: .75rem .9rem; background: var(--surface-2); border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); }
+.visa-slot p { margin: 0; color: var(--text-muted); font-size: .9rem; }
+.visa-slot p strong { display: block; color: var(--text); font-size: 1rem; }
+.visa-body h3 { margin-top: 1.1rem; }
+
+/* "Próximo visado": la misma perforación, más pequeña */
+.next-photo { -webkit-mask: radial-gradient(circle at 5px 5px, transparent 2.5px, #000 2.9px) -5px -5px / 10px 10px, linear-gradient(#000, #000) center / calc(100% - 10px) calc(100% - 10px) no-repeat; mask: radial-gradient(circle at 5px 5px, transparent 2.5px, #000 2.9px) -5px -5px / 10px 10px, linear-gradient(#000, #000) center / calc(100% - 10px) calc(100% - 10px) no-repeat; border-radius: 0; }
+.next-photo.empty { background: var(--surface-3); }
+
+/* ---------- Sellos ---------- */
+.stamp { --stamp-ink: var(--ink-1); position: relative; display: inline-block; flex: none; line-height: 0; transition: transform .25s cubic-bezier(.2, .8, .2, 1); will-change: transform; }
+.stamp svg { overflow: visible; }
+.stamp-ink { stroke: var(--stamp-ink); fill: var(--stamp-ink); }
+.stamp-empty { stroke: var(--stamp-ink); fill: none; opacity: .85; }
+.stamp-empty text { fill: var(--stamp-ink); stroke: none; }
+.stamp.current .stamp-empty { animation: breathe 2.2s ease-in-out infinite; }
+.stamp-text, .stamp-initial { font-family: 'Archivo Variable', 'Archivo', system-ui, sans-serif; font-stretch: 76%; }
+.stamp-mono { font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace; }
+.stamp-seal { position: absolute; right: 1%; bottom: 3%; width: 27%; height: 27%; display: grid; padding: 5%; border-radius: 50%; color: var(--on-gold); background: var(--foil); box-shadow: 0 0 0 2px var(--surface), 0 3px 8px -2px rgba(5, 10, 40, .5); }
+.stamp.pop svg { animation: stamp-in .65s cubic-bezier(.2, .8, .2, 1) both; transform-origin: 50% 50%; }
+.stamp.pop .stamp-seal { animation: rise .4s .55s cubic-bezier(.2, .8, .2, 1) both; }
+
+/* ---------- Pasaporte (pestaña del corredor) ---------- */
+.passport { padding-bottom: 1rem; animation: rise .4s cubic-bezier(.2, .8, .2, 1) both; }
+.passport-head { display: flex; align-items: center; gap: .85rem; }
+.passport-head .eyebrow { margin: 0; color: var(--text-faint); }
+.passport-title { margin: .1rem 0 0; font-size: 1.7rem; text-transform: uppercase; overflow-wrap: anywhere; }
+.passport-count { display: grid; justify-items: end; color: var(--gold-ink); font-size: 2.3rem; line-height: .95; }
+.passport-count small { font-size: 1rem; color: var(--text-muted); }
+.ticks { display: flex; gap: 4px; margin: .9rem 0 .4rem; }
+.ticks i { flex: 1; height: 5px; border-radius: 3px; background: var(--surface-3); transition: background-color .5s; }
+.ticks i.on { background: var(--foil); }
+.ticks i.now { background: color-mix(in srgb, var(--gold) 45%, var(--surface-3)); animation: breathe 2.2s ease-in-out infinite; }
+.passport-complete { display: grid; gap: .15rem; margin: .8rem 0 .2rem; padding: .85rem 1rem; color: var(--on-hero); border-radius: var(--radius-sm); background: linear-gradient(145deg, var(--hero-a), var(--hero-b)); box-shadow: inset 0 -3px 0 0 var(--gold); animation: rise .5s cubic-bezier(.2, .8, .2, 1) both; }
+.passport-complete strong { font-stretch: 76%; font-size: 1.35rem; text-transform: uppercase; letter-spacing: .02em; color: var(--on-hero-gold); }
+.passport-complete span { color: var(--on-hero-muted); font-size: .9rem; }
+.slots { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin: .8rem 0 0; padding: 0; }
+.slot { position: relative; }
+.slot-btn { position: relative; display: grid; justify-items: center; align-content: start; gap: .35rem; width: 100%; min-height: 0; padding: 1.6rem .5rem .8rem; color: inherit; font-weight: inherit; text-align: center; line-height: 1.2;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+button.slot-btn { cursor: pointer; }
+button.slot-btn:hover:not(:disabled) { background: var(--surface-3); border-color: var(--border-strong); }
+button.slot-btn:hover .stamp { transform: rotate(0deg) scale(1.04); }
+.slot.open .slot-btn { border-color: var(--text-faint); background: var(--surface-3); }
+.slot-page { position: absolute; left: .65rem; top: .55rem; color: var(--text-faint); font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
+.slot-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: .9rem; }
+.slot.pending .slot-name, .slot.rest .slot-name { color: var(--text-faint); font-weight: 600; }
+.slot.current .slot-btn { border-style: dashed; border-color: var(--border-strong); }
+.slot-detail { margin-top: .8rem; padding: .35rem .9rem .5rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); animation: rise .3s cubic-bezier(.2, .8, .2, 1) both; }
+.slot-detail h3 { margin-top: .5rem; }
+.slot-detail .item-results { margin-top: .25rem; }
+
+/* ---------- El momento del sello ---------- */
+.moment { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: 1.25rem; cursor: pointer;
+  background: color-mix(in srgb, var(--hero-b) 80%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); animation: fade .25s ease-out both; }
+.moment-card { position: relative; display: grid; justify-items: center; gap: .3rem; width: min(340px, 100%); padding: 1.4rem 1.4rem 1.2rem; overflow: hidden; text-align: center; cursor: default;
+  background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: 22px; box-shadow: var(--shadow-pop); animation: moment-in .45s cubic-bezier(.2, .8, .2, 1) both; }
+.moment-card::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--foil); }
+.moment-kicker { margin: .2rem 0 .5rem; color: var(--text-faint); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; }
+.moment-card h2 { margin: .6rem 0 0; font-size: 2rem; text-transform: uppercase; }
+.moment-sub { margin: 0 0 .5rem; color: var(--text-muted); }
+.moment-close { min-width: 9rem; }
+
+/* ---------- Entrada: la portada del pasaporte con la foto del campus ---------- */
+.login-screen { position: relative; min-height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; background: var(--bg); }
+.login-hero {
+  position: relative; overflow: hidden; display: grid; align-content: end; gap: .9rem; min-height: 56dvh; padding: 3.4rem 1.5rem 5.2rem; color: var(--on-hero);
+  border-radius: 0 0 28px 28px; background: var(--hero-b); isolation: isolate;
+}
+.login-photo { position: absolute; inset: 0; z-index: -3; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; animation: photo-settle 1.4s cubic-bezier(.2, .7, .2, 1) both; }
+.login-hero::before { content: ''; position: absolute; inset: 0; z-index: -2; background:
+    linear-gradient(180deg, rgba(8, 18, 70, .55) 0%, rgba(8, 18, 70, .08) 32%, rgba(6, 12, 52, .94) 100%),
+    linear-gradient(120deg, rgba(27, 63, 170, .42), rgba(27, 63, 170, 0) 60%); }
+.login-hero::after { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--on-hero); opacity: .05;
+  -webkit-mask: var(--guilloche) 100% 100% / 150px 150px repeat; mask: var(--guilloche) 100% 100% / 150px 150px repeat; }
+.login-hero .doc-kicker { color: var(--on-hero-gold); }
+.login-hero .brand { gap: .75rem; color: var(--on-hero); }
+.login-hero .wordmark { font-size: 1.6rem; color: var(--on-hero); }
+.login-hero .wordmark b { color: var(--on-hero-gold); }
+.login-title { margin: 0; font-size: clamp(2.4rem, 12.4vw, 3.7rem); line-height: .88; text-transform: uppercase; color: transparent; background: var(--foil); -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 2px 14px rgba(0, 0, 0, .4)); }
+.login-title small { display: block; margin-top: .55rem; color: var(--on-hero); -webkit-text-fill-color: var(--on-hero); font: 600 .95rem/1.3 'Archivo Variable', system-ui, sans-serif; font-stretch: 100%; letter-spacing: .01em; text-transform: none; }
+.login-hero .doc-kicker, .login-hero .brand, .login-title { animation: rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+.login-hero .brand { animation-delay: .12s; }
+.login-title { animation-delay: .22s; }
+.login-card { position: relative; margin: -3rem 1rem 0; padding: 1.4rem 1.25rem 1.5rem; border: 1.5px solid var(--border-strong); box-shadow: var(--shadow-pop); animation: rise .6s .3s cubic-bezier(.2, .8, .2, 1) both; }
+.login-card label { font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint); }
+.login-card input { font-family: 'Archivo Variable', system-ui, sans-serif; font-size: 1.05rem; letter-spacing: 0; text-transform: none; }
+.login-card .mrz { margin-top: 1.1rem; }
+.login-foot { margin: 1.25rem 0 2rem; text-align: center; color: var(--text-faint); font-size: .8125rem; }
+.login-theme { position: absolute; z-index: 5; top: max(1rem, env(safe-area-inset-top)); right: 1rem; }
+.login-theme .icon-btn { background: rgba(255, 255, 255, .14); border-color: var(--hero-line); color: var(--on-hero); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+@media (min-width: 900px) {
+  .login-screen { max-width: none; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: center; }
+  .login-hero { min-height: 100dvh; border-radius: 0; padding: 4.5rem; align-content: end; }
+  .login-title { font-size: 5.6rem; }
+  .login-hero .wordmark { font-size: 2rem; }
+  .login-card { width: min(430px, 100% - 4rem); margin: 0 auto; }
+  .login-foot { grid-column: 2; margin-top: -4rem; }
+  .login-theme { right: 1.5rem; }
+  .login-theme .icon-btn { background: var(--surface); border-color: var(--border-strong); color: var(--text); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* ---------- Pestañas: la activa lleva una cinta azul con el icono dorado ---------- */
+.bn-tab.active, .nav-mobile .tab.active { color: var(--text); }
+.bn-tab.active::before, .nav-mobile .tab.active::before {
+  background: linear-gradient(145deg, var(--hero-a), var(--hero-b)); box-shadow: inset 0 -2px 0 0 var(--gold); animation: pill-in .3s cubic-bezier(.2, .8, .2, 1) both;
+}
+.bn-tab.active svg, .nav-mobile .tab.active svg { color: var(--on-hero-gold); }
+.bn-tab.active:hover:not(:disabled) { color: var(--text); }
+.bottom-nav { view-transition-name: bottom-nav; }
+.admin-nav { view-transition-name: admin-nav; }
+.bn-tab { transition: color .2s; }
+.bn-tab:active:not(:disabled) { transform: scale(.94); }
+
+/* ---------- Coordinador: la oficina de control ---------- */
+@media (min-width: 900px) {
+  .admin-brand {
+    position: relative; overflow: hidden; isolation: isolate; margin: 0 0 .25rem; padding: 1.1rem 1rem 1rem; color: var(--on-hero); border-bottom: 0; border-radius: var(--radius);
+    background: linear-gradient(145deg, var(--hero-a), var(--hero-b)); --gold: var(--on-hero-gold); --sky: var(--on-hero-sky);
+  }
+  .admin-brand::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--on-hero); opacity: .09; -webkit-mask: var(--guilloche) 100% 0 / 130px 130px repeat; mask: var(--guilloche) 100% 0 / 130px 130px repeat; }
+  .admin-brand::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--foil); }
+  .admin-brand .brand, .admin-brand .wordmark { color: var(--on-hero); }
+  .admin-brand .wordmark b { color: var(--on-hero-gold); }
+  .admin-brand .office { margin: .85rem 0 0; color: var(--on-hero-gold); }
+  .admin-brand .event { margin: .5rem 0 0; padding: 0; border: 0; background: transparent; color: var(--on-hero-muted); }
+  .admin-brand .event strong { color: var(--on-hero); }
+  .admin-brand .event svg { color: var(--on-hero-gold); }
+  .admin-brand .event .badge { color: var(--on-hero); background: rgba(255, 255, 255, .16); }
+  .admin-brand .event .badge.ok { color: var(--on-hero-ok); }
+  .admin-brand .mode-switch { background: rgba(255, 255, 255, .1); border-color: var(--hero-line); }
+  .admin-brand .mode-switch .mode { color: var(--on-hero-muted); }
+  .admin-brand .mode-switch .mode:hover:not(:disabled) { color: var(--on-hero); }
+  .admin-brand .mode-switch .mode[aria-selected='true'] { background: var(--surface); color: var(--text); }
+  .admin-brand .live-dot { background: var(--ok); }
+}
+.kpi { position: relative; overflow: hidden; isolation: isolate; border-width: 1.5px; border-color: var(--border-strong); }
+.kpi::after { content: ''; position: absolute; right: -26px; top: -26px; width: 120px; height: 120px; z-index: -1; background: var(--guilloche-ink); -webkit-mask: var(--guilloche) center / 120px 120px; mask: var(--guilloche) center / 120px 120px; }
+.kpi.accent::after { background: var(--on-hero); opacity: .12; }
+.kpi.accent { box-shadow: inset 0 -3px 0 0 var(--gold); }
+.kpi-value { font-stretch: 76%; }
+.base-stamp { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.base-stamp p { margin: 0; color: var(--text-muted); font-size: .9rem; }
+.base-stamp strong { display: block; color: var(--text); font-size: 1.05rem; }
+.list li .stamp { margin-right: .15rem; }
+
+/* ---------- Movimiento ---------- */
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes moment-in { from { opacity: 0; transform: translateY(26px) scale(.94); } }
+@keyframes photo-settle { from { transform: scale(1.1); } }
+@keyframes pill-in { from { opacity: 0; transform: scale(.6); } }
+@keyframes breathe { 50% { opacity: .45; } }
+@keyframes stamp-in { from { opacity: 0; transform: scale(1.9) rotate(-20deg); } 55% { opacity: 1; transform: scale(.93) rotate(2deg); } 78% { transform: scale(1.03) rotate(-.6deg); } }
+@keyframes turn-out { to { opacity: 0; transform: translateX(-12px); } }
+@keyframes turn-in { from { opacity: 0; transform: translateX(14px); } }
+::view-transition-old(root) { animation: turn-out .15s ease-in both; }
+::view-transition-new(root) { animation: turn-in .24s .04s cubic-bezier(.2, .8, .2, 1) both; }
+@media (hover: none) { .visa:hover .visa-photo img { transform: none; } button.slot-btn:hover .stamp { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  .visa-photo img, .stamp { transition: none; }
+}
+
+/* =====================================================================
+   Capa de diseño 4 · "Viaje" (corredores)
+   El pasaporte se vuelve un viaje internacional: la portada se abre, hay una página de identidad con el mapa del recorrido,
+   cada base es un destino con puerta y código de aeropuerto, y el sello se gana al completar las tres etapas.
+   ===================================================================== */
+.stamp { --stamp-paper: var(--surface); }
+.stamp-onink { fill: var(--stamp-paper); stroke: none; }
+
+/* ---------- Pasaporte: cubierta y páginas ---------- */
+.booklet { position: relative; margin-top: 1rem; perspective: 1700px; min-height: 600px; }
+.leaf-wrap { touch-action: pan-y; }
+.leaf {
+  position: relative; padding: 1.25rem 1.1rem 1rem; overflow: hidden; isolation: isolate; background: var(--surface);
+  border: 1.5px solid var(--border-strong); border-radius: 6px var(--radius) var(--radius) 6px;
+  box-shadow: var(--shadow-pop), inset 16px 0 18px -16px rgba(5, 10, 40, .4);
+}
+.leaf::before { content: ''; position: absolute; right: -40px; top: -40px; width: 220px; height: 220px; z-index: -1; pointer-events: none; background: var(--guilloche-ink);
+  -webkit-mask: var(--guilloche) center / 150px 150px repeat; mask: var(--guilloche) center / 150px 150px repeat; }
+.leaf.turn-next { transform-origin: left center; animation: leaf-next .5s cubic-bezier(.2, .8, .2, 1) both; }
+.leaf.turn-prev { transform-origin: right center; animation: leaf-prev .5s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes leaf-next { from { opacity: 0; transform: rotateY(-26deg) translateX(22px); } }
+@keyframes leaf-prev { from { opacity: 0; transform: rotateY(26deg) translateX(-22px); } }
+.leaf-head { display: flex; align-items: center; gap: .9rem; }
+.leaf-head .doc-kicker { margin: 0; color: var(--text-faint); }
+.leaf-title { margin: .1rem 0 0; font-size: 1.7rem; text-transform: uppercase; overflow-wrap: anywhere; }
+.uni-mark { flex: none; width: auto; height: 58px; }
+.id-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem 1rem; margin: 1rem 0 .5rem; padding: .85rem 0; border-block: 1px dashed var(--border-strong); }
+.id-grid dt { color: var(--text-faint); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.id-grid dd { margin: .3rem 0 0; font-weight: 800; font-size: 1.1rem; overflow-wrap: anywhere; }
+.id-grid dd.mono { letter-spacing: .08em; }
+
+.routemap { margin: .5rem 0 0; padding: .35rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.routemap svg { display: block; width: 100%; height: auto; }
+.rm-grid line, .rm-grid circle { stroke: var(--border-strong); stroke-width: .5; fill: none; opacity: .6; }
+.rm-leg { stroke: var(--text-faint); stroke-width: 1.6; stroke-dasharray: 4 4; opacity: .85; }
+.rm-leg.done { stroke: var(--ink-1); stroke-dasharray: none; stroke-width: 2.6; opacity: 1; }
+.rm-stop circle { fill: var(--surface); stroke: var(--text-faint); stroke-width: 1.6; }
+.rm-stop.done circle { fill: var(--ink-1); stroke: var(--ink-1); }
+.rm-stop.current circle { fill: var(--gold); stroke: var(--ink-1); stroke-width: 2; }
+.rm-stop .rm-pulse { fill: none; stroke: var(--gold); stroke-width: 1.6; transform-box: fill-box; transform-origin: center; animation: ring 1.9s ease-out infinite; }
+.rm-check { fill: none; stroke: var(--surface); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.rm-code { fill: var(--text); font: 700 9.6px ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .08em; paint-order: stroke; stroke: var(--surface-2); stroke-width: 3px; }
+.rm-plane { color: var(--text); }
+.rm-plane svg { fill: var(--gold); }
+
+.trip { margin: .9rem 0 .1rem; }
+.trip-line { position: relative; height: 6px; border-radius: 3px; background: var(--surface-3); }
+.trip-line i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--foil); transition: width .9s cubic-bezier(.2, .8, .2, 1); }
+.trip-plane { position: absolute; top: 50%; padding: 3px; width: 26px; height: 26px; border-radius: 50%; color: var(--text); background: var(--surface); box-shadow: 0 0 0 1.5px var(--border-strong); transform: translate(-50%, -50%) rotate(45deg); transition: left .9s cubic-bezier(.2, .8, .2, 1); }
+.trip-text { margin: .8rem 0 0; color: var(--text-muted); font-size: .9rem; }
+.trip-text strong { color: var(--gold-ink); font-size: 1.25rem; }
+.itinerary { list-style: none; display: grid; gap: .35rem; margin: .8rem 0 0; padding: 0; }
+.itinerary li { display: flex; align-items: center; gap: .7rem; padding: .5rem .7rem; font-weight: 600; background: var(--surface-2); border-radius: var(--radius-sm); }
+.itinerary .mono { min-width: 2.7rem; font-weight: 800; letter-spacing: .1em; }
+.itinerary li.pending { color: var(--text-muted); }
+.flap-mini { padding: .2rem .5rem; color: var(--text-muted); background: var(--surface-3); border-radius: 4px; font: 700 .75rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.done > .flap-mini, .flap-mini.done { color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); }
+.current > .flap-mini, .flap-mini.current { color: var(--text); background: color-mix(in srgb, var(--gold) 38%, transparent); }
+.leaf-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .75rem; }
+.leaf-dots { display: flex; align-items: center; gap: .4rem; }
+.leaf-dots i { width: 8px; height: 8px; border-radius: 4px; background: var(--border-strong); transition: width .3s cubic-bezier(.2, .8, .2, 1), background-color .3s; }
+.leaf-dots i.on { width: 24px; background: var(--gold-ink); }
+.slots { margin-top: .9rem; }
+.slot-btn { padding-top: 1.7rem; }
+.slot-page { letter-spacing: .14em; font-size: .75rem; }
+.slot .flap-mini { margin-top: .1rem; }
+
+/* La cubierta: se abre sola (o al tocarla) como la tapa de un pasaporte */
+.cover {
+  position: absolute; inset: 0; z-index: 6; display: block; min-height: 0; padding: 0; overflow: hidden; isolation: isolate; cursor: pointer; color: var(--on-hero);
+  background: linear-gradient(145deg, var(--hero-a), var(--hero-b)); background-image: linear-gradient(145deg, var(--hero-a), var(--hero-b));
+  border: 0; border-radius: 6px var(--radius) var(--radius) 6px; box-shadow: var(--shadow-pop);
+  transform-origin: left center; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  transition: transform 1.05s cubic-bezier(.65, 0, .2, 1), box-shadow 1.05s;
+}
+.cover:hover:not(:disabled) { background: linear-gradient(145deg, var(--hero-a), var(--hero-b)); }
+.cover.opening { transform: rotateY(-168deg); box-shadow: none; pointer-events: none; }
+.cover::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--on-hero); opacity: .1; -webkit-mask: var(--guilloche) 100% 0 / 150px 150px repeat; mask: var(--guilloche) 100% 0 / 150px 150px repeat; }
+.cover::after { content: ''; position: absolute; inset: 12px; border: 1.5px solid transparent; border-image: var(--foil) 1; opacity: .8; pointer-events: none; }
+.cover-inner { display: grid; justify-items: center; align-content: center; gap: .55rem; height: 100%; min-height: 600px; padding: 2.5rem 1.5rem; text-align: center; }
+.cover-uni { width: auto; height: 108px; margin-bottom: 1rem; }
+.cover-title { font-stretch: 76%; font-weight: 800; font-size: 3.6rem; line-height: .9; letter-spacing: .02em; text-transform: uppercase; color: transparent; background: var(--foil); -webkit-background-clip: text; background-clip: text; }
+.cover-sub { color: var(--on-hero-muted); font: 700 .75rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; }
+.cover-team { margin-top: 1.4rem; font-stretch: 76%; font-weight: 800; font-size: 1.7rem; line-height: 1; text-transform: uppercase; overflow-wrap: anywhere; }
+.cover-flight { padding: .3rem .7rem; color: var(--on-hero-gold); border: 1px solid var(--hero-line); border-radius: 6px; font-weight: 700; letter-spacing: .14em; }
+.cover-hint { margin-top: 1.2rem; color: var(--on-hero-muted); font-size: .85rem; animation: breathe 2.2s ease-in-out infinite; }
+
+/* ---------- Destino: la base como puerta de embarque ---------- */
+.dest { position: relative; margin-top: 1rem; overflow: hidden; background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: var(--radius); box-shadow: var(--shadow-pop); animation: rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+.dest-photo { position: relative; aspect-ratio: 4 / 5; max-height: 72dvh; width: 100%; color: var(--on-hero); background: var(--surface-3); isolation: isolate;
+  -webkit-mask: linear-gradient(#000, #000) top / 100% calc(100% - 7px) no-repeat, radial-gradient(circle at 7px 7px, transparent 3.4px, #000 3.8px) bottom left / 14px 14px repeat-x;
+  mask: linear-gradient(#000, #000) top / 100% calc(100% - 7px) no-repeat, radial-gradient(circle at 7px 7px, transparent 3.4px, #000 3.8px) bottom left / 14px 14px repeat-x; }
+.dest-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 1.4s cubic-bezier(.2, .7, .2, 1); }
+.dest:hover .dest-photo img { transform: scale(1.04); }
+.dest-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 10, 40, .62) 0%, rgba(5, 10, 40, 0) 30%, rgba(5, 10, 40, .1) 52%, rgba(5, 10, 40, .92) 100%); }
+.dest-sign { position: absolute; z-index: 2; top: .85rem; left: .85rem; right: .85rem; display: flex; align-items: stretch; gap: .5rem; }
+.gate-sign { display: grid; place-items: center; align-content: center; gap: .15rem; padding: .35rem .65rem; color: var(--on-gold); background: var(--gold); border-radius: 6px; line-height: 1; }
+.gate-sign small { font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.gate-sign b { font-stretch: 76%; font-weight: 800; font-size: 1.6rem; }
+.dest-code { display: grid; place-items: center; padding: 0 .75rem; color: var(--on-hero); background: rgba(5, 10, 40, .72); border: 1px solid var(--hero-line); border-radius: 6px; font-weight: 800; font-size: 1.15rem; letter-spacing: .18em; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.flap { display: flex; align-items: center; gap: .45rem; margin-left: auto; padding: 0 .75rem; color: var(--text); background: var(--surface); border-radius: 6px; font: 800 .78rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; }
+.flap::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--sky); }
+.flap.gate::before { background: var(--gold); }
+.flap.live::before { background: var(--ok); animation: pulse 1.6s ease-in-out infinite; }
+.dest-cap { position: absolute; z-index: 2; left: 1.1rem; right: 1.1rem; bottom: 1.4rem; }
+.dest-cap h2 { margin: .35rem 0 0; font-stretch: 76%; font-weight: 800; font-size: 2.9rem; line-height: .94; text-transform: uppercase; color: var(--on-hero); text-shadow: 0 2px 18px rgba(0, 0, 0, .5); overflow-wrap: anywhere; }
+.dest-body { padding: .35rem 1.15rem 1.15rem; }
+.dest-body h3 { margin-top: 1.1rem; }
+
+/* Las tres etapas de un destino */
+.stages { position: relative; list-style: none; margin: .35rem 0 0; padding: 0; }
+.stage { position: relative; display: grid; grid-template-columns: 2rem 1fr auto; align-items: center; gap: .8rem; padding: .6rem 0; }
+.stage + .stage::before { content: ''; position: absolute; left: calc(1rem - 1px); top: -50%; bottom: 50%; width: 2px; background: var(--border-strong); }
+.stage.done + .stage::before { background: var(--ok); }
+.stage-dot { position: relative; z-index: 1; display: grid; place-items: center; width: 2rem; height: 2rem; color: var(--text-muted); background: var(--surface-3); border: 2px solid var(--border-strong); border-radius: 50%; font-weight: 800; font-size: .9rem; }
+.stage.done .stage-dot { color: var(--surface); background: var(--ok); border-color: var(--ok); }
+.stage.active .stage-dot { color: var(--text); background: var(--surface); border-color: var(--gold); animation: breathe 1.8s ease-in-out infinite; }
+.stage-name { font-weight: 700; font-size: 1.05rem; }
+.stage-res { max-width: 11rem; text-align: right; font-size: .9rem; line-height: 1.25; }
+.stage-res.won { color: var(--ok); font-weight: 700; }
+.stage-res.pending { color: var(--text-faint); }
+.stage.active .stage-res { color: var(--text); font-weight: 700; }
+.dest-body .visa-slot { margin-top: 1.1rem; }
+.slot-detail .stages { margin-top: .2rem; }
+
+/* El próximo destino: una tarjeta de embarque */
+.boarding { display: grid; grid-template-columns: minmax(0, 1fr) auto; padding: 0; overflow: visible; }
+.bp-main { min-width: 0; padding: 1.1rem 1.1rem 1.1rem 1.25rem; }
+.bp-stub { position: relative; display: grid; align-content: center; justify-items: center; gap: .3rem; min-width: 5.6rem; padding: 1rem .9rem; background: var(--surface-2); border-left: 2px dashed var(--border-strong); border-radius: 0 var(--radius) var(--radius) 0; }
+.bp-stub::before, .bp-stub::after { content: ''; position: absolute; left: -9px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); border: 1.5px solid var(--border); }
+.bp-stub::before { top: -9px; clip-path: inset(50% 0 0 0); }
+.bp-stub::after { bottom: -9px; clip-path: inset(0 0 50% 0); }
+.bp-code { font: 800 1.9rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .06em; color: var(--text); }
+.bp-stub small { color: var(--text-faint); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; }
+
+/* ---------- Entrada con el escudo de la Universidad ---------- */
+.login-uni { width: auto; height: 74px; margin-bottom: .35rem; animation: rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+.login-hero { min-height: 66dvh; }
+@media (min-width: 900px) { .login-uni { height: 112px; } }
+@media (prefers-reduced-motion: reduce) { .cover.opening { transition: none; } .leaf.turn-next, .leaf.turn-prev { animation: none; } }
+.who-line { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem .7rem; }
+.flight-chip { padding: .1rem .5rem; color: var(--on-hero-gold); border: 1px solid var(--hero-line); border-radius: 5px; font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
+
+/* =====================================================================
+   Capa de diseño 5 · "Torre de control" (coordinador)
+   El panel del coordinador es un centro de operaciones: siempre oscuro (sin importar el modo de la app), rejilla de
+   cartografía, tipografía técnica en los datos y colores de instrumento (verde radar, ámbar, cian, rojo).
+   Mismas variables de color de siempre, con otros valores dentro de `.tower`: así todos los componentes se adaptan.
+   ===================================================================== */
+.tower {
+  color-scheme: dark;
+  --bg: var(--tw-bg); --surface: var(--tw-surface); --surface-2: var(--tw-surface-2); --surface-3: var(--tw-surface-3); --inset: var(--tw-inset);
+  --border: var(--tw-border); --border-strong: var(--tw-border-strong);
+  --text: var(--tw-text); --text-muted: var(--tw-text-muted); --text-faint: var(--tw-text-faint);
+  --ok: var(--tw-radar); --warn: var(--tw-amber); --danger: var(--tw-red); --sky: var(--tw-cyan); --gold-ink: var(--gold);
+  --hero-a: var(--tw-hero-a); --hero-b: var(--tw-hero-b); --guilloche-ink: var(--tw-grid);
+  --shadow: 0 1px 0 rgba(120, 200, 255, .05) inset, 0 14px 34px -20px rgba(0, 0, 0, .9);
+  --shadow-pop: 0 18px 44px -14px rgba(0, 0, 0, .85);
+  position: relative; color: var(--text); background: var(--bg);
+}
+.tower::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    linear-gradient(var(--tw-grid) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, var(--tw-grid) 1px, transparent 1px) 0 0 / 44px 44px,
+    radial-gradient(120% 70% at 85% -10%, rgba(92, 203, 255, .1), transparent 60%);
+}
+.tower > * { position: relative; z-index: 1; }
+.tower .admin-nav { z-index: 20; }
+body:has(.tower) { background: var(--tw-bg); }
+body:has(.tower)::before { display: none; }
+
+/* Datos con tipografía técnica */
+.tower .kpi-value, .tower .mscore, .tower .num, .tower .stat-value, .tower .passport-count { font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace; font-stretch: 100%; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.tower h1 { font-size: 2.1rem; letter-spacing: .02em; }
+.tower .eyebrow { color: var(--sky); }
+.tower .card { background: color-mix(in srgb, var(--surface) 92%, transparent); border-color: var(--border-strong); }
+.tower .card::before { content: ''; position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-top: 2px solid var(--sky); border-left: 2px solid var(--sky); border-radius: var(--radius) 0 0 0; opacity: .7; pointer-events: none; }
+.tower .card { position: relative; }
+
+/* Menú lateral: la marca, la Universidad y la hora local */
+.tower .tower-brand { display: flex; align-items: center; gap: .9rem; }
+.tower .tower-uni { flex: none; width: auto; height: 62px; }
+.tower .tower-rule { width: 1px; align-self: stretch; background: var(--hero-line); }
+.tower .tower-hour { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin: .85rem 0 0; padding: .45rem .65rem; background: rgba(0, 0, 0, .28); border: 1px solid var(--hero-line); border-radius: var(--radius-sm); }
+.tower .tower-hour small { color: var(--on-hero-muted); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.tower-clock { color: var(--tw-radar); font-size: 1.15rem; font-weight: 700; letter-spacing: .06em; text-shadow: 0 0 12px color-mix(in srgb, var(--tw-radar) 55%, transparent); font-variant-numeric: tabular-nums; }
+@media (min-width: 900px) {
+  .tower .admin-nav { background: color-mix(in srgb, var(--surface) 96%, transparent); border-right-color: var(--border-strong); }
+  .tower .admin-brand { margin-bottom: .5rem; }
+}
+
+/* Indicadores (Live Monitoring) */
+.tower .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 700px) { .tower .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .tower .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.tower .kpi { border-radius: var(--radius-sm); background: color-mix(in srgb, var(--surface) 94%, transparent); }
+.tower .kpi-value { font-size: 2rem; }
+.tower .kpi-sub { line-height: 1.25; }
+.tower .kpi.hot .kpi-value { text-shadow: 0 0 14px color-mix(in srgb, var(--danger) 60%, transparent); animation: breathe 1.8s ease-in-out infinite; }
+.tower .kpi.accent { background: linear-gradient(145deg, var(--hero-a), var(--hero-b)); }
+
+/* Flight Control: el tablero de vuelos */
+.board-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .4rem; }
+.board-head h2 { margin: 0; }
+.board-head .eyebrow { margin: 0 0 .15rem; }
+.flights { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; }
+.flight { display: grid; grid-template-columns: 5.4rem minmax(0, 1.2fr) minmax(0, 1.6fr) 3.1rem 6.6rem 4.2rem 3.6rem; align-items: center; gap: .3rem .75rem; padding: .62rem .2rem; border-top: 1px solid var(--border); }
+.flight.head { padding-block: .3rem; border-top: 0; color: var(--text-faint); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; }
+.fl-code { color: var(--sky); font-weight: 700; letter-spacing: .06em; }
+.fl-team { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+.fl-dest { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); }
+.fl-dest b { margin-right: .3rem; color: var(--text); letter-spacing: .1em; }
+.fl-dest small { color: var(--warn); }
+.fl-gate { font-weight: 800; }
+.fl-state { justify-self: start; padding: .22rem .55rem; border-radius: 4px; font: 800 .75rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; color: var(--sky); background: color-mix(in srgb, var(--sky) 14%, transparent); }
+.fl-state.st-en-puerta { color: var(--warn); background: color-mix(in srgb, var(--warn) 15%, transparent); }
+.fl-state.st-aterrizado { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); }
+.fl-state.st-demora { color: var(--danger); background: color-mix(in srgb, var(--danger) 18%, transparent); animation: breathe 1.6s ease-in-out infinite; }
+.fl-state.st-sin-itinerario { color: var(--text-faint); background: var(--surface-3); }
+.fl-prog { display: flex; gap: 2px; }
+.fl-prog i { flex: 1; max-width: 12px; height: 8px; border-radius: 2px; background: var(--surface-3); }
+.fl-prog i.on { background: var(--ok); box-shadow: 0 0 8px color-mix(in srgb, var(--ok) 55%, transparent); }
+.fl-last { color: var(--text-muted); text-align: right; }
+.flight.st-demora { background: color-mix(in srgb, var(--danger) 7%, transparent); }
+@media (max-width: 899px) {
+  .flight.head { display: none; }
+  .flight { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: 'code team state' 'dest dest gate' 'prog prog last'; gap: .3rem .6rem; padding: .75rem .2rem; }
+  .fl-code { grid-area: code; } .fl-team { grid-area: team; } .fl-state { grid-area: state; } .fl-dest { grid-area: dest; } .fl-gate { grid-area: gate; justify-self: end; }
+  .fl-prog { grid-area: prog; } .fl-last { grid-area: last; }
+  .fl-gate::before { content: 'Puerta '; color: var(--text-faint); font: 700 .75rem ui-monospace, Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; }
+}
+@media (min-width: 900px) and (max-width: 1299px) {
+  .flight { grid-template-columns: 5rem minmax(0, 1fr) minmax(0, 1.3fr) 2.8rem 6.2rem 3.6rem; }
+  .flight > :last-child { display: none; }
+}
+
+/* Gate Management: las puertas de la ronda */
+.gate-code { display: inline-block; min-width: 2.9rem; margin-right: .5rem; padding: .1rem .4rem; color: var(--on-gold); background: var(--gold); border-radius: 4px; text-align: center; letter-spacing: .1em; font-size: .85rem; }
+.mrow .mteams .mono { font-size: .8rem; }
+.match-head .eyebrow { margin: 0 0 .15rem; }
+
+/* Operations Log */
+.ops { list-style: none; margin: .4rem 0 0; padding: 0; }
+.op { display: grid; grid-template-columns: 3.1rem 1.6rem minmax(0, 1fr); align-items: start; gap: .6rem; padding: .6rem 0; border-top: 1px solid var(--border); font-size: .92rem; }
+.op:first-child { border-top: 0; }
+.op-time { color: var(--text-faint); font-size: .8rem; padding-top: .15rem; }
+.op-icon { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; color: var(--sky); background: color-mix(in srgb, var(--sky) 14%, transparent); border-radius: 50%; }
+.op.finished .op-icon { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); }
+.op.alert .op-icon { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+.op-text small { display: block; color: var(--text-faint); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
+.op-text strong { font-family: ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .02em; }
+.oplog .ops { max-height: 26rem; overflow: auto; }
+
+/* Passport Verification: una celda por destino de cada grupo */
+.verify { overflow-x: auto; margin-top: .6rem; }
+.verify table { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
+.verify th { padding: 0 .4rem .3rem; color: var(--text-faint); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .12em; text-align: center; text-transform: uppercase; white-space: nowrap; }
+.verify th:first-child, .verify td:first-child { text-align: left; }
+.verify td { padding: 0; }
+.verify .v-team { display: grid; padding-right: .75rem; white-space: nowrap; }
+.verify .v-team strong { font-size: .95rem; }
+.verify .v-team span { color: var(--sky); font: 700 .75rem ui-monospace, Consolas, monospace; letter-spacing: .08em; }
+.v-cell { display: grid; place-items: center; align-content: center; gap: 1px; min-width: 3.6rem; height: 2.6rem; margin: 0 2px; border-radius: 6px; background: var(--surface-2); color: var(--text-faint); font: 700 .75rem/1.1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .06em; }
+.v-cell.done { color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 40%, transparent); }
+.v-cell.current { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 45%, transparent); animation: breathe 2.2s ease-in-out infinite; }
+.v-cell.rest { background: transparent; box-shadow: inset 0 0 0 1px var(--border); }
+.v-cell small { font-size: .75rem; opacity: .8; }
+.verify-legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin: .8rem 0 0; color: var(--text-muted); font-size: .85rem; }
+.verify-legend i { display: inline-block; width: .8rem; height: .8rem; margin-right: .35rem; border-radius: 3px; vertical-align: -1px; background: var(--surface-3); }
+.verify-legend i.done { background: var(--ok); } .verify-legend i.current { background: var(--warn); }
+
+/* Flight Radar: el mapa con retícula de radar */
+.tower .map-card { position: relative; padding: .4rem; overflow: hidden; }
+.radar-frame { position: relative; }
+.radar-frame::before, .radar-frame::after { content: ''; position: absolute; z-index: 3; width: 28px; height: 28px; pointer-events: none; border: 2px solid var(--sky); opacity: .85; }
+.radar-frame::before { left: .35rem; top: .35rem; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0; }
+.radar-frame::after { right: .35rem; bottom: .35rem; border-left: 0; border-top: 0; border-radius: 0 0 8px 0; }
+.radar-sweep { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; border-radius: var(--radius-sm); }
+.radar-sweep::before { content: ''; position: absolute; left: 50%; top: 50%; width: 140%; aspect-ratio: 1; margin: -70% 0 0 -70%; border-radius: 50%; background: conic-gradient(from 0deg, rgba(61, 245, 171, 0) 0deg, rgba(61, 245, 171, .09) 40deg, rgba(61, 245, 171, 0) 42deg); animation: sweep 9s linear infinite; }
+@keyframes sweep { to { transform: rotate(360deg); } }
+.tower .mk-label { background: rgba(5, 10, 19, .92); color: var(--tw-radar); border: 1px solid color-mix(in srgb, var(--tw-radar) 45%, transparent); font-family: ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .06em; }
+.tower .mk-base .mk-label { color: var(--tw-cyan); border-color: color-mix(in srgb, var(--tw-cyan) 45%, transparent); }
+.radar-list .fl-code { margin-right: .6rem; }
+@media (prefers-reduced-motion: reduce) { .radar-sweep::before { animation: none; } }
