@@ -25,7 +25,7 @@ No hay fallos de reglas ni pantallas rotas. Hallazgos menores:
 | 3 | `admin-forms` a 390 px: la tabla `data-table` sobrepasa el ancho de la pantalla (el documento no desborda, desplaza dentro de su contenedor) | Medido con script | P2 (solo coordinador) |
 | 4 | Enlace "Mapbox" del mapa de 88x23 px | De la librería, `/preview/map` | P2, no es de la app |
 | 5 | `CLAUDE.md` dice "~260 tests" (ya son 423) y su lista de vistas previas no incluye `base-resultados`, `dialogs`, `sin-carrera`, `sin-carrera-base` | `CLAUDE.md` | P2 (documentación) |
-| 6 | Las tablas `matches`, `teams`, `bases` las lee cualquier usuario autenticado de cualquier Carrera (hallazgo de la ejecución anterior, sin cambios) | prueba de caracterización en `tests/db/permissions.test.ts` | P2, bajo |
+| 6 | Las tablas `matches`, `teams`, `bases` las lee cualquier usuario autenticado de cualquier Carrera (hallazgo de la ejecución anterior, sin cambios) | prueba de caracterización en `tests/db/permissions.test.ts` | P2, bajo. **Descartado el 2026-11-18:** ya estaba resuelto por `0019` (`teams_read`, `bases_read`, `matches_read` filtran por `my_event_id()`); lo confirma una prueba nueva en `privacy-0019.test.ts`. El hallazgo venía de una ejecución anterior a 0019 |
 
 ## Lo que no convence
 - `reset_event_progress` también borra `score_audit` de esa Carrera: tras finalizar no queda rastro de quién corrigió qué.
