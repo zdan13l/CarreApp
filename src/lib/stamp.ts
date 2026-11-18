@@ -87,6 +87,18 @@ export function mrzJoin(parts: string[], width = 30): string {
   return parts.map((p) => mrzText(p, p.length).replace(/<+$/, '')).join('<<').padEnd(width, '<').slice(0, width)
 }
 
+/** A line of letters and digits that looks like the second line of a passport (it carries no data): `8K29X7Q1L<<B4ZD90<<M7TQ22W5R6`. */
+export function mrzRandom(width = 30): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789'
+  let out = ''
+  while (out.length < width) {
+    const run = 4 + Math.floor(Math.random() * 6)
+    for (let i = 0; i < run && out.length < width; i++) out += chars[Math.floor(Math.random() * chars.length)]
+    if (out.length < width - 2 && Math.random() < 0.7) out += '<<'
+  }
+  return out.slice(0, width)
+}
+
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
 /** The two lines at the bottom of a passport page. Only real numbers: stamps collected and rounds in the Carrera. */
