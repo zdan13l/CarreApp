@@ -2,13 +2,20 @@
 // look can be reviewed without signing in. Not included in the production build.
 //   /preview/runner  /preview/runner-ruta  /preview/runner-top
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
-import { Bell, BellRing, Camera, ChevronRight, KeyRound, LocateFixed, Trash2, Flag, MapPin, Route, Trophy } from 'lucide-react'
+import { BookMarked, Bell, BellRing, Camera, ChevronRight, KeyRound, LocateFixed, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import Avatar from '../components/Avatar'
 import BottomNav from '../components/BottomNav'
 import Crest from '../components/Crest'
 import Kpi from '../components/Kpi'
+import FlightBoard from '../components/FlightBoard'
+import OpsLog, { buildOpEvents } from '../components/OpsLog'
+import PassportMatrix from '../components/PassportMatrix'
+import Passport from '../components/Passport'
+import { airportCode, flightCodes, type JourneyMatch } from '../lib/flight'
+import Stamp from '../components/Stamp'
+import StampMoment from '../components/StampMoment'
 import LazyMap from '../components/LazyMap'
 import LogoGallery from './LogoGallery'
 import Ranking from '../components/Ranking'
@@ -18,7 +25,7 @@ import { PrepSteps } from './admin/Carrera'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
 import { BaseGuide, BaseWhere, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
-import { AfterCard, CurrentRound, RouteList, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
+import { AfterCard, CurrentRound, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import { confirmDialog, promptDialog } from '../lib/dialog'
 import TeamNames from '../components/TeamNames'
@@ -29,15 +36,32 @@ const names = ['Dioses Griegos', 'Dioses Nórdicos', 'Samuráis', 'Guerreros Azt
 const standings: StandingRow[] = names.map((name, i) => ({ team_id: `t${i}`, name, photo_path: null, points: [7, 5, 5, 2][i] }))
 const teamById = new Map(standings.map((r) => [r.team_id, r]))
 const teams = new Map<string, Team>(standings.map((r) => [r.team_id, { id: r.team_id, name: r.name, photo_path: null }]))
-const base = { name: 'Atrio', location_photo_path: null, lat: 4.6286, lng: -74.0647 }
+const base = { name: 'Atrio', location_photo_path: '/campus-800.jpg', lat: 4.6286, lng: -74.0647 }
+const at = (name: string, lat: number, lng: number) => ({ ...base, name, lat, lng }) // an app-relative path works as a photo in the preview
 
 const routeMatches: RouteMatch[] = [
-  { id: 'm1', round_number: 1, base_id: 'x1', finished_at: null, team_a: 't0', team_b: 't1', status: 'finished', arrived_at: '2026-01-20T10:00:00Z', bases: base,
+  { id: 'm1', round_number: 1, base_id: 'x1', finished_at: '2026-01-20T10:24:00Z', team_a: 't0', team_b: 't1', status: 'finished', arrived_at: '2026-01-20T10:00:00Z', bases: at('Atrio', 4.6286, -74.0647),
     match_scores: [{ item: 'barra', winner_team_id: 't0', voided: false }, { item: 'pregunta', winner_team_id: 't1', voided: false }, { item: 'minijuego', winner_team_id: 't0', voided: false }] },
-  { id: 'm2', round_number: 2, base_id: 'x1', finished_at: null, team_a: 't0', team_b: 't2', status: 'in_progress', arrived_at: '2026-01-20T10:30:00Z', bases: { ...base, name: 'Biblioteca Alfonso Borrero' },
+  { id: 'm2', round_number: 2, base_id: 'x2', finished_at: null, team_a: 't0', team_b: 't2', status: 'in_progress', arrived_at: '2026-01-20T10:30:00Z', bases: at('Biblioteca Alfonso Borrero', 4.6272, -74.0636),
     match_scores: [{ item: 'barra', winner_team_id: 't2', voided: false }, { item: 'pregunta', winner_team_id: null, voided: true }] },
-  { id: 'm3', round_number: 4, base_id: 'x1', finished_at: null, team_a: 't3', team_b: 't0', status: 'pending', arrived_at: null, bases: { ...base, name: 'Cancha de Fútbol' }, match_scores: [] },
+  { id: 'm3', round_number: 4, base_id: 'x3', finished_at: null, team_a: 't3', team_b: 't0', status: 'pending', arrived_at: null, bases: at('Cancha de Fútbol', 4.6262, -74.0652), match_scores: [] },
+  { id: 'm4', round_number: 5, base_id: 'x4', finished_at: null, team_a: 't0', team_b: 't1', status: 'pending', arrived_at: null, bases: at('Claustro', 4.6279, -74.0665), match_scores: [] },
 ]
+
+const towerTeams = [
+  { id: 't0', name: 'Dioses Griegos' }, { id: 't1', name: 'Dioses Nórdicos' }, { id: 't2', name: 'Samuráis' }, { id: 't3', name: 'Guerreros Aztecas' }, { id: 't4', name: 'Gladiadores' },
+]
+const towerBases = new Map([['x1', 'Atrio'], ['x2', 'Biblioteca'], ['x3', 'Cancha de Fútbol']])
+const done3 = (a: string, b: string) => [{ item: 'barra' as const, winner_team_id: a, voided: false }, { item: 'pregunta' as const, winner_team_id: b, voided: false }, { item: 'minijuego' as const, winner_team_id: a, voided: false }]
+const towerMatches: JourneyMatch[] = [
+  { id: 'a1', round_number: 1, base_id: 'x1', team_a: 't0', team_b: 't1', status: 'finished', arrived_at: '2026-01-20T15:02:00Z', finished_at: '2026-01-20T15:24:00Z', match_scores: done3('t0', 't1') },
+  { id: 'a2', round_number: 1, base_id: 'x2', team_a: 't2', team_b: 't3', status: 'finished', arrived_at: '2026-01-20T15:03:00Z', finished_at: '2026-01-20T15:27:00Z', match_scores: done3('t2', 't2') },
+  { id: 'a3', round_number: 2, base_id: 'x1', team_a: 't0', team_b: 't2', status: 'in_progress', arrived_at: '2026-01-20T15:38:00Z', finished_at: null, match_scores: [{ item: 'barra', winner_team_id: 't0', voided: false }] },
+  { id: 'a4', round_number: 2, base_id: 'x3', team_a: 't1', team_b: 't3', status: 'pending', arrived_at: null, finished_at: null, match_scores: [] },
+]
+const towerCodes = flightCodes(towerTeams)
+const towerNames = new Map(towerTeams.map((t) => [t.id, t.name]))
+const towerOps = buildOpEvents({ matches: towerMatches, alerts: [{ id: 'n1', match_id: 'a4', message: 'Apúrense: la base los está esperando.', created_at: '2026-01-20T15:41:00Z' }], baseName: towerBases, teamName: towerNames, codes: towerCodes })
 
 const baseMatchPending: BaseMatch = { id: 'b1', round_number: 3, team_a: 't0', team_b: 't3', status: 'pending', arrived_at: null, match_scores: [] }
 const baseMatchPlaying: BaseMatch = {
@@ -61,9 +85,9 @@ const adminMatches: MatchRow[] = [
 
 const ic = { size: 22, strokeWidth: 1.9 } as const
 const runnerTabs = [
-  { id: 'ronda', label: 'Ronda', icon: <Flag {...ic} /> },
+  { id: 'ronda', label: 'Visado', icon: <StampIcon {...ic} /> },
   { id: 'ubicacion', label: 'Ubicación', icon: <LocateFixed {...ic} /> },
-  { id: 'ruta', label: 'Ruta', icon: <Route {...ic} /> },
+  { id: 'ruta', label: 'Pasaporte', icon: <BookMarked {...ic} /> },
   { id: 'top', label: 'Top', icon: <Trophy {...ic} /> },
 ]
 const baseTabs = [
@@ -123,6 +147,36 @@ export default function Preview() {
     )
   }
 
+  if (screen === 'runner-sello') {
+    return (
+      <AppShell title="Mi grupo" user={user}>
+        <StatusBar name="Dioses Griegos" photoPath={null} stamps={{ done: 3, total: 4 }} />
+        <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} totalRounds={5} />
+        <StampMoment seed="x2" name="Biblioteca Alfonso Borrero" photoPath="/campus-800.jpg" round={2} time="12:04" onClose={noop} />
+      </AppShell>
+    )
+  }
+
+  if (screen === 'sellos') {
+    const seeds = ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8']
+    return (
+      <AppShell title="Sellos" user={user}>
+        <section className="card">
+          <h2>Un sello por base</h2>
+          <p className="muted">La forma y la tinta salen del identificador de cada base.</p>
+          <div className="row" style={{ gap: '1rem' }}>
+            {seeds.map((seed, i) => (
+              <Stamp key={seed} seed={seed} name={['Atrio', 'Biblioteca', 'Cancha de Fútbol', 'Claustro', 'Laboratorio', 'Cafetería', 'Auditorio', 'Plaza'][i]} photoPath="/campus-800.jpg" round={i + 1} time="12:0" state={i === 7 ? 'done' : 'stamped'} size={130} />
+            ))}
+            <Stamp seed="y1" name="Atrio" round={3} state="current" size={130} photoPath="/campus-800.jpg" />
+            <Stamp seed="y2" name="Atrio" round={4} state="pending" size={130} />
+            <Stamp seed="y3" name="Atrio" round={5} state="rest" size={130} />
+          </div>
+        </section>
+      </AppShell>
+    )
+  }
+
   if (screen === 'runner' || screen === 'runner-ruta' || screen === 'runner-top') {
     const tab = screen === 'runner' ? 'ronda' : screen === 'runner-ruta' ? 'ruta' : 'top'
     return (
@@ -136,18 +190,22 @@ export default function Preview() {
           </button>
         }
       >
-        <StatusBar name="Dioses Griegos" photoPath={null} />
+        <StatusBar name="Dioses Griegos" photoPath={null} flight="JV 213" stamps={{ done: 1, total: 4 }} />
         {tab === 'ronda' && (
           <>
-            <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} />
+            <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} totalRounds={5} />
             <AfterCard match={routeMatches.find((m) => m.round_number === 4)!} myId="t0" teams={teamById} />
           </>
         )}
         {tab === 'ruta' && (
-          <section className="card">
-            <h2>Tu ruta</h2>
-            <RouteList mine={routeMatches} totalRounds={4} myId="t0" nextId="m2" teams={teamById} />
-          </section>
+          <Passport
+            team="Dioses Griegos"
+            flight="JV 213"
+            mine={routeMatches}
+            totalRounds={5}
+            nextId="m2"
+            detail={(m) => <ItemResults match={routeMatches.find((x) => x.id === m.id) ?? routeMatches[0]} teams={teamById} />}
+          />
         )}
         {tab === 'top' && <TopTab teamId="t0" points={7} teams={standings.map((r) => ({ team_id: r.team_id, name: r.name, photo_path: r.photo_path }))} />}
         <BottomNav tabs={runnerTabs} active={tab} onChange={noop} />
@@ -206,9 +264,27 @@ export default function Preview() {
     )
   }
 
+  if (screen === 'admin-pasaportes') {
+    return (
+      <div className="admin tower">
+        <AdminNav eventName="Carrera 2027-1" eventActive mode="live" running onMode={noop} user={user} onSignOut={noop} />
+        <main className="admin-main">
+          <AdminTopbar user={user} onSignOut={noop} />
+          <header className="page-head">
+            <div>
+              <p className="eyebrow">Passport Verification</p>
+              <h1>Pasaportes</h1>
+            </div>
+          </header>
+          <PassportMatrix teams={towerTeams} matches={towerMatches} baseName={towerBases} codes={towerCodes} />
+        </main>
+      </div>
+    )
+  }
+
   if (screen === 'admin' || screen === 'admin-carrera' || screen === 'admin-forms') {
     return (
-      <div className="admin">
+      <div className="admin tower">
         <AdminNav eventName="Carrera 2027-1" eventActive mode={screen === 'admin' ? 'live' : 'setup'} running onMode={noop} user={user} onSignOut={noop} />
         <main className="admin-main">
           <AdminTopbar user={user} onSignOut={noop} />
@@ -217,55 +293,47 @@ export default function Preview() {
               <>
                 <header className="page-head">
                   <div>
-                    <p className="eyebrow">Carrera 2027-1</p>
-                    <h1>En vivo</h1>
+                    <p className="eyebrow">Live Monitoring · Carrera 2027-1</p>
+                    <h1>Control de vuelos</h1>
                   </div>
                   <div className="head-meta">
                     <span className="badge ok live">Activa</span>
-                    <span>Ronda 2 de 3</span>
+                    <span>Ronda 2 de 2</span>
+                    <button className="ghost">Descargar resultados</button>
                     <button className="ghost danger">Finalizar Carrera</button>
                   </div>
                 </header>
                 <div className="kpis">
-                  <Kpi tone="accent" label="Ronda en curso" value="2/3" sub="1 de 3 cruces terminados" />
-                  <Kpi label="Cruces" value="3/6" sub="terminados en la Carrera" to="#" />
-                  <Kpi tone="hot" label="Demoras" value={1} sub="grupo tarde al traslado" />
-                  <Kpi label="Ubicación" value="3/4" sub="grupos compartiendo GPS" to="#" />
+                  <Kpi tone="accent" label="Ronda en curso" value="2/2" sub="0 de 2 cruces terminados" />
+                  <Kpi label="En ruta" value={1} sub="vuelo hacia su destino" />
+                  <Kpi label="En puerta" value={2} sub="la base confirmó su llegada" />
+                  <Kpi label="Aterrizados" value="1/5" sub="con todos sus sellos" />
+                  <Kpi tone="hot" label="Demoras" value={1} sub="vuelo tarde al traslado" />
+                  <Kpi label="Radar" value="3/5" sub="vuelos con GPS" to="#" />
                 </div>
+                <FlightBoard teams={towerTeams} matches={towerMatches} baseName={towerBases} codes={towerCodes} lateIds={new Set(['t1'])} />
                 <div className="live-grid">
                   <div>
                     <section className="card">
                       <div className="match-head">
-                        <h2>Ronda 2</h2>
-                        <span className="chip">1 de 3 terminados</span>
+                        <div>
+                          <p className="eyebrow">Gate Management</p>
+                          <h2>Puertas · Ronda 2</h2>
+                        </div>
+                        <span className="chip">0 de 2 terminados</span>
                       </div>
                       <ul className="list">
-                        <li className="mrow">
-                          <span className="mbase"><strong>Atrio</strong></span>
-                          <span className="mteams">Dioses Griegos <span className="muted">vs</span> Samuráis</span>
-                          <span className="mmeta"><span className="badge ok live">En juego</span></span>
-                          <span className="mscore num">1–0</span>
-                          <span className="mact"><button className="ghost icon-btn" aria-label="Avisar a los grupos" title="Avisar a los dos grupos"><BellRing size={18} /></button><button className="ghost icon-btn" aria-label="Avisar a la base" title="Avisar a la base"><Flag size={18} /></button></span>
-                          <span className="mdetail">1/3 ítems · llegaron a las 10:08 a. m.</span>
-                        </li>
-                        <li className="mrow">
-                          <span className="mbase"><strong>Cancha de Fútbol</strong></span>
-                          <span className="mteams">Dioses Nórdicos <span className="muted">vs</span> Guerreros Aztecas</span>
-                          <span className="mmeta"><span className="badge">Pendiente</span></span>
-                          <span className="mscore num">–</span>
-                          <span className="mact"><button className="ghost icon-btn" aria-label="Avisar a los grupos" title="Avisar a los dos grupos"><BellRing size={18} /></button><button className="ghost icon-btn" aria-label="Avisar a la base" title="Avisar a la base"><Flag size={18} /></button></span>
-                          <span className="mdetail">0/3 ítems</span>
-                        </li>
-                        <li className="mrow">
-                          <span className="mbase"><strong>Biblioteca</strong></span>
-                          <span className="mteams">Samuráis Rojos <span className="muted">vs</span> Gladiadores</span>
-                          <span className="mmeta"><span className="badge ok">Terminado</span></span>
-                          <span className="mscore num">2–1</span>
-                          <span className="mact" />
-                          <span className="mdetail">3/3 ítems</span>
-                        </li>
+                        {towerMatches.filter((m) => m.round_number === 2).map((m) => (
+                          <li key={m.id} className="mrow">
+                            <span className="mbase"><b className="mono gate-code">{airportCode(towerBases.get(m.base_id) ?? '')}</b><strong>{towerBases.get(m.base_id)}</strong></span>
+                            <span className="mteams">{towerNames.get(m.team_a)} <span className="muted mono">{towerCodes.get(m.team_a)}</span> <span className="muted">vs</span> {towerNames.get(m.team_b)} <span className="muted mono">{towerCodes.get(m.team_b)}</span></span>
+                            <span className="mmeta"><span className={`badge ${m.status === 'in_progress' ? 'ok live' : ''}`}>{m.status === 'in_progress' ? 'En juego' : 'Pendiente'}</span></span>
+                            <span className="mscore num">{m.status === 'in_progress' ? '1–0' : '–'}</span>
+                            <span className="mact"><button className="ghost icon-btn" aria-label="Avisar a los grupos" title="Avisar a los dos grupos"><BellRing size={18} /></button><button className="ghost icon-btn" aria-label="Avisar a la base" title="Avisar a la base"><Flag size={18} /></button></span>
+                            <span className="mdetail">{m.match_scores?.length ?? 0}/3 etapas{m.arrived_at ? ' · en puerta desde las 3:38 p. m.' : ''}</span>
+                          </li>
+                        ))}
                       </ul>
-                      <div className="row"><a className="btn-like" href="#">Cronograma completo <ChevronRight size={16} aria-hidden="true" /></a></div>
                     </section>
                   </div>
                   <div>
@@ -281,6 +349,7 @@ export default function Preview() {
                         </li>
                       </ul>
                     </section>
+                    <OpsLog events={towerOps} />
                     <section className="card">
                       <h2>Top equipos</h2>
                       <Ranking rows={standings.slice(0, 3)} />
