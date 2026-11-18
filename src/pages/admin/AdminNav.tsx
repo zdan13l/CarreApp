@@ -74,11 +74,7 @@ export default function AdminNav({
   return (
     <aside className={`admin-nav${open ? ' sheet-open' : ''}`}>
       <div className="admin-brand">
-        <div className="tower-brand">
-          <img className="tower-uni" src="/javeriana-logo-white.png" alt="Pontificia Universidad Javeriana" width={480} height={627} />
-          <span className="tower-rule" aria-hidden="true" />
-          <Logo size={30} />
-        </div>
+        <Logo size={46} />
         <p className="doc-kicker office">Torre de control · Control tower</p>
         <p className="event">
           <Flag size={15} aria-hidden="true" />

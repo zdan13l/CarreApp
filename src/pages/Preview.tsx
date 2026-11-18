@@ -17,7 +17,6 @@ import { airportCode, flightCodes, type JourneyMatch } from '../lib/flight'
 import Stamp from '../components/Stamp'
 import StampMoment from '../components/StampMoment'
 import LazyMap from '../components/LazyMap'
-import LogoGallery from './LogoGallery'
 import Ranking from '../components/Ranking'
 import RoundPager from '../components/RoundPager'
 import AdminNav, { AdminTopbar } from './admin/AdminNav'
@@ -100,8 +99,6 @@ const noopAsync = async () => {}
 
 export default function Preview() {
   const { screen } = useParams()
-
-  if (screen === 'logos') return <LogoGallery />
 
   if (screen === 'dialogs') {
     return (
