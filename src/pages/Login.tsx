@@ -6,6 +6,7 @@ import Logo from '../components/Logo'
 import Mrz from '../components/Mrz'
 import ThemeToggle from '../components/ThemeToggle'
 import { homePathForRole, useAuth } from '../lib/auth'
+import { mrzJoin } from '../lib/stamp'
 
 // The cover of the passport: the campus on top, the foil title over it, and the form on a sheet of security paper.
 export default function Login() {
@@ -35,8 +36,6 @@ export default function Login() {
         <Logo size={44} />
         <h1 className="login-title">
           Pasaporte
-          <br />
-          de la Carrera
           <small>Un sello por cada base que alcances.</small>
         </h1>
       </section>
@@ -79,7 +78,7 @@ export default function Login() {
           <LogIn size={19} aria-hidden="true" />
           {submitting ? 'Entrando…' : 'Entrar'}
         </button>
-        <Mrz team="Carrera" stamps={0} rounds={0} />
+        <Mrz lines={[mrzJoin(['P<PUJ', 'CARRERA', '2710']), mrzJoin(['INDUCCION', 'BIENVENIDOS', 'NEOS'])]} />
       </form>
       <p className="login-foot">Semana de inducción</p>
     </main>
