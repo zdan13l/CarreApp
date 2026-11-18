@@ -1,8 +1,11 @@
-import { Ban, Bell, BellRing, Check, ChevronDown, Flag, LocateFixed, MapPin, Route, Trophy } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { Ban, BookMarked, Bell, BellRing, Check, LocateFixed, MapPin, Stamp as StampIcon, Trophy } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import AppShell from '../components/AppShell'
 import BottomNav, { type NavTab } from '../components/BottomNav'
 import Crest from '../components/Crest'
+import Passport from '../components/Passport'
+import Stamp from '../components/Stamp'
+import StampMoment from '../components/StampMoment'
 import LocationShare from '../components/LocationShare'
 import TeamNames from '../components/TeamNames'
 import NoActiveCarrera from '../components/NoActiveCarrera'
@@ -13,11 +16,11 @@ import { lateTeams } from '../lib/delays'
 import { useTravelTimes } from '../lib/travel'
 import { useRealtimeReload } from '../lib/realtime'
 import { photoUrl } from '../lib/storage'
+import { airportCode, flightCodes, stageStates } from '../lib/flight'
+import { stampTime } from '../lib/stamp'
 import { supabase } from '../lib/supabase'
 import {
   ITEM_LABEL,
-  SCORE_ITEMS,
-  STATUS_LABEL,
   type MatchScore,
   type MatchStatus,
 } from '../types'
@@ -56,8 +59,8 @@ export interface RouteMatch {
 type Tab = 'ronda' | 'ubicacion' | 'ruta' | 'top'
 const ICON = { size: 22, strokeWidth: 1.9, 'aria-hidden': true } as const
 const TABS: NavTab<Tab>[] = [
-  { id: 'ronda', label: 'Ronda', icon: <Flag {...ICON} /> },
-  { id: 'ruta', label: 'Ruta', icon: <Route {...ICON} /> },
+  { id: 'ronda', label: 'Visado', icon: <StampIcon {...ICON} /> },
+  { id: 'ruta', label: 'Pasaporte', icon: <BookMarked {...ICON} /> },
   { id: 'top', label: 'Top', icon: <Trophy {...ICON} /> },
 ]
 // Only the group's designated runner shares the location (the group's shared user), so only they get this tab.
@@ -73,6 +76,8 @@ export default function RunnerHome() {
   const [teams, setTeams] = useState<TeamLite[]>([])
   const [bases, setBases] = useState<{ id: string; name: string; lat: number | null; lng: number | null }[]>([])
   const [loading, setLoading] = useState(true)
+  const [moment, setMoment] = useState<RouteMatch | null>(null) // the stamp that has just been earned
+  const seen = useRef<Set<string> | null>(null) // matches already finished when the screen opened
 
   const userId = profile?.id
 
@@ -128,6 +133,24 @@ export default function RunnerHome() {
   const myLate = team ? lateTeams(matches, maxMinutes, now, travel).filter((l) => l.teamId === team.id) : []
   const manual = useManualAlerts(mine.map((m) => m.id))
   useRepeatingAlert(myLate.length > 0) // every 30 s while the delay lasts
+  const closeMoment = useCallback(() => setMoment(null), [])
+  const stamped = mine.filter((m) => m.status === 'finished').length // a stamp is earned when the base has scored the three stages
+  const playable = mine.length
+  const flight = team ? flightCodes(teams.map((t) => ({ id: t.team_id, name: t.name }))).get(team.id) ?? 'JV 200' : ''
+
+  // The base scores the third stage of a match -> a new stamp. The first load only records what was already stamped.
+  useEffect(() => {
+    if (!team || matches.length === 0) return
+    const mineNow = matches.filter((m) => m.team_a === team.id || m.team_b === team.id)
+    const ids = new Set(mineNow.filter((m) => m.status === 'finished').map((m) => m.id))
+    if (seen.current === null) {
+      seen.current = ids
+      return
+    }
+    const fresh = mineNow.filter((m) => m.status === 'finished' && !seen.current!.has(m.id))
+    seen.current = ids
+    if (fresh.length > 0) setMoment(fresh[fresh.length - 1])
+  }, [team, matches])
 
   return (
     <AppShell
@@ -154,7 +177,7 @@ export default function RunnerHome() {
       ) : (
         <>
           {/* Always visible: who we are (no ranking and no score here: nobody knows who leads) */}
-          <StatusBar name={team.name} photoPath={team.photo_path} />
+          <StatusBar name={team.name} photoPath={team.photo_path} flight={flight} stamps={{ done: stamped, total: playable }} />
 
           {showAlerts && (
             <section className="card">
@@ -181,7 +204,7 @@ export default function RunnerHome() {
           {tab === 'ronda' && (
             <>
               {mine.length === 0 && <p className="warn">El coordinador aún no ha programado tus cruces.</p>}
-              {next && <CurrentRound match={next} myId={team.id} teams={teamById} />}
+              {next && <CurrentRound match={next} myId={team.id} teams={teamById} totalRounds={totalRounds} />}
               {!next && mine.length > 0 && <p className="ok-box">Terminaste todos tus cruces. ¡Buen trabajo!</p>}
               {after && (
                 <AfterCard match={after} myId={team.id} teams={teamById} />
@@ -197,10 +220,15 @@ export default function RunnerHome() {
           )}
 
           {tab === 'ruta' && (
-            <section className="card">
-              <h2>Tu ruta</h2>
-              <RouteList mine={mine} totalRounds={totalRounds} myId={team.id} nextId={next?.id} teams={teamById} />
-            </section>
+            <Passport
+              team={team.name}
+              flight={flight}
+              mine={mine}
+              totalRounds={totalRounds}
+              nextId={next?.id}
+              newId={moment?.id}
+              detail={(m) => <ItemResults match={mine.find((x) => x.id === m.id) ?? mine[0]} teams={teamById} />}
+            />
           )}
 
           {tab === 'top' && <TopTab teamId={team.id} points={myPoints} teams={teams} />}
@@ -213,6 +241,16 @@ export default function RunnerHome() {
               setTab(t)
             }}
           />
+          {moment && (
+            <StampMoment
+              seed={moment.base_id}
+              name={moment.bases?.name ?? 'Base'}
+              photoPath={moment.bases?.location_photo_path ?? null}
+              round={moment.round_number}
+              time={stampTime(moment.finished_at)}
+              onClose={closeMoment}
+            />
+          )}
         </>
       )}
     </AppShell>
@@ -221,41 +259,58 @@ export default function RunnerHome() {
 
 const rivalId = (m: RouteMatch, myId: string) => (m.team_a === myId ? m.team_b : m.team_a)
 
-// "Después": the match after the current one, with the picture of the base and the crest of the rival (like the base screen).
+// "Próximo destino": the match after the current one, as a boarding pass: the picture of the base, the crest of the rival and,
+// on the stub, the airport code of the destination and its gate (the round).
 export function AfterCard({ match, myId, teams }: { match: RouteMatch; myId: string; teams: Map<string, TeamLite> }) {
   const rival = teams.get(rivalId(match, myId))
   const url = photoUrl(match.bases?.location_photo_path ?? null)
   return (
-    <section className="card next">
-      <h3>Después · Ronda {match.round_number}</h3>
-      <div className="next-preview">
-        {url ? (
-          <img className="next-photo" src={url} alt={`Dónde queda ${match.bases?.name}`} />
-        ) : (
-          <span className="next-photo empty" aria-hidden="true"><MapPin size={26} /></span>
-        )}
-        <div className="next-info">
-          <strong>{match.bases?.name}</strong>
-          <span className="rival-line">
-            <span className="muted">contra</span>
-            <Crest name={rival?.name} photoPath={rival?.photo_path} />
-            <strong>{rival?.name ?? '—'}</strong>
-          </span>
+    <section className="card next boarding">
+      <div className="bp-main">
+        <h3>Próximo destino · Ronda {match.round_number}</h3>
+        <div className="next-preview">
+          {url ? (
+            <img className="next-photo" src={url} alt={`Dónde queda ${match.bases?.name}`} loading="lazy" decoding="async" />
+          ) : (
+            <span className="next-photo empty" aria-hidden="true"><MapPin size={26} /></span>
+          )}
+          <div className="next-info">
+            <strong>{match.bases?.name}</strong>
+            <span className="rival-line">
+              <span className="muted">contra</span>
+              <Crest name={rival?.name} photoPath={rival?.photo_path} />
+              <strong>{rival?.name ?? '—'}</strong>
+            </span>
+          </div>
         </div>
+      </div>
+      <div className="bp-stub" aria-hidden="true">
+        <span className="bp-code">{airportCode(match.bases?.name ?? '')}</span>
+        <small>Puerta {match.round_number}</small>
       </div>
     </section>
   )
 }
 const scoreOf = (m: RouteMatch, teamId: string) => m.match_scores.filter((s) => s.winner_team_id === teamId).length
 
-export function StatusBar({ name, photoPath }: { name: string; photoPath: string | null }) {
+export function StatusBar({ name, photoPath, flight, stamps }: { name: string; photoPath: string | null; flight?: string; stamps?: { done: number; total: number } }) {
   return (
     <div className="status-bar" role="status">
       <Crest name={name} photoPath={photoPath} size="lg" />
       <div className="who">
+        <span className="doc-kicker">Pasajero</span>
         <strong>{name}</strong>
-        <span className="live-label">En vivo</span>
+        <span className="who-line">
+          <span className="live-label">En vivo</span>
+          {flight && <span className="flight-chip mono">{flight}</span>}
+        </span>
       </div>
+      {stamps && stamps.total > 0 && (
+        <p className="doc-count num" aria-label={`${stamps.done} de ${stamps.total} destinos`}>
+          {stamps.done}
+          <small>de {stamps.total} destinos</small>
+        </p>
+      )}
     </div>
   )
 }
@@ -284,30 +339,30 @@ export function TopTab({ teamId, points, teams }: { teamId: string; points: numb
   )
 }
 
-// What the base has scored so far in this match (live).
+// The three stages of a destination (barra, pregunta, minijuego), live: done once the base has scored it, with who won.
 export function ItemResults({ match, teams }: { match: RouteMatch; teams: Map<string, TeamLite> }) {
+  const stages = stageStates(match.match_scores, Boolean(match.arrived_at) || match.status === 'in_progress')
   return (
-    <ul className="item-results">
-      {SCORE_ITEMS.map((item) => {
+    <ol className="stages">
+      {stages.map(({ item, state }, i) => {
         const row = match.match_scores.find((s) => s.item === item)
         return (
-          <li key={item}>
-            <span>{ITEM_LABEL[item]}</span>
+          <li key={item} className={`stage ${state}`}>
+            <span className="stage-dot" aria-hidden="true">{state === 'done' ? <Check size={14} strokeWidth={3} /> : i + 1}</span>
+            <span className="stage-name">{ITEM_LABEL[item]}</span>
             {!row ? (
-              <span className="pending">Por jugar</span>
+              <span className="stage-res pending">{state === 'active' ? 'En juego' : 'Por jugar'}</span>
             ) : row.voided ? (
-              <span className="pending won">
+              <span className="stage-res pending">
                 <Ban size={15} aria-hidden="true" /> Invalidado
               </span>
             ) : (
-              <span className="won">
-                <Check size={16} aria-hidden="true" /> Ganó {teams.get(row.winner_team_id ?? '')?.name ?? '—'}
-              </span>
+              <span className="stage-res won">Ganó {teams.get(row.winner_team_id ?? '')?.name ?? '—'}</span>
             )}
           </li>
         )
       })}
-    </ul>
+    </ol>
   )
 }
 
@@ -315,116 +370,75 @@ export function CurrentRound({
   match,
   myId,
   teams,
+  totalRounds,
 }: {
   match: RouteMatch
   myId: string
   teams: Map<string, TeamLite>
+  totalRounds?: number
 }) {
   const rival = teams.get(rivalId(match, myId))
   const baseUrl = photoUrl(match.bases?.location_photo_path ?? null)
+  const name = match.bases?.name ?? 'Base'
   const playing = match.status === 'in_progress'
+  const atGate = Boolean(match.arrived_at) || playing
   const my = scoreOf(match, myId)
   const their = match.match_scores.filter((s) => s.winner_team_id && s.winner_team_id !== myId).length
+  const doneStages = match.match_scores.length
   return (
-    <section className="card next-base">
-      <div className="match-head">
-        <span className="round-tag">Ronda {match.round_number}</span>
-        <span className={`badge ${playing ? 'ok live' : ''}`}>{playing ? 'En juego' : 'Dirígete a la base'}</span>
-      </div>
-      <h2>{match.bases?.name}</h2>
-      {baseUrl && (
-        <div className="photo-box">
-          <img src={baseUrl} alt={`Dónde queda ${match.bases?.name}`} />
-        </div>
-      )}
-      <h3>Tu rival</h3>
-      <div className="rival">
-        <Crest name={rival?.name} photoPath={rival?.photo_path} size="lg" />
-        <p className="grow">
-          <strong>{rival?.name ?? '—'}</strong>
-        </p>
-        {playing && (
-          <span className="big-score num" aria-label={`Marcador ${my} a ${their}`}>
-            {my}–{their}
+    <section className="dest">
+      <div className="dest-photo">
+        {baseUrl ? (
+          <img src={baseUrl} alt={`Dónde queda ${name}`} decoding="async" />
+        ) : (
+          <span className="visa-nophoto" aria-hidden="true">
+            <MapPin size={34} />
           </span>
         )}
+        <div className="dest-sign">
+          <span className="gate-sign">
+            <small>Puerta</small>
+            <b className="num">{String(match.round_number).padStart(2, '0')}</b>
+          </span>
+          <span className="dest-code mono">{airportCode(name)}</span>
+          <span className={`flap ${playing ? 'live' : atGate ? 'gate' : 'route'}`}>{playing ? 'En juego' : atGate ? 'En puerta' : 'Disponible'}</span>
+        </div>
+        <div className="dest-cap">
+          <span className="visa-kicker">
+            Destino {match.round_number}
+            {totalRounds ? ` de ${totalRounds}` : ''}
+          </span>
+          <h2>{name}</h2>
+        </div>
       </div>
-      <h3>Resultados de la base</h3>
-      <ItemResults match={match} teams={teams} />
+      <div className="dest-body">
+        <dl className="visa-fields">
+          <div>
+            <dt>Contra</dt>
+            <dd>
+              <Crest name={rival?.name} photoPath={rival?.photo_path} size="sm" />
+              {rival?.name ?? '—'}
+            </dd>
+          </div>
+          {playing && (
+            <div>
+              <dt>Marcador</dt>
+              <dd className="big-score num" aria-label={`Marcador ${my} a ${their}`}>
+                {my}–{their}
+              </dd>
+            </div>
+          )}
+        </dl>
+        <h3>Etapas · {doneStages} de 3</h3>
+        <ItemResults match={match} teams={teams} />
+        <div className="visa-slot">
+          <Stamp seed={match.base_id} name={name} photoPath={match.bases?.location_photo_path} round={match.round_number} state="current" atGate={atGate} size={84} />
+          <p>
+            <strong>{atGate ? 'Estás en la puerta' : 'Tu sello te espera'}</strong>
+            Se estampa cuando la base califique las tres etapas.
+          </p>
+        </div>
+      </div>
     </section>
-  )
-}
-
-// Every round of the group: base, rival and result. A finished round opens to show what the base
-// scored item by item (this is where the results of past rounds live).
-export function RouteList({
-  mine,
-  totalRounds,
-  myId,
-  nextId,
-  teams,
-}: {
-  mine: RouteMatch[]
-  totalRounds: number
-  myId: string
-  nextId?: string
-  teams: Map<string, TeamLite>
-}) {
-  const [open, setOpen] = useState<Set<string>>(new Set())
-  if (totalRounds === 0) return <p className="muted">Todavía no hay rondas programadas.</p>
-  const toggle = (id: string) =>
-    setOpen((prev) => {
-      const next = new Set(prev)
-      if (!next.delete(id)) next.add(id)
-      return next
-    })
-  return (
-    <ul className="route">
-      {Array.from({ length: totalRounds }, (_, i) => i + 1).map((round) => {
-        const m = mine.find((x) => x.round_number === round)
-        if (!m) {
-          return (
-            <li key={round} className="rest">
-              <div className="route-row">
-                <span className="round num">R{round}</span>
-                <span className="muted">Descansas</span>
-                <span />
-              </div>
-            </li>
-          )
-        }
-        const my = scoreOf(m, myId)
-        const their = scoreOf(m, rivalId(m, myId))
-        const done = m.status === 'finished'
-        const chip = done
-          ? { text: `${my}–${their} ${my > their ? 'Ganaron' : my < their ? 'Perdieron' : 'Igual'}`, cls: my > their ? 'win' : my < their ? 'lose' : '' }
-          : { text: STATUS_LABEL[m.status], cls: m.status === 'in_progress' ? 'win' : '' }
-        const row = (
-          <>
-            <span className="round num">R{round}</span>
-            <span>
-              <strong>{m.bases?.name}</strong>
-              <small className="muted">vs {teams.get(rivalId(m, myId))?.name}</small>
-            </span>
-            <span className={`chip ${chip.cls}`}>
-              {chip.text}
-              {done && <ChevronDown size={14} aria-hidden="true" className={open.has(m.id) ? 'flip' : undefined} />}
-            </span>
-          </>
-        )
-        return (
-          <li key={round} className={m.id === nextId ? 'now' : undefined}>
-            {done ? (
-              <button type="button" className="route-row" aria-expanded={open.has(m.id)} onClick={() => toggle(m.id)}>
-                {row}
-              </button>
-            ) : (
-              <div className="route-row">{row}</div>
-            )}
-            {done && open.has(m.id) && <ItemResults match={m} teams={teams} />}
-          </li>
-        )
-      })}
-    </ul>
   )
 }

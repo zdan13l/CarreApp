@@ -6,6 +6,7 @@ import { sendMatchAlert } from '../components/DelaysPanel'
 import BaseLocationEditor from '../components/BaseLocationEditor'
 import BottomNav, { type NavTab } from '../components/BottomNav'
 import Crest from '../components/Crest'
+import Stamp from '../components/Stamp'
 import PhotoField from '../components/PhotoField'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import TeamNames from '../components/TeamNames'
@@ -274,6 +275,13 @@ export function BaseWhere({ base, onChanged }: { base: { id: string; name: strin
   return (
     <section className="card">
       <h2>Dónde queda</h2>
+      <div className="base-stamp">
+        <Stamp seed={base.id} name={base.name} photoPath={base.location_photo_path} round={0} state="stamped" size={104} straight />
+        <p>
+          <strong>Este es el sello de tu base</strong>
+          Cada grupo lo recibe en su pasaporte cuando confirmas su llegada. Se imprime con tu foto: mientras mejor se vea el lugar, mejor el sello.
+        </p>
+      </div>
       <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
       {error && <p className="error">{error}</p>}
       {hasLocation && !editing ? (

@@ -3,9 +3,11 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import Logo from '../components/Logo'
+import Mrz from '../components/Mrz'
 import ThemeToggle from '../components/ThemeToggle'
 import { homePathForRole, useAuth } from '../lib/auth'
 
+// The cover of the passport: the campus on top, the foil title over it, and the form on a sheet of security paper.
 export default function Login() {
   const { session, profile, loading, signIn } = useAuth()
   const [username, setUsername] = useState('')
@@ -27,8 +29,16 @@ export default function Login() {
     <main className="login-screen">
       <div className="login-theme"><ThemeToggle /></div>
       <section className="login-hero">
-        <Logo size={72} />
-        <p className="tagline">Gestión en vivo de Carrera</p>
+        <img className="login-photo" src="/campus-800.jpg" srcSet="/campus-800.jpg 800w, /campus.jpg 1600w" sizes="(min-width: 900px) 60vw, 100vw" alt="Fotografía del campus" width={1600} height={1067} fetchPriority="high" decoding="async" />
+        <img className="login-uni" src="/javeriana-logo-white.png" alt="Pontificia Universidad Javeriana" width={480} height={627} />
+        <p className="doc-kicker">Gestión en vivo de Carrera</p>
+        <Logo size={44} />
+        <h1 className="login-title">
+          Pasaporte
+          <br />
+          de la Carrera
+          <small>Un sello por cada base que alcances.</small>
+        </h1>
       </section>
       <form className="card form login-card" onSubmit={onSubmit}>
         <label>
@@ -69,6 +79,7 @@ export default function Login() {
           <LogIn size={19} aria-hidden="true" />
           {submitting ? 'Entrando…' : 'Entrar'}
         </button>
+        <Mrz team="Carrera" stamps={0} rounds={0} />
       </form>
       <p className="login-foot">Semana de inducción</p>
     </main>

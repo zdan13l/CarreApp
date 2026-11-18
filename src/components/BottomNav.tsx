@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { withPageTurn } from '../lib/motion'
 
 export interface NavTab<T extends string> {
   id: T
@@ -28,7 +29,7 @@ export default function BottomNav<T extends string>({
             className={`bn-tab${t.id === active ? ' active' : ''}`}
             aria-current={t.id === active ? 'page' : undefined}
             onClick={() => {
-              onChange(t.id)
+              if (t.id !== active) withPageTurn(() => onChange(t.id))
               window.scrollTo({ top: 0 })
             }}
           >
