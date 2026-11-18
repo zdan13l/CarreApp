@@ -29,6 +29,7 @@ export async function deletePhotos(paths: (string | null | undefined)[]) {
 }
 
 export function photoUrl(path: string | null): string | null {
+  if (path && path.startsWith('/')) return path // an image that ships with the app (campus photo, design previews)
   if (!supabase || !path) return null
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
 }
