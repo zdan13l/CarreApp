@@ -11,4 +11,5 @@
 - [Pruebas](Pruebas)
 - [Prueba en vivo](Prueba-en-vivo)
 - [Informe de pruebas](Informe-de-pruebas)
+- [Estado y pendientes](Estado-y-pendientes)
 - [Bitácora](Bitacora)

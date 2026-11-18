@@ -19,6 +19,7 @@ Plataforma web para la gestión y seguimiento en tiempo real de la **Carrera Jav
 | [Registro SQL](Registro-SQL) | Historial de scripts SQL aplicados en Supabase |
 | [Roles y permisos](Roles-y-permisos) | Quién puede hacer qué |
 | [Despliegue y configuración](Despliegue-y-configuracion) | Servicios, variables de entorno, cómo desplegar |
+| [Estado y pendientes](Estado-y-pendientes) | Foto actual del proyecto, pendientes y convenciones para retomar el trabajo |
 | [Bitácora](Bitacora) | Qué se hizo en cada bloque de desarrollo |
 
 ## Estado actual
