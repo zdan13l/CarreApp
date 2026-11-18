@@ -2,6 +2,16 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Login: mitad campus, mitad patrón, logo blanco con letras doradas (2026-11-18)
+- La mitad de arriba vuelve a ser la foto del campus (esquinas redondeadas abajo) y la de abajo un patrón de mármol blanco con vetas doradas (`public/login-pattern.svg` y `login-pattern-dark.svg`, trazados vectoriales sin costura); en escritorio, foto a la izquierda y patrón a la derecha.
+- Logo del login: escudo blanco (`crest-blanco.svg`) y nombre en lámina dorada. Solo "Gestión en vivo de Carrera" en amarillo.
+- Botón luna/sol del login sólido (blanco sobre la foto, superficie en escritorio) y con hover sólido. Modo oscuro: tarjeta más clara que el fondo y patrón azul visible. Letras del logo y "Gestión en vivo de Carrera" en blanco; la contraseña vacía muestra puntitos.
+- Tarjeta: la ruta (PUJ → 2710) en tres columnas centradas, y el código de barras y las líneas de lectura centrados; la segunda línea es aleatoria (`mrzRandom`). Sin scroll en 360x640, 390x844 ni 1440x900.
+
+## Login como tarjeta de embarque, sin círculos de fondo (2026-11-18)
+- Se quitaron las rosetas (círculos) de fondo en todas las pantallas.
+- Login rehecho: foto a pantalla completa, sin la palabra "Pasaporte", y el formulario como tarjeta de embarque (PUJ → 2710, perforación, código de barras y líneas de lectura). En el celular cabe sin scroll (probado a 390x844 y 360x640); en PC, foto a la izquierda y tarjeta a la derecha.
+
 ## Logo nuevo: el escudo dorado (2026-11-18)
 - Se eligió la opción A (escudo) y se mejoró: simétrico, trazado al doble de resolución y con versiones azul, blanca, dorada y compacta. **El ícono de la app no lleva el nombre**: escudo dorado sobre el azul de la app (192, 512, maskable, iPhone y favicon regenerados).
 - Componente `Logo` nuevo (escudo compacto y nombre pintados con máscara, del color del lugar). Login con el logo de CarreApp arriba a la izquierda y **sin el escudo de la Universidad ni la brújula**; portada del pasaporte con el escudo dorado; menú del coordinador y barras de la app con el imagotipo.
