@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 
-// Light / dark mode. The choice is kept on the device (localStorage). The first time the app is dark,
-// as it always was; the toggle in the top bar switches it. The tiny script in index.html applies the
+// Light / dark mode. The choice is kept on the device (localStorage). The first time the app is LIGHT (the paper of the
+// passport reads best in the sun); the toggle in the top bar switches to "passport by night". The tiny script in index.html applies the
 // saved choice before the first paint so there is no flash of the wrong theme.
 export type Theme = 'light' | 'dark'
 
@@ -18,7 +18,7 @@ function stored(): Theme | null {
 
 export function currentTheme(): Theme {
   const attr = document.documentElement.dataset.theme
-  return attr === 'light' || attr === 'dark' ? attr : stored() ?? 'dark'
+  return attr === 'light' || attr === 'dark' ? attr : stored() ?? 'light'
 }
 
 export function applyTheme(theme: Theme, persist = true) {
@@ -37,7 +37,7 @@ export function applyTheme(theme: Theme, persist = true) {
 }
 
 export function initTheme() {
-  applyTheme(stored() ?? 'dark', false)
+  applyTheme(stored() ?? 'light', false)
 }
 
 function subscribe(cb: () => void) {
@@ -50,6 +50,6 @@ function subscribe(cb: () => void) {
 }
 
 export function useTheme(): [Theme, (t: Theme) => void] {
-  const theme = useSyncExternalStore(subscribe, currentTheme, () => 'dark' as Theme)
+  const theme = useSyncExternalStore(subscribe, currentTheme, () => 'light' as Theme)
   return [theme, (t) => applyTheme(t)]
 }
