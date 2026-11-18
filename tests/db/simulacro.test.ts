@@ -236,7 +236,7 @@ describe('1. load the test Carrera file exactly like "Cargar la Carrera desde un
     expect(checked.carrera?.name).toBe('Prueba 20 de enero')
     expect(checked.carrera?.maxMinutes).toBe(8)
     file = checked
-    say('Archivo: "Prueba 20 de enero", 6 grupos, 3 bases, 15 personas, 15 cruces, 6 tiempos entre bases. 0 errores en la vista previa.')
+    say('Archivo: "Prueba 20 de enero", 6 grupos, 3 bases, 9 personas, 15 cruces, 6 tiempos entre bases. 0 errores en la vista previa.')
   })
 
   it('"Cargar todo" creates the Carrera, groups, bases (info, 3 questions, lat/lng), users, assignments, matches and times', async () => {
@@ -262,15 +262,15 @@ describe('1. load the test Carrera file exactly like "Cargar la Carrera desde un
       expect(await db.sql(`select 1 from public.base_questions where base_id = $1`, [b.id])).toHaveLength(3)
     }
 
-    // 15 users: profiles carry the Carrera (like api/users.ts), role and assignment match the file
+    // 9 users: profiles carry the Carrera (like api/users.ts), role and assignment match the file
     const people = await db.sql<{ id: string; username: string; role: string; event_id: string }>(`select id, username, role, event_id from public.profiles where event_id = $1`, [imp.eventId])
-    expect(people).toHaveLength(15)
-    expect(people.filter((p) => p.role === 'runner')).toHaveLength(12)
+    expect(people).toHaveLength(9)
+    expect(people.filter((p) => p.role === 'runner')).toHaveLength(6)
     expect(people.filter((p) => p.role === 'base')).toHaveLength(3)
     const byName = new Map(people.map((p) => [p.username, p.id]))
     const tracked = await db.sql<{ team_id: string; user_id: string; is_gps_tracker: boolean }>(
       `select tr.team_id, tr.user_id, tr.is_gps_tracker from public.team_runners tr join public.teams t on t.id = tr.team_id where t.event_id = $1`, [imp.eventId])
-    expect(tracked).toHaveLength(12)
+    expect(tracked).toHaveLength(6)
     expect(tracked.filter((r) => r.is_gps_tracker)).toHaveLength(6)
     for (const p of file.personas) {
       const id = byName.get(p.username)!
@@ -284,7 +284,7 @@ describe('1. load the test Carrera file exactly like "Cargar la Carrera desde un
         expect(await db.sql(`select 1 from public.base_staff where base_id = $1 and user_id = $2`, [bases.get(p.assignment)!.id, id])).toHaveLength(1)
       }
     }
-    for (const t of teams.values()) expect(t.runners).toHaveLength(2)
+    for (const t of teams.values()) expect(t.runners).toHaveLength(1) // one shared user per group, which is also its GPS tracker
 
     const ms = await db.sql<{ id: string; round_number: number; base_id: string; team_a: string; team_b: string }>(`select id, round_number, base_id, team_a, team_b from public.matches where event_id = $1 order by round_number`, [imp.eventId])
     expect(ms).toHaveLength(15)
@@ -293,7 +293,7 @@ describe('1. load the test Carrera file exactly like "Cargar la Carrera desde un
     matches = ms.map((m) => ({ id: m.id, round: m.round_number, base: B.get(m.base_id)!, a: T.get(m.team_a)!, b: T.get(m.team_b)! }))
     expect(await db.sql(`select 1 from public.base_travel_times where event_id = $1`, [imp.eventId])).toHaveLength(6)
     for (const t of teams.values()) expected.set(t.id, 0)
-    say(`Carga completa: 1 Carrera (borrador), 6 grupos, 3 bases con información, 12 corredores (6 con GPS), 3 inductores, 15 cruces, 6 tiempos. Nada se mezcló con la otra Carrera.`)
+    say(`Carga completa: 1 Carrera (borrador), 6 grupos, 3 bases con información, 6 corredores (con GPS), 3 inductores, 15 cruces, 6 tiempos. Nada se mezcló con la otra Carrera.`)
   })
 
   it('everything went to the new Carrera: the other one is untouched', async () => {
@@ -301,7 +301,7 @@ describe('1. load the test Carrera file exactly like "Cargar la Carrera desde un
     expect(now.events).toBe(baseline.events + 1)
     expect(now.teams).toBe(baseline.teams + 6)
     expect(now.bases).toBe(baseline.bases + 3)
-    expect(now.profiles).toBe(baseline.profiles + 15)
+    expect(now.profiles).toBe(baseline.profiles + 9)
     expect(now.matches).toBe(baseline.matches + 15)
     expect(now.match_scores).toBe(baseline.match_scores)
     expect(now.alerts).toBe(baseline.alerts)
@@ -568,7 +568,7 @@ describe('3. playing the 5 rounds as the real roles', () => {
       }
       expect(await db.asUser(admin).sql(`select 1 from public.team_locations where team_id = any($1)`, [[...teams.values()].map((t) => t.id)])).toHaveLength(6)
       const g = teams.get('Samuráis')!
-      const second = g.runners.find((r) => r !== g.tracker)!
+      const second = teams.get('Gladiadores')!.tracker // another group's phone
       expect(await db.asUser(second).affected(`update public.team_locations set lat = 0 where team_id = $1`, [g.id])).toBe(0)
       await expect(db.asUser(second).sql(`insert into public.team_locations (team_id, lat, lng) values ($1, 1, 1) on conflict (team_id) do update set lat = 1`, [g.id])).rejects.toThrow()
       const v = teams.get('Vikingos')!
@@ -672,8 +672,8 @@ describe('4. the final result and privacy', () => {
     expect(await r.sql(`select * from public.base_details`)).toHaveLength(0)
     expect(await r.sql(`select * from public.base_questions`)).toHaveLength(0)
     expect(await r.sql(`select * from public.team_locations`)).toHaveLength(1) // only its own group (it is the tracker)
-    const rb = db.asUser(teams.get('Dioses Griegos')!.runners[1])
-    expect(await rb.sql(`select * from public.team_locations`)).toHaveLength(0) // a runner without GPS sees no position at all
+    const rb = db.asUser(bases.get('Atrio')!.staff)
+    expect(await rb.sql(`select * from public.team_locations`)).toHaveLength(0) // an inductor sees no position at all
     const atrio = bases.get('Atrio')!
     const mine = await db.asUser(atrio.staff).sql<{ base_id: string }>(`select base_id from public.base_details`)
     expect(mine.map((x) => x.base_id)).toEqual([atrio.id])
@@ -682,7 +682,7 @@ describe('4. the final result and privacy', () => {
     for (const t of ['matches', 'teams', 'bases', 'base_details', 'match_scores', 'team_locations', 'alerts', 'profiles']) {
       expect(await anon.sql(`select * from public.${t}`), t).toHaveLength(0)
     }
-    // none of the 15 people can read the other Carrera's base info either
+    // none of the 9 people can read the other Carrera's base info either
     expect(await db.asUser(atrio.staff).sql(`select 1 from public.base_details where base_id = any($1)`, [other.bases.map((b) => b.id)])).toHaveLength(0)
   })
 
@@ -724,7 +724,7 @@ describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera
       const people = await db.asUser(admin).sql(`select id from public.profiles where event_id = $1 and role <> 'admin'`, [imp.eventId])
       expect(people).toHaveLength(0)
       const orphans = await db.asUser(admin).sql(`select id from public.profiles where username like 'prueba.%' and event_id is null`)
-      expect(orphans).toHaveLength(15) // they would stay as "Sin Carrera asignada"
+      expect(orphans).toHaveLength(9) // they would stay as "Sin Carrera asignada"
     } finally {
       await db.pg.exec('rollback')
     }
@@ -751,7 +751,7 @@ describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera
     // ---- DeleteEvent.remove(), step by step, with RLS as the coordinator ----
     const sb = db.asUser(admin)
     const people = await sb.sql<{ id: string }>(`select id from public.profiles where event_id = $1 and role <> 'admin'`, [imp.eventId])
-    expect(people).toHaveLength(15)
+    expect(people).toHaveLength(9)
     expect(await sb.affected(`delete from public.events where id = $1`, [imp.eventId])).toBe(1)
     for (const p of people) {
       // api/users.ts DELETE: auth.admin.deleteUser (the profile cascades). The API refuses to delete the caller.
@@ -773,7 +773,7 @@ describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera
     expect(await db.sql(`select 1 from public.profiles where username like 'prueba.%'`)).toHaveLength(0)
     expect(await db.sql(`select 1 from auth.users where email like 'prueba.%'`)).toHaveLength(0)
     // photos stay in Storage (the screen says so): the stub has no objects, nothing to check there
-    say('\nEliminar Carrera: se borraron 1 Carrera, 6 grupos, 3 bases, 15 cruces, puntajes, auditoría, avisos, 6 ubicaciones, 6 tiempos, suscripciones y los 15 usuarios. Todas las tablas quedaron igual que antes de cargar el archivo.')
+    say('\nEliminar Carrera: se borraron 1 Carrera, 6 grupos, 3 bases, 15 cruces, puntajes, auditoría, avisos, 6 ubicaciones, 6 tiempos, suscripciones y los 9 usuarios. Todas las tablas quedaron igual que antes de cargar el archivo.')
   })
 
   it('deleting a Carrera leaves no orphan audit rows (0019)', async () => {
@@ -799,7 +799,7 @@ describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera
     const r = await runImport(db, admin, again, { id: null, name: again.carrera!.name }, new Set())
     expect(r.report.problems).toEqual([])
     expect(r.report.users.every((u) => u.ok)).toBe(true)
-    expect((await counts(db)).profiles).toBe(baseline.profiles + 15)
+    expect((await counts(db)).profiles).toBe(baseline.profiles + 9)
   })
 })
 
@@ -819,11 +819,11 @@ describe('6. loading the same file twice must fail cleanly and corrupt nothing',
   })
   afterAll(async () => db2.close())
 
-  it('the preview of the second upload shows an error for every one of the 15 usernames and the button stays disabled', async () => {
+  it('the preview of the second upload shows an error for every one of the 9 usernames and the button stays disabled', async () => {
     const ld = await loadExisting(db2, admin2, first.eventId) // same Carrera name -> same Carrera
     const checked = validateFile(await readFile(), ld.existing)
     expect(countErrors(checked)).toBeGreaterThan(0)
-    expect(checked.personas.filter((p) => p.errors.length > 0)).toHaveLength(15)
+    expect(checked.personas.filter((p) => p.errors.length > 0)).toHaveLength(9)
     expect(checked.personas.every((p) => p.errors.join(' ').match(/ya existe|existe/i))).toBe(true)
     // and the matches / groups / bases that already exist are flagged too, so nothing silently duplicates
     expect(checked.cruces.filter((c) => c.errors.length > 0).length).toBe(15)
@@ -833,7 +833,7 @@ describe('6. loading the same file twice must fail cleanly and corrupt nothing',
     const ld = await loadExisting(db2, admin2, first.eventId)
     const second = await runImport(db2, admin2, validateFile(await readFile(), ld.existing), { id: first.eventId, name: 'Prueba 20 de enero' }, ld.trackers)
     expect(second.eventId).toBe(first.eventId)
-    expect(second.report.users).toHaveLength(15)
+    expect(second.report.users).toHaveLength(9)
     expect(second.report.users.every((u) => !u.ok && /ya existe/i.test(u.note))).toBe(true)
     expect(second.report.problems).toHaveLength(15) // the 15 matches are refused by the unique rules
     expect(second.report.problems.every((p) => /Cruce de la ronda/.test(p))).toBe(true)
@@ -848,12 +848,12 @@ describe('6. loading the same file twice must fail cleanly and corrupt nothing',
     const r = await runImport(db2, admin2, validateFile({ ...file, carrera: { ...file.carrera!, name: 'Otra Carrera' } }, (await loadExisting(db2, admin2, null)).existing), { id: null, name: 'Otra Carrera' }, new Set())
     expect(r.report.users.every((u) => !u.ok)).toBe(true)
     // the Carrera, groups, bases and matches of that second Carrera were created (the screen would have blocked it in the preview),
-    // but no user or profile was duplicated: the 15 originals are the only ones
-    expect(await db2.sql(`select 1 from public.profiles where username like 'prueba.%'`)).toHaveLength(15)
-    expect(await db2.sql(`select 1 from auth.users where email like 'prueba.%'`)).toHaveLength(15)
+    // but no user or profile was duplicated: the 9 originals are the only ones
+    expect(await db2.sql(`select 1 from public.profiles where username like 'prueba.%'`)).toHaveLength(9)
+    expect(await db2.sql(`select 1 from auth.users where email like 'prueba.%'`)).toHaveLength(9)
     expect(await db2.sql(`select 1 from public.team_runners tr join public.teams t on t.id = tr.team_id where t.event_id = $1`, [r.eventId])).toHaveLength(0)
     // the first Carrera is intact
     expect(await db2.sql(`select 1 from public.matches where event_id = $1`, [first.eventId])).toHaveLength(15)
-    say('\nCargar el mismo archivo dos veces: la vista previa marca los 15 usuarios, el botón queda bloqueado; forzándolo, cada usuario falla con "Ya existe" y no cambia ninguna tabla.')
+    say('\nCargar el mismo archivo dos veces: la vista previa marca los 9 usuarios, el botón queda bloqueado; forzándolo, cada usuario falla con "Ya existe" y no cambia ninguna tabla.')
   })
 })

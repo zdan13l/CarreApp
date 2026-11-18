@@ -10,16 +10,16 @@ const load = async (name: string) => readTablesFromFile(new File([fs.readFileSyn
 const parse = (tables: string[][][], existing: ExistingData = NONE) => validateFile(parseTables(tables), existing)
 
 describe('the ready-made test Carrera (public/plantillas/carrera-de-prueba.xlsx)', () => {
-  it('loads with no errors and is a playable Carrera: 6 groups, 3 bases, 15 users, a complete 5-round schedule', async () => {
+  it('loads with no errors and is a playable Carrera: 6 groups, 3 bases, 9 users, a complete 5-round schedule', async () => {
     const file = parse(await load('carrera-de-prueba.xlsx'))
     expect(countErrors(file)).toBe(0)
     expect(file.notes).toEqual([])
     expect(file.grupos).toHaveLength(6)
     expect(file.bases).toHaveLength(3)
     expect(file.bases.every((b) => b.questions.length === 3 && b.lat !== null && b.info.length > 0)).toBe(true)
-    expect(file.personas.filter((p) => p.role === 'runner')).toHaveLength(12)
+    expect(file.personas.filter((p) => p.role === 'runner')).toHaveLength(6)
     expect(file.personas.filter((p) => p.role === 'base')).toHaveLength(3)
-    expect(file.personas.filter((p) => p.gps)).toHaveLength(6) // one GPS runner per group
+    expect(file.personas.filter((p) => p.gps)).toHaveLength(6) // the only runner of each group is its GPS tracker
     expect(file.personas.every((p) => p.username.startsWith('prueba.'))).toBe(true)
     expect(file.cruces).toHaveLength(15)
     // every pair of groups meets exactly once and nobody plays twice in a round
@@ -35,7 +35,7 @@ describe('the ready-made test Carrera (public/plantillas/carrera-de-prueba.xlsx)
   it('contains no passwords: they are generated when the file is uploaded', async () => {
     const raw = await load('carrera-de-prueba.xlsx')
     const people = raw.find((t) => t[0]?.[0] === 'Nombre completo')!
-    expect(people.length).toBe(16)
+    expect(people.length).toBe(10)
     expect(people.slice(1).every((row) => !row[5])).toBe(true)
   })
 })
