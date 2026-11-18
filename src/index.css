@@ -1056,3 +1056,25 @@ button.icon-btn { padding: 0; }
 .won-items b { color: var(--text); font-weight: 600; text-align: right; }
 .list li.with-items { flex-wrap: wrap; align-items: baseline; }
 .list li.with-items > .won-items { flex-basis: 100%; }
+
+/* Modo del panel: Preparación / En carrera */
+.mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-top: .9rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; }
+.mode-switch .mode { display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 38px; padding: 0 .5rem; background: transparent; color: var(--text-muted); border-radius: 9px; font-size: .85rem; }
+.mode-switch .mode:hover:not(:disabled) { background: transparent; color: var(--text); }
+.mode-switch .mode[aria-selected='true'] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s ease-in-out infinite; }
+.admin-brand .event .badge { margin-left: auto; }
+.running-note { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; }
+.running-note .ghost { min-height: 36px; }
+
+/* Pasos para crear la Carrera */
+.prep-steps ol { list-style: none; display: grid; gap: .4rem; margin: .75rem 0 0; padding: 0; }
+.prep-step { display: flex; align-items: center; gap: .85rem; padding: .7rem .8rem; color: inherit; text-decoration: none; background: var(--surface-2); border: 1px solid transparent; border-radius: var(--radius-sm); }
+a.prep-step { transition: border-color .15s, transform .15s; }
+a.prep-step:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+.prep-step .grow { display: grid; }
+.prep-mark { display: grid; color: var(--text-faint); }
+.prep-mark.done { color: var(--ok); }
+.page-head .head-meta .ghost { min-height: 38px; }
+
+.admin-brand .event { flex-wrap: wrap; }

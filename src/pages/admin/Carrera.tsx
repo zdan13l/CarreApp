@@ -1,4 +1,6 @@
+import { CheckCircle2, ChevronRight, Circle } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { deletePhotos } from '../../lib/storage'
 import { deleteUser } from '../../lib/usersApi'
@@ -7,9 +9,11 @@ import BulkImport from './BulkImport'
 import TravelTimes from './TravelTimes'
 import { confirmDialog } from '../../lib/dialog'
 
-interface Counts {
+export interface Counts {
   teams: number
   bases: number
+  users: number
+  matches: number
   warnings: string[]
 }
 
@@ -18,7 +22,7 @@ interface Counts {
 export default function Carrera() {
   const { events, event, selectEvent, reload } = useAdmin()
   const [problems, setProblems] = useState<string[]>([])
-  const [counts, setCounts] = useState<Counts>({ teams: 0, bases: 0, warnings: [] })
+  const [counts, setCounts] = useState<Counts>({ teams: 0, bases: 0, users: 0, matches: 0, warnings: [] })
   const [newName, setNewName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,10 +32,12 @@ export default function Carrera() {
 
   const check = useCallback(async () => {
     if (!supabase || !eventId) return
-    const [probs, teams, bases] = await Promise.all([
+    const [probs, teams, bases, users, matches] = await Promise.all([
       supabase.rpc('event_problems', { p_event: eventId }),
       supabase.from('teams').select('name, team_runners(is_gps_tracker)').eq('event_id', eventId),
       supabase.from('bases').select('name, lat, base_staff(user_id)').eq('event_id', eventId),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('event_id', eventId).neq('role', 'admin'),
+      supabase.from('matches').select('id', { count: 'exact', head: true }).eq('event_id', eventId),
     ])
     setProblems((probs.data as string[] | null) ?? [])
     const warnings: string[] = []
@@ -44,7 +50,7 @@ export default function Carrera() {
       if (b.base_staff.length === 0) warnings.push(`La base "${b.name}" no tiene inductores asignados.`)
       if (b.lat === null) warnings.push(`La base "${b.name}" no tiene ubicación en el mapa.`)
     }
-    setCounts({ teams: teams.data?.length ?? 0, bases: bases.data?.length ?? 0, warnings })
+    setCounts({ teams: teams.data?.length ?? 0, bases: bases.data?.length ?? 0, users: users.count ?? 0, matches: matches.count ?? 0, warnings })
   }, [eventId])
 
   useEffect(() => {
@@ -96,7 +102,7 @@ export default function Carrera() {
 
   async function deactivate() {
     if (!supabase || !event) return
-    if (!(await confirmDialog({ title: `¿Desactivar "${event.name}"?`, message: 'Los corredores y las bases dejarán de ver la Carrera de inmediato.', confirmLabel: 'Desactivar', icon: 'warning' }))) return
+    if (!(await confirmDialog({ title: `¿Desactivar "${event.name}"?`, message: 'Los corredores y las bases dejarán de verla de inmediato y se REINICIA todo su avance: puntajes, llegadas, avisos, ubicaciones y registro de cambios. Se conservan grupos, bases, usuarios y el cronograma.', confirmLabel: 'Desactivar y reiniciar', tone: 'danger', icon: 'warning' }))) return
     void run(async () => {
       const { error: err } = await supabase!.from('events').update({ is_active: false }).eq('id', event.id)
       if (err) throw new Error('No se pudo desactivar la Carrera.')
@@ -116,6 +122,7 @@ export default function Carrera() {
 
       <div className="live-grid">
       <div>
+      {event && <PrepSteps counts={counts} problems={problems} active={event.is_active} />}
       {event && (
         <section className="card">
           <h2>{event.name}</h2>
@@ -301,6 +308,47 @@ function DeleteEvent({ eventId, name, active, onDone }: { eventId: string; name:
           </button>
         </>
       )}
+    </section>
+  )
+}
+
+// "Preparación": the steps to create a Carrera, in order, each with its state and a link to the screen where it is done.
+export function PrepSteps({ counts, problems, active }: { counts: Counts; problems: string[]; active: boolean }) {
+  const has = (re: RegExp) => problems.some((p) => re.test(p))
+  const steps = [
+    { to: '/admin/grupos', title: 'Grupos', sub: `${counts.teams} grupos con su foto`, done: counts.teams >= 2 && !has(/^El grupo ".*" no tiene foto/) },
+    { to: '/admin/bases', title: 'Bases', sub: `${counts.bases} bases con foto, información y 3 preguntas`, done: counts.bases >= 1 && !has(/^La base /) },
+    { to: '/admin/usuarios', title: 'Usuarios', sub: `${counts.users} corredores e inductores, asignados a su grupo o base`, done: counts.users > 0 && !has(/ningún corredor/) },
+    { to: '/admin/cruces', title: 'Cruces', sub: counts.matches > 0 ? `${counts.matches} cruces armados` : 'El cronograma, ronda por ronda', done: counts.matches > 0 },
+  ]
+  const ready = problems.length === 0
+  return (
+    <section className="card prep-steps">
+      <h2>Pasos para crear la Carrera</h2>
+      <p className="muted">Sigue el orden. Cuando todo esté completo, actívala aquí abajo y el panel pasa a <strong>En carrera</strong>.</p>
+      <ol>
+        {steps.map((st, i) => (
+          <li key={st.to}>
+            <Link to={st.to} className="prep-step">
+              <span className={`prep-mark${st.done ? ' done' : ''}`}>{st.done ? <CheckCircle2 size={22} aria-label="Listo" /> : <Circle size={22} aria-label="Pendiente" />}</span>
+              <span className="grow">
+                <strong>{i + 1}. {st.title}</strong>
+                <small className="muted">{st.sub}</small>
+              </span>
+              <ChevronRight size={18} aria-hidden="true" />
+            </Link>
+          </li>
+        ))}
+        <li>
+          <div className="prep-step">
+            <span className={`prep-mark${active ? ' done' : ''}`}>{active ? <CheckCircle2 size={22} aria-label="Listo" /> : <Circle size={22} aria-label="Pendiente" />}</span>
+            <span className="grow">
+              <strong>5. Activar</strong>
+              <small className="muted">{active ? 'La Carrera está en curso.' : ready ? 'Todo listo: ya puedes activarla.' : `Faltan ${problems.length} cosas (abajo).`}</small>
+            </span>
+          </div>
+        </li>
+      </ol>
     </section>
   )
 }

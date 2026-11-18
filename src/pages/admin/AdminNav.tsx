@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import AccountMenu from '../../components/AccountMenu'
 import Logo from '../../components/Logo'
+import type { AdminMode } from './AdminContext'
 
 const ICON = { size: 22, strokeWidth: 1.9, 'aria-hidden': true } as const
 
@@ -38,14 +39,23 @@ export function AdminTopbar({ user, onSignOut }: { user?: { full_name: string; u
   )
 }
 
-// Side menu in two groups on computers; on phones a bottom bar with the live screens and a
-// "Preparar" button that opens the setup screens (seven tabs do not fit on a phone).
+// Computers: a side menu with two modes. "Preparación" is where the Carrera is created and everything is set (users, groups,
+// bases, schedule); "En carrera" is what the coordinator watches while it runs, with nothing to create. Phones: a bottom bar
+// with the live screens and a "Preparar" button that opens the setup screens (seven tabs do not fit on a phone).
 export default function AdminNav({
   eventName,
+  eventActive = false,
+  mode = 'live',
+  running = false,
+  onMode,
   user,
   onSignOut,
 }: {
   eventName?: string
+  eventActive?: boolean
+  mode?: AdminMode
+  running?: boolean
+  onMode?: (mode: AdminMode) => void
   user?: { full_name: string; username: string; photo_path?: string | null }
   onSignOut: () => void
 }) {
@@ -67,14 +77,22 @@ export default function AdminNav({
         <p className="event">
           <Flag size={15} aria-hidden="true" />
           <strong>{eventName ?? 'Sin Carrera'}</strong>
+          {eventName && <span className={`badge ${eventActive ? 'ok live' : ''}`}>{eventActive ? 'En curso' : 'Borrador'}</span>}
         </p>
+        <div className="mode-switch" role="tablist" aria-label="Modo del panel">
+          <button type="button" role="tab" aria-selected={mode === 'setup'} className="mode" onClick={() => onMode?.('setup')}>
+            Preparación
+          </button>
+          <button type="button" role="tab" aria-selected={mode === 'live'} className="mode" onClick={() => onMode?.('live')}>
+            {running && <span className="live-dot" aria-hidden="true" />}
+            En carrera
+          </button>
+        </div>
       </div>
 
       <nav className="nav-desktop" aria-label="Secciones del panel">
-        <p className="nav-label">Durante la Carrera</p>
-        {LIVE_TABS.map((t) => link(t))}
-        <p className="nav-label">Preparación</p>
-        {SETUP_TABS.map((t) => link(t))}
+        <p className="nav-label">{mode === 'live' ? 'En carrera' : 'Crear la Carrera'}</p>
+        {(mode === 'live' ? LIVE_TABS : SETUP_TABS).map((t) => link(t))}
       </nav>
 
       <nav className="nav-mobile" aria-label="Secciones del panel">

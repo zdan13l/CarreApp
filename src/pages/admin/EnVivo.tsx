@@ -12,7 +12,7 @@ import { supabase } from '../../lib/supabase'
 import { useTravelTimes } from '../../lib/travel'
 import { STATUS_LABEL, type MatchScore, type MatchStatus, type StandingRow } from '../../types'
 import { useAdmin } from './AdminContext'
-import { promptDialog } from '../../lib/dialog'
+import { confirmDialog, promptDialog } from '../../lib/dialog'
 
 interface Named {
   id: string
@@ -46,7 +46,7 @@ const NO_SIGNAL_MS = 2 * 60 * 1000
 // who is late, who is winning and who is sharing their location. Everything updates by itself.
 // Preparing the Carrera is in "Carrera", "Grupos", "Bases", "Cruces" and "Usuarios".
 export default function EnVivo() {
-  const { event } = useAdmin()
+  const { event, reload, setMode } = useAdmin()
   const [teams, setTeams] = useState<Named[]>([])
   const [bases, setBases] = useState<BasePoint[]>([])
   const [matches, setMatches] = useState<LiveMatch[]>([])
@@ -127,6 +127,22 @@ export default function EnVivo() {
     else setNotice(target === 'base' ? 'Aviso enviado a la base.' : 'Aviso enviado a los dos grupos.')
   }
 
+  // Ends the Carrera: it is switched off and its progress is reset (the database does it), keeping what was prepared.
+  async function finish() {
+    if (!supabase || !event) return
+    const ok = await confirmDialog({
+      title: `¿Finalizar "${event.name}"?`,
+      message: 'Se REINICIA todo su avance: puntajes, llegadas, avisos, ubicaciones y registro de cambios. Se conservan grupos, bases, usuarios y el cronograma. Los teléfonos dejan de verla.',
+      confirmLabel: 'Finalizar y reiniciar',
+      tone: 'danger',
+      icon: 'warning',
+    })
+    if (!ok) return
+    const { error: err } = await supabase.from('events').update({ is_active: false }).eq('id', event.id)
+    if (err) setError('No se pudo finalizar la Carrera.')
+    else await reload()
+  }
+
   const late = active ? lateTeams(matches, event.max_travel_minutes, now, travel).length : 0
 
   return (
@@ -139,6 +155,7 @@ export default function EnVivo() {
         <div className="head-meta">
           <span className={`badge ${active ? 'ok live' : ''}`}>{active ? 'Activa' : 'Borrador'}</span>
           {matches.length > 0 && <span>Ronda {round} de {totalRounds}</span>}
+          {active && <button className="ghost danger" onClick={() => void finish()}>Finalizar Carrera</button>}
         </div>
       </header>
 
@@ -146,7 +163,7 @@ export default function EnVivo() {
         <div className="warn">
           <strong>Esta Carrera está en borrador.</strong>{' '}
           {pending > 0 ? `Faltan ${pending} cosas para poder activarla.` : 'Ya está completa: puedes activarla.'}{' '}
-          <Link to="/admin/carrera">Ir a Carrera</Link>
+          <button className="ghost" onClick={() => setMode('setup')}>Ir a Preparación</button>
         </div>
       )}
       {matches.length === 0 && (
