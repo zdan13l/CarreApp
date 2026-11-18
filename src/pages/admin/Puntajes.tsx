@@ -15,6 +15,7 @@ import {
 } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
 import { confirmDialog } from '../../lib/dialog'
+import { exportResults } from '../../lib/results'
 
 interface Named {
   id: string
@@ -142,7 +143,12 @@ export default function Puntajes() {
 
   return (
     <>
-      <h1>Puntajes</h1>
+      <header className="page-head">
+        <h1>Puntajes</h1>
+        <div className="head-meta">
+          <button className="ghost" onClick={() => void exportResults(event.id, event.name)}>Descargar resultados</button>
+        </div>
+      </header>
       <p className="muted">
         Las bases envían los puntos. Aquí el coordinador puede corregirlos, borrarlos o <strong>invalidar</strong> un ítem que no se alcance a jugar (nadie suma y la base no lo puede puntuar). Todo queda en el registro.
       </p>
