@@ -11,9 +11,9 @@ El panel tiene **dos modos** que se eligen arriba del menú lateral: **Preparaci
 ### Durante la Carrera (modo En carrera)
 | Pantalla | Qué muestra | Para qué |
 |---|---|---|
-| **En vivo** | Cuatro **indicadores** arriba (ronda en curso, cruces terminados, demoras, grupos con ubicación; los dos últimos y el de cruces llevan a su pantalla), la ronda como **tabla** (base, cruce, estado, marcador, ítems y hora de llegada, con el botón *Avisar*), las **demoras en el traslado** y el top 3 (con marco **oro, plata y bronce**). En cada cruce hay dos botones de aviso: a los **grupos** o a la **base** (por ejemplo si se demora en un juego): suena el teléfono. Si la Carrera está en borrador, avisa qué falta y lleva a *Carrera*. | Es el tablero de control: todo lo que cambia mientras se juega, en un solo lugar. |
-| **Puntajes** | Ranking completo, corrección o invalidación de cualquier ítem por cruce (de a una ronda) y el registro de cambios (plegable). | Corregir lo que envió una base y dejar rastro. |
-| **Mapa** | Mapa 3D con las bases y la posición de cada grupo; los grupos sin señal o en demora se marcan. Una posición que lleva **más de 1 hora sin actualizarse desaparece** del mapa (el grupo queda como "Sin señal"), así que si alguien olvida apagar el GPS no queda un punto fantasma al terminar la Carrera. | Ver dónde está cada grupo. |
+| **Control** (*En vivo*) | La **torre de control**: indicadores (ronda, vuelos en ruta, en puerta, aterrizados, demoras, radar), el **tablero de vuelos** (Flight Control), las **puertas** de la ronda con avisos a los grupos o a la base (Gate Management), las demoras en el traslado, el **registro de operaciones** (llegadas, cruces terminados y avisos) y el top. |
+| **Pasaportes** (*Puntajes*) | Ranking completo, corrección o invalidación de cualquier ítem por cruce (de a una ronda) y el registro de cambios (plegable). | Corregir lo que envió una base y dejar rastro. |
+| **Radar** (*Mapa*) | Mapa 3D con las bases y la posición de cada grupo; los grupos sin señal o en demora se marcan. Una posición que lleva **más de 1 hora sin actualizarse desaparece** del mapa (el grupo queda como "Sin señal"), así que si alguien olvida apagar el GPS no queda un punto fantasma al terminar la Carrera. | Ver dónde está cada grupo. |
 
 ### Preparación (modo Preparación)
 *Carrera* abre con los **pasos para crear la Carrera**, en orden, cada uno con su estado: Grupos, Bases, Usuarios, Cruces y Activar.
@@ -31,9 +31,9 @@ Una **barra de estado siempre visible** (el grupo y "En vivo"; **sin puesto ni p
 
 | Pestaña | Contenido |
 |---|---|
-| **Ronda** | Avisos de demora y del coordinador, la ronda actual (base con foto, rival y resultados que la base ha calificado ítem por ítem) y **Después**: la siguiente con la foto de la base y el escudo del rival. |
+| **Visado** | Avisos de demora y del coordinador, y el **destino** de la ronda actual: la foto de la base a gran formato con su puerta, código de aeropuerto y estado, el rival, las **tres etapas** (barra, pregunta, minijuego) con quién ganó cada una y el sello esperando; abajo el **próximo destino** como tarjeta de embarque. Cuando la base califica la tercera etapa con la app abierta, el sello cae en pantalla. |
 | **Ubicación** *(solo el usuario designado)* | Un mapa **fijo** (no se mueve ni se acerca) con las bases y la posición del grupo, que se actualiza, y el botón para **compartir la ubicación** con el coordinador. No hay mapa de ruta: los corredores saben llegar. |
-| **Ruta** | El historial de encuentros: todas sus rondas; cada ronda terminada se abre para ver el resultado ítem por ítem. |
+| **Pasaporte** | La portada se abre sola. Página de identidad (equipo, vuelo, mapa del recorrido, progreso del viaje, itinerario) y páginas de sellos (cuatro destinos cada una): completado, disponible o en puerta, pendiente y descanso. Tocar un sello completado abre sus tres etapas. Un sello se gana al calificarse las tres etapas. Solo usa datos que el corredor ya leía de sus cruces. |
 | **Top** | **Tu equipo** con su nombre y sus puntos, y debajo **todos los equipos** solo con foto y nombre (sin puntos y en orden alfabético). |
 
 Los ajustes de **sonido y notificaciones** están en la campana de la barra superior (con un punto si el sonido está apagado). Sin Carrera activa para su usuario se ve una explicación tranquila ("No hay ninguna Carrera activa para tu usuario").

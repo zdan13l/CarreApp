@@ -14,7 +14,7 @@ Roles: **coordinador** (PC), **inductor de base** y **corredor** (iPhone). Cada 
 - **Corredor**: ronda actual y "Después", Ruta (historial), Top (solo su equipo con puntos y los demás por nombre), y para el usuario designado del GPS una pestaña Ubicación con mapa fijo. **No ve puesto ni puntos de otros** (privacidad en la base de datos, 0019).
 - **Base**: califica 3 ítems por cruce, confirma llegada, apura a los grupos, ve la guía (información y preguntas) en *Mi base*, equipos por foto y nombre, y recibe avisos del coordinador con sonido.
 - Notificaciones push (web-push) con sonido: cada aviso es una notificación nueva (el service worker retira las anteriores); los avisos cerrados en la app no reaparecen al recargar.
-- Diseño "Marcador nocturno": modo claro y oscuro, logo Brújula, ventanas emergentes propias (`confirmDialog` / `promptDialog`), contraseñas sugeridas chistosas (`D3lF1nZ4p4t0`). Ver [Diseño](Diseno) y [Pantallas](Pantallas).
+- Diseño **"Visado"** (2026-11-18): un viaje internacional con dos experiencias: **corredores = viajeros** (pasaporte con portada, mapa del recorrido y sellos únicos por base; claro por defecto) y **coordinador = torre de control** (siempre oscura: vuelos, puertas, verificación de pasaportes, registro de operaciones y radar); logo Brújula; ventanas emergentes propias (`confirmDialog` / `promptDialog`), contraseñas sugeridas chistosas (`D3lF1nZ4p4t0`). Ver [Diseño](Diseno) y [Pantallas](Pantallas).
 
 ## Reglas de la base de datos que conviene recordar
 Una Carrera activa a la vez; solo se elimina una Carrera desactivada; cada persona lee solo su Carrera; los puntajes solo los leen el coordinador, el inductor de esa base y los corredores de ese cruce; un grupo necesita al menos 1 usuario (la pareja puede compartirlo); un inductor solo actúa en la Carrera activa; avisos con `target` `groups` o `base` (límite de 20 s por base); desactivar reinicia el avance. Detalle en [Roles y permisos](Roles-y-permisos) y [Modelo de datos](Modelo-de-datos).
@@ -27,7 +27,8 @@ Una Carrera activa a la vez; solo se elimina una Carrera desactivada; cada perso
 2. ~~Actualizar la Carrera de prueba~~ **Hecho (2026-11-18):** ahora trae un usuario por grupo (9 usuarios).
 3. **Volver a correr el agente `carreapp-tester`** tras los últimos bloques (admin en dos modos, reinicio al desactivar, notificaciones, privacidad 0019) y actualizar `Informe-de-pruebas.md`.
 4. Menores: la guía "Prueba en vivo" ya explica los dos modos y el reinicio al finalizar; las contraseñas de 6 caracteres siguen permitidas (lo exige Supabase y las plantillas).
-5. Antes del día real: no publicar en `main` durante la Carrera (el mapa no está en el precaché), limpiar la Carrera de prueba con *Eliminar esta Carrera*, dejar la real activa.
+5. **Rediseño Visado, por revisar con teléfonos:** ver los sellos con fotos reales de las bases (mala luz u oscuras pesan menos), la transición entre pestañas en iPhone y el momento del sello con la base confirmando de verdad. El pasaporte y el visado no tienen aún prueba de extremo a extremo (solo pruebas estáticas y de la librería de sellos).
+6. Antes del día real: no publicar en `main` durante la Carrera (el mapa no está en el precaché), limpiar la Carrera de prueba con *Eliminar esta Carrera*, dejar la real activa.
 
 ## Cómo trabajar (convenciones del usuario)
 - Habla en español; el código y los comentarios van en inglés, la interfaz en español.

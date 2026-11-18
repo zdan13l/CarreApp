@@ -2,6 +2,23 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Dos experiencias en un universo: el viaje y la torre de control (2026-11-18)
+- **Concepto:** la Carrera como un viaje internacional. Cada grupo es un vuelo (`JV 200`…), cada base un destino con puerta y código de aeropuerto, y el pasaporte la prueba del viaje. Detalle en [Diseño](Diseno).
+- **Corredores (viajeros):** el pasaporte tiene **portada** que se abre, **página de identidad** con equipo, vuelo y **mapa del recorrido** (posiciones reales de las bases), barra de progreso del viaje, itinerario y **páginas de sellos** con paso de página. Cada base tiene un **sello único** (foto en una tinta, nombre, código, símbolo del lugar, forma y composición). La pestaña *Visado* es la tarjeta del destino (foto grande, puerta, código, estado y las **tres etapas**) y el siguiente destino es una tarjeta de embarque.
+- **El sello se gana al completar las tres etapas** (la base califica barra, pregunta y minijuego: el cruce termina). Antes se estampaba al llegar; cambió por pedido del nuevo concepto. La llegada confirmada ahora se muestra como "en puerta". No se tocó la lógica de validación ni la base de datos.
+- **Coordinador (torre de control):** panel siempre oscuro con *Live Monitoring* (indicadores), *Flight Control* (tablero de vuelos), *Gate Management* (puertas), *Passport Verification* (matriz de sellos por vuelo), *Operations Log* (registro de llegadas, cruces terminados y avisos) y *Flight Radar* (mapa nocturno con barrido). Todo sale de datos reales; nada se simula.
+- **Escudo oficial** de la Universidad (con sus proporciones) en la entrada, la portada del pasaporte y el menú del coordinador; **foto del campus** nueva en dos tamaños (1600 y 800 px).
+- Sin cambios de base de datos, permisos ni autenticación; sin dependencias nuevas. Pruebas nuevas: `tests/unit/flight.test.ts` y `tests/static/torre.test.ts` (452 en total).
+
+## Identidad "Visado": la app es un pasaporte (2026-11-18)
+- **Qué es:** rediseño completo de la interfaz sobre una sola idea: papel de seguridad, portada azul con lámina dorada y **sellos que son las fotos de las bases**. Detalle en [Diseño](Diseno).
+- **Entrada:** portada del pasaporte con la foto del campus (`public/campus.png`, 500 px: conviene reemplazarla por una de 1600 px o más), título en lámina y formulario en hoja de papel.
+- **Corredor:** pestañas **Visado** (la base de la ronda como portada, con su sello y la cuenta del pasaporte arriba), **Pasaporte** (un sello por ronda, que reemplaza a *Ruta*) y **Top**. Al confirmarse la llegada con la app abierta, el sello cae en pantalla (momento del sello) y el teléfono vibra.
+- **Base y coordinador:** cada base muestra su sello en *Mi base* y en *Bases*; el panel del coordinador es la "oficina de control" (portada azul con lámina en el menú, indicadores con trama).
+- **Claro por defecto**, oscuro como "pasaporte de noche"; transiciones de página con View Transitions (con respaldo sin animación) y todo apagado con "reducir movimiento".
+- **Sin cambios** de base de datos, lógica ni autenticación; sin dependencias ni fuentes nuevas. Pruebas nuevas: `tests/unit/stamp.test.ts` y `tests/static/visado.test.ts` (440 en total).
+- Páginas de revisión en desarrollo: `/preview/runner-sello` y `/preview/sellos`.
+
 ## Hallazgos de la quinta ejecución del tester (2026-11-18)
 - **Resultados antes de reiniciar:** *Finalizar Carrera* y *Desactivar* descargan un CSV con la clasificación y el detalle por cruce antes de borrar el avance (si no se puede leer, se pregunta antes de seguir); botón *Descargar resultados* en En vivo y en Puntajes. Nuevo `src/lib/results.ts` con pruebas.
 - Pruebas nuevas del tester en `tests/db/qa-extra.test.ts` (Carrera de 20 grupos, calificación simultánea, 30 avisos a la vez, escalada de rol, reinicio). Total: 426 pruebas.
