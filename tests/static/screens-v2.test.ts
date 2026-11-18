@@ -12,7 +12,7 @@ describe('the runner screen', () => {
     expect(run).not.toMatch(/team_standings/)
     expect(run).not.toMatch(/position/i)
     expect(run).not.toMatch(/Puesto/)
-    expect(run).toMatch(/<StatusBar name=\{team\.name\} photoPath=\{team\.photo_path\} \/>/)
+    expect(run).toMatch(/<StatusBar name=\{team\.name\} photoPath=\{team\.photo_path\} flight=\{flight\} stamps=\{\{ done: stamped, total: playable \}\} \/>/)
   })
   it('has no walking map; the location tab exists only for the designated user, with a fixed map', () => {
     expect(fs.existsSync(rootPath('src/components/RunnerMap.tsx'))).toBe(false)

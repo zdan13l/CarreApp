@@ -11,7 +11,8 @@ describe('login', () => {
     expect(login).toContain('placeholder="Dado por el coordinador"')
     expect(login).toContain('Gestión en vivo de Carrera')
     expect(login).toMatch(/<p className="login-foot">Semana de inducción<\/p>/)
-    expect(login).not.toMatch(/Pontificia|Javeriana/)
+    // the name of the University appears only in the official logo (its alt text), never as copy
+    expect(login.replace(/alt="Pontificia Universidad Javeriana"/g, '')).not.toMatch(/Pontificia|Javeriana/)
   })
   it('keeps the logo readable on the blue panel in light mode (dark-mode logo colours inside it)', () => {
     expect(read('src/index.css')).toMatch(/\.login-hero \{ --gold: var\(--on-hero-gold\); --sky: var\(--on-hero-sky\); \}/)

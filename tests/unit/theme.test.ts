@@ -25,10 +25,10 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('theme (light / dark)', () => {
-  it('starts dark when nothing is saved, as the app always did', () => {
+  it('starts light when nothing is saved (the paper of the passport reads best in the sun)', () => {
     initTheme()
-    expect(document.documentElement.dataset.theme).toBe('dark')
-    expect(currentTheme()).toBe('dark')
+    expect(document.documentElement.dataset.theme).toBe('light')
+    expect(currentTheme()).toBe('light')
     expect(store.size).toBe(0) // the first paint does not save a choice the person never made
   })
 
@@ -46,7 +46,7 @@ describe('theme (light / dark)', () => {
     store.set('carreapp.theme', 'purple')
     document.documentElement.dataset.theme = ''
     initTheme()
-    expect(currentTheme()).toBe('dark')
+    expect(currentTheme()).toBe('light')
   })
 
   it('with storage blocked (private window) it still switches for the session and never throws', () => {
