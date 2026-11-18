@@ -31,9 +31,10 @@ export default function Login() {
       <div className="login-theme"><ThemeToggle /></div>
       <section className="login-hero">
         <img className="login-photo" src="/campus-800.jpg" srcSet="/campus-800.jpg 800w, /campus.jpg 1600w" sizes="(min-width: 900px) 60vw, 100vw" alt="Fotografía del campus" width={1600} height={1067} fetchPriority="high" decoding="async" />
-        <img className="login-uni" src="/javeriana-logo-white.png" alt="Pontificia Universidad Javeriana" width={480} height={627} />
+        <span className="login-logo">
+          <Logo />
+        </span>
         <p className="doc-kicker">Gestión en vivo de Carrera</p>
-        <Logo size={44} />
         <h1 className="login-title">
           Pasaporte
           <small>Un sello por cada base que alcances.</small>
