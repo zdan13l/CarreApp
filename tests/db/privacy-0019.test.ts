@@ -83,3 +83,21 @@ describe('alerts from the coordinator to the BASE', () => {
     for (const id of [...c.teams[0].runners, ...c.teams[1].runners]) expect(notified).toContain(id)
   })
 })
+
+describe('Carreras do not see each other (teams, bases, matches)', () => {
+  it('a runner and an inductor of one Carrera read none of the groups, bases or matches of another; the coordinator reads both', async () => {
+    const a = await seedCarrera(db, { teams: 2, bases: 1 })
+    const b = await seedCarrera(db, { teams: 2, bases: 1 })
+    await insertMatch(db, a, 1, a.bases[0].id, a.teams[0].id, a.teams[1].id)
+    await insertMatch(db, b, 1, b.bases[0].id, b.teams[0].id, b.teams[1].id)
+    for (const user of [b.teams[0].runners[0], b.bases[0].staff]) {
+      const s = db.asUser(user)
+      for (const table of ['teams', 'bases', 'matches']) {
+        expect(await s.sql(`select 1 from public.${table} where event_id = $1`, [a.eventId]), `${table} of the other Carrera`).toHaveLength(0)
+        expect((await s.sql(`select 1 from public.${table} where event_id = $1`, [b.eventId])).length, `${table} of their own Carrera`).toBeGreaterThan(0)
+      }
+    }
+    const admin = db.asUser(a.admin)
+    for (const id of [a.eventId, b.eventId]) expect((await admin.sql(`select 1 from public.teams where event_id = $1`, [id])).length).toBeGreaterThan(0)
+  })
+})
