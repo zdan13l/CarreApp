@@ -8,6 +8,7 @@ import Stamp from '../components/Stamp'
 import StampMoment from '../components/StampMoment'
 import LocationShare from '../components/LocationShare'
 import TeamNames from '../components/TeamNames'
+import TeamDialog from '../components/TeamDialog'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import { AlertBanner, AlertBell } from '../components/Alerts'
 import { useAuth } from '../lib/auth'
@@ -77,6 +78,8 @@ export default function RunnerHome() {
   const [bases, setBases] = useState<{ id: string; name: string; lat: number | null; lng: number | null }[]>([])
   const [loading, setLoading] = useState(true)
   const [moment, setMoment] = useState<RouteMatch | null>(null) // the stamp that has just been earned
+  const [contacts, setContacts] = useState<Map<string, string[]>>(new Map()) // team -> the @ of its runners (migration 0021)
+  const [viewTeam, setViewTeam] = useState<string | null>(null) // the group whose card is open
   const seen = useRef<Set<string> | null>(null) // matches already finished when the screen opened
 
   const userId = profile?.id
@@ -93,7 +96,7 @@ export default function RunnerHome() {
     if (teamErr) return // a network error is not "no active Carrera": keep what is on screen until the next refresh
     setTeam((t as MyTeam | null) ?? null)
     if (!t) return
-    const [m, tm, bs] = await Promise.all([
+    const [m, tm, bs, ct] = await Promise.all([
       supabase
         .from('matches')
         .select(
@@ -103,11 +106,17 @@ export default function RunnerHome() {
         .order('round_number'),
       supabase.from('teams').select('id, name, photo_path').eq('event_id', t.event_id),
       supabase.from('bases').select('id, name, lat, lng').eq('event_id', t.event_id),
+      supabase.rpc('team_contacts'),
     ])
     if (m.error || tm.error || bs.error) return // keep what is on screen: an empty list would look like no rounds
     setMatches((m.data ?? []) as unknown as RouteMatch[])
     setTeams((tm.data ?? []).map((x) => ({ team_id: x.id, name: x.name, photo_path: x.photo_path })))
     setBases(bs.data ?? [])
+    if (!ct.error) {
+      const byTeam = new Map<string, string[]>()
+      for (const row of (ct.data ?? []) as { team_id: string; username: string }[]) byTeam.set(row.team_id, [...(byTeam.get(row.team_id) ?? []), row.username])
+      setContacts(byTeam) // without the migration the card simply has no @
+    }
   }, [userId])
 
   useEffect(() => {
@@ -152,7 +161,8 @@ export default function RunnerHome() {
 
   return (
     <AppShell
-      title="Mi grupo"
+      title={tab === 'ronda' ? 'Mi grupo' : TABS.concat(LOCATION_TAB).find((t) => t.id === tab)?.label ?? 'Mi grupo'}
+      showTitle={tab === 'ronda'}
       topActions={team && <AlertBell />}
     >
       {loading ? (
@@ -210,7 +220,7 @@ export default function RunnerHome() {
             />
           )}
 
-          {tab === 'top' && <TopTab teamId={team.id} points={myPoints} teams={teams} />}
+          {tab === 'top' && <TopTab teamId={team.id} points={myPoints} teams={teams} onSelect={setViewTeam} />}
           </div>
           )}
           {/* Mounted after the first visit and only hidden afterwards, so GPS sharing keeps running. */}
@@ -232,6 +242,14 @@ export default function RunnerHome() {
               setTab(t)
             }}
           />
+          {viewTeam && teamById.get(viewTeam) && (
+            <TeamDialog
+              name={teamById.get(viewTeam)!.name}
+              photoPath={teamById.get(viewTeam)!.photo_path}
+              usernames={contacts.get(viewTeam) ?? []}
+              onClose={() => setViewTeam(null)}
+            />
+          )}
           {moment && (
             <StampMoment
               seed={moment.base_id}
@@ -345,7 +363,7 @@ export function StatusBar({ name, photoPath, points }: { name: string; photoPath
 
 // "Top": the same passenger ticket as Visado (name, live, points) and, under a white title card, the OTHER groups of the Carrera by name
 // and picture (no points and no order of merit).
-export function TopTab({ teamId, points, teams }: { teamId: string; points: number; teams: TeamLite[] }) {
+export function TopTab({ teamId, points, teams, onSelect }: { teamId: string; points: number; teams: TeamLite[]; onSelect?: (id: string) => void }) {
   const mine = teams.find((t) => t.team_id === teamId)
   const others = teams.filter((t) => t.team_id !== teamId)
   return (
@@ -359,7 +377,7 @@ export function TopTab({ teamId, points, teams }: { teamId: string; points: numb
             <b className="num">{others.length}</b>
           </h2>
           <div className="card">
-            <TeamNames teams={others.map((t) => ({ id: t.team_id, name: t.name, photo_path: t.photo_path }))} />
+            <TeamNames teams={others.map((t) => ({ id: t.team_id, name: t.name, photo_path: t.photo_path }))} onSelect={onSelect} />
           </div>
         </section>
       )}

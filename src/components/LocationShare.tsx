@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useWakeLock, useWatchPosition } from '../lib/geo'
 import { supabase } from '../lib/supabase'
 import LazyMap, { type MapMarker } from './LazyMap'
+import { confirmDialog } from '../lib/dialog'
 
 const UPLOAD_EVERY_MS = 10000 // the designated runner sends the position at most every 10 s
 
@@ -66,22 +67,20 @@ export default function LocationShare({
         ) : (
           <>
             {error && <p className="error">{error}</p>}
-            {!position && !error && <p className="muted">Buscando tu ubicación…</p>}
-            <p className={uploadError ? 'warn' : 'sharing'}>
-              {uploadError ? (
-                'No se pudo compartir tu ubicación con el coordinador.'
-              ) : (
-                <>
-                  <Radio size={18} aria-hidden="true" />
-                  <span>
-                    {lastUpload
-                      ? `Compartiendo con el coordinador · última vez ${lastUpload.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}.`
-                      : 'Conectando con el coordinador…'}
-                  </span>
-                </>
-              )}
-            </p>
-            <button className="ghost" style={{ marginTop: '.75rem' }} onClick={() => setEnabled(false)}>
+            {uploadError ? (
+              <p className="warn">No se pudo compartir tu ubicación. Revisa tu conexión.</p>
+            ) : (
+              <p className="sharing-pill" role="status">
+                <Radio size={18} aria-hidden="true" />
+                {lastUpload ? 'Compartiendo tu ubicación' : 'Conectando…'}
+              </p>
+            )}
+            <button
+              className="ghost stop-share"
+              onClick={async () => {
+                if (await confirmDialog({ title: '¿Dejar de compartir tu ubicación?', message: 'El coordinador dejará de ver dónde va tu grupo.', confirmLabel: 'Dejar de compartir', icon: 'warning' })) setEnabled(false)
+              }}
+            >
               Dejar de compartir mi ubicación
             </button>
           </>

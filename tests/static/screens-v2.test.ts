@@ -169,3 +169,40 @@ describe('runner round 3: dialogs, map, passport and finish card', () => {
     expect(read4('src/index.css')).toMatch(/\.leaf \.mrz \{[^}]*text-align: center/)
   })
 })
+
+describe('runner round 4', () => {
+  const read5 = (f: string) => fs.readFileSync(rootPath(f), 'utf8')
+  it('tapping another team opens its card with the big photo and the @ of its runner (team_contacts)', () => {
+    expect(read5('src/pages/RunnerHome.tsx')).toMatch(/rpc\('team_contacts'\)/)
+    expect(read5('src/pages/RunnerHome.tsx')).toMatch(/<TeamDialog/)
+    expect(read5('src/components/TeamDialog.tsx')).toMatch(/team-photo/)
+    expect(read5('src/components/TeamNames.tsx')).toMatch(/onSelect/)
+  })
+  it('the finish button wins over the general gold button style', () => {
+    expect(read5('src/index.css')).toMatch(/button\.finish-btn \{[^}]*background-image: var\(--foil\) !important/)
+  })
+  it('the map can be seen from above again', () => {
+    const m = read5('src/components/MapView.tsx')
+    expect(m).toMatch(/Ver el mapa desde arriba/)
+    expect(m).toMatch(/pitch: next \? 0 : 62/)
+  })
+  it('the passport is solid, does not scroll inside and the cover has no reading lines', () => {
+    const css = read5('src/index.css')
+    expect(css).toMatch(/\.leaf::before \{ display: none; \}/)
+    expect(css).toMatch(/\.leaf-body \{ overflow: hidden;/)
+    expect(read5('src/components/Passport.tsx')).not.toMatch(/cover-chip|mrzLines/)
+  })
+  it('location: a short status, a centred stop button and a confirmation', () => {
+    const l = read5('src/components/LocationShare.tsx')
+    expect(l).toMatch(/Compartiendo tu ubicación/)
+    expect(l).toMatch(/confirmDialog\(/)
+    expect(l).toMatch(/stop-share/)
+  })
+  it('"Mi grupo" is visible only in Visado, and the tab bar no longer makes the page jump', () => {
+    expect(read5('src/pages/RunnerHome.tsx')).toMatch(/showTitle=\{tab === 'ronda'\}/)
+    expect(read5('src/index.css')).toMatch(/html:has\(\.tab-view\) \{ scrollbar-width: none; \}/)
+  })
+  it('the account sheet puts the role on its own line under the @', () => {
+    expect(read5('src/components/AccountMenu.tsx')).toMatch(/account-role/)
+  })
+})
