@@ -30,4 +30,3 @@ dist-ssr
 # Skills de terceros instaladas en el proyecto (pesadas y se instalan de sus repositorios; no se versionan)
 .claude/skills/
 .claude/agents/impeccable-*.md
-tools/carre-strokes/fonts/
