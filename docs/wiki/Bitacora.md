@@ -5,7 +5,7 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 ## Login: mitad campus, mitad patrón, logo blanco con letras doradas (2026-11-18)
 - La mitad de arriba vuelve a ser la foto del campus (esquinas redondeadas abajo) y la de abajo un patrón de mármol blanco con vetas doradas (`public/login-pattern.svg` y `login-pattern-dark.svg`, trazados vectoriales sin costura); en escritorio, foto a la izquierda y patrón a la derecha.
 - Logo del login: escudo blanco (`crest-blanco.svg`) y nombre en lámina dorada. Solo "Gestión en vivo de Carrera" en amarillo.
-- Login en modo oscuro: la foto de la fachada iluminada de noche (`public/campus-noche.jpg`) reemplaza a la del campus de día; en modo claro sigue la de día.
+- Login en modo oscuro: la foto del edificio al atardecer (`public/campus-noche.jpg`) reemplaza a la del campus de día; en modo claro sigue la de día.
 - Ajustes del login: botón luna/sol sólido que cambia de color con el tema (azul marino en oscuro, blanco en claro; igual en celular y escritorio), tarjeta más arriba y "Gestión en vivo de Carrera" en blanco con una línea dorada encima.
 - Botón luna/sol del login sólido (blanco sobre la foto, superficie en escritorio) y con hover sólido. Modo oscuro: tarjeta más clara que el fondo y patrón azul visible. Letras del logo y "Gestión en vivo de Carrera" en blanco; la contraseña vacía muestra puntitos.
 - Tarjeta: la ruta (PUJ → 2710) en tres columnas centradas, y el código de barras y las líneas de lectura centrados; la segunda línea es aleatoria (`mrzRandom`). Sin scroll en 360x640, 390x844 ni 1440x900.
