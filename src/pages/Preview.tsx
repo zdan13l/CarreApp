@@ -2,8 +2,8 @@
 // look can be reviewed without signing in. Not included in the production build.
 //   /preview/runner  /preview/runner-ruta  /preview/runner-top  /preview/runner-fin
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
-import { useState } from 'react'
-import { BookMarked, BellRing, Camera, ChevronRight, KeyRound, LocateFixed, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy } from 'lucide-react'
+import { useState, type CSSProperties } from 'react'
+import { BookMarked, BellRing, Camera, ChevronRight, ClipboardCheck, KeyRound, LocateFixed, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy, Users } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import Avatar from '../components/Avatar'
@@ -24,7 +24,8 @@ import AdminNav, { AdminTopbar } from './admin/AdminNav'
 import { PrepSteps } from './admin/Carrera'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
-import { BaseGuide, BaseWhere, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
+import { BaseGuide, BaseTicket, BaseWhere, ClosedDesk, MatchCard, NextRound, type BaseMatch, type Team } from './BaseHome'
+import { stampLook } from '../lib/stamp'
 import { AfterCard, CurrentRound, FinishedCard, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
 import { AlertBell } from '../components/Alerts'
 import TeamDialog from '../components/TeamDialog'
@@ -99,6 +100,11 @@ const baseTabs = [
 ]
 const noop = () => {}
 const noopAsync = async () => {}
+// The base screen: the inductor, the stamp ink of the base (as BaseHome sets it) and the flight codes of the groups.
+const inspector = { full_name: 'Valeria Gómez', username: 'valeria' }
+const previewBase = { id: 'x1', name: 'Atrio', location_photo_path: '/campus-800.jpg' }
+const baseInk = { '--base-ink': `var(--ink-${stampLook('x1').ink})` } as CSSProperties
+const baseCodes = flightCodes(towerTeams)
 
 // Top with the team card that opens when a group is tapped (sample @ users).
 function PreviewTop({ teams }: { teams: { team_id: string; name: string; photo_path: string | null }[] }) {
@@ -236,51 +242,59 @@ export default function Preview() {
 
   if (screen === 'base-resultados') {
     return (
-      <AppShell title="Atrio" user={{ full_name: 'Valeria Gómez', username: 'valeria' }}>
-        <section className="card">
-          <h2>Equipos de la Carrera</h2>
-          <TeamNames teams={[...teams.values()]} />
+      <AppShell title="Resultados" showTitle={false} user={inspector} topActions={<AlertBell />}>
+       <div className="base-view" style={baseInk}>
+        <div className="tab-view fwd">
+        <BaseTicket name="Atrio" photoPath="/campus-800.jpg" sealed={2} />
+        <section className="top-others">
+         <h2 className="title-tag"><Users size={18} aria-hidden="true" />Equipos de la Carrera<b className="num">{teams.size}</b></h2>
+         <div className="card"><TeamNames teams={[...teams.values()]} /></div>
         </section>
-        <section className="card">
-          <h2>Cruces de tu base (2)</h2>
+        <section className="top-others">
+         <h2 className="title-tag"><ClipboardCheck size={18} aria-hidden="true" />Cruces de tu base<b className="num">2</b></h2>
+         <div className="card">
           <ul className="list">
             <li className="with-items"><span className="round-tag">R1</span><span className="grow">Dioses Griegos <span className="muted">vs</span> Samuráis</span><strong className="num">2–1</strong>
               <ul className="won-items"><li><span>Barra</span><b>Dioses Griegos</b></li><li><span>Pregunta</span><b>Samuráis</b></li><li><span>Minijuego</span><b>Dioses Griegos</b></li></ul></li>
             <li className="with-items"><span className="round-tag">R2</span><span className="grow">Dioses Nórdicos <span className="muted">vs</span> Guerreros Aztecas</span><strong className="num">1–2</strong>
               <ul className="won-items"><li><span>Barra</span><b>Guerreros Aztecas</b></li><li><span>Pregunta</span><b>Invalidado</b></li><li><span>Minijuego</span><b>Dioses Nórdicos</b></li></ul></li>
           </ul>
+         </div>
         </section>
-        <BottomNav tabs={baseTabs} active="resultados" onChange={noop} />
+        </div>
+        <BottomNav tabs={baseTabs} active="resultados" transition={false} onChange={noop} />
+       </div>
       </AppShell>
     )
   }
 
-  if (screen === 'base' || screen === 'base-info') {
+  // ronda (jugando) / base-llegada (esperando a los grupos) / base-fin (ventanilla cerrada) / base-info (Mi base)
+  if (screen === 'base' || screen === 'base-llegada' || screen === 'base-fin' || screen === 'base-info') {
+    const onRound = screen !== 'base-info'
     return (
-      <AppShell title={screen === 'base' ? 'Atrio' : 'Mi base'} user={{ full_name: 'Valeria Gómez', username: 'valeria' }}>
-        {screen === 'base' ? (
-          <>
-            <MatchCard match={baseMatchPlaying} teams={teams} onSent={noopAsync} />
-            <section className="card next">
-              <h3>Próxima ronda · R3</h3>
-              <div className="versus small">
-                <TeamFace team={teams.get('t0')} />
-                <span className="vs dim">VS</span>
-                <TeamFace team={teams.get('t3')} />
-              </div>
-            </section>
-            <MatchCard match={baseMatchPending} teams={teams} onSent={noopAsync} />
-          </>
-        ) : (
+      <AppShell title={onRound ? 'Mi base' : 'Mi base'} showTitle={onRound} user={inspector} topActions={<AlertBell />}>
+       <div className="base-view" style={baseInk}>
+        <div className="tab-view fwd">
+        {screen === 'base-info' ? (
           <>
             <BaseGuide
               info="Aquí se explica la historia de la Universidad."
               questions={[{ position: 1, question: '¿En qué año se fundó la Javeriana?' }, { position: 2, question: '¿Quién es el patrono de la Universidad?' }, { position: 3, question: '¿Cuántas facultades hay?' }]}
             />
-            <BaseWhere base={{ id: 'x1', name: 'Atrio', location_photo_path: null, lat: 4.6286, lng: -74.0647 }} onChanged={noopAsync} />
+            <BaseWhere base={{ id: 'x1', name: 'Atrio', location_photo_path: '/campus-800.jpg', lat: 4.6286, lng: -74.0647 }} onChanged={noopAsync} />
+          </>
+        ) : (
+          <>
+            <BaseTicket name="Atrio" photoPath="/campus-800.jpg" sealed={screen === 'base-fin' ? 5 : 1} />
+            {screen === 'base' && <MatchCard match={baseMatchPlaying} teams={teams} onSent={noopAsync} eventId="e1" base={previewBase} codes={baseCodes} />}
+            {screen === 'base-llegada' && <MatchCard match={baseMatchPending} teams={teams} onSent={noopAsync} eventId="e1" base={previewBase} codes={baseCodes} />}
+            {screen === 'base' && <NextRound match={baseMatchPending} teams={teams} />}
+            {screen === 'base-fin' && <ClosedDesk name="Atrio" sealed={5} />}
           </>
         )}
-        <BottomNav tabs={baseTabs} active={screen === 'base' ? 'ronda' : 'base'} onChange={noop} />
+        </div>
+        <BottomNav tabs={baseTabs} active={onRound ? 'ronda' : 'base'} transition={false} onChange={noop} />
+       </div>
       </AppShell>
     )
   }
@@ -557,5 +571,5 @@ export default function Preview() {
     )
   }
 
-  return <p className="page">Pantallas: dialogs, base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, runner-fin, base, base-info, admin, admin-carrera, admin-forms</p>
+  return <p className="page">Pantallas: dialogs, base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, runner-fin, base, base-llegada, base-fin, base-info, admin, admin-carrera, admin-forms</p>
 }

@@ -1,7 +1,7 @@
-import { Ban, Bell, BellRing, Check, Flag, MapPin, Send, Trophy, UsersRound } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Ban, BellRing, BookOpen, Check, CircleHelp, ClipboardCheck, Flag, MapPin, Send, Trophy, Users, UsersRound } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import AppShell from '../components/AppShell'
-import { AlertBanner, AlertSettings } from '../components/Alerts'
+import { AlertBanner, AlertBell } from '../components/Alerts'
 import { sendMatchAlert } from '../components/DelaysPanel'
 import BaseLocationEditor from '../components/BaseLocationEditor'
 import BottomNav, { type NavTab } from '../components/BottomNav'
@@ -11,11 +11,13 @@ import PhotoField from '../components/PhotoField'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import TeamNames from '../components/TeamNames'
 import { useAuth } from '../lib/auth'
-import { soundEnabled, useManualAlerts, useNow } from '../lib/alerts'
+import { useManualAlerts, useNow } from '../lib/alerts'
 import { lateTeams, type TimedMatch } from '../lib/delays'
+import { airportCode, flightCodes } from '../lib/flight'
+import { stampLook } from '../lib/stamp'
 import { useTravelTimes } from '../lib/travel'
 import { useRealtimeReload } from '../lib/realtime'
-import { uploadPhoto } from '../lib/storage'
+import { photoUrl, uploadPhoto } from '../lib/storage'
 import { supabase } from '../lib/supabase'
 import {
   ITEM_LABEL,
@@ -66,13 +68,16 @@ const TABS: NavTab<Tab>[] = [
   { id: 'base', label: 'Mi base', icon: <MapPin {...ICON} /> },
 ]
 
+// Every base prints its stamp in one ink (drawn from its id, like the stamp itself): that ink is the accent of the whole screen.
+const inkStyle = (baseId: string) => ({ '--base-ink': `var(--ink-${stampLook(baseId).ink})` }) as CSSProperties
+
 export default function BaseHome() {
   const { profile } = useAuth()
   const [tab, setTab] = useState<Tab>('ronda')
+  const [dir, setDir] = useState<'fwd' | 'back'>('fwd') // which way the page slides when the tab changes
   const [base, setBase] = useState<MyBase | null>(null)
   const [matches, setMatches] = useState<BaseMatch[]>([])
   const [teams, setTeams] = useState<Map<string, Team>>(new Map())
-  const [showAlerts, setShowAlerts] = useState(false) // sound and notification settings
   const [eventMatches, setEventMatches] = useState<TimedMatch[]>([]) // every match, to know when teams left their previous base
   const [loading, setLoading] = useState(true)
 
@@ -120,6 +125,7 @@ export default function BaseHome() {
   const current = useMemo(() => matches.find((m) => m.status !== 'finished'), [matches])
   const next = current ? matches.find((m) => m.round_number > current.round_number && m.status !== 'finished') : undefined
   const finished = matches.filter((m) => m.status === 'finished')
+  const codes = useMemo(() => flightCodes([...teams.values()]), [teams]) // the "flight" of each group, as the runners see it
 
   const events = base?.events
   const maxMinutes = (Array.isArray(events) ? events[0]?.max_travel_minutes : events?.max_travel_minutes) ?? 10
@@ -131,38 +137,16 @@ export default function BaseHome() {
 
   return (
     <AppShell
-      title={base?.name ?? 'Mi base'}
-      topActions={
-        base && (
-          <button
-            className="ghost icon-btn bell"
-            onClick={() => setShowAlerts((v) => !v)}
-            aria-label="Ajustes de alertas"
-            aria-expanded={showAlerts}
-            title="Ajustes de alertas"
-          >
-            {showAlerts ? <BellRing size={20} /> : <Bell size={20} />}
-            {!soundEnabled() && <span className="dot" aria-hidden="true" />}
-          </button>
-        )
-      }
+      title={tab === 'ronda' ? 'Mi base' : TABS.find((t) => t.id === tab)?.label ?? 'Mi base'}
+      showTitle={tab === 'ronda'}
+      topActions={base && <AlertBell />}
     >
       {loading ? (
         <p className="loading">Cargando…</p>
       ) : !base ? (
         <NoActiveCarrera role="base" />
       ) : (
-        <>
-          {showAlerts && (
-            <section className="card">
-              <h2>Alertas</h2>
-              <p className="muted">
-                Para que el teléfono suene cuando el coordinador te avise (por ejemplo si tardas mucho en un juego): activa el sonido, y las
-                notificaciones para recibirlas aunque el teléfono esté bloqueado.
-              </p>
-              <AlertSettings />
-            </section>
-          )}
+        <div className="base-view" style={inkStyle(base.id)}>
           {fromCoordinator.alerts.map((a) => (
             <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => fromCoordinator.dismiss(a.id)}>
               {a.message}
@@ -182,58 +166,149 @@ export default function BaseHome() {
             )
           })}
 
-          {tab === 'ronda' && (
-            <>
-              {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
-              {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} eventId={base.event_id} />}
-              {next && (
-                <section className="card next">
-                  <h3>Próxima ronda · R{next.round_number}</h3>
-                  <div className="versus small">
-                    <TeamFace team={teams.get(next.team_a)} />
-                    <span className="vs dim">VS</span>
-                    <TeamFace team={teams.get(next.team_b)} />
+          <div key={tab} className={`tab-view ${dir}`}>
+            {tab === 'ronda' && (
+              <>
+                <BaseTicket name={base.name} photoPath={base.location_photo_path} sealed={finished.length} />
+                {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
+                {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} eventId={base.event_id} base={base} codes={codes} />}
+                {next && <NextRound match={next} teams={teams} />}
+                {current === undefined && matches.length > 0 && <ClosedDesk name={base.name} sealed={finished.length} />}
+              </>
+            )}
+
+            {tab === 'resultados' && (
+              <>
+                <BaseTicket name={base.name} photoPath={base.location_photo_path} sealed={finished.length} />
+                <section className="top-others" aria-label="Equipos de la Carrera">
+                  <h2 className="title-tag">
+                    <Users size={18} aria-hidden="true" />
+                    Equipos de la Carrera
+                    <b className="num">{teams.size}</b>
+                  </h2>
+                  <div className="card">
+                    <TeamNames teams={[...teams.values()]} />
                   </div>
                 </section>
-              )}
-              {current === undefined && matches.length > 0 && <p className="ok-box">Todos los cruces de tu base terminaron. ¡Gracias!</p>}
-            </>
-          )}
+                <section className="top-others" aria-label="Cruces de tu base">
+                  <h2 className="title-tag">
+                    <ClipboardCheck size={18} aria-hidden="true" />
+                    Cruces de tu base
+                    <b className="num">{finished.length}</b>
+                  </h2>
+                  <div className="card">
+                    {finished.length === 0 && <p className="muted">Todavía no has terminado ningún cruce.</p>}
+                    <ul className="list">
+                      {finished.map((m) => (
+                        <li key={m.id} className="with-items">
+                          <span className="round-tag">R{m.round_number}</span>
+                          <span className="grow">
+                            {teams.get(m.team_a)?.name} <span className="muted">vs</span> {teams.get(m.team_b)?.name}
+                          </span>
+                          <strong className="num">
+                            {m.match_scores.filter((x) => x.winner_team_id === m.team_a).length}–
+                            {m.match_scores.filter((x) => x.winner_team_id === m.team_b).length}
+                          </strong>
+                          <WonItems match={m} teams={teams} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </section>
+              </>
+            )}
 
-          {tab === 'resultados' && (
-            <>
-              <section className="card">
-                <h2>Equipos de la Carrera</h2>
-                <TeamNames teams={[...teams.values()]} />
-              </section>
-              <section className="card">
-                <h2>Cruces de tu base ({finished.length})</h2>
-                {finished.length === 0 && <p className="muted">Todavía no has terminado ningún cruce.</p>}
-                <ul className="list">
-                  {finished.map((m) => (
-                    <li key={m.id} className="with-items">
-                      <span className="round-tag">R{m.round_number}</span>
-                      <span className="grow">
-                        {teams.get(m.team_a)?.name} <span className="muted">vs</span> {teams.get(m.team_b)?.name}
-                      </span>
-                      <strong className="num">
-                        {m.match_scores.filter((x) => x.winner_team_id === m.team_a).length}–
-                        {m.match_scores.filter((x) => x.winner_team_id === m.team_b).length}
-                      </strong>
-                      <WonItems match={m} teams={teams} />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </>
-          )}
+            {tab === 'base' && <MyBaseTab base={base} onChanged={load} />}
+          </div>
 
-          {tab === 'base' && <MyBaseTab base={base} onChanged={load} />}
-
-          <BottomNav tabs={TABS} active={tab} onChange={setTab} />
-        </>
+          <BottomNav
+            tabs={TABS}
+            active={tab}
+            transition={false}
+            onChange={(t) => {
+              setDir(TABS.findIndex((x) => x.id === t) >= TABS.findIndex((x) => x.id === tab) ? 'fwd' : 'back')
+              setTab(t)
+            }}
+          />
+        </div>
       )}
     </AppShell>
+  )
+}
+
+// The inductor is the immigration officer of the Carrera: this is the counter. A boarding pass in the navy blue (the same as the runners'
+// passenger ticket) with the photo and name of the base; on the stub, how many visas it has stamped so far.
+export function BaseTicket({ name, photoPath, sealed }: { name: string; photoPath: string | null; sealed: number }) {
+  const url = photoUrl(photoPath)
+  return (
+    <div className="tc-wrap">
+      <section className="tc base-ticket" role="status" aria-label={`Ventanilla ${name}`}>
+        <div className="tc-main">
+          <p className="tc-kicker">Ventanilla de visado</p>
+          <div className="tc-row">
+            {url ? (
+              <img className="tc-photo" src={url} alt={`Dónde queda ${name}`} decoding="async" />
+            ) : (
+              <span className="tc-photo empty" aria-hidden="true">
+                <MapPin size={28} />
+              </span>
+            )}
+            <div className="tc-info">
+              <strong className="tc-name">{name}</strong>
+              <span className="tc-chips">
+                <span className="live-label">En servicio</span>
+                <span className="flight-chip">{airportCode(name)}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="tc-stub" aria-label={`${sealed} ${sealed === 1 ? 'visado sellado' : 'visados sellados'}`}>
+          <span className="tc-code num">{sealed}</span>
+          <small>{sealed === 1 ? 'sellado' : 'sellados'}</small>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+// What comes after the match in front of the officer: the two groups of the next round, as a ticket.
+export function NextRound({ match, teams }: { match: BaseMatch; teams: Map<string, Team> }) {
+  return (
+    <div className="tc-wrap">
+      <section className="tc next-ticket" aria-label={`Próxima ronda: ${match.round_number}`}>
+        <div className="tc-main">
+          <p className="tc-kicker">Próxima ronda · Puerta {match.round_number}</p>
+          <div className="nt-rival both">
+            {[match.team_a, match.team_b].map((id) => (
+              <span key={id}>
+                <Crest name={teams.get(id)?.name} photoPath={teams.get(id)?.photo_path} size="sm" />
+                <strong>{teams.get(id)?.name ?? '—'}</strong>
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="tc-stub" aria-hidden="true">
+          <span className="tc-code">R{match.round_number}</span>
+          <small>Siguiente</small>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+// Every crossing of the base is stamped: the counter closes.
+export function ClosedDesk({ name, sealed }: { name: string; sealed: number }) {
+  return (
+    <section className="finish" aria-label="Ventanilla cerrada">
+      <Trophy className="finish-trophy" size={34} aria-hidden="true" />
+      <p className="finish-kicker">{name}</p>
+      <h2>Ventanilla cerrada</h2>
+      <p className="finish-sub">Todos los cruces de tu base terminaron. ¡Gracias!</p>
+      <p className="finish-count num">
+        {sealed}
+        <small>{sealed === 1 ? 'visado sellado' : 'visados sellados'}</small>
+      </p>
+    </section>
   )
 }
 
@@ -273,42 +348,47 @@ export function BaseWhere({ base, onChanged }: { base: { id: string; name: strin
   }
 
   return (
-    <section className="card">
-      <h2>Dónde queda</h2>
-      <div className="base-stamp">
-        <Stamp seed={base.id} name={base.name} photoPath={base.location_photo_path} round={0} state="stamped" size={104} straight />
-        <p>
-          <strong>Este es el sello de tu base</strong>
-          Cada grupo lo recibe en su pasaporte cuando confirmas su llegada. Se imprime con tu foto: mientras mejor se vea el lugar, mejor el sello.
-        </p>
-      </div>
-      <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
-      {error && <p className="error">{error}</p>}
-      {hasLocation && !editing ? (
-        <div className="location-saved">
-          <p className="ok-text"><MapPin size={16} aria-hidden="true" /> Ubicación guardada en el mapa.</p>
-          <button className="ghost" type="button" onClick={() => setEditing(true)}>Cambiar ubicación</button>
+    <section className="top-others" aria-label="Dónde queda">
+      <h2 className="title-tag">
+        <MapPin size={18} aria-hidden="true" />
+        Dónde queda
+      </h2>
+      <div className="card">
+        <div className="base-stamp">
+          <Stamp seed={base.id} name={base.name} photoPath={base.location_photo_path} round={0} state="stamped" size={104} straight />
+          <p>
+            <strong>Este es el sello de tu base</strong>
+            Cada grupo lo recibe en su pasaporte cuando confirmas su llegada. Se imprime con tu foto: mientras mejor se vea el lugar, mejor el sello.
+          </p>
         </div>
-      ) : (
-        <>
-          {hasLocation && <p className="muted">¿La base se movió? Marca el nuevo punto y guárdalo.</p>}
-          <BaseLocationEditor
-            baseId={base.id}
-            name={base.name}
-            lat={base.lat}
-            lng={base.lng}
-            onSaved={async () => {
-              await onChanged()
-              setEditing(false)
-            }}
-          />
-          {hasLocation && (
-            <div className="row">
-              <button className="ghost" type="button" onClick={() => setEditing(false)}>Cancelar</button>
-            </div>
-          )}
-        </>
-      )}
+        <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
+        {error && <p className="error">{error}</p>}
+        {hasLocation && !editing ? (
+          <div className="location-saved">
+            <p className="ok-text"><MapPin size={16} aria-hidden="true" /> Ubicación guardada en el mapa.</p>
+            <button className="ghost" type="button" onClick={() => setEditing(true)}>Cambiar ubicación</button>
+          </div>
+        ) : (
+          <>
+            {hasLocation && <p className="muted">¿La base se movió? Marca el nuevo punto y guárdalo.</p>}
+            <BaseLocationEditor
+              baseId={base.id}
+              name={base.name}
+              lat={base.lat}
+              lng={base.lng}
+              onSaved={async () => {
+                await onChanged()
+                setEditing(false)
+              }}
+            />
+            {hasLocation && (
+              <div className="row">
+                <button className="ghost" type="button" onClick={() => setEditing(false)}>Cancelar</button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </section>
   )
 }
@@ -318,19 +398,30 @@ export function BaseGuide({ info, questions: raw }: { info: string | null; quest
   const questions = [...raw].sort((a, b) => a.position - b.position)
   return (
     <>
-      <section className="card guide">
-        <h2>Lo que se explica en la base</h2>
-        <p className="pre">{info ?? 'Sin información.'}</p>
+      <section className="top-others" aria-label="Lo que se explica en la base">
+        <h2 className="title-tag">
+          <BookOpen size={18} aria-hidden="true" />
+          Lo que se explica
+        </h2>
+        <div className="card guide">
+          <p className="pre">{info ?? 'Sin información.'}</p>
+        </div>
       </section>
-      <section className="card guide">
-        <h2>Posibles preguntas</h2>
-        {questions.length === 0 ? (
-          <p className="muted">Sin preguntas.</p>
-        ) : (
-          <ol className="questions">
-            {questions.map((q) => <li key={q.position}>{q.question}</li>)}
-          </ol>
-        )}
+      <section className="top-others" aria-label="Posibles preguntas">
+        <h2 className="title-tag">
+          <CircleHelp size={18} aria-hidden="true" />
+          Posibles preguntas
+          {questions.length > 0 && <b className="num">{questions.length}</b>}
+        </h2>
+        <div className="card guide">
+          {questions.length === 0 ? (
+            <p className="muted">Sin preguntas.</p>
+          ) : (
+            <ol className="questions">
+              {questions.map((q) => <li key={q.position}>{q.question}</li>)}
+            </ol>
+          )}
+        </div>
       </section>
     </>
   )
@@ -353,11 +444,14 @@ export function WonItems({ match, teams }: { match: BaseMatch; teams: Map<string
   )
 }
 
-export function TeamFace({ team }: { team?: Team }) {
+// A group at the counter: its crest, its name and its flight code (the same the runners and the coordinator see).
+export function TeamFace({ team, code, state }: { team?: Team; code?: string; state?: string }) {
   return (
     <div className="face">
       <Crest name={team?.name} photoPath={team?.photo_path} size="lg" />
       <strong>{team?.name ?? '—'}</strong>
+      {code && <span className="pax-code">{code}</span>}
+      {state && <span className="pax-state">{state}</span>}
     </div>
   )
 }
@@ -368,16 +462,43 @@ type Pick = string // team id
 const NOT_ACTIVE = 'La Carrera no está activa para tu usuario, así que no puedes registrar nada ahora. Avísale al coordinador.'
 export const friendlyError = (message: string, fallback: string) => (/row-level security|permission denied|no está asignado/i.test(message) ? NOT_ACTIVE : fallback)
 
+// The three steps of the counter: both groups arrive, the three stages are scored, the visa is stamped.
+function DeskFlow({ arrived, scored, total }: { arrived: boolean; scored: number; total: number }) {
+  const sealed = scored === total
+  const steps = [
+    { label: 'Llegada', state: arrived ? 'done' : 'active', note: arrived ? 'Lista' : 'Falta' },
+    { label: 'Etapas', state: sealed ? 'done' : arrived ? 'active' : 'todo', note: `${scored} de ${total}` },
+    { label: 'Sello', state: sealed ? 'done' : 'todo', note: sealed ? 'Puesto' : 'Luego' },
+  ]
+  return (
+    <ol className="desk-flow" aria-label="Pasos de la ventanilla">
+      {steps.map((s, i) => (
+        <li key={s.label} className={s.state}>
+          <span className="desk-dot" aria-hidden="true">{s.state === 'done' ? <Check size={13} strokeWidth={3} /> : i + 1}</span>
+          <span className="desk-step">
+            <b>{s.label}</b>
+            <small>{s.note}</small>
+          </span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
 export function MatchCard({
   match,
   teams,
   onSent,
   eventId,
+  base,
+  codes,
 }: {
   match: BaseMatch
   teams: Map<string, Team>
   onSent: () => Promise<void>
   eventId?: string // when given, the base can send an alert to the groups of this match
+  base?: { id: string; name: string; location_photo_path: string | null } // when given, the card carries the stamp of the base
+  codes?: Map<string, string> // flight code of each group
 }) {
   const [picks, setPicks] = useState<Partial<Record<ScoreItem, Pick>>>({})
   const [busy, setBusy] = useState(false)
@@ -393,6 +514,7 @@ export function MatchCard({
   const points = (teamId: string) => match.match_scores.filter((s) => s.winner_team_id === teamId).length
 
   const label = (id: string | null | undefined) => (id ? (teams.get(id)?.name ?? '?') : '')
+  const paxState = arrived ? 'En la puerta' : 'En camino'
 
   async function confirmArrival() {
     if (!supabase) return
@@ -442,17 +564,28 @@ export function MatchCard({
   }
 
   return (
-    <section className="card match">
-      <div className="match-head">
-        <span className="round-tag">Ronda {match.round_number}</span>
+    <section className="card match desk">
+      <div className="match-head desk-head">
+        <span className="gate-tag">
+          <small>Puerta</small>
+          <b className="num">{String(match.round_number).padStart(2, '0')}</b>
+        </span>
         <span className={`badge ${match.status === 'in_progress' ? 'ok live' : match.status === 'finished' ? 'ok' : ''}`}>
           {STATUS_LABEL[match.status]}
         </span>
+        {base && (
+          <span className="desk-seal" aria-hidden="true">
+            <Stamp seed={base.id} name={base.name} photoPath={base.location_photo_path} round={0} state="stamped" size={58} straight />
+          </span>
+        )}
       </div>
+
+      <DeskFlow arrived={arrived} scored={scored.size} total={SCORE_ITEMS.length} />
+
       <div className="versus">
-        <TeamFace team={a} />
+        <TeamFace team={a} code={codes?.get(match.team_a)} state={paxState} />
         <span className="vs num">{points(match.team_a)}–{points(match.team_b)}</span>
-        <TeamFace team={b} />
+        <TeamFace team={b} code={codes?.get(match.team_b)} state={paxState} />
       </div>
 
       {!arrived && (
@@ -474,11 +607,14 @@ export function MatchCard({
       )}
 
       {arrived &&
-        SCORE_ITEMS.map((item) => {
+        SCORE_ITEMS.map((item, index) => {
           const row = scored.get(item)
           return (
             <div key={item} className="item">
-              <h3>{ITEM_LABEL[item]}</h3>
+              <h3>
+                <span className="item-no num" aria-hidden="true">{index + 1}</span>
+                {ITEM_LABEL[item]}
+              </h3>
               {row ? (
                 row.voided ? (
                   <p className="result voided">
