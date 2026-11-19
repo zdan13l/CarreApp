@@ -32,6 +32,7 @@ export default function Login() {
       <div className="login-theme"><ThemeToggle /></div>
       <section className="login-hero">
         <img className="login-photo" src="/campus-800.jpg" srcSet="/campus-800.jpg 800w, /campus.jpg 1600w" sizes="(min-width: 900px) 60vw, 100vw" alt="Fotografía del campus" width={1600} height={1067} fetchPriority="high" decoding="async" />
+        <img className="login-photo night" src="/campus-noche.jpg" alt="" width={480} height={640} decoding="async" />
       </section>
       <span className="login-logo">
         <Logo variant="gold" />
