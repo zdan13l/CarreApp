@@ -1989,3 +1989,52 @@ button.stop-share.ghost { width: auto; min-width: 16rem; max-width: 100%; justif
 .leaf .routemap svg { max-height: none; }
 .booklet { --leaf-h: 600px; }
 .slot-btn { padding-top: 1.45rem; }
+
+/* =====================================================================
+   Base · la ventanilla de visado
+   El inductor es el oficial de migración de la Carrera: sella los pasaportes de los grupos que llegan a su puerta.
+   Comparte el lenguaje del corredor (pase azul, pestañas de carpeta, fondo, barra flotante) y le suma lo suyo:
+   la tinta de su propio sello (--base-ink, sale del id de la base) y los tres pasos del mostrador.
+   ===================================================================== */
+.base-view { --base-ink: var(--ink-1); }
+.base-ticket .tc-name { font-size: 1.35rem; }
+.base-ticket .tc-code { font-size: 2.6rem; }
+.base-ticket .tc-stub small { margin-top: -.1rem; }
+.next-ticket .nt-rival.both { gap: .65rem; }
+
+/* el mostrador: una tarjeta con el borde superior en la tinta de la base */
+.desk { margin-top: 1rem; padding: 1.1rem 1.15rem 1.25rem; border: 1.5px solid var(--border-strong); border-top: 5px solid var(--base-ink); box-shadow: var(--shadow-pop); animation: rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+.desk-head { gap: .6rem; margin-bottom: 0; justify-content: flex-start; }
+.gate-tag { display: grid; place-items: center; gap: .15rem; padding: .35rem .7rem; color: #fff; background: var(--pass-navy); border-radius: 8px; line-height: 1; }
+.gate-tag small { color: var(--pass-gold); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.gate-tag b { font-size: 1.6rem; }
+.desk-seal { display: block; margin-left: auto; line-height: 0; }
+
+/* los tres pasos: llegada, etapas, sello */
+.desk-flow { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; margin: 1rem 0 0; padding: 0; }
+.desk-flow li { display: flex; align-items: center; gap: .45rem; min-width: 0; padding: .55rem .5rem; background: var(--surface-2); border-radius: var(--radius-sm); }
+.desk-dot { flex: none; display: grid; place-items: center; width: 1.6rem; height: 1.6rem; color: var(--text-muted); background: var(--surface-3); border: 2px solid var(--border-strong); border-radius: 50%; font-weight: 800; font-size: .8rem; }
+.desk-flow .done .desk-dot { color: var(--surface); background: var(--ok); border-color: var(--ok); }
+.desk-flow .active { box-shadow: inset 0 0 0 1.5px var(--base-ink); }
+.desk-flow .active .desk-dot { color: var(--base-ink); background: var(--surface); border-color: var(--base-ink); }
+.desk-step { display: grid; min-width: 0; line-height: 1.15; }
+.desk-step b { font-size: .9rem; }
+.desk-step small { color: var(--text-faint); font: 700 .75rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* los pasajeros: cada grupo con su vuelo y dónde está */
+.desk .versus { margin: 1.1rem 0 .9rem; }
+.pax-code { padding: .12rem .45rem; color: var(--text-muted); border: 1px solid var(--border-strong); border-radius: 5px; font: 700 .75rem/1.3 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .1em; }
+.pax-state { color: var(--text-faint); font: 700 .75rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+
+/* cada etapa lleva su número; el ganador elegido queda "sellado" en el azul del pase */
+.desk .item h3 { display: flex; align-items: center; gap: .6rem; margin: 1.1rem 0 .55rem; }
+.item-no { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; color: var(--surface); background: var(--base-ink); border-radius: 50%; font-size: .85rem; }
+.desk .choice.on { color: #fff; background: var(--pass-navy); border-color: rgba(255, 255, 255, .4); }
+.desk .choice.on:hover:not(:disabled) { background: var(--pass-navy-2); }
+.desk .choice.on .crest { color: #fff; background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .3); }
+.desk .choice .tick { color: var(--pass-navy); background: #fff; }
+.desk .result { color: var(--ok); }
+
+/* los cruces terminados: el número de ronda en la tinta de la base */
+.base-view .round-tag { color: var(--base-ink); }
+.base-view .list li.with-items .num { color: var(--text); }
