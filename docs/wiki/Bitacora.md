@@ -2,6 +2,12 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Corredor: ticket de pasajero, Visado liviano, sellos grandes y pestañas flotantes (2026-11-18)
+- La tarjeta de pasajero vuelve a ser un ticket (azul marino, muescas, talón con los puntos) y solo está en Visado. En Top vuelve el ticket de "Tu equipo" y abajo los demás equipos.
+- La tarjeta del destino quedó más liviana: foto más baja, contra quién juegas con el marcador, las tres etapas en una fila y el sello en grande.
+- En el pasaporte, tocar un sello lo abre grande en un diálogo (con las tres etapas); se dibuja fuera del librito porque su `perspective` atrapa los elementos fijos.
+- El patrón de la entrada está detrás de todas las pestañas del corredor. Pestañas inferiores flotantes: pastilla azul marino con la activa en lámina dorada (también la usa la pantalla de la base).
+
 ## Pantalla del corredor (2026-11-18)
 - Barra superior con el escudo completo y grande (antes la versión compacta de 30 px). Tarjeta principal: ahora muestra los **puntos** del equipo en lugar de "x de y destinos".
 - Campana: el panel de ajustes se abre sobre la pantalla (se cierra tocando fuera, la X o Escape). El icono muestra el estado del sonido (campana sonando o tachada con punto) y se actualiza al instante. Se arregló una carrera: tocar el botón de "reactivar sonido" podía apagarlo, porque el toque ya había despertado el audio antes del clic.
