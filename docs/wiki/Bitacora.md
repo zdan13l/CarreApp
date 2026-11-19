@@ -2,14 +2,10 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
-## Login: el nombre "CarreApp" se escribe a pluma, trazo a trazo (2026-11-19)
-Como el saludo del iPhone, pero solo con el nombre y solo en el login (no hay pantalla de bienvenida): junto al escudo, donde siempre estuvo el nombre, "CarreApp" **se escribe con una pluma, trazo a trazo**, en **ocho escrituras y tipografías** (caligrafía, mincho japonés, mayúsculas, árabe, serif cursiva, devanagari, hangul y pincel chino) y termina en el **logotipo de verdad en blanco, que se queda quieto**. El velo oscuro de abajo de la foto se queda (`.login-hero::after`).
-- **Cómo se escribe de verdad:** `tools/carre-strokes` toma cada palabra con su tipografía de código abierto (SIL OFL), la forma con HarfBuzz (el árabe se une y el devanagari forma sus conjuntos), la dibuja como contorno, la adelgaza hasta el centro de las letras (Zhang-Suen) y recorre ese centro como trazos de pluma, empezando por el lado en que se escribe cada escritura (el árabe, por la derecha). Genera `src/lib/carreStrokes.ts` (~80 kB, ya generado: no hace falta correr nada para usar la app).
-- En el navegador (`CarreWord`) cada trazo se dibuja con una pluma redonda gruesa (`stroke-dashoffset`) recortada por el contorno de la palabra, así que las letras salen exactamente como las dibuja su tipografía, escritas a lo largo de su forma. Al terminar cada palabra el contorno liso entra sobre la pluma: nada queda a medio escribir (cobertura de la pluma 99,4 % a 100 %).
-- El logotipo final usa `/wordmark.svg` como máscara: la pluma se dibuja dentro y solo se ve el logotipo. Mide lo mismo que antes (el escudo pasó de 64 a 72 px, 92 a 100 px en escritorio, para que el trazo se aprecie).
-- **Las letras ya no dependen del teléfono:** son contornos incluidos con la app, así que se ven igual en iPhone, Android y PC (antes usaba las tipografías del sistema). Ya no hace falta la dependencia `@fontsource/great-vibes`.
-- Cada escritura dura 0,9 s; en total unos 8 s hasta el logotipo. **El formulario se puede usar desde el primer segundo.** Con *reducir movimiento* solo se ve el logotipo.
-- Las escrituras no latinas son transcripciones del nombre (キャレアップ, كاريآب, कैरीऐप, 카레앱, 卡雷应用). Para regenerar los trazos (otro idioma o tipografía): `tools/carre-strokes/README.md`.
+## Login: se probó escribir el nombre a pluma y se dejó quieto (2026-11-19)
+Se probó que "CarreApp" se escribiera trazo a trazo en varias escrituras (como el saludo del iPhone) junto al escudo y no gustó: **el login volvió a ser estático**, como antes (escudo y nombre en blanco, tamaños de siempre). Se quitaron la animación, sus trazos generados y la herramienta que los hacía; no queda ninguna pantalla de bienvenida.
+- **Se queda el velo oscuro** en la parte de abajo de la foto (`.login-hero::after`), que sí gustó: oscurece la foto abajo y da fondo a "Gestión en vivo de Carrera". El degradado que ya había quedaba debajo de la foto y no se veía.
+- Está en el historial de git (commits `feat: login writes the name CarreApp stroke by stroke…` y `feat(tools): generator of the pen strokes…`) por si se quisiera retomar.
 
 ## Migración 0022 aplicada (2026-11-19)
 El mantenedor aplicó a mano `0022_score_needs_arrival.sql`: la base de datos ya rechaza el puntaje de una base que no confirmó la llegada. Están aplicadas todas las migraciones, de la `0001` a la `0022`.
