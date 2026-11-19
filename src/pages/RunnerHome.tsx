@@ -1,4 +1,4 @@
-import { Ban, BookMarked, Check, LocateFixed, MapPin, Stamp as StampIcon, Trophy } from 'lucide-react'
+import { Ban, BookMarked, Check, LocateFixed, MapPin, Stamp as StampIcon, Trophy, Users } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import AppShell from '../components/AppShell'
 import BottomNav, { type NavTab } from '../components/BottomNav'
@@ -178,7 +178,7 @@ export default function RunnerHome() {
           {tab === 'ronda' && (
             <>
               {/* Only in Visado: who we are and the group's own points (nobody sees who leads) */}
-              <StatusBar name={team.name} photoPath={team.photo_path} flight={flight} points={myPoints} />
+              <StatusBar name={team.name} photoPath={team.photo_path} points={myPoints} />
               {mine.length === 0 && <p className="warn">El coordinador aún no ha programado tus cruces.</p>}
               {next && <CurrentRound match={next} myId={team.id} teams={teamById} totalRounds={totalRounds} />}
               {!next && mine.length > 0 && <p className="ok-box">Terminaste todos tus cruces. ¡Buen trabajo!</p>}
@@ -279,7 +279,7 @@ export function AfterCard({ match, myId, teams }: { match: RouteMatch; myId: str
 }
 const scoreOf = (m: RouteMatch, teamId: string) => m.match_scores.filter((s) => s.winner_team_id === teamId).length
 
-export function StatusBar({ name, photoPath, flight, points }: { name: string; photoPath: string | null; flight?: string; points?: number }) {
+export function StatusBar({ name, photoPath, points }: { name: string; photoPath: string | null; points?: number }) {
   return (
     <div className="tc-wrap">
       <section className="tc status-ticket" role="status" aria-label={`Pasajero ${name}`}>
@@ -291,7 +291,6 @@ export function StatusBar({ name, photoPath, flight, points }: { name: string; p
               <strong className="tc-name">{name}</strong>
               <span className="tc-chips">
                 <span className="live-label">En vivo</span>
-                {flight && <span className="flight-chip mono">{flight}</span>}
               </span>
             </div>
           </div>
@@ -307,34 +306,24 @@ export function StatusBar({ name, photoPath, flight, points }: { name: string; p
   )
 }
 
-// "Top": the group's own ticket with its points, then the OTHER groups of the Carrera by name and picture (no points and no order of
-// merit). The card with the name and points is only in Visado, so nothing is repeated here.
+// "Top": the same passenger ticket as Visado (name, live, points) and, under a white title card, the OTHER groups of the Carrera by name
+// and picture (no points and no order of merit).
 export function TopTab({ teamId, points, teams }: { teamId: string; points: number; teams: TeamLite[] }) {
   const mine = teams.find((t) => t.team_id === teamId)
   const others = teams.filter((t) => t.team_id !== teamId)
   return (
     <div className="top-view">
-      <div className="tc-wrap">
-        <section className="tc tc-mine" aria-label="Tu equipo">
-          <div className="tc-main">
-            <p className="tc-kicker">Tu equipo</p>
-            <div className="tc-row">
-              <Crest name={mine?.name} photoPath={mine?.photo_path} size="lg" />
-              <div className="tc-info">
-                <strong className="tc-name">{mine?.name ?? '—'}</strong>
-              </div>
-            </div>
-          </div>
-          <div className="tc-stub" aria-label={`${points} ${points === 1 ? 'punto' : 'puntos'}`}>
-            <span className="tc-code num">{points}</span>
-            <small>{points === 1 ? 'punto' : 'puntos'}</small>
-          </div>
-        </section>
-      </div>
+      <StatusBar name={mine?.name ?? '—'} photoPath={mine?.photo_path ?? null} points={points} />
       {others.length > 0 && (
-        <section className="card top-others">
-          <h2>Los demás equipos</h2>
-          <TeamNames teams={others.map((t) => ({ id: t.team_id, name: t.name, photo_path: t.photo_path }))} />
+        <section className="top-others" aria-label="Los demás equipos">
+          <h2 className="title-tag">
+            <Users size={18} aria-hidden="true" />
+            Los demás equipos
+            <b className="num">{others.length}</b>
+          </h2>
+          <div className="card">
+            <TeamNames teams={others.map((t) => ({ id: t.team_id, name: t.name, photo_path: t.photo_path }))} />
+          </div>
         </section>
       )}
     </div>

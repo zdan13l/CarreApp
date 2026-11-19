@@ -24,7 +24,7 @@ export default function AppShell({
       <header className="topbar">
         <Logo size={52} detail />
         {topActions}
-        <AccountMenu user={who ?? undefined} onSignOut={async () => {
+        <AccountMenu short user={who ?? undefined} onSignOut={async () => {
           if (await confirmDialog({ title: '¿Cerrar sesión?', message: 'Este teléfono dejará de recibir los avisos de la Carrera.', confirmLabel: 'Cerrar sesión', icon: 'logout' })) void signOut()
         }} />
       </header>

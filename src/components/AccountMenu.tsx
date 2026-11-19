@@ -11,12 +11,14 @@ export default function AccountMenu({
   placement = 'down',
   roleLabel,
   showTheme = true,
+  short = false,
 }: {
   user?: { full_name: string; username: string; photo_path?: string | null }
   onSignOut: () => void
   placement?: 'down' | 'up'
   roleLabel?: string
   showTheme?: boolean // the coordinator's panel is always dark: no switch there
+  short?: boolean // phone top bar: only the first name in the button (the whole name is in the menu)
 }) {
   const [open, setOpen] = useState(false)
   const [theme, setTheme] = useTheme()
@@ -49,7 +51,7 @@ export default function AccountMenu({
       >
         <Avatar name={name} photoPath={user?.photo_path} size={38} />
         <span className="account-text">
-          <strong>{name}</strong>
+          <strong>{short ? name.split(/\s+/)[0] : name}</strong>
           <small>@{user?.username}</small>
         </span>
       </button>
