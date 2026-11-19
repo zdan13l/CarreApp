@@ -161,9 +161,6 @@ export default function RunnerHome() {
         <NoActiveCarrera role="runner" />
       ) : (
         <>
-          {/* Always visible: who we are (no ranking and no score here: nobody knows who leads) */}
-          <StatusBar name={team.name} photoPath={team.photo_path} flight={flight} points={myPoints} />
-
           {manual.alerts.map((a) => (
             <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => manual.dismiss(a.id)}>
               {a.message}
@@ -180,6 +177,8 @@ export default function RunnerHome() {
           <div key={tab} className={`tab-view ${dir}`}>
           {tab === 'ronda' && (
             <>
+              {/* Only in Visado: who we are and the group's own points (nobody sees who leads) */}
+              <StatusBar name={team.name} photoPath={team.photo_path} flight={flight} points={myPoints} />
               {mine.length === 0 && <p className="warn">El coordinador aún no ha programado tus cruces.</p>}
               {next && <CurrentRound match={next} myId={team.id} teams={teamById} totalRounds={totalRounds} />}
               {!next && mine.length > 0 && <p className="ok-box">Terminaste todos tus cruces. ¡Buen trabajo!</p>}
@@ -201,7 +200,7 @@ export default function RunnerHome() {
             />
           )}
 
-          {tab === 'top' && <TopTab teamId={team.id} teams={teams} />}
+          {tab === 'top' && <TopTab teamId={team.id} points={myPoints} teams={teams} />}
           </div>
           )}
           {/* Mounted after the first visit and only hidden afterwards, so GPS sharing keeps running. */}
@@ -282,44 +281,71 @@ const scoreOf = (m: RouteMatch, teamId: string) => m.match_scores.filter((s) => 
 
 export function StatusBar({ name, photoPath, flight, points }: { name: string; photoPath: string | null; flight?: string; points?: number }) {
   return (
-    <div className="status-bar" role="status">
-      <Crest name={name} photoPath={photoPath} size="lg" />
-      <div className="who">
-        <span className="doc-kicker">Pasajero</span>
-        <strong>{name}</strong>
-        <span className="who-line">
-          <span className="live-label">En vivo</span>
-          {flight && <span className="flight-chip mono">{flight}</span>}
-        </span>
-      </div>
-      {points !== undefined && (
-        <p className="doc-count num" aria-label={`${points} ${points === 1 ? 'punto' : 'puntos'}`}>
-          {points}
-          <small>{points === 1 ? 'punto' : 'puntos'}</small>
-        </p>
-      )}
-    </div>
-  )
-}
-
-// "Top": every group of the Carrera by name and picture (no points and no order of merit). The group's own name and points are
-// already in the card at the top of every tab, so they are not repeated here: its row is only marked.
-export function TopTab({ teamId, teams }: { teamId: string; teams: TeamLite[] }) {
-  return (
-    <div className="top-view">
-      <section className="card top-others">
-        <h2>Equipos de la Carrera</h2>
-        <TeamNames teams={teams.map((t) => ({ id: t.team_id, name: t.name, photo_path: t.photo_path }))} highlightId={teamId} />
+    <div className="tc-wrap">
+      <section className="tc status-ticket" role="status" aria-label={`Pasajero ${name}`}>
+        <div className="tc-main">
+          <p className="tc-kicker">Pasajero</p>
+          <div className="tc-row">
+            <Crest name={name} photoPath={photoPath} size="lg" />
+            <div className="tc-info">
+              <strong className="tc-name">{name}</strong>
+              <span className="tc-chips">
+                <span className="live-label">En vivo</span>
+                {flight && <span className="flight-chip mono">{flight}</span>}
+              </span>
+            </div>
+          </div>
+        </div>
+        {points !== undefined && (
+          <div className="tc-stub" aria-label={`${points} ${points === 1 ? 'punto' : 'puntos'}`}>
+            <span className="tc-code num">{points}</span>
+            <small>{points === 1 ? 'punto' : 'puntos'}</small>
+          </div>
+        )}
       </section>
     </div>
   )
 }
 
+// "Top": the group's own ticket with its points, then the OTHER groups of the Carrera by name and picture (no points and no order of
+// merit). The card with the name and points is only in Visado, so nothing is repeated here.
+export function TopTab({ teamId, points, teams }: { teamId: string; points: number; teams: TeamLite[] }) {
+  const mine = teams.find((t) => t.team_id === teamId)
+  const others = teams.filter((t) => t.team_id !== teamId)
+  return (
+    <div className="top-view">
+      <div className="tc-wrap">
+        <section className="tc tc-mine" aria-label="Tu equipo">
+          <div className="tc-main">
+            <p className="tc-kicker">Tu equipo</p>
+            <div className="tc-row">
+              <Crest name={mine?.name} photoPath={mine?.photo_path} size="lg" />
+              <div className="tc-info">
+                <strong className="tc-name">{mine?.name ?? '—'}</strong>
+              </div>
+            </div>
+          </div>
+          <div className="tc-stub" aria-label={`${points} ${points === 1 ? 'punto' : 'puntos'}`}>
+            <span className="tc-code num">{points}</span>
+            <small>{points === 1 ? 'punto' : 'puntos'}</small>
+          </div>
+        </section>
+      </div>
+      {others.length > 0 && (
+        <section className="card top-others">
+          <h2>Los demás equipos</h2>
+          <TeamNames teams={others.map((t) => ({ id: t.team_id, name: t.name, photo_path: t.photo_path }))} />
+        </section>
+      )}
+    </div>
+  )
+}
+
 // The three stages of a destination (barra, pregunta, minijuego), live: done once the base has scored it, with who won.
-export function ItemResults({ match, teams }: { match: RouteMatch; teams: Map<string, TeamLite> }) {
+export function ItemResults({ match, teams, compact = false }: { match: RouteMatch; teams: Map<string, TeamLite>; compact?: boolean }) {
   const stages = stageStates(match.match_scores, Boolean(match.arrived_at) || match.status === 'in_progress')
   return (
-    <ol className="stages">
+    <ol className={`stages${compact ? ' compact' : ''}`}>
       {stages.map(({ item, state }, i) => {
         const row = match.match_scores.find((s) => s.item === item)
         return (
@@ -360,7 +386,6 @@ export function CurrentRound({
   const atGate = Boolean(match.arrived_at) || playing
   const my = scoreOf(match, myId)
   const their = match.match_scores.filter((s) => s.winner_team_id && s.winner_team_id !== myId).length
-  const doneStages = match.match_scores.length
   return (
     <section className="dest">
       <div className="dest-photo">
@@ -388,31 +413,22 @@ export function CurrentRound({
         </div>
       </div>
       <div className="dest-body">
-        <dl className="visa-fields">
-          <div>
-            <dt>Contra</dt>
-            <dd>
-              <Crest name={rival?.name} photoPath={rival?.photo_path} size="sm" />
-              {rival?.name ?? '—'}
-            </dd>
-          </div>
+        <div className="dest-vs">
+          <Crest name={rival?.name} photoPath={rival?.photo_path} size="sm" />
+          <span className="dest-vs-name">
+            <small>Contra</small>
+            <strong>{rival?.name ?? '—'}</strong>
+          </span>
           {playing && (
-            <div>
-              <dt>Marcador</dt>
-              <dd className="big-score num" aria-label={`Marcador ${my} a ${their}`}>
-                {my}–{their}
-              </dd>
-            </div>
+            <b className="big-score num" aria-label={`Marcador ${my} a ${their}`}>
+              {my}–{their}
+            </b>
           )}
-        </dl>
-        <h3>Etapas · {doneStages} de 3</h3>
-        <ItemResults match={match} teams={teams} />
+        </div>
+        <ItemResults match={match} teams={teams} compact />
         <div className="visa-slot">
-          <Stamp seed={match.base_id} name={name} photoPath={match.bases?.location_photo_path} round={match.round_number} state="current" atGate={atGate} size={84} />
-          <p>
-            <strong>{atGate ? 'Estás en la puerta' : 'Tu sello te espera'}</strong>
-            Se estampa cuando la base califique las tres etapas.
-          </p>
+          <Stamp seed={match.base_id} name={name} photoPath={match.bases?.location_photo_path} round={match.round_number} state="current" atGate={atGate} size={150} />
+          <p>{atGate ? 'Estás en la puerta: se sella al calificar las tres etapas.' : 'Tu sello te espera: se estampa al calificar las tres etapas.'}</p>
         </div>
       </div>
     </section>

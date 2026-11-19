@@ -183,9 +183,10 @@ export default function Preview() {
         user={user}
         topActions={<AlertBell />}
       >
-        <StatusBar name="Dioses Griegos" photoPath={null} flight="JV 213" points={7} />
+        <div className="tab-view fwd">
         {tab === 'ronda' && (
           <>
+            <StatusBar name="Dioses Griegos" photoPath={null} flight="JV 213" points={7} />
             <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} totalRounds={5} />
             <AfterCard match={routeMatches.find((m) => m.round_number === 4)!} myId="t0" teams={teamById} />
           </>
@@ -200,7 +201,8 @@ export default function Preview() {
             detail={(m) => <ItemResults match={routeMatches.find((x) => x.id === m.id) ?? routeMatches[0]} teams={teamById} />}
           />
         )}
-        {tab === 'top' && <TopTab teamId="t0" teams={standings.map((r) => ({ team_id: r.team_id, name: r.name, photo_path: r.photo_path }))} />}
+        {tab === 'top' && <TopTab teamId="t0" points={7} teams={standings.map((r) => ({ team_id: r.team_id, name: r.name, photo_path: r.photo_path }))} />}
+        </div>
         <BottomNav tabs={runnerTabs} active={tab} onChange={noop} />
       </AppShell>
     )

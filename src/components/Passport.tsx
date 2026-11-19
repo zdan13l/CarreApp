@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Plane } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import Mrz from './Mrz'
 import RouteMap, { type RouteStop } from './RouteMap'
 import Stamp, { type StampState } from './Stamp'
@@ -172,6 +173,7 @@ export default function Passport({
                   <small>/{trip.length}</small>
                 </p>
               </header>
+              {done > 0 && <p className="slot-hint">Toca un sello para verlo más grande.</p>}
               <ul className="slots">
                 {pageSlots.map(({ round, m, state }) => {
                   const base = m?.bases?.name ?? ''
@@ -196,9 +198,9 @@ export default function Passport({
                     </>
                   )
                   return (
-                    <li key={round} className={`slot ${state}${m && open === m.id ? ' open' : ''}`}>
+                    <li key={round} className={`slot ${state}`}>
                       {state === 'done' && m ? (
-                        <button type="button" className="slot-btn" aria-expanded={open === m.id} onClick={() => setOpen(open === m.id ? null : m.id)}>
+                        <button type="button" className="slot-btn" aria-haspopup="dialog" aria-label={`Ver el sello de ${base} más grande`} onClick={() => setOpen(m.id)}>
                           {inner}
                         </button>
                       ) : (
@@ -208,19 +210,37 @@ export default function Passport({
                   )
                 })}
               </ul>
-              {opened?.m && (
-                <div className="slot-detail" role="region" aria-label={`Etapas de ${opened.m.bases?.name ?? 'la ronda'}`}>
-                  <h3>
-                    Ronda {opened.round} · {opened.m.bases?.name}
-                  </h3>
-                  {detail(opened.m)}
-                </div>
-              )}
             </>
           )}
           <Mrz team={team} stamps={done} rounds={trip.length} />
         </article>
       </div>
+
+      {opened?.m && createPortal(
+        <div className="moment zoom" role="dialog" aria-modal="true" aria-label={`Sello de ${opened.m.bases?.name ?? 'la ronda'}`} onClick={() => setOpen(null)}>
+          <div className="moment-card" onClick={(e) => e.stopPropagation()}>
+            <p className="moment-kicker">
+              Sello {opened.round} · {airportCode(opened.m.bases?.name ?? '')}
+            </p>
+            <Stamp
+              seed={opened.m.base_id}
+              name={opened.m.bases?.name ?? `Ronda ${opened.round}`}
+              photoPath={opened.m.bases?.location_photo_path}
+              round={opened.round}
+              time={stampTime(opened.m.finished_at)}
+              state="done"
+              size={250}
+              straight
+            />
+            <h2>{opened.m.bases?.name}</h2>
+            <div className="zoom-detail">{detail(opened.m)}</div>
+            <button type="button" className="ghost moment-close" onClick={() => setOpen(null)}>
+              Cerrar
+            </button>
+          </div>
+        </div>,
+        document.body,
+      )}
 
       <nav className="leaf-nav" aria-label="Páginas del pasaporte">
         <button type="button" className="ghost icon-btn" onClick={() => go(page - 1)} disabled={page === 0} aria-label="Página anterior">
