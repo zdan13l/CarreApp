@@ -1686,6 +1686,49 @@ html:has(.login-screen), body:has(.login-screen) { overflow: hidden; overscroll-
 .top-others .team-names li.mine::after { content: 'Tu equipo'; margin-left: auto; color: var(--pass-gold); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; }
 
 /* Top: el patrón de la entrada detrás de las tarjetas */
-html:has(.top-view), body:has(.top-view) { background: #fff url(/login-pattern.svg) 0 0 / 520px 520px fixed; }
-:root:not([data-theme='light']) body:has(.top-view), :root:not([data-theme='light']) html:has(.top-view) { background: var(--bg) url(/login-pattern-dark.svg) 0 0 / 520px 520px fixed; }
+html:has(.tab-view), body:has(.tab-view) { background: #fff url(/login-pattern.svg) 0 0 / 520px 520px fixed; }
+:root:not([data-theme='light']) body:has(.tab-view), :root:not([data-theme='light']) html:has(.tab-view) { background: var(--bg) url(/login-pattern-dark.svg) 0 0 / 520px 520px fixed; }
 .top-others { box-shadow: var(--shadow-pop); }
+
+/* ---- Visado más liviano, sellos grandes y pestañas flotantes ---- */
+.status-ticket .tc-name { font-size: 1.35rem; }
+.tc-chips { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+.tc-chips .live-label { display: inline-flex; align-items: center; gap: .35rem; color: var(--on-hero-ok); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.tc-chips .live-label::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 1.6s ease-in-out infinite; }
+.tc-chips .flight-chip { padding: .15rem .45rem; color: var(--pass-gold); border: 1px solid rgba(255, 255, 255, .22); border-radius: 5px; font-size: .75rem; font-weight: 700; letter-spacing: .1em; }
+.tc-mine .tc-code, .status-ticket .tc-code { font-size: 2.6rem; }
+.status-ticket .tc-stub small, .tc-mine .tc-stub small { margin-top: -.1rem; }
+
+.dest-photo { aspect-ratio: 4 / 3.3; }
+.dest-cap h2 { font-size: 2.35rem; }
+.dest-body { display: grid; gap: 1rem; padding: 1rem 1.1rem 1.15rem; }
+.dest-vs { display: flex; align-items: center; gap: .75rem; }
+.dest-vs-name { display: grid; min-width: 0; line-height: 1.15; }
+.dest-vs-name small { color: var(--text-faint); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.dest-vs-name strong { font-size: 1.1rem; overflow-wrap: anywhere; }
+.dest-vs .big-score { margin-left: auto; font-size: 2.2rem; }
+/* las tres etapas en una fila */
+.stages.compact { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; margin: 0; }
+.stages.compact .stage { display: grid; grid-template-columns: 1fr; justify-items: center; align-content: start; gap: .35rem; padding: .7rem .3rem; text-align: center; background: var(--surface-2); border-radius: var(--radius-sm); }
+.stages.compact .stage + .stage::before { display: none; }
+.stages.compact .stage.active { box-shadow: inset 0 0 0 1.5px var(--gold); }
+.stages.compact .stage-name { font-size: .9rem; }
+.stages.compact .stage-res { max-width: none; text-align: center; font-size: .78rem; line-height: 1.2; }
+.dest-body .visa-slot { display: grid; grid-template-columns: 1fr; justify-items: center; gap: .6rem; margin: 0; padding: 1.1rem .9rem; text-align: center; }
+.dest-body .visa-slot p { max-width: 24ch; }
+
+/* el sello se ve grande al tocarlo */
+.slot-hint { margin: .5rem 0 0; color: var(--text-faint); font-size: .85rem; }
+.moment.zoom { cursor: default; overflow-y: auto; align-items: start; background: color-mix(in srgb, var(--pass-navy) 72%, transparent); }
+.moment.zoom .moment-card { margin: auto; width: min(360px, 100%); animation: rise .3s cubic-bezier(.2, .8, .2, 1) both; }
+.zoom-detail { width: 100%; margin: .3rem 0 .6rem; text-align: left; }
+
+/* pestañas flotantes: una pastilla azul marino con la activa en lámina dorada */
+.nav-spacer { height: calc(var(--nav-h) + 1.9rem + env(safe-area-inset-bottom)); }
+.bottom-nav { inset: auto 12px max(10px, env(safe-area-inset-bottom)) 12px; gap: 4px; padding: 6px; background: var(--pass-navy); border: 1px solid rgba(255, 255, 255, .14); border-radius: 26px; box-shadow: 0 16px 32px -10px rgba(3, 29, 68, .6); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.bn-tab { min-height: 54px; border-radius: 20px; color: rgba(255, 255, 255, .66); }
+.bn-tab:hover:not(:disabled) { background: transparent; color: #fff; }
+.bn-tab.active, .bn-tab.active:hover:not(:disabled) { color: var(--pass-navy); }
+.bn-tab.active svg { color: var(--pass-navy); }
+.bn-tab.active::before { inset: 0; top: 0; left: 0; right: 0; width: auto; height: auto; margin: 0; border-radius: 20px; background: var(--foil); box-shadow: none; }
+.bn-tab span { position: relative; z-index: 1; }

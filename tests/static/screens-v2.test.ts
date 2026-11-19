@@ -20,9 +20,9 @@ describe('the runner screen', () => {
     expect(read('src/components/LocationShare.tsx')).toMatch(/interactive=\{false\}/)
     expect(read('src/components/LocationShare.tsx')).not.toMatch(/fetchWalkingRoute/)
   })
-  it('Top lists every group by name only and does not repeat the own card (name and points are in the card above every tab)', () => {
-    expect(run).toMatch(/export function TopTab[\s\S]*<TeamNames[\s\S]*highlightId=\{teamId\}/)
-    expect(run).not.toMatch(/Tu equipo/)
+  it('Top shows the own ticket with its points and the OTHER groups by name only; the name and points card is only in Visado', () => {
+    expect(run).toMatch(/export function TopTab[\s\S]*Tu equipo[\s\S]*<TeamNames/)
+    expect(run).toMatch(/tab === 'ronda' && \([\s\S]*<StatusBar/)
     expect(read('src/components/TeamNames.tsx')).not.toMatch(/points|pts/)
   })
 })
@@ -93,6 +93,14 @@ describe('the runner phone screen (visado pass)', () => {
   it('the tabs slide by themselves and the page turn is not doubled', () => {
     expect(read2('src/pages/RunnerHome.tsx')).toMatch(/className=\{`tab-view \$\{dir\}`\}/)
     expect(read2('src/pages/RunnerHome.tsx')).toMatch(/transition=\{false\}/)
+  })
+  it('a stamp opens big in a dialog drawn outside the booklet (its perspective would trap a fixed overlay)', () => {
+    const p = read2('src/components/Passport.tsx')
+    expect(p).toMatch(/createPortal\(/)
+    expect(p).toMatch(/aria-haspopup="dialog"/)
+  })
+  it('the pattern of the entrance is behind every runner tab', () => {
+    expect(read2('src/index.css')).toMatch(/html:has\(\.tab-view\), body:has\(\.tab-view\)/)
   })
   it('the top bar uses the full crest, big', () => {
     expect(read2('src/components/AppShell.tsx')).toMatch(/<Logo size=\{52\} detail \/>/)
