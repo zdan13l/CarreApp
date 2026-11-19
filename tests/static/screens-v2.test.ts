@@ -41,7 +41,35 @@ describe('the base screen', () => {
   })
   it('receives the alerts of the coordinator (sound and notification settings included)', () => {
     expect(base).toMatch(/useManualAlerts\(matches\.map\(\(m\) => m\.id\), 'base'\)/)
-    expect(base).toMatch(/<AlertSettings \/>/)
+    expect(base).toMatch(/<AlertBell \/>/) // the same bell as the runners: it opens the sound and notification settings
+  })
+})
+
+describe('base: the visa counter (identity of the inductor)', () => {
+  const base = read('src/pages/BaseHome.tsx')
+  const css = read('src/index.css')
+  it('shares the runner language: navy ticket, folder tabs, floating tab bar and the sliding tab view', () => {
+    expect(base).toMatch(/export function BaseTicket[\s\S]*className="tc base-ticket"/)
+    expect(base).toMatch(/Ventanilla de visado/)
+    expect(base).toMatch(/className="title-tag"/)
+    expect(base).toMatch(/className=\{`tab-view \$\{dir\}`\}/)
+    expect(base).toMatch(/transition=\{false\}/)
+    expect(base).toMatch(/showTitle=\{tab === 'ronda'\}/)
+  })
+  it('each base has its own ink (the one of its stamp) as the accent of the screen', () => {
+    expect(base).toMatch(/stampLook\(baseId\)\.ink/)
+    expect(base).toMatch(/style=\{inkStyle\(base\.id\)\}/)
+    expect(css).toMatch(/\.desk \{[^}]*border-top: 5px solid var\(--base-ink\)/)
+  })
+  it('the match card is a counter with three steps and the groups as passengers with their flight code', () => {
+    expect(base).toMatch(/<DeskFlow arrived=\{arrived\}/)
+    expect(base).toMatch(/label: 'Llegada'[\s\S]*label: 'Etapas'[\s\S]*label: 'Sello'/)
+    expect(base).toMatch(/flightCodes\(\[\.\.\.teams\.values\(\)\]\)/)
+    expect(base).toMatch(/<Stamp seed=\{base\.id\}[\s\S]*round=\{0\}/) // the stamp the groups will receive
+  })
+  it('when every crossing is done the counter closes with a farewell', () => {
+    expect(base).toMatch(/<ClosedDesk name=\{base\.name\}/)
+    expect(base).toMatch(/Ventanilla cerrada/)
   })
 })
 
