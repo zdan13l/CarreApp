@@ -30,7 +30,7 @@ There is no CLI migration tooling: SQL is applied by hand in the Supabase SQL Ed
 ## Architecture
 
 ### The database is the rule engine
-Business rules live in Postgres (`supabase/migrations/0001…0020`, applied in order; all applied in production as of 2026-11-18) and are enforced with triggers, constraints and RLS; the client-side checks only exist for UX. Read `docs/wiki/Modelo-de-datos.md` and `Roles-y-permisos.md` before changing behaviour. The rules that shape the code:
+Business rules live in Postgres (`supabase/migrations/0001…0021`, applied in order; all applied in production as of 2026-11-18 except 0021 `team_contacts()`, pending until the maintainer runs it by hand) and are enforced with triggers, constraints and RLS; the client-side checks only exist for UX. Read `docs/wiki/Modelo-de-datos.md` and `Roles-y-permisos.md` before changing behaviour. The rules that shape the code:
 
 - **Scoring:** `match_scores` has one row per (match, item). A winner is required, or `voided = true` (admin only, "item not played"); there are no ties. A base may only INSERT scores for its own matches, in round order (`validate_score`), and cannot edit afterwards; only the admin edits/deletes (every change goes to `score_audit`). Triggers maintain `matches.status` and `finished_at`; `team_standings` is a view that counts points.
 - **Schedule:** unique index on the unordered team pair (no repeated matchups per Carrera), a team plays once per round, a base hosts one match per round (`validate_match`, `unique(base_id, round_number)`).

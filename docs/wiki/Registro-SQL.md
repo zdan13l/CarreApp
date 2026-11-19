@@ -33,6 +33,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0018 | [`0018_profile_photo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0018_profile_photo.sql) | 2026-11-17 | Foto de cada usuario (`profiles.photo_path`) |
 | 0019 | [`0019_clean_delete_privacy_and_base_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0019_clean_delete_privacy_and_base_alerts.sql) | 2026-11-17 | Borrado limpio, solo se elimina una Carrera desactivada, privacidad entre Carreras y de los puntajes, un usuario por grupo basta, avisos a la base |
 | 0020 | [`0020_reset_on_deactivate.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0020_reset_on_deactivate.sql) | 2026-11-18 | Desactivar una Carrera reinicia todo su avance |
+| 0021 | [`0021_team_contacts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0021_team_contacts.sql) | 2026-11-19 | `team_contacts()`: el @ de los corredores de cada grupo de la propia Carrera |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -378,6 +379,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/carreras.test.ts` ("deactivating a Carrera resets its whole progress"), `tests/db/simulacro.test.ts` (sección 5) y `tests/db/edge.test.ts`. En Supabase, tras desactivar una Carrera: `select count(*) from public.match_scores where match_id in (select id from public.matches where event_id = '<id de la Carrera>');` debe dar 0.
 
 **Cómo revertir** `drop trigger events_reset_on_deactivate on public.events; drop function public.events_reset_on_deactivate(); drop function public.reset_event_progress(uuid);` (lo ya reiniciado no se recupera).
+
+## 0021 — El @ de los demás equipos (2026-11-19)
+
+**Qué cambia** Función `public.team_contacts()` (`security definer`, solo `authenticated`) que devuelve `(team_id, username)` de los corredores de los grupos de la Carrera de quien la llama. La pueden llamar los corredores (solo ven su propia Carrera) y el coordinador (ve todo); los inductores reciben una lista vacía y el rol anónimo no tiene permiso.
+
+**Por qué** La pantalla *Top* del corredor abre una ficha de cada equipo (foto grande y @ de su corredor) para poder encontrarlo en la Carrera. Un corredor solo veía su propia fila de `team_runners` y su propio perfil, así que no había forma de saber el @ de los demás sin abrir esas tablas. La función entrega únicamente el usuario: ni nombre, ni foto, ni puntos.
+
+**Verificación** `tests/db/team-contacts-0021.test.ts` (lista los grupos de la propia Carrera, no los de otra, no sirve a la base ni a anónimos, el coordinador ve todo). Sin la migración la app sigue funcionando: la ficha del equipo sale sin @.
+
+**Cómo revertir** `drop function public.team_contacts();`
 
 ## Plantilla para nuevos registros
 
