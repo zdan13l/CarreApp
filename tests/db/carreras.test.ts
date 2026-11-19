@@ -162,6 +162,7 @@ describe('what a switched-off Carrera allows (0015)', () => {
   it('stops an inductor of an INACTIVE Carrera from scoring or confirming arrival, but not the coordinator', async () => {
     const a = await seedCarrera(db, { teams: 2, bases: 1 })
     const m = await insertMatch(db, a, 1, a.bases[0].id, a.teams[0].id, a.teams[1].id)
+    await db.asUser(a.admin).sql(`select public.confirm_arrival($1)`, [m.id]) // arrival confirmed, so the refusal below is the row-level security
     await setActive(null)
     const staff = db.asUser(a.bases[0].staff)
     await expect(staff.sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, 'barra', $2)`, [m.id, a.teams[0].id])).rejects.toThrow(/row-level security/)

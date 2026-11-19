@@ -194,12 +194,16 @@ describe('scoring rules', () => {
   }
   const score = (as: ReturnType<TestDb['asUser']>, matchId: string, item: string, winner: string | null, voided = false) =>
     as.sql(`insert into public.match_scores (match_id, item, winner_team_id, voided) values ($1, $2, $3, $4)`, [matchId, item, winner, voided])
+  // a base can only score once it has confirmed that both groups arrived (0022)
+  const arrive = (as: ReturnType<TestDb['asUser']>, ...matchIds: string[]) => Promise.all(matchIds.map((id) => as.sql(`select public.confirm_arrival($1)`, [id])))
   const state = async (id: string) =>
     (await db.sql<{ status: string; finished: boolean }>(`select status, finished_at is not null as finished from public.matches where id = $1`, [id]))[0]
 
   it('moves a match pending → in progress → finished and stamps who scored and when it ended', async () => {
     const { c, m1, base } = await setup()
     expect(await state(m1.id)).toEqual({ status: 'pending', finished: false })
+    await arrive(base, m1.id)
+    expect(await state(m1.id)).toEqual({ status: 'in_progress', finished: false })
     await score(base, m1.id, 'barra', m1.teamA)
     expect(await state(m1.id)).toEqual({ status: 'in_progress', finished: false })
     await score(base, m1.id, 'pregunta', m1.teamB)
@@ -210,13 +214,15 @@ describe('scoring rules', () => {
   })
 
   it('lets a base score only its own matches', async () => {
-    const { c, other } = await setup()
+    const { c, other, admin } = await setup()
+    await arrive(admin, other.id) // so the refusal comes from the row-level security and not from the missing arrival
     await expect(score(db.asUser(c.bases[0].staff), other.id, 'barra', other.teamA)).rejects.toThrow(/row-level security/)
     await expect(score(db.asUser(c.teams[2].runners[0]), other.id, 'barra', other.teamA)).rejects.toThrow(/row-level security/)
   })
 
   it('never accepts a tie, a winner from outside the match, or the same item twice', async () => {
     const { c, m1, base } = await setup()
+    await arrive(base, m1.id)
     await expect(score(base, m1.id, 'barra', null)).rejects.toThrow(/match_scores_winner_or_void/)
     await expect(score(base, m1.id, 'barra', c.teams[3].id)).rejects.toThrow(/uno de los dos grupos/)
     await score(base, m1.id, 'barra', m1.teamA)
@@ -225,6 +231,7 @@ describe('scoring rules', () => {
 
   it('does not let a base edit or delete what it already sent; only the coordinator can', async () => {
     const { m1, base, admin } = await setup()
+    await arrive(base, m1.id)
     await score(base, m1.id, 'barra', m1.teamA)
     expect(await base.affected(`update public.match_scores set winner_team_id = $2 where match_id = $1 and item = 'barra'`, [m1.id, m1.teamB])).toBe(0)
     expect(await base.affected(`delete from public.match_scores where match_id = $1`, [m1.id])).toBe(0)
@@ -235,6 +242,7 @@ describe('scoring rules', () => {
 
   it('lets only the coordinator void an item; nobody scores it and the match can still finish', async () => {
     const { m1, base, admin } = await setup()
+    await arrive(base, m1.id)
     await expect(score(base, m1.id, 'barra', null, true)).rejects.toThrow(/Solo el coordinador puede invalidar/)
     await score(admin, m1.id, 'barra', null, true)
     await score(admin, m1.id, 'pregunta', null, true)
@@ -251,12 +259,14 @@ describe('scoring rules', () => {
     await expect(score(base, m2.id, 'barra', m2.teamA)).rejects.toThrow(/Primero termina de calificar la ronda anterior/)
     for (const item of ['barra', 'pregunta', 'minijuego']) await score(admin, m1.id, item, null, true)
     expect(await state(m1.id)).toEqual({ status: 'finished', finished: true })
+    await arrive(db.asUser(c.bases[0].staff), m2.id)
     await score(db.asUser(c.bases[0].staff), m2.id, 'barra', m2.teamA) // round 2 unlocked
   })
 
   it('makes a base finish round 1 before it can score round 2 (the coordinator is exempt)', async () => {
     const { m1, m2, base, admin } = await setup()
     await expect(score(base, m2.id, 'barra', m2.teamA)).rejects.toThrow(/Primero termina de calificar la ronda anterior/)
+    await arrive(base, m1.id, m2.id)
     await score(base, m1.id, 'barra', m1.teamA)
     await score(base, m1.id, 'pregunta', m1.teamA)
     await expect(score(base, m2.id, 'barra', m2.teamA)).rejects.toThrow(/Primero termina de calificar la ronda anterior/) // 2 of 3 is not enough
@@ -284,6 +294,7 @@ describe('scoring rules', () => {
 
   it('shows the audit log only to the coordinator', async () => {
     const { c, m1, base } = await setup()
+    await arrive(base, m1.id)
     await score(base, m1.id, 'barra', m1.teamA)
     expect((await db.asUser(c.admin).sql(`select * from public.score_audit`)).length).toBeGreaterThan(0)
     expect(await db.asUser(c.bases[0].staff).sql(`select * from public.score_audit`)).toHaveLength(0)
@@ -292,6 +303,7 @@ describe('scoring rules', () => {
 
   it('computes the standings from the scores (1 point per item won)', async () => {
     const { c, m1, base } = await setup()
+    await arrive(base, m1.id)
     await score(base, m1.id, 'barra', m1.teamA)
     await score(base, m1.id, 'pregunta', m1.teamA)
     await score(base, m1.id, 'minijuego', m1.teamB)
@@ -305,13 +317,13 @@ describe('scoring rules', () => {
 })
 
 describe('behaviours worth knowing (characterization)', () => {
-  it('the database lets a base score before arrival is confirmed: only the screen enforces it', async () => {
+  it('the database refuses a base score before the arrival is confirmed (0022), and the refused score changes nothing', async () => {
     const c = await seedCarrera(db, { teams: 2, bases: 1 })
     await activate(db, c)
     const m = await insertMatch(db, c, 1, c.bases[0].id, c.teams[0].id, c.teams[1].id)
-    await db.asUser(c.bases[0].staff).sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, 'barra', $2)`, [m.id, m.teamA])
+    await expect(db.asUser(c.bases[0].staff).sql(`insert into public.match_scores (match_id, item, winner_team_id) values ($1, 'barra', $2)`, [m.id, m.teamA])).rejects.toThrow(/llegaron los dos grupos/)
     const [row] = await db.sql<{ arrived: boolean; status: string }>(`select arrived_at is not null as arrived, status from public.matches where id = $1`, [m.id])
-    expect(row).toEqual({ arrived: false, status: 'in_progress' })
+    expect(row).toEqual({ arrived: false, status: 'pending' })
   })
 
   it('an admin account cannot be created through the profile table by someone else', async () => {
