@@ -71,7 +71,8 @@ export default function AccountMenu({
                 <Avatar name={name} photoPath={user?.photo_path} size={148} />
               </span>
               <h2>{name}</h2>
-              <p className="account-handle">@{user?.username}{roleLabel ? ` · ${roleLabel}` : ''}</p>
+              <p className="account-handle">@{user?.username}</p>
+              {roleLabel && <p className="account-role">{roleLabel}</p>}
               <div className="account-actions">
                 {showTheme && (
                   <button type="button" className="ghost account-action" onClick={() => setTheme(next)}>

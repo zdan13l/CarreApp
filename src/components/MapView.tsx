@@ -1,7 +1,7 @@
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { LocateFixed } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { Box, LocateFixed, Map as MapIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { CAMPUS_CENTER, MAPBOX_TOKEN, type LngLat } from '../lib/mapbox'
 import { useTheme } from '../lib/theme'
 
@@ -111,7 +111,7 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
       interactive,
     })
     mapRef.current = map
-    if (interactive && !recenter) map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
+    if (interactive) map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
     const declutter = () => declutterLabels(domMarkers.current)
     map.on('idle', declutter)
     map.on('zoomend', declutter)
@@ -224,6 +224,16 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
     source?.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: route ?? [] } })
   }, [route])
 
+  // Seen from above (flat, north up) or in 3D (tilted, the way it opens).
+  const [flat, setFlat] = useState(false)
+  const toggleView = () => {
+    const map = mapRef.current
+    if (!map) return
+    const next = !flat
+    setFlat(next)
+    map.easeTo({ pitch: next ? 0 : 62, bearing: next ? 0 : -18, duration: 700 })
+  }
+
   // Back to the campus: the view of the beginning, framing the bases (or the campus centre when there are none).
   const centre = () => {
     const map = mapRef.current
@@ -232,9 +242,9 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
     if (bases.length > 1) {
       const bounds = new mapboxgl.LngLatBounds()
       bases.forEach((m) => bounds.extend([m.lng, m.lat]))
-      map.fitBounds(bounds, { padding: 60, maxZoom: 17.5, pitch: 62, bearing: -18, duration: 900 })
+      map.fitBounds(bounds, { padding: 60, maxZoom: 17.5, pitch: flat ? 0 : 62, bearing: flat ? 0 : -18, duration: 900 })
     } else {
-      map.easeTo({ center: CAMPUS_CENTER, zoom: 16.2, pitch: 62, bearing: -18, duration: 900 })
+      map.easeTo({ center: CAMPUS_CENTER, zoom: 16.2, pitch: flat ? 0 : 62, bearing: flat ? 0 : -18, duration: 900 })
     }
   }
 
@@ -242,10 +252,16 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
     <div className="map-wrap">
       <div ref={container} className="map" style={{ height }} />
       {recenter && (
-        <button type="button" className="ghost map-recenter" onClick={centre} aria-label="Centrar el mapa en la Javeriana">
-          <LocateFixed size={18} aria-hidden="true" />
-          Centrar
-        </button>
+        <div className="map-tools">
+          <button type="button" className="ghost map-recenter" onClick={toggleView} aria-pressed={flat} aria-label={flat ? 'Ver el mapa en 3D' : 'Ver el mapa desde arriba'}>
+            {flat ? <Box size={18} aria-hidden="true" /> : <MapIcon size={18} aria-hidden="true" />}
+            {flat ? 'Vista 3D' : 'Desde arriba'}
+          </button>
+          <button type="button" className="ghost map-recenter" onClick={centre} aria-label="Centrar el mapa en la Javeriana">
+            <LocateFixed size={18} aria-hidden="true" />
+            Centrar
+          </button>
+        </div>
       )}
     </div>
   )

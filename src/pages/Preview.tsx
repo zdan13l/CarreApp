@@ -2,6 +2,7 @@
 // look can be reviewed without signing in. Not included in the production build.
 //   /preview/runner  /preview/runner-ruta  /preview/runner-top  /preview/runner-fin
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
+import { useState } from 'react'
 import { BookMarked, BellRing, Camera, ChevronRight, KeyRound, LocateFixed, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
@@ -26,6 +27,7 @@ import { RoundCard } from './admin/Cruces'
 import { BaseGuide, BaseWhere, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
 import { AfterCard, CurrentRound, FinishedCard, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
 import { AlertBell } from '../components/Alerts'
+import TeamDialog from '../components/TeamDialog'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import { confirmDialog, promptDialog } from '../lib/dialog'
 import TeamNames from '../components/TeamNames'
@@ -97,6 +99,18 @@ const baseTabs = [
 ]
 const noop = () => {}
 const noopAsync = async () => {}
+
+// Top with the team card that opens when a group is tapped (sample @ users).
+function PreviewTop({ teams }: { teams: { team_id: string; name: string; photo_path: string | null }[] }) {
+  const [open, setOpen] = useState<string | null>(null)
+  const t = teams.find((x) => x.team_id === open)
+  return (
+    <>
+      <TopTab teamId="t0" points={7} teams={teams} onSelect={setOpen} />
+      {t && <TeamDialog name={t.name} photoPath={t.photo_path} usernames={['valeria', 'nico']} onClose={() => setOpen(null)} />}
+    </>
+  )
+}
 
 export default function Preview() {
   const { screen } = useParams()
@@ -212,7 +226,7 @@ export default function Preview() {
             detail={(m) => <ItemResults match={routeMatches.find((x) => x.id === m.id) ?? routeMatches[0]} teams={teamById} />}
           />
         )}
-        {tab === 'top' && <TopTab teamId="t0" points={7} teams={standings.map((r) => ({ team_id: r.team_id, name: r.name, photo_path: r.photo_path }))} />}
+        {tab === 'top' && <PreviewTop teams={standings.map((r) => ({ team_id: r.team_id, name: r.name, photo_path: r.photo_path }))} />}
         </div>
         <BottomNav tabs={runnerTabs} active={tab} onChange={noop} />
       </AppShell>

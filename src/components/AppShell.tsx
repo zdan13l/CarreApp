@@ -9,11 +9,13 @@ const ROLE: Record<string, string> = { runner: 'Corredor', base: 'Inductor de ba
 
 export default function AppShell({
   title,
+  showTitle = true,
   children,
   user,
   topActions,
 }: {
   title: string
+  showTitle?: boolean // false: the title stays for screen readers only (the screen already says where you are)
   children: ReactNode
   user?: { full_name: string; username: string; photo_path?: string | null } // overrides the signed-in user (design preview)
   topActions?: ReactNode // extra buttons in the top bar, before "Cerrar sesión"
@@ -30,7 +32,7 @@ export default function AppShell({
           if (await confirmDialog({ title: '¿Cerrar sesión?', message: 'Este teléfono dejará de recibir los avisos de la Carrera.', confirmLabel: 'Cerrar sesión', icon: 'logout' })) void signOut()
         }} />
       </header>
-      <h1 className="page-title">{title}</h1>
+      <h1 className={showTitle ? 'page-title' : 'sr-only'}>{title}</h1>
       {children}
     </main>
   )

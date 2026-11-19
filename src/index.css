@@ -1871,7 +1871,8 @@ button.map-recenter.ghost:hover:not(:disabled) { background: var(--pass-navy-2);
 .finish-stamps > span { display: block; animation: stamp-in .6s cubic-bezier(.2, .8, .2, 1) both; }
 .finish-count { display: grid; justify-items: center; margin: 0; color: var(--pass-gold); font-size: 2.6rem; font-weight: 800; line-height: 1; }
 .finish-count small { color: rgba(255, 255, 255, .7); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; }
-button.finish-btn { gap: .5rem; width: 100%; min-height: 52px; margin-top: 1rem; color: var(--pass-navy); background: var(--foil); border: 0; font-weight: 800; }
+/* el botón dorado general pinta un brillo encima: aquí la lámina manda */
+button.finish-btn { gap: .5rem; width: 100%; min-height: 52px; margin-top: 1rem; color: var(--pass-navy); background-color: var(--pass-gold) !important; background-image: var(--foil) !important; border: 0; font-weight: 800; }
 @media (prefers-reduced-motion: reduce) { .finish, .finish-stamps > span, .finish-trophy { animation: none; } }
 .topbar button.bell.ghost { width: 44px; min-width: 44px; min-height: 44px; border-radius: 15px; }
 .topbar .account-btn { min-height: 44px; }
@@ -1879,3 +1880,60 @@ button.finish-btn { gap: .5rem; width: 100%; min-height: 52px; margin-top: 1rem;
 .leaf-body { -webkit-mask-image: linear-gradient(#000 calc(100% - 22px), transparent); mask-image: linear-gradient(#000 calc(100% - 22px), transparent); padding-bottom: 1rem; }
 .leaf .routemap svg { max-height: 150px; }
 .id-grid dd small { margin-left: .25rem; }
+
+/* =====================================================================
+   Corredor · ronda 4: hoja de cuenta sin bordes rotos, pasaporte sólido y sin desplazamiento interno, fichas de los otros equipos,
+   barras de desplazamiento fuera de las pestañas y ubicación más limpia
+   ===================================================================== */
+
+/* hoja de cuenta / equipo: la cinta de lámina queda recortada por las esquinas redondeadas */
+.account-sheet { overflow: hidden; background: var(--surface); border: 1px solid var(--border-strong); }
+.account-sheet::before { border-radius: 0; }
+.account-role { margin: 0; color: var(--text-faint); font: 700 .75rem/1.3 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .18em; text-transform: uppercase; }
+.account-handle { font-size: 1rem; color: var(--text); }
+.account-photo { margin-top: .4rem; }
+
+/* ficha de otro equipo */
+.team-photo { display: grid; place-items: center; width: 220px; height: 220px; margin-top: .4rem; overflow: hidden; background: var(--surface-3); border: 5px solid var(--pass-gold); border-radius: 28px; box-shadow: 0 18px 32px -16px rgba(3, 29, 68, .7); }
+.team-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.team-photo b { color: var(--pass-navy); font-size: 4.2rem; font-weight: 800; }
+.team-sheet h2 { margin-top: 1rem; }
+.team-handles { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; margin: .5rem 0 .3rem; padding: 0; list-style: none; }
+.team-handles li { padding: .45rem .9rem; color: #fff; background: var(--pass-navy); border: 1px solid rgba(255, 255, 255, .16); border-radius: 999px; font: 700 .95rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .04em; }
+.team-names li:has(.team-row) { padding: 0; }
+button.team-row.ghost, .team-row { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 56px; padding: .55rem .7rem; color: inherit; background: transparent; border: 0; border-radius: var(--radius-sm); text-align: left; font-weight: 600; }
+.team-row .team-name { flex: 1; }
+.team-row svg { flex: none; color: var(--text-faint); }
+.top-others .team-names li.mine .team-row svg { color: var(--pass-gold); }
+
+/* pasaporte: sólido y sin desplazamiento interno (así deslizar de lado nunca se enreda) */
+.leaf::before { display: none; }
+.leaf { background: var(--surface); }
+.id-grid > div, .slot-btn { background: var(--surface-2); }
+.leaf-body { overflow: hidden; -webkit-mask-image: none; mask-image: none; padding-bottom: 0; }
+.leaf .routemap svg { max-height: 130px; }
+.itinerary { grid-template-columns: 1fr 1fr; gap: .4rem; }
+.itinerary li { min-width: 0; gap: .45rem; padding: .45rem .55rem; font-size: .9rem; }
+.itinerary li .grow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.itinerary li .flap-mini { display: none; }
+.itinerary li.done { background: color-mix(in srgb, var(--ok) 14%, var(--surface-2)); }
+.itinerary li.current { box-shadow: inset 0 0 0 1.5px var(--pass-gold); }
+.itinerary .mono { min-width: 0; }
+.passport-complete { margin-top: .6rem; }
+
+/* sin barras de desplazamiento que aparezcan y desaparezcan al cambiar de pestaña (la pantalla solo se usa en celular) */
+html:has(.tab-view) { scrollbar-width: none; }
+html:has(.tab-view)::-webkit-scrollbar, body:has(.tab-view)::-webkit-scrollbar { display: none; }
+body:has(.tab-view) { overflow-x: clip; }
+body:has(.tab-view) .page { overflow-x: clip; }
+
+/* mapa: dos botones apilados */
+.map-tools { position: absolute; z-index: 3; right: 12px; bottom: 12px; display: grid; gap: .5rem; justify-items: end; }
+button.map-recenter.ghost { position: static; }
+
+/* ubicación */
+.map-card + .card { display: grid; justify-items: center; gap: .9rem; text-align: center; }
+.map-card + .card > * { margin: 0; }
+.sharing-pill { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); border-radius: 999px; font-weight: 700; }
+.sharing-pill svg { animation: pulse 1.6s ease-in-out infinite; }
+button.stop-share.ghost { width: auto; min-width: 16rem; max-width: 100%; justify-content: center; margin: 0; color: var(--danger); }

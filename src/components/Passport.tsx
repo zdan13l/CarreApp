@@ -6,7 +6,7 @@ import Mrz from './Mrz'
 import RouteMap, { type RouteStop } from './RouteMap'
 import Stamp, { type StampState } from './Stamp'
 import { airportCode } from '../lib/flight'
-import { mrzLines, stampTime } from '../lib/stamp'
+import { stampTime } from '../lib/stamp'
 
 // The passport of a group: a cover that opens, an identity page with the route chart and the progress of the trip, and the
 // stamp pages (four destinations each). A stamp is earned when the base has scored the three stages of the match (the match is
@@ -276,12 +276,6 @@ export default function Passport({
             <span className="cover-team">{team}</span>
             <span className="cover-flight mono">{flight}</span>
             <span className="cover-bottom">
-              <span className="cover-chip" aria-hidden="true" />
-              <span className="mrz" aria-hidden="true">
-                {mrzLines(team, done, trip.length)[0]}
-                <br />
-                {mrzLines(team, done, trip.length)[1]}
-              </span>
               <span className="cover-hint">Toca para abrir</span>
             </span>
           </span>
