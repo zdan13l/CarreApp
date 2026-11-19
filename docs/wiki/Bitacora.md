@@ -2,6 +2,14 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Corredor ronda 3: cuenta, mapa, pasaporte fijo y recorrido completo (2026-11-18)
+- La barra de arriba es una caja (logo, campana y @usuario) para que el título se distinga. Tocar el @usuario abre una hoja con la **foto grande**, el modo claro / oscuro y cerrar sesión; la campana abre una hoja con solo los dos interruptores.
+- Los diálogos (sello nuevo, sello grande, cuenta, alertas) **bloquean el desplazamiento de la pantalla de atrás** (`lib/scrollLock.ts`, con contador para varios a la vez).
+- Terminar todos los cruces muestra una tarjeta de celebración con los sellos, el total y un botón al pasaporte.
+- Ubicación: el mapa ya no es fijo; botón **Centrar** que vuelve a encuadrar las bases (o el centro del campus). Banderas de las bases: gota azul marino con borde dorado y etiqueta blanca. Se quitó el texto: solo el botón de compartir.
+- Pasaporte: tamaño fijo en todas las páginas (el cuerpo se desplaza por dentro), sin botones de página (solo deslizar, con los puntitos), página 1 sin datos repetidos, total de sellos en una insignia dorada, líneas de lectura centradas, sin la pista de tocar el sello y portada con más detalle.
+- El ticket del próximo destino lleva el nombre arriba y, debajo, la foto y "Tu rival".
+
 ## Corredor: título blanco en Top, sello que espera, pasaporte con más estilo y botones nuevos (2026-11-18)
 - Top: el mismo ticket de pasajero de Visado (sin el código de vuelo, con "En vivo") y una tarjeta blanca tipo pestaña de carpeta con el título "Los demás equipos".
 - Al ganar un sello, la pantalla del sello **espera** a que la persona toque "Seguir" (antes se cerraba sola a los 4 s).
