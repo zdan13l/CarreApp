@@ -23,6 +23,7 @@ Una Carrera activa a la vez; solo se elimina una Carrera desactivada; cada perso
 `npm test` (~414 pruebas, ~12 s): base de datos en memoria con todas las migraciones, simulacro de una Carrera completa con el archivo de prueba, contrato app↔esquema, diseño, notificaciones, pantallas. `npm run check` = tipos + lint + api + pruebas + build. El agente `carreapp-tester` (`.claude/agents/`) las ejecuta e inventa casos; su informe está en [Informe de pruebas](Informe-de-pruebas).
 
 ## Pendientes
+0. **Aplicar a mano la migración `0021_team_contacts.sql`** en el SQL Editor de Supabase (el @ de los demás equipos en la pantalla *Top*). Sin ella la app funciona, pero la ficha del equipo sale sin @.
 1. **Simulacro con teléfonos reales** (lo único que la automatización no cubre), siguiendo [Prueba en vivo](Prueba-en-vivo): sonido y notificaciones en iPhone con la pantalla bloqueada (probar 3 o 4 avisos seguidos sin quitar ninguno), GPS del usuario designado, avisos del coordinador a la base, unos 60 teléfonos a la vez con la red del campus, Mapbox con teselas reales, el diseño nuevo y los márgenes seguros del iPhone, subir una foto de usuario real.
 2. ~~Actualizar la Carrera de prueba~~ **Hecho (2026-11-18):** ahora trae un usuario por grupo (9 usuarios).
 3. **Volver a correr el agente `carreapp-tester`** tras los últimos bloques (admin en dos modos, reinicio al desactivar, notificaciones, privacidad 0019) y actualizar `Informe-de-pruebas.md`.

@@ -2,6 +2,17 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Corredor ronda 4: fichas de equipos, pasaporte sólido y arreglos (2026-11-19)
+- **Migración 0021 (aplicar a mano en el SQL Editor):** `team_contacts()` entrega el @ de los corredores de cada grupo de la propia Carrera. Sin ella la app funciona, pero la ficha del equipo sale sin @.
+- *Top*: tocar un equipo abre una ficha con su foto grande y el @ de su corredor.
+- Hoja de la cuenta: bordes arreglados (recorta la cinta dorada con las esquinas) y el rol va en una línea aparte debajo del @.
+- El botón "Ver mi pasaporte" del recorrido completo estaba invisible: el estilo general de los botones dorados le pintaba un brillo encima y el texto azul quedaba sobre azul.
+- Mapa: vuelve la vista **desde arriba** (botón que alterna con la vista 3D) y el control de zoom y brújula; "Centrar" respeta la vista elegida.
+- Pasaporte: totalmente sólido (sin vetas ni transparencias), sin desplazamiento interno (el itinerario es una cuadrícula de dos columnas) para que deslizar de lado nunca se enrede; la portada ya no lleva las líneas `<<<` ni el chip circular.
+- Las barras de desplazamiento y el desborde horizontal de la animación de pestañas ya no hacen saltar la pantalla al cambiar de pestaña.
+- Ubicación: el estado es una píldora corta ("Compartiendo tu ubicación"), el botón de dejar de compartir va centrado y pide confirmación.
+- "Mi grupo" solo es visible en Visado (en las demás el título queda solo para lectores de pantalla).
+
 ## Corredor ronda 3: cuenta, mapa, pasaporte fijo y recorrido completo (2026-11-18)
 - La barra de arriba es una caja (logo, campana y @usuario) para que el título se distinga. Tocar el @usuario abre una hoja con la **foto grande**, el modo claro / oscuro y cerrar sesión; la campana abre una hoja con solo los dos interruptores.
 - Los diálogos (sello nuevo, sello grande, cuenta, alertas) **bloquean el desplazamiento de la pantalla de atrás** (`lib/scrollLock.ts`, con contador para varios a la vez).
