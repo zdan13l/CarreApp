@@ -2,6 +2,12 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Corredor: título blanco en Top, sello que espera, pasaporte con más estilo y botones nuevos (2026-11-18)
+- Top: el mismo ticket de pasajero de Visado (sin el código de vuelo, con "En vivo") y una tarjeta blanca tipo pestaña de carpeta con el título "Los demás equipos".
+- Al ganar un sello, la pantalla del sello **espera** a que la persona toque "Seguir" (antes se cerraba sola a los 4 s).
+- Pasaporte: papel con las vetas del login, marco dorado, cinta de lámina arriba y celdas de identidad con filo dorado; se quitó la palabra "Passport" y la portada dice "Carrera 2710" centrado.
+- Barra superior: campana y cuenta en azul marino con el avatar anillado en dorado; la barra del celular muestra solo el primer nombre. La campana ya no cambia de color según el sonido (era el verde de `.is-on` y el dorado al abrir, más el hover pegado en táctil): ahora siempre es azul marino, el estado se lee en el icono y en la lucecita (verde con sonido, dorada sin él) y abierta es dorada.
+
 ## Corredor: ticket de pasajero, Visado liviano, sellos grandes y pestañas flotantes (2026-11-18)
 - La tarjeta de pasajero vuelve a ser un ticket (azul marino, muescas, talón con los puntos) y solo está en Visado. En Top vuelve el ticket de "Tu equipo" y abajo los demás equipos.
 - La tarjeta del destino quedó más liviana: foto más baja, contra quién juegas con el marcador, las tres etapas en una fila y el sello en grande.
