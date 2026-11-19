@@ -45,5 +45,6 @@ Corredores e inductores pertenecen a **una** Carrera (`profiles.event_id`) y no 
 ## Lo que cada rol puede leer (desde la migración 0019)
 - Cada persona lee solo los datos de **su Carrera**; el coordinador lee todas.
 - **Puntajes** (y el ranking): solo el coordinador, el inductor de esa base y los corredores de ese cruce. Los demás no pueden saber quién va ganando.
+- **El @ de los demás equipos** (`team_contacts()`, 0021): cada corredor ve el usuario (el @ con el que se inicia sesión) de los corredores de su propia Carrera, para poder encontrarlos; el coordinador ve todos y las bases y los anónimos nada. Como ese usuario es también el de inicio de sesión, las contraseñas sugeridas llevan cuatro dígitos al azar (no bastan las listas de palabras, que son públicas), y las contraseñas emitidas antes de este cambio se pueden regenerar con *Cambiar contraseña* en *Usuarios* antes del día real.
 - **Avisos**: los corredores ven los avisos para grupos de sus cruces; el inductor ve los de su base; solo el coordinador puede avisar a una base.
 - **Eliminar una Carrera** solo es posible si está desactivada.

@@ -2,6 +2,16 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Correcciones del tester: carga fallida, apurar desde el aviso, llegada obligatoria, botón legible y contraseñas (2026-11-19)
+Se corrigieron los hallazgos de la sexta ejecución del agente `carreapp-tester`.
+- **Error de red ≠ "sin Carrera":** si la primera carga falla (mala señal), corredor y base ven *No pudimos cargar tu pantalla* con *Reintentar* (`LoadFailed`), en lugar de "No hay ninguna Carrera activa para tu usuario". Sigue reintentando solo.
+- **Apurar desde el aviso de demora:** el aviso de la base ahora lleva su propio botón *Apurar a los grupos* (sirve también cuando el grupo va tarde para la *próxima* ronda, que no tiene tarjeta con ese botón) y confirma con *Aviso enviado*.
+- **Migración 0022 (aplicar a mano en el SQL Editor):** una base solo puede calificar si ya confirmó la llegada (`validate_score` exige `arrived_at`; el coordinador queda exento). La pantalla muestra las etapas solo con la llegada confirmada y, si la base de datos la rechaza, dice "Primero confirma que llegaron los dos grupos". Las pruebas de reglas ahora confirman la llegada antes de calificar.
+- **Botón deshabilitado legible:** un botón principal deshabilitado es una pieza lisa y apagada (texto 6,6:1 en claro y 6,8:1 en oscuro) en lugar de un dorado desvanecido (~2:1).
+- **Contraseñas sugeridas más fuertes:** llevan cuatro dígitos al azar al final (`D3lF1nZ4p4t00482`), porque las listas de palabras viajan con la app y el @ de un corredor es visible a los demás corredores (0021). El @ sigue visible a propósito. Conviene regenerar con *Cambiar contraseña* las contraseñas de corredores creadas antes de hoy.
+- Documentación: pruebas (~510), "puntos del propio grupo" en la barra del corredor, nota del @ en Roles y permisos.
+- Vistas de ejemplo nuevas: `/preview/base-demora` y `/preview/carga-fallida`.
+
 ## Migración 0021 aplicada (2026-11-19)
 El mantenedor aplicó a mano `0021_team_contacts.sql` en el SQL Editor de Supabase. Con ella la ficha de cada equipo en *Top* muestra el @ de su corredor. Ya están aplicadas todas las migraciones, de la `0001` a la `0021`.
 

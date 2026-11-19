@@ -34,6 +34,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0019 | [`0019_clean_delete_privacy_and_base_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0019_clean_delete_privacy_and_base_alerts.sql) | 2026-11-17 | Borrado limpio, solo se elimina una Carrera desactivada, privacidad entre Carreras y de los puntajes, un usuario por grupo basta, avisos a la base |
 | 0020 | [`0020_reset_on_deactivate.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0020_reset_on_deactivate.sql) | 2026-11-18 | Desactivar una Carrera reinicia todo su avance |
 | 0021 | [`0021_team_contacts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0021_team_contacts.sql) | 2026-11-19 | `team_contacts()`: el @ de los corredores de cada grupo de la propia Carrera |
+| 0022 | [`0022_score_needs_arrival.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0022_score_needs_arrival.sql) | 2026-11-19 | Una base solo puede calificar si ya confirmó la llegada de los dos grupos |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -391,6 +392,18 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Aplicada en producción el 2026-11-19** (a mano en el SQL Editor de Supabase, confirmado por el mantenedor).
 
 **Cómo revertir** `drop function public.team_contacts();`
+
+## 0022 — Calificar exige la llegada confirmada (2026-11-19)
+
+**Qué cambia** `validate_score()` (el disparador de `match_scores`) rechaza el INSERT de una base si `matches.arrived_at` está vacío: *"Primero confirma que llegaron los dos grupos a tu base."* El coordinador no está obligado (puede cargar o corregir resultados a mano). El resto de la función es idéntico a la de `0006` (ganador dentro del cruce, solo el coordinador invalida, orden de rondas).
+
+**Por qué** La sexta ejecución del tester (`qa-visa-privacy.test.ts`) mostró que la base de datos aceptaba un puntaje sin llegada confirmada: el primer puntaje pasaba el cruce a *en juego* con `arrived_at` vacío, así que las demoras, el registro de operaciones y la hora de llegada quedaban incompletos. Solo la pantalla escondía los botones. La pantalla de la base ahora también exige `arrived_at` para mostrar las etapas.
+
+**Verificación** `tests/db/qa-visa-privacy.test.ts` (*0022*: la base es rechazada antes de confirmar y el rechazo no cambia el cruce; confirma y califica; el coordinador califica sin llegada). Las demás pruebas (`playMatch` confirma la llegada antes de calificar) siguen pasando sin cambios.
+
+**Estado** Pendiente de aplicar a mano en el SQL Editor (la pantalla de la base ya exige la llegada; la base de datos lo exigirá al aplicarla).
+
+**Cómo revertir** Volver a crear `validate_score()` con el cuerpo de `0006_void_items.sql`.
 
 ## Plantilla para nuevos registros
 

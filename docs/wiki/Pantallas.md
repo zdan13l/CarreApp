@@ -27,7 +27,7 @@ El panel tiene **dos modos** que se eligen arriba del menú lateral: **Preparaci
 | **Usuarios** | Los de la Carrera elegida, cada uno con su **foto** (botón de cámara; reemplaza la inicial en su cabecera y en la lista) (más los coordinadores): crear, cambiar contraseña y eliminar. Los usuarios anteriores a esta regla aparecen en *Sin Carrera asignada* para adoptarlos o eliminarlos. Corredores e inductores se crean siempre dentro de una Carrera. | |
 
 ## Corredor (`/corredor`)
-Una **barra de estado siempre visible** (el grupo y "En vivo"; **sin puesto ni puntos**: nadie debe saber quién va ganando antes de que se anuncie) y tres pestañas (cuatro para el usuario designado del GPS). Un grupo puede compartir **un solo usuario** entre la pareja de corredores.
+Una **barra de estado siempre visible** (el grupo, "En vivo" y **los puntos de su propio grupo**; **nunca el puesto ni los puntos de los demás**: nadie debe saber quién va ganando antes de que se anuncie) y tres pestañas (cuatro para el usuario designado del GPS). Un grupo puede compartir **un solo usuario** entre la pareja de corredores.
 
 | Pestaña | Contenido |
 |---|---|
