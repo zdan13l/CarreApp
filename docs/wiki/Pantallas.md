@@ -39,7 +39,7 @@ Una **barra de estado siempre visible** (el grupo, "En vivo" y **los puntos de s
 Los ajustes de **sonido y notificaciones** están en la campana de la barra superior (campana tachada con un punto si el sonido está apagado; el panel se abre sobre la pantalla). Sin Carrera activa para su usuario se ve una explicación tranquila ("No hay ninguna Carrera activa para tu usuario").
 
 ## Entrada (`/login`)
-La foto del campus arriba (con la de noche en modo oscuro), un velo oscuro en la parte de abajo de la foto y el formulario como tarjeta de embarque. Junto al escudo, el nombre **CarreApp** se escribe con una pluma, trazo a trazo, en ocho escrituras y tipografías distintas (como el saludo del iPhone) y se queda en el **logotipo** en blanco; el formulario se usa desde el primer segundo. Con *reducir movimiento* solo se ve el logotipo.
+La foto del campus arriba (con la de noche en modo oscuro), un velo oscuro en la parte de abajo de la foto y el formulario como tarjeta de embarque. Arriba a la izquierda, el escudo y el nombre CarreApp en blanco, quietos.
 
 ## Base (`/base`)
 | Pestaña | Contenido |
