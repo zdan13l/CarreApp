@@ -2,7 +2,7 @@
 // look can be reviewed without signing in. Not included in the production build.
 //   /preview/runner  /preview/runner-ruta  /preview/runner-top
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
-import { BookMarked, Bell, BellRing, Camera, ChevronRight, KeyRound, LocateFixed, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy } from 'lucide-react'
+import { BookMarked, BellRing, Camera, ChevronRight, KeyRound, LocateFixed, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import Avatar from '../components/Avatar'
@@ -25,6 +25,7 @@ import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
 import { BaseGuide, BaseWhere, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
 import { AfterCard, CurrentRound, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
+import { AlertBell } from '../components/Alerts'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import { confirmDialog, promptDialog } from '../lib/dialog'
 import TeamNames from '../components/TeamNames'
@@ -147,7 +148,7 @@ export default function Preview() {
   if (screen === 'runner-sello') {
     return (
       <AppShell title="Mi grupo" user={user}>
-        <StatusBar name="Dioses Griegos" photoPath={null} stamps={{ done: 3, total: 4 }} />
+        <StatusBar name="Dioses Griegos" photoPath={null} points={3} />
         <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} totalRounds={5} />
         <StampMoment seed="x2" name="Biblioteca Alfonso Borrero" photoPath="/campus-800.jpg" round={2} time="12:04" onClose={noop} />
       </AppShell>
@@ -180,14 +181,9 @@ export default function Preview() {
       <AppShell
         title="Mi grupo"
         user={user}
-        topActions={
-          <button className="ghost icon-btn bell" aria-label="Ajustes de alertas">
-            <Bell size={20} />
-            <span className="dot" aria-hidden="true" />
-          </button>
-        }
+        topActions={<AlertBell />}
       >
-        <StatusBar name="Dioses Griegos" photoPath={null} flight="JV 213" stamps={{ done: 1, total: 4 }} />
+        <StatusBar name="Dioses Griegos" photoPath={null} flight="JV 213" points={7} />
         {tab === 'ronda' && (
           <>
             <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} totalRounds={5} />
@@ -204,7 +200,7 @@ export default function Preview() {
             detail={(m) => <ItemResults match={routeMatches.find((x) => x.id === m.id) ?? routeMatches[0]} teams={teamById} />}
           />
         )}
-        {tab === 'top' && <TopTab teamId="t0" points={7} teams={standings.map((r) => ({ team_id: r.team_id, name: r.name, photo_path: r.photo_path }))} />}
+        {tab === 'top' && <TopTab teamId="t0" teams={standings.map((r) => ({ team_id: r.team_id, name: r.name, photo_path: r.photo_path }))} />}
         <BottomNav tabs={runnerTabs} active={tab} onChange={noop} />
       </AppShell>
     )

@@ -13,10 +13,12 @@ export default function BottomNav<T extends string>({
   tabs,
   active,
   onChange,
+  transition = true,
 }: {
   tabs: NavTab<T>[]
   active: T
   onChange: (id: T) => void
+  transition?: boolean // false when the screen animates its own tab content
 }) {
   return (
     <>
@@ -29,7 +31,7 @@ export default function BottomNav<T extends string>({
             className={`bn-tab${t.id === active ? ' active' : ''}`}
             aria-current={t.id === active ? 'page' : undefined}
             onClick={() => {
-              if (t.id !== active) withPageTurn(() => onChange(t.id))
+              if (t.id !== active) (transition ? withPageTurn : (u: () => void) => u())(() => onChange(t.id))
               window.scrollTo({ top: 0 })
             }}
           >

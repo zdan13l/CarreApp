@@ -21,16 +21,6 @@ export interface PassportMatch {
 }
 
 const PER_PAGE = 4
-const OPEN_KEY = 'carreapp.passport.open'
-
-function wasOpened(): boolean {
-  try {
-    return sessionStorage.getItem(OPEN_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
 const STATUS_TEXT: Record<StampState, string> = { done: 'Completado', stamped: 'Completado', current: 'Disponible', pending: 'Pendiente', rest: 'Sin cruce' }
 
 export default function Passport({
@@ -50,27 +40,16 @@ export default function Passport({
   detail: (match: PassportMatch) => ReactNode // what to show when a stamp is opened (the three stages of that destination)
   newId?: string | null // the stamp that was just earned: it plays the stamping animation
 }) {
-  const [phase, setPhase] = useState<'closed' | 'opening' | 'open'>(() => (wasOpened() ? 'open' : 'closed'))
+  const [phase, setPhase] = useState<'closed' | 'opening' | 'open'>('closed')
   const [page, setPage] = useState(0)
   const [dir, setDir] = useState<'next' | 'prev'>('next')
   const [open, setOpen] = useState<string | null>(null)
   const swipe = useRef<number | null>(null)
 
-  // The cover opens by itself after a moment, or at once when it is touched.
+  // The cover is the first thing every time the Pasaporte tab is opened, and it waits for a touch: it opens when it is tapped.
   useEffect(() => {
-    if (phase === 'closed') {
-      const t = window.setTimeout(() => setPhase('opening'), 900)
-      return () => window.clearTimeout(t)
-    }
     if (phase === 'opening') {
-      const t = window.setTimeout(() => {
-        setPhase('open')
-        try {
-          sessionStorage.setItem(OPEN_KEY, '1')
-        } catch {
-          /* not saved: the cover will open again next time */
-        }
-      }, 1050)
+      const t = window.setTimeout(() => setPhase('open'), 1050)
       return () => window.clearTimeout(t)
     }
   }, [phase])

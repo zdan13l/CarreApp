@@ -12,7 +12,7 @@ describe('the runner screen', () => {
     expect(run).not.toMatch(/team_standings/)
     expect(run).not.toMatch(/position/i)
     expect(run).not.toMatch(/Puesto/)
-    expect(run).toMatch(/<StatusBar name=\{team\.name\} photoPath=\{team\.photo_path\} flight=\{flight\} stamps=\{\{ done: stamped, total: playable \}\} \/>/)
+    expect(run).toMatch(/<StatusBar name=\{team\.name\} photoPath=\{team\.photo_path\} flight=\{flight\} points=\{myPoints\} \/>/)
   })
   it('has no walking map; the location tab exists only for the designated user, with a fixed map', () => {
     expect(fs.existsSync(rootPath('src/components/RunnerMap.tsx'))).toBe(false)
@@ -20,8 +20,9 @@ describe('the runner screen', () => {
     expect(read('src/components/LocationShare.tsx')).toMatch(/interactive=\{false\}/)
     expect(read('src/components/LocationShare.tsx')).not.toMatch(/fetchWalkingRoute/)
   })
-  it('Top shows the own team with its points and every group by name only', () => {
-    expect(run).toMatch(/export function TopTab[\s\S]*Tu equipo[\s\S]*<TeamNames/)
+  it('Top lists every group by name only and does not repeat the own card (name and points are in the card above every tab)', () => {
+    expect(run).toMatch(/export function TopTab[\s\S]*<TeamNames[\s\S]*highlightId=\{teamId\}/)
+    expect(run).not.toMatch(/Tu equipo/)
     expect(read('src/components/TeamNames.tsx')).not.toMatch(/points|pts/)
   })
 })
@@ -71,5 +72,29 @@ describe('maps', () => {
     expect(map).toMatch(/interactive = true/)
     expect(map).toMatch(/function declutterLabels/)
     expect(read('src/index.css')).toMatch(/\.mk\.hide-label \.mk-label \{ display: none; \}/)
+  })
+})
+
+describe('the runner phone screen (visado pass)', () => {
+  const read2 = (f: string) => fs.readFileSync(rootPath(f), 'utf8')
+  it('the cover of the passport is shown every time the tab opens and waits for a tap', () => {
+    const p = read2('src/components/Passport.tsx')
+    expect(p).not.toMatch(/sessionStorage/)
+    expect(p).toMatch(/useState<'closed' \| 'opening' \| 'open'>\('closed'\)/)
+    expect(p).not.toMatch(/setPhase\('opening'\), 900/)
+  })
+  it('the main card shows the points, not "x de y destinos"', () => {
+    expect(read2('src/pages/RunnerHome.tsx')).not.toMatch(/de \{stamps\.total\} destinos|destinos`\}/)
+  })
+  it('the sound switch decides what a tap means from how it looked when the finger went down', () => {
+    expect(read2('src/components/Alerts.tsx')).toMatch(/asleepOnPress/)
+    expect(read2('src/lib/alerts.ts')).toMatch(/export function useSoundEnabled/)
+  })
+  it('the tabs slide by themselves and the page turn is not doubled', () => {
+    expect(read2('src/pages/RunnerHome.tsx')).toMatch(/className=\{`tab-view \$\{dir\}`\}/)
+    expect(read2('src/pages/RunnerHome.tsx')).toMatch(/transition=\{false\}/)
+  })
+  it('the top bar uses the full crest, big', () => {
+    expect(read2('src/components/AppShell.tsx')).toMatch(/<Logo size=\{52\} detail \/>/)
   })
 })

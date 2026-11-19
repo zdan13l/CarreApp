@@ -12,10 +12,23 @@ const KEY = 'carreapp.alert-sound'
 export const ALERT_REPEAT_MS = 30_000 // a delay alert sounds every 30 seconds while it lasts
 let audio: AudioContext | null = null
 
+// Whoever shows the sound state (the bell, the switch) listens here, so it never shows an old state.
+const listeners = new Set<() => void>()
+const emit = () => listeners.forEach((f) => f())
+function subscribe(cb: () => void) {
+  listeners.add(cb)
+  return () => {
+    listeners.delete(cb)
+  }
+}
+
 function context(): AudioContext | null {
   const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
   if (!Ctx) return null
-  audio ??= new Ctx()
+  if (!audio) {
+    audio = new Ctx()
+    audio.onstatechange = emit // running / suspended changes right away on the screen
+  }
   return audio
 }
 
@@ -65,8 +78,10 @@ export async function enableSound(): Promise<void> {
   } catch {
     // storage blocked: works until the page is closed
   }
+  emit()
   await unlock()
   playAlertSound() // short confirmation
+  emit()
 }
 
 export function disableSound() {
@@ -75,6 +90,7 @@ export function disableSound() {
   } catch {
     // ignore
   }
+  emit()
 }
 
 export function playAlertSound() {
@@ -117,10 +133,22 @@ export function useNow(intervalMs = 5000): number {
 export function useAudioRunning(): boolean {
   const [running, setRunning] = useState(audioRunning)
   useEffect(() => {
-    const id = setInterval(() => setRunning(audioRunning()), 1000)
-    return () => clearInterval(id)
+    const update = () => setRunning(audioRunning())
+    const id = setInterval(update, 1000)
+    const off = subscribe(update)
+    return () => {
+      clearInterval(id)
+      off()
+    }
   }, [])
   return running
+}
+
+// The "sound on" setting, always current (the bell and the switch show the same thing).
+export function useSoundEnabled(): boolean {
+  const [on, setOn] = useState(soundEnabled)
+  useEffect(() => subscribe(() => setOn(soundEnabled())), [])
+  return on
 }
 
 // Sounds right away when `active` turns on and then every `everyMs` while it stays on.
