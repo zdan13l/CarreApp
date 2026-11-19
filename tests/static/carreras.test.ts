@@ -48,9 +48,13 @@ describe('Carrera switching reaches every screen without a reload', () => {
   it('the coordinator layout listens to events', () => {
     expect(read('src/pages/admin/AdminLayout.tsx')).toMatch(/useRealtimeReload\(\['events'\], reload\)/)
   })
-  it('runner and base keep what is on screen when the request fails (a network error is not "no active Carrera")', () => {
-    expect(read('src/pages/RunnerHome.tsx')).toMatch(/if \(teamErr\) return/)
-    expect(read('src/pages/BaseHome.tsx')).toMatch(/if \(baseErr\) return/)
+  it('runner and base keep what is on screen when the request fails, and a failed first load says so instead of "no active Carrera"', () => {
+    expect(read('src/pages/RunnerHome.tsx')).toMatch(/if \(teamErr\) \{\s*setLoadFailed\(true\)[\s\S]*?return/)
+    expect(read('src/pages/BaseHome.tsx')).toMatch(/if \(baseErr\) \{\s*setLoadFailed\(true\)[\s\S]*?return/)
+    for (const f of ['src/pages/RunnerHome.tsx', 'src/pages/BaseHome.tsx']) {
+      expect(read(f)).toMatch(/loadFailed \? <LoadFailed onRetry=\{\(\) => void load\(\)\} \/> : <NoActiveCarrera/)
+    }
+    expect(read('src/components/LoadFailed.tsx')).toMatch(/No pudimos cargar/)
   })
   it('a taken username explains that usernames are shared by all Carreras', () => {
     expect(read('api/users.ts')).toMatch(/únicos en todas las Carreras/)

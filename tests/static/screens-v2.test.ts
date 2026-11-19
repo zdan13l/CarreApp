@@ -250,3 +250,21 @@ describe('runner review: calmer colour and nothing clipped', () => {
     expect(fs.readFileSync(rootPath('src/components/Passport.tsx'), 'utf8')).not.toMatch(/className="itinerary"/)
   })
 })
+
+describe('tester run 6 fixes', () => {
+  const css = read('src/index.css')
+  it('a disabled primary button is a flat, legible piece, not a faded gold one', () => {
+    expect(css).toMatch(/button:disabled:not\(\.ghost\)[^{]*\{[^}]*opacity: 1;[^}]*background: var\(--surface-3\) !important/)
+  })
+  it('the base delay banner carries its own button to hurry the groups', () => {
+    const base = read('src/pages/BaseHome.tsx')
+    expect(base).toMatch(/action=\{[\s\S]*Apurar a los grupos/)
+    expect(base).toMatch(/export async function hurryGroups/)
+    expect(read('src/components/Alerts.tsx')).toMatch(/banner-actions/)
+  })
+  it('the base only shows the stages once the arrival is confirmed, and explains the database refusal', () => {
+    const base = read('src/pages/BaseHome.tsx')
+    expect(base).toMatch(/const arrived = match\.arrived_at !== null/)
+    expect(base).toMatch(/Primero confirma que llegaron los dos grupos/)
+  })
+})
