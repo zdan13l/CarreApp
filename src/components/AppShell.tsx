@@ -5,6 +5,8 @@ import Logo from './Logo'
 import AccountMenu from './AccountMenu'
 import { confirmDialog } from '../lib/dialog'
 
+const ROLE: Record<string, string> = { runner: 'Corredor', base: 'Inductor de base', admin: 'Coordinador' }
+
 export default function AppShell({
   title,
   children,
@@ -22,9 +24,9 @@ export default function AppShell({
     <main className="page">
       <ConnectionBanner />
       <header className="topbar">
-        <Logo size={52} detail />
+        <Logo size={44} detail />
         {topActions}
-        <AccountMenu short user={who ?? undefined} onSignOut={async () => {
+        <AccountMenu short roleLabel={ROLE[profile?.role ?? '']} user={who ?? undefined} onSignOut={async () => {
           if (await confirmDialog({ title: '¿Cerrar sesión?', message: 'Este teléfono dejará de recibir los avisos de la Carrera.', confirmLabel: 'Cerrar sesión', icon: 'logout' })) void signOut()
         }} />
       </header>

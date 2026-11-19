@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useScrollLock } from '../lib/scrollLock'
 import Stamp from './Stamp'
 
 // The moment the base scores the third stage of the match: the stamp lands on the screen, the phone vibrates once. It stays until the
@@ -18,6 +19,7 @@ export default function StampMoment({
   time: string
   onClose: () => void
 }) {
+  useScrollLock()
   useEffect(() => {
     try {
       navigator.vibrate?.(35)

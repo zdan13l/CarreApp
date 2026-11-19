@@ -17,7 +17,7 @@ describe('the runner screen', () => {
   it('has no walking map; the location tab exists only for the designated user, with a fixed map', () => {
     expect(fs.existsSync(rootPath('src/components/RunnerMap.tsx'))).toBe(false)
     expect(run).toMatch(/isTracker \? \[TABS\[0\], LOCATION_TAB, TABS\[1\], TABS\[2\]\] : TABS/)
-    expect(read('src/components/LocationShare.tsx')).toMatch(/interactive=\{false\}/)
+    expect(read('src/components/LocationShare.tsx')).toMatch(/<LazyMap[^>]*recenter/) // a map that moves, with a button that centres it on the campus
     expect(read('src/components/LocationShare.tsx')).not.toMatch(/fetchWalkingRoute/)
   })
   it('Top shows the same passenger ticket as Visado and the OTHER groups under a white title card; no flight code on the ticket', () => {
@@ -104,7 +104,7 @@ describe('the runner phone screen (visado pass)', () => {
     expect(read2('src/index.css')).toMatch(/html:has\(\.tab-view\), body:has\(\.tab-view\)/)
   })
   it('the top bar uses the full crest, big', () => {
-    expect(read2('src/components/AppShell.tsx')).toMatch(/<Logo size=\{52\} detail \/>/)
+    expect(read2('src/components/AppShell.tsx')).toMatch(/<Logo size=\{44\} detail \/>/)
   })
 })
 
@@ -126,5 +126,46 @@ describe('the stamp moment, the passport and the top-bar buttons', () => {
     expect(css).not.toMatch(/\.bell\.is-on \{ color/)
     expect(css).toMatch(/\.topbar button\.bell\.ghost \{/)
     expect(read3('src/components/AppShell.tsx')).toMatch(/<AccountMenu short/)
+  })
+})
+
+describe('runner round 3: dialogs, map, passport and finish card', () => {
+  const read4 = (f: string) => fs.readFileSync(rootPath(f), 'utf8')
+  it('dialogs lock the page behind them (stamp moment, stamp zoom, account sheet, alerts sheet)', () => {
+    expect(read4('src/lib/scrollLock.ts')).toMatch(/overflow = 'hidden'/)
+    for (const f of ['src/components/StampMoment.tsx', 'src/components/Passport.tsx', 'src/components/AccountMenu.tsx', 'src/components/Alerts.tsx']) {
+      expect(read4(f), f).toMatch(/useScrollLock\(/)
+    }
+  })
+  it('the finished route is a celebration with the stamps and a way to the passport, not one line of text', () => {
+    const run = read4('src/pages/RunnerHome.tsx')
+    expect(run).toMatch(/<FinishedCard/)
+    expect(run).not.toMatch(/Terminaste todos tus cruces/)
+    expect(run).toMatch(/Ver mi pasaporte/)
+  })
+  it('the map has a "Centrar" button and the location tab keeps only the share button', () => {
+    expect(read4('src/components/MapView.tsx')).toMatch(/Centrar el mapa en la Javeriana/)
+    const loc = read4('src/components/LocationShare.tsx')
+    expect(loc).not.toMatch(/Ubicación del grupo|usuario designado para el GPS/)
+    expect(loc).toMatch(/Compartir mi ubicación/)
+  })
+  it('the top button opens a sheet with the big photo, the theme switch and sign out; the bar shows the @user', () => {
+    const a = read4('src/components/AccountMenu.tsx')
+    expect(a).toMatch(/account-sheet/)
+    expect(a).toMatch(/size=\{148\}/)
+    expect(a).toMatch(/`@\$\{user\?\.username \?\? ''\}`/)
+    expect(read4('src/index.css')).toMatch(/\.topbar \{[^}]*background: var\(--surface\)/)
+  })
+  it('the alerts sheet has no explanation paragraph', () => {
+    const a = read4('src/components/Alerts.tsx')
+    expect(a).not.toMatch(/Para que te avisemos/)
+  })
+  it('the passport slides only (no page buttons), keeps one size, shows the total and has no "tap a stamp" hint', () => {
+    const p = read4('src/components/Passport.tsx')
+    expect(p).not.toMatch(/Página anterior|Página siguiente|slot-hint|Toca un sello/)
+    expect(p).toMatch(/stamp-total/)
+    expect(p).toMatch(/leaf-body/)
+    expect(read4('src/index.css')).toMatch(/\.leaf \{ display: flex; flex-direction: column; height: var\(--leaf-h\)/)
+    expect(read4('src/index.css')).toMatch(/\.leaf \.mrz \{[^}]*text-align: center/)
   })
 })

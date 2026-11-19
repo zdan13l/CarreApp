@@ -44,7 +44,7 @@ describe('the base screen', () => {
 describe('the runner screen', () => {
   it('"Después" shows the base photo and the rival crest, like the base screen', () => {
     const run = read('src/pages/RunnerHome.tsx')
-    expect(run).toMatch(/export function AfterCard[\s\S]*tc-photo[\s\S]*<Crest/)
+    expect(run).toMatch(/export function AfterCard[\s\S]*nt-photo[\s\S]*<Crest/)
     expect(run).toMatch(/<AfterCard match=\{after\}/)
   })
 })

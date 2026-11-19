@@ -181,7 +181,17 @@ export default function RunnerHome() {
               <StatusBar name={team.name} photoPath={team.photo_path} points={myPoints} />
               {mine.length === 0 && <p className="warn">El coordinador aún no ha programado tus cruces.</p>}
               {next && <CurrentRound match={next} myId={team.id} teams={teamById} totalRounds={totalRounds} />}
-              {!next && mine.length > 0 && <p className="ok-box">Terminaste todos tus cruces. ¡Buen trabajo!</p>}
+              {!next && mine.length > 0 && (
+                <FinishedCard
+                  team={team.name}
+                  matches={mine}
+                  onPassport={() => {
+                    setDir('fwd')
+                    setTab('ruta')
+                    window.scrollTo({ top: 0 })
+                  }}
+                />
+              )}
               {after && (
                 <AfterCard match={after} myId={team.id} teams={teamById} />
               )}
@@ -240,29 +250,29 @@ export default function RunnerHome() {
 
 const rivalId = (m: RouteMatch, myId: string) => (m.team_a === myId ? m.team_b : m.team_a)
 
-// "Próximo destino": the match after the current one, as a boarding pass in the navy blue: the picture of the base and the rival on
-// the left and, on the stub, the airport code of the destination and its gate (the round).
+// "Próximo destino": the match after the current one, as a boarding pass in the navy blue. On the left the destination (its picture, name and
+// gate) and the rival; on the stub the airport code of the destination.
 export function AfterCard({ match, myId, teams }: { match: RouteMatch; myId: string; teams: Map<string, TeamLite> }) {
   const rival = teams.get(rivalId(match, myId))
   const url = photoUrl(match.bases?.location_photo_path ?? null)
   const name = match.bases?.name ?? 'Base'
   return (
     <div className="tc-wrap">
-      <section className="tc" aria-label={`Próximo destino: ${name}`}>
+      <section className="tc next-ticket" aria-label={`Próximo destino: ${name}`}>
         <div className="tc-main">
-          <p className="tc-kicker">Próximo destino · Ronda {match.round_number}</p>
-          <div className="tc-row">
+          <p className="tc-kicker">Próximo destino · Puerta {match.round_number}</p>
+          <strong className="tc-name">{name}</strong>
+          <div className="nt-row">
             {url ? (
-              <img className="tc-photo" src={url} alt={`Dónde queda ${name}`} loading="lazy" decoding="async" />
+              <img className="nt-photo" src={url} alt={`Dónde queda ${name}`} loading="lazy" decoding="async" />
             ) : (
-              <span className="tc-photo empty" aria-hidden="true">
+              <span className="nt-photo empty" aria-hidden="true">
                 <MapPin size={26} />
               </span>
             )}
-            <div className="tc-info">
-              <strong className="tc-name">{name}</strong>
-              <span className="tc-rival">
-                <span>contra</span>
+            <div className="nt-rival">
+              <small>Tu rival</small>
+              <span>
                 <Crest name={rival?.name} photoPath={rival?.photo_path} size="sm" />
                 <strong>{rival?.name ?? '—'}</strong>
               </span>
@@ -271,10 +281,37 @@ export function AfterCard({ match, myId, teams }: { match: RouteMatch; myId: str
         </div>
         <div className="tc-stub" aria-hidden="true">
           <span className="tc-code">{airportCode(name)}</span>
-          <small>Puerta {match.round_number}</small>
+          <small>Destino</small>
         </div>
       </section>
     </div>
+  )
+}
+
+// The whole route is done: a celebration with the stamps earned and a way to the passport.
+export function FinishedCard({ team, matches, onPassport }: { team: string; matches: RouteMatch[]; onPassport: () => void }) {
+  return (
+    <section className="finish" aria-label="Recorrido completo">
+      <Trophy className="finish-trophy" size={34} aria-hidden="true" />
+      <p className="finish-kicker">Carrera 2710</p>
+      <h2>¡Recorrido completo!</h2>
+      <p className="finish-sub">{team} pasó por todas sus bases.</p>
+      <div className="finish-stamps">
+        {matches.map((m, i) => (
+          <span key={m.id} style={{ animationDelay: `${0.15 + i * 0.12}s` }}>
+            <Stamp seed={m.base_id} name={m.bases?.name ?? `Ronda ${m.round_number}`} photoPath={m.bases?.location_photo_path} round={m.round_number} state="done" size={74} straight />
+          </span>
+        ))}
+      </div>
+      <p className="finish-count num">
+        {matches.length}
+        <small>{matches.length === 1 ? 'sello' : 'sellos'}</small>
+      </p>
+      <button type="button" className="finish-btn" onClick={onPassport}>
+        <BookMarked size={18} aria-hidden="true" />
+        Ver mi pasaporte
+      </button>
+    </section>
   )
 }
 const scoreOf = (m: RouteMatch, teamId: string) => m.match_scores.filter((s) => s.winner_team_id === teamId).length

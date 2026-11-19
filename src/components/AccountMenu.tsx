@@ -1,10 +1,12 @@
-import { LogOut, Moon, Sun } from 'lucide-react'
+import { LogOut, Moon, Sun, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTheme } from '../lib/theme'
+import { useScrollLock } from '../lib/scrollLock'
 import Avatar from './Avatar'
 
-// The person: their picture (or initials) with their name and @user beside it. Opens a small menu with
-// the light / dark switch and "Cerrar sesión", so the top bar stays clean on a phone.
+// The person: their picture (or initials) with their name and @user beside it. On the coordinator's panel it opens a small menu; on the
+// phone (`short`) it opens a sheet with the picture big, the light / dark switch and "Cerrar sesión".
 export default function AccountMenu({
   user,
   onSignOut,
@@ -18,16 +20,19 @@ export default function AccountMenu({
   placement?: 'down' | 'up'
   roleLabel?: string
   showTheme?: boolean // the coordinator's panel is always dark: no switch there
-  short?: boolean // phone top bar: only the first name in the button (the whole name is in the menu)
+  short?: boolean // phone top bar: the button shows the @user and opens a sheet
 }) {
   const [open, setOpen] = useState(false)
   const [theme, setTheme] = useTheme()
   const ref = useRef<HTMLDivElement>(null)
+  useScrollLock(open && short)
 
   useEffect(() => {
     if (!open) return
     const close = (e: Event) => {
-      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !ref.current?.contains(e.target as Node)) setOpen(false)
+      if (e instanceof KeyboardEvent) {
+        if (e.key === 'Escape') setOpen(false)
+      } else if (!short && !ref.current?.contains(e.target as Node)) setOpen(false)
     }
     document.addEventListener('pointerdown', close)
     document.addEventListener('keydown', close)
@@ -35,7 +40,7 @@ export default function AccountMenu({
       document.removeEventListener('pointerdown', close)
       document.removeEventListener('keydown', close)
     }
-  }, [open])
+  }, [open, short])
 
   const name = user?.full_name ?? ''
   const next = theme === 'dark' ? 'light' : 'dark'
@@ -45,17 +50,52 @@ export default function AccountMenu({
         type="button"
         className="account-btn"
         onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
+        aria-haspopup={short ? 'dialog' : 'menu'}
         aria-expanded={open}
         aria-label={`Cuenta de ${name || 'la persona'}`}
       >
         <Avatar name={name} photoPath={user?.photo_path} size={38} />
         <span className="account-text">
-          <strong>{short ? name.split(/\s+/)[0] : name}</strong>
-          <small>@{user?.username}</small>
+          <strong>{short ? `@${user?.username ?? ''}` : name}</strong>
+          {!short && <small>@{user?.username}</small>}
         </span>
       </button>
-      {open && (
+      {open && short &&
+        createPortal(
+          <div className="sheet-backdrop centered" role="presentation" onClick={() => setOpen(false)}>
+            <section className="account-sheet" role="dialog" aria-modal="true" aria-label="Mi cuenta" onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="ghost icon-btn sheet-x" onClick={() => setOpen(false)} aria-label="Cerrar" title="Cerrar">
+                <X size={18} />
+              </button>
+              <span className="account-photo">
+                <Avatar name={name} photoPath={user?.photo_path} size={148} />
+              </span>
+              <h2>{name}</h2>
+              <p className="account-handle">@{user?.username}{roleLabel ? ` · ${roleLabel}` : ''}</p>
+              <div className="account-actions">
+                {showTheme && (
+                  <button type="button" className="ghost account-action" onClick={() => setTheme(next)}>
+                    {next === 'light' ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
+                    {next === 'light' ? 'Modo claro' : 'Modo oscuro'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="ghost account-action danger"
+                  onClick={() => {
+                    setOpen(false)
+                    onSignOut()
+                  }}
+                >
+                  <LogOut size={20} aria-hidden="true" />
+                  Cerrar sesión
+                </button>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
+      {open && !short && (
         <div className="account-pop" role="menu">
           <div className="account-who">
             <strong>{name}</strong>
