@@ -189,7 +189,8 @@ describe('runner round 4', () => {
   it('the passport is solid, does not scroll inside and the cover has no reading lines', () => {
     const css = read5('src/index.css')
     expect(css).toMatch(/\.leaf::before \{ display: none; \}/)
-    expect(css).toMatch(/\.leaf-body \{ overflow: hidden;/)
+    expect(css).toMatch(/\.leaf \{ height: auto; min-height: var\(--leaf-h\); \}/) // never clips: it grows if a sheet needs more
+    expect(css).toMatch(/\.booklet \{ --leaf-h: 600px; \}/)
     expect(read5('src/components/Passport.tsx')).not.toMatch(/cover-chip|mrzLines/)
   })
   it('location: a short status, a centred stop button and a confirmation', () => {
@@ -204,5 +205,20 @@ describe('runner round 4', () => {
   })
   it('the account sheet puts the role on its own line under the @', () => {
     expect(read5('src/components/AccountMenu.tsx')).toMatch(/account-role/)
+  })
+})
+
+describe('runner review: calmer colour and nothing clipped', () => {
+  const css = fs.readFileSync(rootPath('src/index.css'), 'utf8')
+  it('gold is kept for the cover, the main button and small labels: no foil lines on the bar and the tickets', () => {
+    expect(css).toMatch(/\.topbar::after \{ display: none; \}/)
+    expect(css).toMatch(/\.tc::before \{ display: none; \}/)
+    expect(css).toMatch(/\.bn-tab\.active::before \{ background: rgba\(255, 255, 255, \.16\); \}/)
+  })
+  it('the dark background of the tabs is dimmed so the cards come first', () => {
+    expect(css).toMatch(/linear-gradient\(rgba\(6, 10, 27, \.62\)/)
+  })
+  it('the passport page 1 has no itinerary list that repeated the map', () => {
+    expect(fs.readFileSync(rootPath('src/components/Passport.tsx'), 'utf8')).not.toMatch(/className="itinerary"/)
   })
 })

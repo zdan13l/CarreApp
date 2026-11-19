@@ -136,22 +136,13 @@ export default function Passport({
                     </dd>
                   </div>
                 </dl>
-                <RouteMap stops={stops} title={`Recorrido de ${team}`} />
+                <RouteMap stops={stops} title={`Recorrido de ${team}`} tall />
                 <div className="trip" role="img" aria-label={`Progreso del viaje: ${done} de ${trip.length} destinos`}>
                   <div className="trip-line">
                     <i style={{ width: `${trip.length ? (done / trip.length) * 100 : 0}%` }} />
                     <Plane className="trip-plane" size={18} style={{ left: `${trip.length ? (done / trip.length) * 100 : 0}%` }} aria-hidden="true" />
                   </div>
                 </div>
-                <ul className="itinerary">
-                  {trip.map((s) => (
-                    <li key={s.m!.id} className={s.state}>
-                      <span className="mono">{airportCode(s.m!.bases?.name ?? '')}</span>
-                      <span className="grow">{s.m!.bases?.name}</span>
-                      <span className="flap-mini">{STATUS_TEXT[s.state]}</span>
-                    </li>
-                  ))}
-                </ul>
                 {complete && (
                   <div className="passport-complete" role="status">
                     <strong>Viaje completo</strong>
@@ -191,7 +182,7 @@ export default function Passport({
                           time={stampTime(m?.finished_at)}
                           state={state}
                           atGate={Boolean(m?.arrived_at || m?.status === 'in_progress')}
-                          size={124}
+                          size={108}
                           pop={m?.id === newId}
                         />
                         <span className="slot-name">{base || 'Descansas'}</span>

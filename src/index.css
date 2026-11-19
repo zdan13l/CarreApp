@@ -1305,7 +1305,7 @@ button.slot-btn:hover .stamp { transform: rotate(0deg) scale(1.04); }
 .rm-stop.current circle { fill: var(--gold); stroke: var(--ink-1); stroke-width: 2; }
 .rm-stop .rm-pulse { fill: none; stroke: var(--gold); stroke-width: 1.6; transform-box: fill-box; transform-origin: center; animation: ring 1.9s ease-out infinite; }
 .rm-check { fill: none; stroke: var(--surface); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.rm-code { fill: var(--text); font: 700 9.6px ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .08em; paint-order: stroke; stroke: var(--surface-2); stroke-width: 3px; }
+.rm-code { fill: var(--text); font: 700 12px ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .08em; paint-order: stroke; stroke: var(--surface-2); stroke-width: 3px; }
 .rm-plane { color: var(--text); }
 .rm-plane svg { fill: var(--gold); }
 
@@ -1878,7 +1878,7 @@ button.finish-btn { gap: .5rem; width: 100%; min-height: 52px; margin-top: 1rem;
 .topbar .account-btn { min-height: 44px; }
 .cover-inner::before { opacity: .28; }
 .leaf-body { -webkit-mask-image: linear-gradient(#000 calc(100% - 22px), transparent); mask-image: linear-gradient(#000 calc(100% - 22px), transparent); padding-bottom: 1rem; }
-.leaf .routemap svg { max-height: 150px; }
+.leaf .routemap svg { max-height: none; }
 .id-grid dd small { margin-left: .25rem; }
 
 /* =====================================================================
@@ -1937,3 +1937,55 @@ button.map-recenter.ghost { position: static; }
 .sharing-pill { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); border-radius: 999px; font-weight: 700; }
 .sharing-pill svg { animation: pulse 1.6s ease-in-out infinite; }
 button.stop-share.ghost { width: auto; min-width: 16rem; max-width: 100%; justify-content: center; margin: 0; color: var(--danger); }
+
+/* =====================================================================
+   Corredor · revisión: menos dorado, el pasaporte cabe en la pantalla y el fondo no compite con las tarjetas
+   El dorado queda para lo que importa: la portada, el botón principal y los pequeños rótulos.
+   ===================================================================== */
+.booklet { --leaf-h: clamp(470px, calc(100dvh - 255px), 700px); }
+.leaf .routemap { flex: none; }
+.leaf .routemap svg { max-height: none; }
+.leaf-body { display: flex; flex-direction: column; }
+.leaf-body .trip { margin: .9rem 0 0; }
+.leaf-body .passport-complete { margin-top: .9rem; }
+
+/* sin la línea dorada bajo la cabecera ni el anillo dorado del avatar */
+.topbar::after { display: none; }
+.topbar .account-btn .avatar { box-shadow: 0 0 0 2px rgba(255, 255, 255, .4); }
+.tc::before { display: none; }
+
+/* pestañas: la activa es una pastilla clara, solo el icono lleva el dorado */
+.bn-tab.active::before { background: rgba(255, 255, 255, .16); }
+.bn-tab.active, .bn-tab.active:hover:not(:disabled) { color: #fff; }
+.bn-tab.active svg { color: var(--pass-gold); }
+
+/* pasaporte: papel liso, un solo filete */
+.leaf::after { border-color: var(--border-strong); }
+.leaf > .leaf-head::before { display: none; }
+.leaf { padding-top: 1.25rem; }
+.leaf-head { border-bottom-color: var(--border-strong); }
+.id-grid > div { border-left-width: 1px; border-left-color: var(--border); }
+.stamp-total { color: var(--text); background: var(--surface-2); border: 1px solid var(--border-strong); box-shadow: none; }
+.stamp-total b { color: var(--gold-ink); }
+.leaf-dots i.on { background: var(--text); box-shadow: none; }
+
+/* tarjeta del destino: el marcador y la etapa activa sin amarillo chillón */
+.dest .big-score, .dest-vs .big-score { color: var(--text); }
+.stages.compact .stage.active { box-shadow: inset 0 0 0 1.5px var(--sky); }
+.title-tag { box-shadow: none; }
+.team-photo { border-color: var(--border-strong); }
+.account-sheet::before { display: none; }
+.account-photo { background: var(--border-strong); box-shadow: 0 14px 26px -14px rgba(3, 29, 68, .6); }
+
+/* el fondo de las pestañas, más quieto en modo oscuro */
+:root:not([data-theme='light']) body:has(.tab-view), :root:not([data-theme='light']) html:has(.tab-view) {
+  background: linear-gradient(rgba(6, 10, 27, .62), rgba(6, 10, 27, .62)), var(--bg) url(/login-pattern-dark.svg) 0 0 / 520px 520px fixed;
+}
+
+/* el pasaporte nunca recorta: mide como mínimo lo de siempre y crece si una hoja necesita más */
+.booklet { --leaf-h: clamp(540px, calc(100dvh - 235px), 720px); }
+.leaf { height: auto; min-height: var(--leaf-h); }
+.leaf-body { overflow: visible; flex: 1 0 auto; }
+.leaf .routemap svg { max-height: none; }
+.booklet { --leaf-h: 600px; }
+.slot-btn { padding-top: 1.45rem; }

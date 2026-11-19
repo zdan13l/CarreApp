@@ -14,10 +14,11 @@ export interface RouteStop {
 }
 
 const W = 300
-const H = 168
+const H_FLAT = 168
+const H_TALL = 250 // the passport page has room: the chart is taller
 const PAD = 26
 
-function place(stops: RouteStop[]): { x: number; y: number }[] {
+function place(stops: RouteStop[], H: number): { x: number; y: number }[] {
   const real = stops.every((s) => s.lat !== null && s.lng !== null)
   if (real && stops.length >= 2) {
     const lat0 = (stops.reduce((n, s) => n + s.lat!, 0) / stops.length) * (Math.PI / 180)
@@ -37,9 +38,10 @@ function place(stops: RouteStop[]): { x: number; y: number }[] {
   return stops.map((_, i) => ({ x: PAD + ((W - PAD * 2) * i) / Math.max(n - 1, 1), y: H / 2 + Math.sin(i * 1.3) * 34 }))
 }
 
-export default function RouteMap({ stops, title }: { stops: RouteStop[]; title: string }) {
+export default function RouteMap({ stops, title, tall = false }: { stops: RouteStop[]; title: string; tall?: boolean }) {
   if (stops.length === 0) return null
-  const pos = place(stops)
+  const H = tall ? H_TALL : H_FLAT
+  const pos = place(stops, H)
   const lastDone = stops.reduce((idx, s, i) => (s.state === 'done' ? i : idx), -1)
   const planeAt = Math.max(lastDone, 0)
   const next = pos[Math.min(planeAt + (lastDone >= 0 ? 1 : 0), pos.length - 1)]
