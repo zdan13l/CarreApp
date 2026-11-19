@@ -10,6 +10,7 @@ import LocationShare from '../components/LocationShare'
 import TeamNames from '../components/TeamNames'
 import TeamDialog from '../components/TeamDialog'
 import NoActiveCarrera from '../components/NoActiveCarrera'
+import LoadFailed from '../components/LoadFailed'
 import { AlertBanner, AlertBell } from '../components/Alerts'
 import { useAuth } from '../lib/auth'
 import { useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
@@ -77,6 +78,7 @@ export default function RunnerHome() {
   const [teams, setTeams] = useState<TeamLite[]>([])
   const [bases, setBases] = useState<{ id: string; name: string; lat: number | null; lng: number | null }[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false) // the last request failed (network), which is not the same as having no Carrera
   const [moment, setMoment] = useState<RouteMatch | null>(null) // the stamp that has just been earned
   const [contacts, setContacts] = useState<Map<string, string[]>>(new Map()) // team -> the @ of its runners (migration 0021)
   const [viewTeam, setViewTeam] = useState<string | null>(null) // the group whose card is open
@@ -93,7 +95,11 @@ export default function RunnerHome() {
       .eq('team_runners.user_id', userId)
       .eq('events.is_active', true)
       .maybeSingle()
-    if (teamErr) return // a network error is not "no active Carrera": keep what is on screen until the next refresh
+    if (teamErr) {
+      setLoadFailed(true) // a network error is not "no active Carrera": say so (or keep what is on screen) until the next refresh
+      return
+    }
+    setLoadFailed(false)
     setTeam((t as MyTeam | null) ?? null)
     if (!t) return
     const [m, tm, bs, ct] = await Promise.all([
@@ -168,7 +174,7 @@ export default function RunnerHome() {
       {loading ? (
         <p className="loading">Cargando…</p>
       ) : !team ? (
-        <NoActiveCarrera role="runner" />
+        loadFailed ? <LoadFailed onRetry={() => void load()} /> : <NoActiveCarrera role="runner" />
       ) : (
         <>
           {manual.alerts.map((a) => (

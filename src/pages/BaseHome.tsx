@@ -9,6 +9,7 @@ import Crest from '../components/Crest'
 import Stamp from '../components/Stamp'
 import PhotoField from '../components/PhotoField'
 import NoActiveCarrera from '../components/NoActiveCarrera'
+import LoadFailed from '../components/LoadFailed'
 import TeamNames from '../components/TeamNames'
 import { useAuth } from '../lib/auth'
 import { useManualAlerts, useNow } from '../lib/alerts'
@@ -80,6 +81,7 @@ export default function BaseHome() {
   const [teams, setTeams] = useState<Map<string, Team>>(new Map())
   const [eventMatches, setEventMatches] = useState<TimedMatch[]>([]) // every match, to know when teams left their previous base
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false) // the last request failed (network), which is not the same as having no Carrera
 
   const userId = profile?.id
 
@@ -94,7 +96,11 @@ export default function BaseHome() {
       .eq('base_staff.user_id', userId)
       .eq('events.is_active', true)
       .maybeSingle()
-    if (baseErr) return // a network error is not "no active Carrera": keep what is on screen until the next refresh
+    if (baseErr) {
+      setLoadFailed(true) // a network error is not "no active Carrera": say so (or keep what is on screen) until the next refresh
+      return
+    }
+    setLoadFailed(false)
     setBase((b as MyBase | null) ?? null)
     if (!b) return
     const [m, t, all] = await Promise.all([
@@ -134,6 +140,17 @@ export default function BaseHome() {
   const travel = useTravelTimes(base?.event_id)
   const late = lateTeams(eventMatches, maxMinutes, now, travel).filter((l) => myMatchIds.has(l.matchId))
   const fromCoordinator = useManualAlerts(matches.map((m) => m.id), 'base') // rings the phone while it is fresh
+  const [hurried, setHurried] = useState<Set<string>>(new Set()) // matches whose groups were already alerted from the delay banner
+  const [hurryError, setHurryError] = useState<string | null>(null)
+
+  // The delay banner can alert the late groups itself: the late match may be the NEXT round, which has no card with that button.
+  async function hurryLate(matchId: string) {
+    if (!base) return
+    setHurryError(null)
+    const result = await hurryGroups(base.event_id, matchId)
+    if (result.error) setHurryError(result.error)
+    else if (result.sent) setHurried((prev) => new Set(prev).add(matchId))
+  }
 
   return (
     <AppShell
@@ -144,7 +161,7 @@ export default function BaseHome() {
       {loading ? (
         <p className="loading">Cargando…</p>
       ) : !base ? (
-        <NoActiveCarrera role="base" />
+        loadFailed ? <LoadFailed onRetry={() => void load()} /> : <NoActiveCarrera role="base" />
       ) : (
         <div className="base-view" style={inkStyle(base.id)}>
           {fromCoordinator.alerts.map((a) => (
@@ -160,8 +177,20 @@ export default function BaseHome() {
               .join(' y ')
             const minutes = Math.max(...late.filter((l) => l.matchId === matchId).map((l) => l.elapsedMin))
             return (
-              <AlertBanner key={matchId} title={`Ronda ${m?.round_number}: grupos en demora`}>
-                {names} llevan {minutes} min en el traslado (máximo {Math.min(...late.filter((l) => l.matchId === matchId).map((l) => l.maxMin))} min). Usa "Apurar a los grupos" para avisarles.
+              <AlertBanner
+                key={matchId}
+                title={`Ronda ${m?.round_number}: grupos en demora`}
+                action={
+                  <>
+                    <button type="button" className="ghost banner-action" disabled={hurried.has(matchId)} onClick={() => void hurryLate(matchId)}>
+                      {hurried.has(matchId) ? <Check size={18} aria-hidden="true" /> : <BellRing size={18} aria-hidden="true" />}
+                      {hurried.has(matchId) ? 'Aviso enviado' : 'Apurar a los grupos'}
+                    </button>
+                    {hurryError && <span className="banner-error">{hurryError}</span>}
+                  </>
+                }
+              >
+                {names} llevan {minutes} min en el traslado (máximo {Math.min(...late.filter((l) => l.matchId === matchId).map((l) => l.maxMin))} min).
               </AlertBanner>
             )
           })}
@@ -462,6 +491,14 @@ type Pick = string // team id
 const NOT_ACTIVE = 'La Carrera no está activa para tu usuario, así que no puedes registrar nada ahora. Avísale al coordinador.'
 export const friendlyError = (message: string, fallback: string) => (/row-level security|permission denied|no está asignado/i.test(message) ? NOT_ACTIVE : fallback)
 
+// Asks for the message and alerts the two groups of a match (they get a notification and their phone rings).
+export async function hurryGroups(eventId: string, matchId: string): Promise<{ sent: boolean; error?: string }> {
+  const message = await promptDialog({ title: 'Apurar a los grupos', message: 'Les llega como notificación y les suena el teléfono.', label: 'Mensaje', defaultValue: 'Apúrense: la base los está esperando.', confirmLabel: 'Enviar aviso', icon: 'bell' })
+  if (!message) return { sent: false } // cancelled
+  const error = await sendMatchAlert(eventId, matchId, message)
+  return error ? { sent: false, error } : { sent: true }
+}
+
 // The three steps of the counter: both groups arrive, the three stages are scored, the visa is stamped.
 function DeskFlow({ arrived, scored, total }: { arrived: boolean; scored: number; total: number }) {
   const sealed = scored === total
@@ -510,7 +547,7 @@ export function MatchCard({
   const scored = new Map(match.match_scores.map((s) => [s.item, s]))
   const pendingItems = SCORE_ITEMS.filter((i) => !scored.has(i))
   const toSend = pendingItems.filter((i) => picks[i])
-  const arrived = match.arrived_at !== null || match.status !== 'pending'
+  const arrived = match.arrived_at !== null // the database refuses a score from the base before the arrival is confirmed (0022)
   const points = (teamId: string) => match.match_scores.filter((s) => s.winner_team_id === teamId).length
 
   const label = (id: string | null | undefined) => (id ? (teams.get(id)?.name ?? '?') : '')
@@ -530,13 +567,11 @@ export function MatchCard({
   // The base can hurry the groups: they get the message (and a notification) on their phones.
   async function hurry() {
     if (!eventId) return
-    const message = await promptDialog({ title: 'Apurar a los grupos', message: 'Les llega como notificación y les suena el teléfono.', label: 'Mensaje', defaultValue: 'Apúrense: la base los está esperando.', confirmLabel: 'Enviar aviso', icon: 'bell' })
-    if (!message) return
     setError(null)
     setNotice(null)
-    const err = await sendMatchAlert(eventId, match.id, message)
-    if (err) setError(err)
-    else setNotice('Aviso enviado a los dos grupos.')
+    const result = await hurryGroups(eventId, match.id)
+    if (result.error) setError(result.error)
+    else if (result.sent) setNotice('Aviso enviado a los dos grupos.')
   }
 
   async function send() {
@@ -550,7 +585,9 @@ export function MatchCard({
     )
     if (err) {
       setError(
-        /ronda anterior/i.test(err.message)
+        /llegaron los dos grupos/i.test(err.message)
+          ? 'Primero confirma que llegaron los dos grupos.'
+          : /ronda anterior/i.test(err.message)
           ? 'Primero termina de calificar la ronda anterior.'
           : /duplicate|unique/i.test(err.message)
             ? 'Alguien ya registró uno de esos ítems. Se actualizó la pantalla.'

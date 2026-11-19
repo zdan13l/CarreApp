@@ -9,10 +9,12 @@ export function AlertBanner({
   title,
   children,
   onDismiss,
+  action,
 }: {
   title: string
   children?: ReactNode
   onDismiss?: () => void
+  action?: ReactNode // a button under the text (e.g. "Apurar a los grupos" on the base's delay banner)
 }) {
   return (
     <div className="alert-banner" role="alert">
@@ -20,6 +22,7 @@ export function AlertBanner({
       <div className="grow">
         <strong>{title}</strong>
         {children && <p>{children}</p>}
+        {action && <div className="banner-actions">{action}</div>}
       </div>
       {onDismiss && (
         <button className="ghost icon-btn" onClick={onDismiss} aria-label="Cerrar aviso" title="Cerrar aviso">

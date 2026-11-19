@@ -27,7 +27,8 @@ import { RoundCard } from './admin/Cruces'
 import { BaseGuide, BaseTicket, BaseWhere, ClosedDesk, MatchCard, NextRound, type BaseMatch, type Team } from './BaseHome'
 import { stampLook } from '../lib/stamp'
 import { AfterCard, CurrentRound, FinishedCard, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
-import { AlertBell } from '../components/Alerts'
+import { AlertBanner, AlertBell } from '../components/Alerts'
+import LoadFailed from '../components/LoadFailed'
 import TeamDialog from '../components/TeamDialog'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import { confirmDialog, promptDialog } from '../lib/dialog'
@@ -134,6 +135,36 @@ export default function Preview() {
             <button className="ghost" onClick={() => void confirmDialog({ title: '¿Cerrar sesión?', message: 'Este teléfono dejará de recibir los avisos de la Carrera.', confirmLabel: 'Cerrar sesión', icon: 'logout' })}>Salir</button>
           </div>
         </section>
+      </AppShell>
+    )
+  }
+
+  // the first request failed (bad signal): not the same as having no Carrera
+  if (screen === 'carga-fallida') {
+    return (
+      <AppShell title="Mi base" user={inspector}>
+        <LoadFailed onRetry={noop} />
+      </AppShell>
+    )
+  }
+
+  // a group is late for the NEXT round: the banner carries its own button to hurry the groups
+  if (screen === 'base-demora') {
+    return (
+      <AppShell title="Mi base" showTitle={false} user={inspector} topActions={<AlertBell />}>
+        <div className="base-view" style={baseInk}>
+          <AlertBanner
+            title="Ronda 3: grupos en demora"
+            action={<button type="button" className="ghost banner-action">Apurar a los grupos</button>}
+          >
+            Dioses Griegos llevan 14 min en el traslado (máximo 10 min).
+          </AlertBanner>
+          <div className="tab-view fwd">
+            <BaseTicket name="Atrio" photoPath="/campus-800.jpg" sealed={1} />
+            <MatchCard match={baseMatchPlaying} teams={teams} onSent={noopAsync} eventId="e1" base={previewBase} codes={baseCodes} />
+          </div>
+          <BottomNav tabs={baseTabs} active="ronda" transition={false} onChange={noop} />
+        </div>
       </AppShell>
     )
   }
@@ -571,5 +602,5 @@ export default function Preview() {
     )
   }
 
-  return <p className="page">Pantallas: dialogs, base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, runner-fin, base, base-llegada, base-fin, base-info, admin, admin-carrera, admin-forms</p>
+  return <p className="page">Pantallas: dialogs, base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, runner-fin, base, base-llegada, base-fin, base-demora, base-info, carga-fallida, admin, admin-carrera, admin-forms</p>
 }
