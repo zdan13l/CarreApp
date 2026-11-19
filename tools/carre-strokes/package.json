@@ -1,0 +1,15 @@
+{
+  "name": "carre-strokes",
+  "private": true,
+  "type": "module",
+  "description": "Generates src/lib/carreStrokes.ts: the pen strokes that write the name CarreApp on the login",
+  "scripts": {
+    "fonts": "node fetch-fonts.mjs",
+    "build": "node make-strokes.mjs ../../public/wordmark.svg ../../src/lib/carreStrokes.ts"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "harfbuzzjs": "^1.6.4",
+    "wawoff2": "^2.0.1"
+  }
+}
