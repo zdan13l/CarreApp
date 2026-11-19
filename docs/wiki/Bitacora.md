@@ -2,6 +2,13 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Pantalla del corredor (2026-11-18)
+- Barra superior con el escudo completo y grande (antes la versión compacta de 30 px). Tarjeta principal: ahora muestra los **puntos** del equipo en lugar de "x de y destinos".
+- Campana: el panel de ajustes se abre sobre la pantalla (se cierra tocando fuera, la X o Escape). El icono muestra el estado del sonido (campana sonando o tachada con punto) y se actualiza al instante. Se arregló una carrera: tocar el botón de "reactivar sonido" podía apagarlo, porque el toque ya había despertado el audio antes del clic.
+- "Próximo destino" rehecho como pase de abordar en azul marino `#031d44` con muescas y talón (código y puerta).
+- Pasaporte: la portada se ve cada vez que se abre la pestaña y se abre al tocarla. Las pestañas se deslizan al cambiar (hacia donde vas).
+- Top: ya no repite la tarjeta del equipo (su nombre y puntos están arriba); lista todos los equipos con el propio marcado, sobre el patrón de la entrada.
+
 ## Login: mitad campus, mitad patrón, logo blanco con letras doradas (2026-11-18)
 - La mitad de arriba vuelve a ser la foto del campus (esquinas redondeadas abajo) y la de abajo un patrón de mármol blanco con vetas doradas (`public/login-pattern.svg` y `login-pattern-dark.svg`, trazados vectoriales sin costura); en escritorio, foto a la izquierda y patrón a la derecha.
 - Logo del login: escudo blanco (`crest-blanco.svg`) y nombre en lámina dorada. Solo "Gestión en vivo de Carrera" en amarillo.
