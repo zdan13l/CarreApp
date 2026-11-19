@@ -1,5 +1,6 @@
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { LocateFixed } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { CAMPUS_CENTER, MAPBOX_TOKEN, type LngLat } from '../lib/mapbox'
 import { useTheme } from '../lib/theme'
@@ -22,6 +23,7 @@ export interface MapViewProps {
   height?: string
   lightPreset?: 'day' | 'dusk' | 'night' | 'dawn'
   interactive?: boolean // false: a fixed map to look at (no pan, zoom or rotation)
+  recenter?: boolean // a button that brings the view back to the campus (the bases) after the map was moved
 }
 
 // Mapbox paints with WebGL and cannot read CSS variables, so the route takes its colours from them.
@@ -29,7 +31,7 @@ const cssColor = (name: string) => getComputedStyle(document.documentElement).ge
 
 // Glyphs (Lucide paths) drawn inside the markers.
 const GLYPH = {
-  base: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
+  base: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" fill="currentColor"/><line x1="4" x2="4" y1="22" y2="15"/>',
   target:
     '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
 } as const
@@ -77,7 +79,7 @@ function declutterLabels(markers: Map<string, mapboxgl.Marker>) {
   }
 }
 
-export default function MapView({ markers, route, onPick, height = '360px', lightPreset = 'day', interactive = true }: MapViewProps) {
+export default function MapView({ markers, route, onPick, height = '360px', lightPreset = 'day', interactive = true, recenter = false }: MapViewProps) {
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const loaded = useRef(false)
@@ -85,6 +87,10 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
   const routeRef = useRef<LngLat[] | null | undefined>(route)
   const onPickRef = useRef(onPick)
   const lastFit = useRef('')
+  const markersRef = useRef(markers)
+  useEffect(() => {
+    markersRef.current = markers
+  })
 
   useEffect(() => {
     onPickRef.current = onPick
@@ -105,7 +111,7 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
       interactive,
     })
     mapRef.current = map
-    if (interactive) map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
+    if (interactive && !recenter) map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
     const declutter = () => declutterLabels(domMarkers.current)
     map.on('idle', declutter)
     map.on('zoomend', declutter)
@@ -218,5 +224,29 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
     source?.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: route ?? [] } })
   }, [route])
 
-  return <div ref={container} className="map" style={{ height }} />
+  // Back to the campus: the view of the beginning, framing the bases (or the campus centre when there are none).
+  const centre = () => {
+    const map = mapRef.current
+    if (!map) return
+    const bases = markersRef.current.filter((m) => m.kind === 'base')
+    if (bases.length > 1) {
+      const bounds = new mapboxgl.LngLatBounds()
+      bases.forEach((m) => bounds.extend([m.lng, m.lat]))
+      map.fitBounds(bounds, { padding: 60, maxZoom: 17.5, pitch: 62, bearing: -18, duration: 900 })
+    } else {
+      map.easeTo({ center: CAMPUS_CENTER, zoom: 16.2, pitch: 62, bearing: -18, duration: 900 })
+    }
+  }
+
+  return (
+    <div className="map-wrap">
+      <div ref={container} className="map" style={{ height }} />
+      {recenter && (
+        <button type="button" className="ghost map-recenter" onClick={centre} aria-label="Centrar el mapa en la Javeriana">
+          <LocateFixed size={18} aria-hidden="true" />
+          Centrar
+        </button>
+      )}
+    </div>
+  )
 }

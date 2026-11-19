@@ -1,6 +1,6 @@
 // Design preview (development only): renders the real components with sample data so the
 // look can be reviewed without signing in. Not included in the production build.
-//   /preview/runner  /preview/runner-ruta  /preview/runner-top
+//   /preview/runner  /preview/runner-ruta  /preview/runner-top  /preview/runner-fin
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
 import { BookMarked, BellRing, Camera, ChevronRight, KeyRound, LocateFixed, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy } from 'lucide-react'
 import { useParams } from 'react-router-dom'
@@ -24,7 +24,7 @@ import { PrepSteps } from './admin/Carrera'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
 import { BaseGuide, BaseWhere, MatchCard, TeamFace, type BaseMatch, type Team } from './BaseHome'
-import { AfterCard, CurrentRound, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
+import { AfterCard, CurrentRound, FinishedCard, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
 import { AlertBell } from '../components/Alerts'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import { confirmDialog, promptDialog } from '../lib/dialog'
@@ -171,6 +171,17 @@ export default function Preview() {
             <Stamp seed="y3" name="Atrio" round={5} state="rest" size={130} />
           </div>
         </section>
+      </AppShell>
+    )
+  }
+
+  if (screen === 'runner-fin') {
+    return (
+      <AppShell title="Mi grupo" user={user} topActions={<AlertBell />}>
+        <div className="tab-view fwd">
+          <FinishedCard team="Dioses Griegos" matches={routeMatches.filter((m) => m.round_number !== 3)} onPassport={noop} />
+        </div>
+        <BottomNav tabs={runnerTabs} active="ronda" onChange={noop} />
       </AppShell>
     )
   }
@@ -531,5 +542,5 @@ export default function Preview() {
     )
   }
 
-  return <p className="page">Pantallas: dialogs, base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, base, base-info, admin, admin-carrera, admin-forms</p>
+  return <p className="page">Pantallas: dialogs, base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, runner-fin, base, base-info, admin, admin-carrera, admin-forms</p>
 }

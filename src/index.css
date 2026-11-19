@@ -1773,3 +1773,109 @@ html:has(.tab-view), body:has(.tab-view) { background: #fff url(/login-pattern.s
 .slot-btn { background: color-mix(in srgb, var(--surface) 88%, transparent); box-shadow: 0 6px 16px -10px rgba(3, 29, 68, .45); }
 .cover-sub { margin-top: .3rem; font-size: .95rem; letter-spacing: .5em; text-indent: .5em; text-align: center; }
 .moment { cursor: default; }
+
+/* =====================================================================
+   Corredor · ronda 3: caja de la barra superior, hojas de cuenta y alertas, mapa con "Centrar", pasaporte de tamaño fijo,
+   pase del próximo destino y tarjeta de recorrido completo
+   ===================================================================== */
+
+/* la barra de arriba es una cajita: logo, campana y @usuario, para que el título se distinga */
+.topbar { margin-top: .25rem; padding: .55rem .6rem .55rem .85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 12px 26px -16px rgba(3, 29, 68, .55); }
+.topbar::after { left: 18px; right: 18px; bottom: -1px; }
+.page-title { margin-top: 1.1rem; }
+.topbar .account-text strong { max-width: 6.4rem; }
+
+/* hoja de la cuenta: foto grande, modo claro / oscuro y salir */
+.sheet-backdrop.centered { display: grid; place-items: center; padding: 1rem; overflow-y: auto; }
+.account-sheet { position: relative; display: grid; justify-items: center; gap: .35rem; width: min(340px, 100%); padding: 1.7rem 1.4rem 1.3rem; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 26px; box-shadow: 0 28px 56px -16px rgba(3, 29, 68, .7); animation: rise .28s cubic-bezier(.2, .8, .2, 1) both; }
+.account-sheet::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 5px; border-radius: 26px 26px 0 0; background: var(--foil); }
+.sheet-x { position: absolute; top: .8rem; right: .8rem; }
+.account-photo { display: grid; padding: 5px; border-radius: 50%; background: var(--foil); box-shadow: 0 16px 30px -14px rgba(3, 29, 68, .7); }
+.account-photo .avatar { border: 4px solid var(--surface); font-weight: 800; }
+.account-sheet h2 { margin: .8rem 0 0; font-size: 1.55rem; text-align: center; }
+.account-handle { margin: 0; color: var(--text-muted); font: 700 .85rem/1.3 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .06em; }
+.account-actions { display: grid; gap: .6rem; width: 100%; margin-top: 1.1rem; }
+.account-action { justify-content: center; gap: .6rem; width: 100%; min-height: 50px; }
+.account-action.danger { color: var(--danger); }
+
+/* mapa con botón de centrar y banderas mejores */
+.map-wrap { position: relative; }
+.map-wrap .map { border-radius: var(--radius-sm); overflow: hidden; }
+button.map-recenter.ghost { position: absolute; z-index: 3; right: 12px; bottom: 12px; gap: .45rem; min-height: 44px; padding: 0 1rem; color: #fff; background: var(--pass-navy); border: 1px solid rgba(255, 255, 255, .22); border-radius: 999px; box-shadow: 0 8px 18px -8px rgba(3, 29, 68, .8); font-size: .9rem; font-weight: 700; }
+button.map-recenter.ghost:hover:not(:disabled) { background: var(--pass-navy-2); }
+.mk-base .mk-pin { width: 40px; height: 40px; color: var(--pass-gold); background: var(--pass-navy); border: 3px solid var(--pass-gold); border-radius: 50% 50% 50% 4px; transform: rotate(-45deg); box-shadow: 0 8px 14px -4px rgba(3, 29, 68, .7), 0 0 0 3px #fff; }
+.mk-base .mk-pin svg { width: 19px; height: 19px; transform: rotate(45deg); }
+.mk-base .mk-label { color: var(--pass-navy); background: #fff; border: 1px solid rgba(3, 29, 68, .18); box-shadow: 0 4px 10px -4px rgba(3, 29, 68, .5); }
+.mk-base { gap: 8px; }
+
+/* pasaporte: tamaño fijo y cuerpo que se desplaza por dentro */
+.booklet { min-height: 0; --leaf-h: clamp(540px, calc(100dvh - 235px), 720px); }
+.leaf { display: flex; flex-direction: column; height: var(--leaf-h); }
+.leaf-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding-top: .7rem; }
+.leaf-body::-webkit-scrollbar { display: none; }
+.leaf .mrz { flex: none; margin-top: .5rem; text-align: center; letter-spacing: .1em; }
+.id-grid.two { grid-template-columns: 1fr 1fr; margin: 0 0 .7rem; padding: 0; }
+.id-grid dd small { color: var(--text-muted); font-size: .9rem; font-weight: 700; }
+.routemap { margin-top: 0; }
+.trip { margin: .8rem 0 .3rem; }
+.itinerary { margin-top: .6rem; }
+.stamp-total { display: grid; justify-items: center; grid-auto-flow: column; align-items: center; gap: .5rem; margin: 0; padding: .4rem .8rem .4rem .6rem; color: var(--pass-navy); background: var(--foil); border-radius: 14px; box-shadow: 0 8px 16px -10px rgba(3, 29, 68, .7); line-height: 1; }
+.stamp-total b { font-size: 2.1rem; font-weight: 800; }
+.stamp-total span { font: 700 .75rem/1.15 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.leaf-nav { justify-content: center; margin-top: .9rem; }
+.leaf-dots i.on { background: var(--pass-gold); box-shadow: 0 0 0 1px var(--pass-navy); }
+
+/* portada con más detalle */
+.cover { bottom: auto; height: var(--leaf-h); }
+.cover-inner { position: relative; height: 100%; min-height: 0; padding: 2.2rem 1.5rem 7rem; }
+.cover-inner::before { content: ''; position: absolute; inset: 0; background: url(/login-pattern.svg) 0 0 / 340px 340px; mix-blend-mode: soft-light; opacity: .55; pointer-events: none; }
+.cover-inner > * { position: relative; }
+.cover-corner { position: absolute; width: 30px; height: 30px; border: 0 solid var(--pass-gold); opacity: .9; pointer-events: none; }
+.cover-corner.tl { top: 22px; left: 22px; border-top-width: 2px; border-left-width: 2px; border-top-left-radius: 8px; }
+.cover-corner.tr { top: 22px; right: 22px; border-top-width: 2px; border-right-width: 2px; border-top-right-radius: 8px; }
+.cover-corner.bl { bottom: 22px; left: 22px; border-bottom-width: 2px; border-left-width: 2px; border-bottom-left-radius: 8px; }
+.cover-corner.br { bottom: 22px; right: 22px; border-bottom-width: 2px; border-right-width: 2px; border-bottom-right-radius: 8px; }
+.cover-top { margin-bottom: .6rem; color: var(--pass-gold); font: 700 .75rem/1.3 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .2em; text-align: center; text-transform: uppercase; }
+.cover-uni { height: 96px; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .35)); }
+.cover-title { font-size: 3.2rem; }
+.cover-rule { display: flex; align-items: center; justify-content: center; gap: .6rem; margin: .1rem 0; color: var(--pass-gold); }
+.cover-rule i { width: 52px; height: 1px; background: linear-gradient(90deg, transparent, var(--pass-gold)); }
+.cover-rule i:last-child { transform: scaleX(-1); }
+.cover-sub { margin: 0; text-align: center; }
+.cover-team { margin-top: 1rem; text-align: center; }
+.cover-bottom { position: absolute; left: 1.5rem; right: 1.5rem; bottom: 2.1rem; display: grid; justify-items: center; gap: .6rem; }
+.cover-chip { position: relative; width: 36px; height: 24px; border: 1.5px solid var(--pass-gold); border-radius: 6px; }
+.cover-chip::after { content: ''; position: absolute; inset: 5px 11px; border: 1.5px solid var(--pass-gold); border-radius: 50%; }
+.cover .mrz { display: block; width: 100%; margin: 0; padding: 0; border: 0; color: var(--on-hero-muted); font-size: .75rem; letter-spacing: .08em; text-align: center; }
+.cover-hint { margin-top: .1rem; }
+
+/* el próximo destino: nombre arriba, foto y rival debajo */
+.next-ticket .tc-name { display: block; margin-bottom: .85rem; font-size: 1.3rem; }
+.nt-row { display: flex; align-items: center; gap: .9rem; }
+.nt-photo { flex: none; width: 84px; height: 84px; object-fit: cover; border-radius: 14px; border: 1px solid rgba(255, 255, 255, .24); background: var(--pass-navy-3); }
+.nt-photo.empty { display: grid; place-items: center; color: rgba(255, 255, 255, .7); }
+.nt-rival { display: grid; gap: .45rem; min-width: 0; }
+.nt-rival small { color: var(--pass-gold); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.nt-rival span { display: flex; align-items: center; gap: .55rem; }
+.nt-rival strong { font-size: 1.05rem; line-height: 1.15; overflow-wrap: anywhere; }
+
+/* recorrido completo */
+.finish { position: relative; display: grid; justify-items: center; gap: .35rem; margin-top: 1rem; padding: 1.7rem 1.2rem 1.4rem; overflow: hidden; isolation: isolate; color: #fff; text-align: center; background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--pass-gold) 32%, transparent), transparent 62%), var(--pass-navy); border: 1px solid rgba(255, 255, 255, .14); border-radius: 22px; box-shadow: 0 18px 34px -16px rgba(3, 29, 68, .7); animation: rise .5s cubic-bezier(.2, .8, .2, 1) both; }
+.finish::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--foil); }
+.finish::after { content: ''; position: absolute; inset: 0; z-index: -1; background: url(/login-pattern-dark.svg) 0 0 / 360px 360px; opacity: .55; }
+.finish-trophy { color: var(--pass-gold); filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .4)); animation: pulse 2.4s ease-in-out infinite; }
+.finish-kicker { margin: .2rem 0 0; color: var(--pass-gold); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .24em; text-transform: uppercase; }
+.finish h2 { margin: .25rem 0 0; font-size: 2rem; font-weight: 800; line-height: 1; text-transform: uppercase; }
+.finish-sub { margin: 0; color: rgba(255, 255, 255, .78); }
+.finish-stamps { display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem; margin: 1rem 0 .3rem; }
+.finish-stamps > span { display: block; animation: stamp-in .6s cubic-bezier(.2, .8, .2, 1) both; }
+.finish-count { display: grid; justify-items: center; margin: 0; color: var(--pass-gold); font-size: 2.6rem; font-weight: 800; line-height: 1; }
+.finish-count small { color: rgba(255, 255, 255, .7); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; }
+button.finish-btn { gap: .5rem; width: 100%; min-height: 52px; margin-top: 1rem; color: var(--pass-navy); background: var(--foil); border: 0; font-weight: 800; }
+@media (prefers-reduced-motion: reduce) { .finish, .finish-stamps > span, .finish-trophy { animation: none; } }
+.topbar button.bell.ghost { width: 44px; min-width: 44px; min-height: 44px; border-radius: 15px; }
+.topbar .account-btn { min-height: 44px; }
+.cover-inner::before { opacity: .28; }
+.leaf-body { -webkit-mask-image: linear-gradient(#000 calc(100% - 22px), transparent); mask-image: linear-gradient(#000 calc(100% - 22px), transparent); padding-bottom: 1rem; }
+.leaf .routemap svg { max-height: 150px; }
+.id-grid dd small { margin-left: .25rem; }

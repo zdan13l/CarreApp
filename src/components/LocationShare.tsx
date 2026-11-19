@@ -7,8 +7,8 @@ import LazyMap, { type MapMarker } from './LazyMap'
 const UPLOAD_EVERY_MS = 10000 // the designated runner sends the position at most every 10 s
 
 // For the group's designated runner (the shared user of the pair): turns on the location that is shared with the
-// coordinator. The map is only there to look at: it shows the bases and where the group is, it follows the position
-// and it cannot be moved. Walking directions are not offered (the runners know where the next base is).
+// coordinator. The map shows the bases and where the group is; it can be moved and a button centres it back on the campus.
+// Walking directions are not offered (the runners know where the next base is). The screen has no explanations: only the button.
 export default function LocationShare({
   teamId,
   bases,
@@ -55,14 +55,9 @@ export default function LocationShare({
   return (
     <>
       <section className="card map-card">
-        <LazyMap markers={markers} height="min(55vh, 420px)" interactive={false} />
+        <LazyMap markers={markers} height="min(55vh, 420px)" recenter />
       </section>
       <section className="card">
-        <h2>Ubicación del grupo</h2>
-        <p className="muted">
-          Eres el usuario designado para el GPS del grupo: tu ubicación se comparte con el coordinador. Deja la app abierta con la
-          pantalla encendida mientras caminan.
-        </p>
         {!enabled ? (
           <button className="btn-block" onClick={() => setEnabled(true)}>
             <LocateFixed size={20} aria-hidden="true" />

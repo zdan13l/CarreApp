@@ -1,6 +1,7 @@
 import { BellOff, BellRing, Volume2, VolumeX, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { disableSound, enableSound, useAudioRunning, useSoundEnabled } from '../lib/alerts'
+import { useScrollLock } from '../lib/scrollLock'
 import { disablePush, enablePush, pushState, type PushState } from '../lib/push'
 
 // Big attention banner for delays and coordinator messages.
@@ -129,6 +130,7 @@ export function AlertSettings() {
 export function AlertBell() {
   const [open, setOpen] = useState(false)
   const on = useSoundEnabled()
+  useScrollLock(open)
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -160,10 +162,6 @@ export function AlertBell() {
                 <X size={18} />
               </button>
             </header>
-            <p className="muted">
-              Para que te avisemos cuando vayas tarde a la siguiente base: con el sonido activado suena cada 30 segundos mientras
-              dure la demora; con las notificaciones te llega aunque el teléfono esté bloqueado.
-            </p>
             <AlertSettings />
           </section>
         </>
