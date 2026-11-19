@@ -43,7 +43,7 @@ describe('the settings bell and the base history', () => {
     // the runner's bell (Alerts.tsx): ringing with sound on, crossed with it off
     expect(read('src/components/Alerts.tsx')).toMatch(/on \? <BellRing size=\{20\} \/> : <BellOff size=\{20\} \/>/)
     expect(read('src/pages/RunnerHome.tsx')).toMatch(/<AlertBell \/>/)
-    expect(read('src/pages/BaseHome.tsx')).toMatch(/showAlerts \? <BellRing size=\{20\} \/> : <Bell size=\{20\} \/>/)
+    expect(read('src/pages/BaseHome.tsx')).toMatch(/<AlertBell \/>/) // the base uses the same bell
     expect(read('src/index.css')).toMatch(/\.bell\[aria-expanded='true'\] \{ background: var\(--gold\)/)
   })
   it('"Cruces de tu base" says who won each item', () => {
