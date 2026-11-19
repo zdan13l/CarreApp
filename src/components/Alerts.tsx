@@ -1,6 +1,6 @@
 import { BellOff, BellRing, Volume2, VolumeX, X } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
-import { disableSound, enableSound, soundEnabled, useAudioRunning } from '../lib/alerts'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { disableSound, enableSound, useAudioRunning, useSoundEnabled } from '../lib/alerts'
 import { disablePush, enablePush, pushState, type PushState } from '../lib/push'
 
 // Big attention banner for delays and coordinator messages.
@@ -32,23 +32,28 @@ export function AlertBanner({
 // iOS and browsers need a tap before they allow sound: this button unlocks it. After a reload or
 // a lock the sound goes back to sleep until the next tap, and the label says so.
 export function SoundToggle() {
-  const [on, setOn] = useState(soundEnabled)
+  const on = useSoundEnabled()
   const running = useAudioRunning()
   const asleep = on && !running
+  // Any tap in the app wakes the audio up (see lib/alerts) just BEFORE the click arrives: what the button looked like when the
+  // finger went down decides what the tap means, otherwise "wake the sound up" would turn it off.
+  const asleepOnPress = useRef(false)
   return (
     <button
       type="button"
       className={`ghost sound-toggle${on ? ' on' : ''}${asleep ? ' asleep' : ''}`}
       aria-pressed={on}
+      onPointerDown={() => {
+        asleepOnPress.current = asleep
+      }}
       onClick={async () => {
-        if (asleep) {
-          await enableSound() // a tap wakes the audio up again
+        if (asleepOnPress.current) {
+          asleepOnPress.current = false
+          await enableSound() // the tap wakes the audio up again
         } else if (on) {
           disableSound()
-          setOn(false)
         } else {
           await enableSound()
-          setOn(true)
         }
       }}
     >
@@ -115,6 +120,54 @@ export function AlertSettings() {
     <>
       <SoundToggle />
       <PushToggle />
+    </>
+  )
+}
+
+// The bell of the top bar: its icon says whether the sound is on (ringing bell) or off (crossed bell with a dot), and it opens the
+// alert settings as a sheet under the bar, on top of everything, closed with a tap outside, the X or Escape.
+export function AlertBell() {
+  const [open, setOpen] = useState(false)
+  const on = useSoundEnabled()
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
+  return (
+    <>
+      <button
+        type="button"
+        className={`ghost icon-btn bell${on ? ' is-on' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Ajustes de alertas"
+        aria-expanded={open}
+        title="Ajustes de alertas"
+      >
+        {on ? <BellRing size={20} /> : <BellOff size={20} />}
+        {!on && <span className="dot" aria-hidden="true" />}
+      </button>
+      {open && (
+        <>
+          <div className="sheet-backdrop" role="presentation" onClick={() => setOpen(false)} />
+          <section className="alerts-sheet" role="dialog" aria-label="Alertas">
+            <header>
+              <h2>Alertas</h2>
+              <button type="button" className="ghost icon-btn" onClick={() => setOpen(false)} aria-label="Cerrar" title="Cerrar">
+                <X size={18} />
+              </button>
+            </header>
+            <p className="muted">
+              Para que te avisemos cuando vayas tarde a la siguiente base: con el sonido activado suena cada 30 segundos mientras
+              dure la demora; con las notificaciones te llega aunque el teléfono esté bloqueado.
+            </p>
+            <AlertSettings />
+          </section>
+        </>
+      )}
     </>
   )
 }

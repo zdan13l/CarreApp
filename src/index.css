@@ -67,6 +67,7 @@
   --ink-5: #ffb862;
   --logo-ink: #eef2ff;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
+  --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
   /* Torre de control (coordinador): siempre oscura, con colores de instrumento */
   --tw-bg: #060b13;
   --tw-surface: #0b131e;
@@ -134,6 +135,7 @@
   --ink-5: #a85a00;
   --logo-ink: #013c9c;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
+  --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
   /* Torre de control (coordinador): siempre oscura, con colores de instrumento */
   --tw-bg: #060b13;
   --tw-surface: #0b131e;
@@ -1633,3 +1635,57 @@ html:has(.login-screen), body:has(.login-screen) { overflow: hidden; overscroll-
 .brand.gold { color: var(--on-hero); }
 .logo-crest-gold { display: block; flex: none; height: var(--logo-s, 34px); width: auto; }
 .logo-word.foil { background: var(--on-hero); }
+
+/* =====================================================================
+   Pantalla del corredor (solo celular): barra superior con el escudo grande, campana con panel, pase de abordar en azul
+   marino (var(--pass-navy)), páginas que se deslizan y el Top sobre el patrón de la entrada
+   ===================================================================== */
+.logo-crest.full { width: calc(var(--logo-s, 34px) * .9136); -webkit-mask-image: url(/crest-blanco.svg); mask-image: url(/crest-blanco.svg); }
+.topbar { gap: .5rem; padding: .5rem 0 .8rem; }
+.topbar .brand { gap: calc(var(--logo-s, 34px) * .16); }
+
+/* campana: el panel de ajustes se abre sobre la pantalla, bajo la barra */
+.sheet-backdrop { position: fixed; inset: 0; z-index: 70; background: color-mix(in srgb, var(--pass-navy) 60%, transparent); animation: fade .2s ease-out both; }
+.alerts-sheet { position: fixed; z-index: 71; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 76px); padding: 1rem 1.1rem 1.15rem; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 18px; box-shadow: 0 24px 48px -12px color-mix(in srgb, var(--pass-navy) 60%, transparent); animation: rise .25s cubic-bezier(.2, .8, .2, 1) both; }
+.alerts-sheet header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.alerts-sheet h2 { margin: 0; }
+.alerts-sheet .muted { margin: .4rem 0 0; }
+.bell.is-on { color: var(--ok); }
+.bell[aria-expanded='true'].is-on { color: var(--on-gold); }
+
+/* las pestañas se deslizan (hacia donde vas) */
+.tab-view { animation: tab-fwd .34s cubic-bezier(.2, .8, .2, 1) both; }
+.tab-view.back { animation-name: tab-back; }
+@keyframes tab-fwd { from { opacity: 0; transform: translateX(28px); } }
+@keyframes tab-back { from { opacity: 0; transform: translateX(-28px); } }
+@media (prefers-reduced-motion: reduce) { .tab-view { animation: none; } }
+
+/* el pase de abordar: azul marino con muescas y talón */
+.tc-wrap { margin-top: 1rem; filter: drop-shadow(0 12px 18px rgba(3, 29, 68, .38)); }
+.tc {
+  --stub: 98px; --notch: 10px; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) var(--stub); color: #fff; background: var(--pass-navy); border-radius: 18px; overflow: hidden;
+  -webkit-mask: radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 0, transparent 97%, #000) top / 100% 51% no-repeat, radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 100%, transparent 97%, #000) bottom / 100% 51% no-repeat;
+  mask: radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 0, transparent 97%, #000) top / 100% 51% no-repeat, radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 100%, transparent 97%, #000) bottom / 100% 51% no-repeat;
+}
+.tc::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--foil); }
+.tc-main { min-width: 0; padding: 1.1rem 1rem 1.1rem 1.15rem; }
+.tc-kicker { margin: 0 0 .7rem; color: var(--pass-gold); font: 700 .75rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.tc-row { display: flex; align-items: center; gap: .85rem; }
+.tc-photo { flex: none; width: 78px; height: 78px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .22); background: var(--pass-navy-3); }
+.tc-photo.empty { display: grid; place-items: center; color: rgba(255, 255, 255, .7); }
+.tc-info { min-width: 0; }
+.tc-name { display: block; font-weight: 800; font-size: 1.2rem; line-height: 1.1; text-transform: uppercase; overflow-wrap: anywhere; }
+.tc-rival { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; color: rgba(255, 255, 255, .72); font-size: .875rem; }
+.tc-rival strong { color: #fff; }
+.tc .crest { background: rgba(255, 255, 255, .14); color: #fff; border-color: rgba(255, 255, 255, .26); }
+.tc-stub { position: relative; display: grid; align-content: center; justify-items: center; gap: .4rem; padding: .8rem .4rem; background: var(--pass-navy-2); text-align: center; }
+.tc-stub::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; border-left: 2px dashed rgba(255, 255, 255, .3); }
+.tc-code { font: 800 1.9rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .05em; }
+.tc-stub small { color: var(--pass-gold); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; }
+.top-others .team-names li.mine { background: var(--pass-navy); border-color: var(--pass-navy); color: #fff; }
+.top-others .team-names li.mine::after { content: 'Tu equipo'; margin-left: auto; color: var(--pass-gold); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; }
+
+/* Top: el patrón de la entrada detrás de las tarjetas */
+html:has(.top-view), body:has(.top-view) { background: #fff url(/login-pattern.svg) 0 0 / 520px 520px fixed; }
+:root:not([data-theme='light']) body:has(.top-view), :root:not([data-theme='light']) html:has(.top-view) { background: var(--bg) url(/login-pattern-dark.svg) 0 0 / 520px 520px fixed; }
+.top-others { box-shadow: var(--shadow-pop); }

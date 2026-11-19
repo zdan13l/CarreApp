@@ -1,4 +1,4 @@
-import { Ban, BookMarked, Bell, BellRing, Check, LocateFixed, MapPin, Stamp as StampIcon, Trophy } from 'lucide-react'
+import { Ban, BookMarked, Check, LocateFixed, MapPin, Stamp as StampIcon, Trophy } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import AppShell from '../components/AppShell'
 import BottomNav, { type NavTab } from '../components/BottomNav'
@@ -9,9 +9,9 @@ import StampMoment from '../components/StampMoment'
 import LocationShare from '../components/LocationShare'
 import TeamNames from '../components/TeamNames'
 import NoActiveCarrera from '../components/NoActiveCarrera'
-import { AlertBanner, AlertSettings } from '../components/Alerts'
+import { AlertBanner, AlertBell } from '../components/Alerts'
 import { useAuth } from '../lib/auth'
-import { soundEnabled, useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
+import { useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
 import { lateTeams } from '../lib/delays'
 import { useTravelTimes } from '../lib/travel'
 import { useRealtimeReload } from '../lib/realtime'
@@ -69,7 +69,7 @@ const LOCATION_TAB: NavTab<Tab> = { id: 'ubicacion', label: 'Ubicación', icon: 
 export default function RunnerHome() {
   const { profile } = useAuth()
   const [tab, setTab] = useState<Tab>('ronda')
-  const [showAlerts, setShowAlerts] = useState(false) // sound and notification settings
+  const [dir, setDir] = useState<'fwd' | 'back'>('fwd') // which way the page slides when the tab changes
   const [locationOpened, setLocationOpened] = useState(false) // keep the map (and GPS sharing) alive once opened
   const [team, setTeam] = useState<MyTeam | null>(null)
   const [matches, setMatches] = useState<RouteMatch[]>([])
@@ -134,8 +134,6 @@ export default function RunnerHome() {
   const manual = useManualAlerts(mine.map((m) => m.id))
   useRepeatingAlert(myLate.length > 0) // every 30 s while the delay lasts
   const closeMoment = useCallback(() => setMoment(null), [])
-  const stamped = mine.filter((m) => m.status === 'finished').length // a stamp is earned when the base has scored the three stages
-  const playable = mine.length
   const flight = team ? flightCodes(teams.map((t) => ({ id: t.team_id, name: t.name }))).get(team.id) ?? 'JV 200' : ''
 
   // The base scores the third stage of a match -> a new stamp. The first load only records what was already stamped.
@@ -155,20 +153,7 @@ export default function RunnerHome() {
   return (
     <AppShell
       title="Mi grupo"
-      topActions={
-        team && (
-          <button
-            className="ghost icon-btn bell"
-            onClick={() => setShowAlerts((v) => !v)}
-            aria-label="Ajustes de alertas"
-            aria-expanded={showAlerts}
-            title="Ajustes de alertas"
-          >
-            {showAlerts ? <BellRing size={20} /> : <Bell size={20} />}
-            {!soundEnabled() && <span className="dot" aria-hidden="true" />}
-          </button>
-        )
-      }
+      topActions={team && <AlertBell />}
     >
       {loading ? (
         <p className="loading">Cargando…</p>
@@ -177,18 +162,8 @@ export default function RunnerHome() {
       ) : (
         <>
           {/* Always visible: who we are (no ranking and no score here: nobody knows who leads) */}
-          <StatusBar name={team.name} photoPath={team.photo_path} flight={flight} stamps={{ done: stamped, total: playable }} />
+          <StatusBar name={team.name} photoPath={team.photo_path} flight={flight} points={myPoints} />
 
-          {showAlerts && (
-            <section className="card">
-              <h2>Alertas</h2>
-              <p className="muted">
-                Para que te avisemos cuando vayas tarde a la siguiente base: con el sonido activado suena cada 30
-                segundos mientras dure la demora; con las notificaciones te llega aunque el teléfono esté bloqueado.
-              </p>
-              <AlertSettings />
-            </section>
-          )}
           {manual.alerts.map((a) => (
             <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => manual.dismiss(a.id)}>
               {a.message}
@@ -201,6 +176,8 @@ export default function RunnerHome() {
             </AlertBanner>
           ))}
 
+          {tab !== 'ubicacion' && (
+          <div key={tab} className={`tab-view ${dir}`}>
           {tab === 'ronda' && (
             <>
               {mine.length === 0 && <p className="warn">El coordinador aún no ha programado tus cruces.</p>}
@@ -210,13 +187,6 @@ export default function RunnerHome() {
                 <AfterCard match={after} myId={team.id} teams={teamById} />
               )}
             </>
-          )}
-
-          {/* Mounted after the first visit and only hidden afterwards, so GPS sharing keeps running. */}
-          {isTracker && (locationOpened || tab === 'ubicacion') && (
-            <div hidden={tab !== 'ubicacion'}>
-              <LocationShare teamId={team.id} bases={bases} />
-            </div>
           )}
 
           {tab === 'ruta' && (
@@ -231,13 +201,25 @@ export default function RunnerHome() {
             />
           )}
 
-          {tab === 'top' && <TopTab teamId={team.id} points={myPoints} teams={teams} />}
+          {tab === 'top' && <TopTab teamId={team.id} teams={teams} />}
+          </div>
+          )}
+          {/* Mounted after the first visit and only hidden afterwards, so GPS sharing keeps running. */}
+          {isTracker && (locationOpened || tab === 'ubicacion') && (
+            <div hidden={tab !== 'ubicacion'} className={`tab-view ${dir}`}>
+              <LocationShare teamId={team.id} bases={bases} />
+            </div>
+          )}
+
 
           <BottomNav
             tabs={isTracker ? [TABS[0], LOCATION_TAB, TABS[1], TABS[2]] : TABS}
             active={tab}
+            transition={false}
             onChange={(t) => {
               if (t === 'ubicacion') setLocationOpened(true)
+              const order = (isTracker ? [TABS[0], LOCATION_TAB, TABS[1], TABS[2]] : TABS).map((x) => x.id)
+              setDir(order.indexOf(t) >= order.indexOf(tab) ? 'fwd' : 'back')
               setTab(t)
             }}
           />
@@ -259,41 +241,46 @@ export default function RunnerHome() {
 
 const rivalId = (m: RouteMatch, myId: string) => (m.team_a === myId ? m.team_b : m.team_a)
 
-// "Próximo destino": the match after the current one, as a boarding pass: the picture of the base, the crest of the rival and,
-// on the stub, the airport code of the destination and its gate (the round).
+// "Próximo destino": the match after the current one, as a boarding pass in the navy blue: the picture of the base and the rival on
+// the left and, on the stub, the airport code of the destination and its gate (the round).
 export function AfterCard({ match, myId, teams }: { match: RouteMatch; myId: string; teams: Map<string, TeamLite> }) {
   const rival = teams.get(rivalId(match, myId))
   const url = photoUrl(match.bases?.location_photo_path ?? null)
+  const name = match.bases?.name ?? 'Base'
   return (
-    <section className="card next boarding">
-      <div className="bp-main">
-        <h3>Próximo destino · Ronda {match.round_number}</h3>
-        <div className="next-preview">
-          {url ? (
-            <img className="next-photo" src={url} alt={`Dónde queda ${match.bases?.name}`} loading="lazy" decoding="async" />
-          ) : (
-            <span className="next-photo empty" aria-hidden="true"><MapPin size={26} /></span>
-          )}
-          <div className="next-info">
-            <strong>{match.bases?.name}</strong>
-            <span className="rival-line">
-              <span className="muted">contra</span>
-              <Crest name={rival?.name} photoPath={rival?.photo_path} />
-              <strong>{rival?.name ?? '—'}</strong>
-            </span>
+    <div className="tc-wrap">
+      <section className="tc" aria-label={`Próximo destino: ${name}`}>
+        <div className="tc-main">
+          <p className="tc-kicker">Próximo destino · Ronda {match.round_number}</p>
+          <div className="tc-row">
+            {url ? (
+              <img className="tc-photo" src={url} alt={`Dónde queda ${name}`} loading="lazy" decoding="async" />
+            ) : (
+              <span className="tc-photo empty" aria-hidden="true">
+                <MapPin size={26} />
+              </span>
+            )}
+            <div className="tc-info">
+              <strong className="tc-name">{name}</strong>
+              <span className="tc-rival">
+                <span>contra</span>
+                <Crest name={rival?.name} photoPath={rival?.photo_path} size="sm" />
+                <strong>{rival?.name ?? '—'}</strong>
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="bp-stub" aria-hidden="true">
-        <span className="bp-code">{airportCode(match.bases?.name ?? '')}</span>
-        <small>Puerta {match.round_number}</small>
-      </div>
-    </section>
+        <div className="tc-stub" aria-hidden="true">
+          <span className="tc-code">{airportCode(name)}</span>
+          <small>Puerta {match.round_number}</small>
+        </div>
+      </section>
+    </div>
   )
 }
 const scoreOf = (m: RouteMatch, teamId: string) => m.match_scores.filter((s) => s.winner_team_id === teamId).length
 
-export function StatusBar({ name, photoPath, flight, stamps }: { name: string; photoPath: string | null; flight?: string; stamps?: { done: number; total: number } }) {
+export function StatusBar({ name, photoPath, flight, points }: { name: string; photoPath: string | null; flight?: string; points?: number }) {
   return (
     <div className="status-bar" role="status">
       <Crest name={name} photoPath={photoPath} size="lg" />
@@ -305,37 +292,26 @@ export function StatusBar({ name, photoPath, flight, stamps }: { name: string; p
           {flight && <span className="flight-chip mono">{flight}</span>}
         </span>
       </div>
-      {stamps && stamps.total > 0 && (
-        <p className="doc-count num" aria-label={`${stamps.done} de ${stamps.total} destinos`}>
-          {stamps.done}
-          <small>de {stamps.total} destinos</small>
+      {points !== undefined && (
+        <p className="doc-count num" aria-label={`${points} ${points === 1 ? 'punto' : 'puntos'}`}>
+          {points}
+          <small>{points === 1 ? 'punto' : 'puntos'}</small>
         </p>
       )}
     </div>
   )
 }
 
-// "Top": the group's own name and points, then every group of the Carrera by name (no points and no order of merit).
-export function TopTab({ teamId, points, teams }: { teamId: string; points: number; teams: TeamLite[] }) {
-  const mine = teams.find((t) => t.team_id === teamId)
+// "Top": every group of the Carrera by name and picture (no points and no order of merit). The group's own name and points are
+// already in the card at the top of every tab, so they are not repeated here: its row is only marked.
+export function TopTab({ teamId, teams }: { teamId: string; teams: TeamLite[] }) {
   return (
-    <>
-      <section className="card my-team">
-        <h3>Tu equipo</h3>
-        <div className="my-team-row">
-          <Crest name={mine?.name} photoPath={mine?.photo_path} size="lg" />
-          <strong className="grow">{mine?.name ?? '—'}</strong>
-          <span className="my-points num" aria-label={`${points} puntos`}>
-            {points}
-            <small>{points === 1 ? 'pt' : 'pts'}</small>
-          </span>
-        </div>
-      </section>
-      <section className="card">
+    <div className="top-view">
+      <section className="card top-others">
         <h2>Equipos de la Carrera</h2>
         <TeamNames teams={teams.map((t) => ({ id: t.team_id, name: t.name, photo_path: t.photo_path }))} highlightId={teamId} />
       </section>
-    </>
+    </div>
   )
 }
 
