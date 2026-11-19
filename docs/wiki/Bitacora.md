@@ -2,6 +2,9 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Migración 0021 aplicada (2026-11-19)
+El mantenedor aplicó a mano `0021_team_contacts.sql` en el SQL Editor de Supabase. Con ella la ficha de cada equipo en *Top* muestra el @ de su corredor. Ya están aplicadas todas las migraciones, de la `0001` a la `0021`.
+
 ## Base: la ventanilla de visado (2026-11-19)
 La pantalla de la base se veía plana al lado de la del corredor. Se le aplicó todo lo hecho en el corredor y se le dio una identidad propia: el inductor es el **oficial de migración** que sella los pasaportes.
 - Del corredor: pase azul marino con muescas y talón, pestañas blancas de carpeta (*Equipos de la Carrera*, *Cruces de tu base*, *Lo que se explica*, *Posibles preguntas*, *Dónde queda*), fondo con el patrón, transición lateral entre pestañas, barra inferior flotante sin recarga de la vista, la campana (`AlertBell`) en lugar del panel de alertas en línea, título "Mi base" solo en *Ronda* y la tarjeta oscura de cierre.

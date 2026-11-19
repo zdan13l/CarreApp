@@ -388,6 +388,8 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 
 **Verificación** `tests/db/team-contacts-0021.test.ts` (lista los grupos de la propia Carrera, no los de otra, no sirve a la base ni a anónimos, el coordinador ve todo). Sin la migración la app sigue funcionando: la ficha del equipo sale sin @.
 
+**Aplicada en producción el 2026-11-19** (a mano en el SQL Editor de Supabase, confirmado por el mantenedor).
+
 **Cómo revertir** `drop function public.team_contacts();`
 
 ## Plantilla para nuevos registros
