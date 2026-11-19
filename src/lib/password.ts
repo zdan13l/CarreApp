@@ -1,6 +1,8 @@
 // Suggested passwords that are fun to read and easy to type: two random silly words with leet-speak, like
 // "D3lF1nZ4p4t0" or "C4p1b4r4Pij4m4". Only letters and digits (no accents or symbols, so any phone keyboard types them).
-// The point is that people remember them and smile; the strength comes from the random choice of words, digits and capitals.
+// The point is that people remember them and smile; the strength comes from the random choice of words, leet-speak, capitals
+// and four random digits at the end ("D3lF1nZ4p4t00482"). The word lists are public (they ship with the app) and the @ of a runner
+// is visible to the other runners (team_contacts), so the words alone would be a short list to try: the digits make it long.
 const ANIMALS = [
   'delfin', 'capibara', 'pinguino', 'llama', 'koala', 'mapache', 'ornitorrinco', 'ajolote', 'cocodrilo', 'camaleon', 'hipopotamo', 'pulpo', 'tucan',
   'armadillo', 'cangrejo', 'gallina', 'mariposa', 'tortuga', 'jirafa', 'elefante', 'pantera', 'zorro', 'bufalo', 'cucaracha', 'colibri', 'ballena',
@@ -20,6 +22,9 @@ function pick<T>(list: T[]): T {
   const [n] = crypto.getRandomValues(new Uint32Array(1))
   return list[n % list.length]
 }
+function randomDigits(count: number): string {
+  return [...crypto.getRandomValues(new Uint32Array(count))].map((n) => String(n % 10)).join('')
+}
 function chance(p: number): boolean {
   const [n] = crypto.getRandomValues(new Uint32Array(1))
   return n / 0xffffffff < p
@@ -38,8 +43,8 @@ function silly(word: string): string {
 
 export function generatePassword(minLength = 8): string {
   for (;;) {
-    const password = silly(pick(ANIMALS)) + silly(pick(THINGS))
-    // at least one digit and one capital besides the first letter, and the length asked for
-    if (password.length >= minLength && /\d/.test(password) && /[A-Z]/.test(password.slice(1))) return password
+    const password = silly(pick(ANIMALS)) + silly(pick(THINGS)) + randomDigits(4)
+    // at least one capital besides the first letter (the digits are always there), and the length asked for
+    if (password.length >= minLength && /[A-Z]/.test(password.slice(1))) return password
   }
 }

@@ -40,6 +40,16 @@ describe('generated passwords', () => {
     expect(generatePassword(12).length).toBeGreaterThanOrEqual(12)
   })
 
+  it('end in four random digits, so the public word lists are not enough to guess one (the @ of a runner is visible to the other runners)', () => {
+    const endings = new Set<string>()
+    for (let i = 0; i < 300; i++) {
+      const p = generatePassword()
+      expect(p).toMatch(/\d{4}$/)
+      endings.add(p.slice(-4))
+    }
+    expect(endings.size).toBeGreaterThan(250)
+  })
+
   it('stay above the minimum the server and the templates accept (6 characters)', () => {
     for (let i = 0; i < 100; i++) expect(generatePassword().length).toBeGreaterThanOrEqual(6)
   })
