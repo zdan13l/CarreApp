@@ -2,6 +2,13 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Corredor: revisión de la interfaz (2026-11-19)
+Revisión de todas las pantallas del corredor en claro y oscuro a 390x844, 375x667 y 360x640, midiendo desbordes, objetivos táctiles, texto pequeño y recortes.
+- **Pasaporte cortado (bug real):** la hoja de sellos necesitaba 624 px y la hoja medía 540, así que se recortaba la segunda fila de sellos y las líneas de lectura. Ahora todas las hojas miden 600 px (`--leaf-h`), la hoja crece si algún día necesita más (nunca recorta), los sellos son un poco más chicos (108) y la página 1 ya no repite el mapa en una lista: el mapa es más alto y se ven los códigos con letra de 12 px.
+- **Demasiado dorado:** se quitaron la línea dorada de la barra, la tira de lámina de los tickets, el anillo dorado del avatar, el marco y la cinta de las hojas, los filetes dorados de las celdas, el borde dorado de la ficha del equipo y el dorado del marcador y de la etapa activa. La pestaña activa es una pastilla clara con el icono dorado. El dorado queda para la portada, el botón principal y los rótulos pequeños.
+- **Amarillo en oscuro:** el marcador `0–1` ya no es amarillo chillón y el patrón del fondo se atenúa en modo oscuro para que las tarjetas manden.
+- Sin desbordes horizontales ni botones menores de 40 px en Visado, Pasaporte, Top y recorrido completo. El texto pequeño que queda está dentro de los sellos (decorativo).
+
 ## Corredor ronda 4: fichas de equipos, pasaporte sólido y arreglos (2026-11-19)
 - **Migración 0021 (aplicar a mano en el SQL Editor):** `team_contacts()` entrega el @ de los corredores de cada grupo de la propia Carrera. Sin ella la app funciona, pero la ficha del equipo sale sin @.
 - *Top*: tocar un equipo abre una ficha con su foto grande y el @ de su corredor.
