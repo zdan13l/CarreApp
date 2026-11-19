@@ -401,7 +401,7 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 
 **Verificación** `tests/db/qa-visa-privacy.test.ts` (*0022*: la base es rechazada antes de confirmar y el rechazo no cambia el cruce; confirma y califica; el coordinador califica sin llegada). Las demás pruebas (`playMatch` confirma la llegada antes de calificar) siguen pasando sin cambios.
 
-**Estado** Pendiente de aplicar a mano en el SQL Editor (la pantalla de la base ya exige la llegada; la base de datos lo exigirá al aplicarla).
+**Aplicada en producción el 2026-11-19** (a mano en el SQL Editor de Supabase, confirmado por el mantenedor).
 
 **Cómo revertir** Volver a crear `validate_score()` con el cuerpo de `0006_void_items.sql`.
 
