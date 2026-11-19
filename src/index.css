@@ -1650,8 +1650,6 @@ html:has(.login-screen), body:has(.login-screen) { overflow: hidden; overscroll-
 .alerts-sheet header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
 .alerts-sheet h2 { margin: 0; }
 .alerts-sheet .muted { margin: .4rem 0 0; }
-.bell.is-on { color: var(--ok); }
-.bell[aria-expanded='true'].is-on { color: var(--on-gold); }
 
 /* las pestañas se deslizan (hacia donde vas) */
 .tab-view { animation: tab-fwd .34s cubic-bezier(.2, .8, .2, 1) both; }
@@ -1732,3 +1730,46 @@ html:has(.tab-view), body:has(.tab-view) { background: #fff url(/login-pattern.s
 .bn-tab.active svg { color: var(--pass-navy); }
 .bn-tab.active::before { inset: 0; top: 0; left: 0; right: 0; width: auto; height: auto; margin: 0; border-radius: 20px; background: var(--foil); box-shadow: none; }
 .bn-tab span { position: relative; z-index: 1; }
+
+/* ---- Botones de la barra superior: campana y cuenta, en el mismo azul marino que el pase y las pestañas ---- */
+.topbar .account-btn, .topbar button.bell.ghost {
+  color: #fff; background: var(--pass-navy); border: 1px solid rgba(255, 255, 255, .16); box-shadow: 0 6px 14px -6px rgba(3, 29, 68, .55);
+}
+.topbar .account-btn:hover:not(:disabled), .topbar button.bell.ghost:hover:not(:disabled) { background: var(--pass-navy); border-color: rgba(255, 255, 255, .16); }
+.topbar .account-btn:focus-visible, .topbar button.bell.ghost:focus-visible { outline: 2px solid var(--pass-gold); outline-offset: 2px; }
+.topbar .account-btn { min-height: 46px; padding: 3px 14px 3px 3px; }
+.topbar .account-btn .avatar { box-shadow: 0 0 0 2px var(--pass-gold); }
+.topbar .account-btn { max-width: 11rem; }
+.topbar .account-text small { display: none; }
+.topbar .account-text strong { max-width: 7.6rem; font-size: .875rem; }
+.topbar button.bell.ghost { width: 46px; min-width: 46px; min-height: 46px; border-radius: 16px; }
+.topbar button.bell.ghost svg { width: 22px; height: 22px; }
+/* la campana siempre es del mismo color: el estado se lee en el icono y en la lucecita (verde con sonido, dorada sin él) */
+.topbar .bell .dot { top: 7px; right: 7px; width: 10px; height: 10px; background: var(--pass-gold); border: 2px solid var(--pass-navy); }
+.topbar .bell.is-on .dot { background: var(--on-hero-ok); }
+.topbar button.bell.ghost[aria-expanded='true'] { color: var(--pass-navy); background: var(--foil); border-color: transparent; }
+.topbar button.bell.ghost[aria-expanded='true'] .dot { border-color: var(--pass-gold); }
+@media (hover: none) { .topbar .account-btn:hover:not(:disabled), .topbar button.bell.ghost:hover:not(:disabled) { background: var(--pass-navy); } }
+
+/* ---- Top: la tarjeta blanca del título, como la pestaña de una carpeta ---- */
+.top-others { margin-top: 1.1rem; }
+.title-tag { display: inline-flex; align-items: center; gap: .55rem; margin: 0; padding: .65rem 1rem .6rem; color: var(--pass-navy); background: #fff; border: 1px solid rgba(3, 29, 68, .12); border-bottom: 0; border-radius: 14px 14px 0 0; box-shadow: inset 0 3px 0 0 var(--pass-gold); font: 800 1rem/1 'Archivo Variable', system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.title-tag svg { color: var(--pass-navy); }
+.title-tag b { margin-left: .2rem; padding: .15rem .45rem; color: #fff; background: var(--pass-navy); border-radius: 999px; font-size: .75rem; letter-spacing: 0; }
+.top-others .card { margin-top: 0; border-top-left-radius: 0; }
+
+/* ---- Pasaporte: papel con vetas, marco dorado y cinta de lámina ---- */
+.leaf::before { content: ''; position: absolute; inset: 0; z-index: -1; background: url(/login-pattern.svg) 0 0 / 380px 380px; opacity: .3; }
+:root:not([data-theme='light']) .leaf::before { background-image: url(/login-pattern-dark.svg); opacity: .7; }
+.leaf::after { content: ''; position: absolute; inset: 7px; z-index: 0; border: 1px solid color-mix(in srgb, var(--pass-gold) 75%, transparent); border-radius: 3px 12px 12px 3px; pointer-events: none; }
+.leaf > * { position: relative; z-index: 1; }
+.leaf { border-top: 0; padding-top: 1.55rem; }
+.leaf > .leaf-head::before { content: ''; position: absolute; left: -1.1rem; right: -1.1rem; top: -1.55rem; height: 7px; background: var(--foil); }
+.leaf-head { padding-bottom: .85rem; border-bottom: 1px solid color-mix(in srgb, var(--pass-gold) 70%, transparent); }
+.leaf-title { letter-spacing: .02em; }
+.uni-mark { height: 64px; filter: drop-shadow(0 2px 4px rgba(3, 29, 68, .25)); }
+.id-grid { border-block: 0; }
+.id-grid > div { padding: .6rem .75rem; background: color-mix(in srgb, var(--surface) 82%, transparent); border: 1px solid var(--border); border-left: 3px solid var(--pass-gold); border-radius: 8px; }
+.slot-btn { background: color-mix(in srgb, var(--surface) 88%, transparent); box-shadow: 0 6px 16px -10px rgba(3, 29, 68, .45); }
+.cover-sub { margin-top: .3rem; font-size: .95rem; letter-spacing: .5em; text-indent: .5em; text-align: center; }
+.moment { cursor: default; }

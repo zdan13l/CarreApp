@@ -113,7 +113,7 @@ export default function Passport({
               <header className="leaf-head">
                 <img className="uni-mark" src="/crest-simple.svg" alt="CarreApp" width={569} height={622} />
                 <div>
-                  <p className="doc-kicker">Pasaporte · Passport</p>
+                  <p className="doc-kicker">Pasaporte · Carrera 2710</p>
                   <h2 className="leaf-title">{team}</h2>
                 </div>
               </header>
@@ -264,7 +264,7 @@ export default function Passport({
           <span className="cover-inner">
             <img className="cover-uni" src="/crest-dorado.svg" alt="CarreApp" width={1110} height={1215} />
             <span className="cover-title">Pasaporte</span>
-            <span className="cover-sub">Passport · Carrera de inducción</span>
+            <span className="cover-sub">Carrera 2710</span>
             <span className="cover-team">{team}</span>
             <span className="cover-flight mono">{flight}</span>
             <span className="cover-hint">Toca para abrir</span>

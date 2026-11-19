@@ -186,7 +186,7 @@ export default function Preview() {
         <div className="tab-view fwd">
         {tab === 'ronda' && (
           <>
-            <StatusBar name="Dioses Griegos" photoPath={null} flight="JV 213" points={7} />
+            <StatusBar name="Dioses Griegos" photoPath={null} points={7} />
             <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} totalRounds={5} />
             <AfterCard match={routeMatches.find((m) => m.round_number === 4)!} myId="t0" teams={teamById} />
           </>

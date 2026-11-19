@@ -12,7 +12,7 @@ describe('the runner screen', () => {
     expect(run).not.toMatch(/team_standings/)
     expect(run).not.toMatch(/position/i)
     expect(run).not.toMatch(/Puesto/)
-    expect(run).toMatch(/<StatusBar name=\{team\.name\} photoPath=\{team\.photo_path\} flight=\{flight\} points=\{myPoints\} \/>/)
+    expect(run).toMatch(/<StatusBar name=\{team\.name\} photoPath=\{team\.photo_path\} points=\{myPoints\} \/>/)
   })
   it('has no walking map; the location tab exists only for the designated user, with a fixed map', () => {
     expect(fs.existsSync(rootPath('src/components/RunnerMap.tsx'))).toBe(false)
@@ -20,9 +20,10 @@ describe('the runner screen', () => {
     expect(read('src/components/LocationShare.tsx')).toMatch(/interactive=\{false\}/)
     expect(read('src/components/LocationShare.tsx')).not.toMatch(/fetchWalkingRoute/)
   })
-  it('Top shows the own ticket with its points and the OTHER groups by name only; the name and points card is only in Visado', () => {
-    expect(run).toMatch(/export function TopTab[\s\S]*Tu equipo[\s\S]*<TeamNames/)
+  it('Top shows the same passenger ticket as Visado and the OTHER groups under a white title card; no flight code on the ticket', () => {
+    expect(run).toMatch(/export function TopTab[\s\S]*<StatusBar[\s\S]*title-tag[\s\S]*<TeamNames/)
     expect(run).toMatch(/tab === 'ronda' && \([\s\S]*<StatusBar/)
+    expect(run).not.toMatch(/flight-chip/)
     expect(read('src/components/TeamNames.tsx')).not.toMatch(/points|pts/)
   })
 })
@@ -104,5 +105,26 @@ describe('the runner phone screen (visado pass)', () => {
   })
   it('the top bar uses the full crest, big', () => {
     expect(read2('src/components/AppShell.tsx')).toMatch(/<Logo size=\{52\} detail \/>/)
+  })
+})
+
+describe('the stamp moment, the passport and the top-bar buttons', () => {
+  const read3 = (f: string) => fs.readFileSync(rootPath(f), 'utf8')
+  it('the new stamp stays on screen until the person taps "Seguir"', () => {
+    const m = read3('src/components/StampMoment.tsx')
+    expect(m).not.toMatch(/setTimeout/)
+    expect(m).not.toMatch(/<div className="moment"[^>]*onClick/)
+    expect(m).toMatch(/Seguir/)
+  })
+  it('the passport does not say "Passport" and the cover says Carrera 2710', () => {
+    const p = read3('src/components/Passport.tsx')
+    expect(p).not.toMatch(/Passport ·|· Passport/)
+    expect(p).toMatch(/cover-sub">Carrera 2710</)
+  })
+  it('the bell keeps one colour (the state is the icon and the light), and the phone bar shows the first name', () => {
+    const css = read3('src/index.css')
+    expect(css).not.toMatch(/\.bell\.is-on \{ color/)
+    expect(css).toMatch(/\.topbar button\.bell\.ghost \{/)
+    expect(read3('src/components/AppShell.tsx')).toMatch(/<AccountMenu short/)
   })
 })
