@@ -41,9 +41,11 @@ Los ajustes de **sonido y notificaciones** están en la campana de la barra supe
 ## Base (`/base`)
 | Pestaña | Contenido |
 |---|---|
-| **Ronda** | Avisos de demora y **avisos del coordinador** (con sonido), el cruce actual (confirmar llegada, *Apurar a los grupos*, calificar) y el próximo. |
-| **Resultados** | Todos los equipos con su foto y nombre (**sin puntos**) y *Cruces de tu base*: el historial de lo que ha calificado. |
-| **Mi base** | El espacio informativo del inductor: **lo que se explica** en la base, las **posibles preguntas**, la foto de dónde queda y la ubicación. El mapa solo se abre al pulsar *Cambiar ubicación* (o si la base aún no tiene ubicación). |
+| **Ronda** | Avisos de demora y **avisos del coordinador** (con sonido); el pase azul de la **ventanilla de visado** (foto y nombre de la base, código de aeropuerto y, en el talón, cuántos visados lleva sellados); el cruce actual como **mostrador** (puerta, estado, el sello de la base, los tres pasos *Llegada · Etapas · Sello*, los dos grupos como pasajeros con su vuelo, confirmar llegada, *Apurar a los grupos* y calificar) y la **próxima ronda** como otro pase. Al terminar todos los cruces, la tarjeta *Ventanilla cerrada*. |
+| **Resultados** | El mismo pase y, bajo pestañas blancas de carpeta, *Equipos de la Carrera* (foto y nombre, **sin puntos**) y *Cruces de tu base*: el historial de lo que ha calificado. |
+| **Mi base** | El espacio informativo del inductor, en pestañas de carpeta: **lo que se explica** en la base, las **posibles preguntas**, y *Dónde queda* (el sello de la base, la foto y la ubicación). El mapa solo se abre al pulsar *Cambiar ubicación* (o si la base aún no tiene ubicación). |
+
+**Identidad:** el inductor es el **oficial de migración** de la Carrera y la pantalla es su ventanilla. Comparte el lenguaje del corredor (pase azul marino, pestañas de carpeta, barra flotante, fondo con el patrón, transición entre pestañas, campana y cuenta de la barra superior) y suma lo suyo: la **tinta del sello de cada base** (sale del id de la base, igual que el sello) es el acento de la pantalla: borde del mostrador, números de etapa y de ronda. Así cada base se reconoce a simple vista.
 
 La campana de la barra superior abre los ajustes de **sonido y notificaciones**, para que el teléfono suene cuando el coordinador avise a la base. Si la Carrera no está activa para su usuario, la pantalla lo explica y, si intenta calificar, el mensaje dice que la Carrera no está activa.
 

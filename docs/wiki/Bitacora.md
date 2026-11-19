@@ -2,6 +2,15 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Base: la ventanilla de visado (2026-11-19)
+La pantalla de la base se veía plana al lado de la del corredor. Se le aplicó todo lo hecho en el corredor y se le dio una identidad propia: el inductor es el **oficial de migración** que sella los pasaportes.
+- Del corredor: pase azul marino con muescas y talón, pestañas blancas de carpeta (*Equipos de la Carrera*, *Cruces de tu base*, *Lo que se explica*, *Posibles preguntas*, *Dónde queda*), fondo con el patrón, transición lateral entre pestañas, barra inferior flotante sin recarga de la vista, la campana (`AlertBell`) en lugar del panel de alertas en línea, título "Mi base" solo en *Ronda* y la tarjeta oscura de cierre.
+- **Pase de la ventanilla** (`BaseTicket`): foto y nombre de la base, código de aeropuerto y, en el talón, los visados sellados.
+- **Mostrador** (`MatchCard`): borde superior en la **tinta del sello de la base** (acento de toda la pantalla), placa de puerta, el sello de la base, tres pasos (*Llegada · Etapas · Sello*) con su estado, los grupos como pasajeros con su vuelo `JV 2xx` y si están en camino o en la puerta, etapas numeradas y el ganador elegido en el azul del pase.
+- *Próxima ronda* es otro pase con los dos grupos; al terminar todo aparece *Ventanilla cerrada*.
+- Vistas de ejemplo nuevas: `/preview/base-llegada` (esperando a los grupos) y `/preview/base-fin` (ventanilla cerrada).
+- Sin cambios de base de datos ni de comportamiento: confirmar llegada, apurar y calificar funcionan igual.
+
 ## Corredor: revisión de la interfaz (2026-11-19)
 Revisión de todas las pantallas del corredor en claro y oscuro a 390x844, 375x667 y 360x640, midiendo desbordes, objetivos táctiles, texto pequeño y recortes.
 - **Pasaporte cortado (bug real):** la hoja de sellos necesitaba 624 px y la hoja medía 540, así que se recortaba la segunda fila de sellos y las líneas de lectura. Ahora todas las hojas miden 600 px (`--leaf-h`), la hoja crece si algún día necesita más (nunca recorta), los sellos son un poco más chicos (108) y la página 1 ya no repite el mapa en una lista: el mapa es más alto y se ven los códigos con letra de 12 px.
