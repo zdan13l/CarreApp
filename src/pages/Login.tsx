@@ -2,6 +2,7 @@ import { Eye, EyeOff, LogIn, Plane } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
+import CarreWord from '../components/CarreWord'
 import Logo from '../components/Logo'
 import Mrz from '../components/Mrz'
 import ThemeToggle from '../components/ThemeToggle'
@@ -35,7 +36,7 @@ export default function Login() {
         <img className="login-photo night" src="/campus-noche.jpg" alt="" width={950} height={633} decoding="async" />
       </section>
       <span className="login-logo">
-        <Logo variant="gold" />
+        <Logo variant="gold" word={<CarreWord />} />
       </span>
       <div className="login-copy">
         <h1 className="login-kicker">Gestión en vivo de Carrera</h1>
