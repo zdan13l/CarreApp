@@ -1585,7 +1585,7 @@ html:has(.login-screen), body:has(.login-screen) { overflow: hidden; overscroll-
   -webkit-mask: radial-gradient(circle 10px at 0 calc(100% - var(--stub)), transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 10px at 100% calc(100% - var(--stub)), transparent 97%, #000) right / 51% 100% no-repeat;
   mask: radial-gradient(circle 10px at 0 calc(100% - var(--stub)), transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 10px at 100% calc(100% - var(--stub)), transparent 97%, #000) right / 51% 100% no-repeat;
 }
-:root:not([data-theme='light']) .ticket { --surface: #18245e; --surface-2: #1f2e75; --border: #2c3d8a; --border-strong: #4560b8; background: #18245e; }
+:root:not([data-theme='light']) .ticket { --surface: #031d44; --surface-2: #062a5c; --border: #0f3a72; --border-strong: #2a5fa3; background: #031d44; }
 .tk-head { padding: .8rem 1.1rem .7rem; border-bottom: 1px solid var(--border); }
 .tk-top { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; margin-bottom: .45rem; color: var(--text-faint); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
 .tk-top .login-foot { margin: 0; color: inherit; font: inherit; text-align: right; }
