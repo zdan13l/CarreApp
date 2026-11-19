@@ -205,6 +205,7 @@ export default function Preview() {
     return (
       <AppShell
         title="Mi grupo"
+        showTitle={tab === 'ronda'}
         user={user}
         topActions={<AlertBell />}
       >
