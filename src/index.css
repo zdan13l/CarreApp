@@ -69,6 +69,7 @@
   --logo-ink: #eef2ff;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
   --foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;
+  --plate-a: #0a1f4a; --plate-b: #031538; --plate-line: rgba(242, 207, 122, .28); --plate-disc: rgba(2, 12, 36, .55); /* the career plates are always navy and gold */
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
   /* Torre de control (coordinador): siempre oscura, con colores de instrumento */
   --tw-bg: #060b13;
@@ -139,6 +140,7 @@
   --logo-ink: #013c9c;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
   --foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;
+  --plate-a: #0a1f4a; --plate-b: #031538; --plate-line: rgba(242, 207, 122, .28); --plate-disc: rgba(2, 12, 36, .55); /* the career plates are always navy and gold */
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
   /* Torre de control (coordinador): siempre oscura, con colores de instrumento */
   --tw-bg: #060b13;
@@ -2109,6 +2111,21 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 .committee-seal.ink-4 { color: var(--ink-4); }
 .committee-seal.ink-5 { color: var(--ink-5); }
 .committee-seal svg { overflow: visible; }
+.shape-seal { --seal-paper: var(--surface); }
+.shape-seal.ink-1 { color: var(--ink-1); }
+.shape-seal.ink-2 { color: var(--ink-2); }
+.shape-seal.ink-3 { color: var(--ink-3); }
+.shape-seal.ink-4 { color: var(--ink-4); }
+.shape-seal.ink-5 { color: var(--ink-5); }
+.shape-seal svg { overflow: visible; }
+.tower .shape-seal.ink-1 { color: var(--bright-1); }
+.tower .shape-seal.ink-2 { color: var(--bright-2); }
+.tower .shape-seal.ink-3 { color: var(--bright-3); }
+.tower .shape-seal.ink-4 { color: var(--bright-4); }
+.tower .shape-seal.ink-5 { color: var(--bright-5); }
+.career-plate { display: inline-block; flex: none; line-height: 0; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .28)); }
+.career-plate svg { overflow: visible; }
+.identity-slots .career-slot .slot-btn { padding-top: .5rem; }
 .tower .committee-seal.ink-1 { color: var(--bright-1); }
 .tower .committee-seal.ink-2 { color: var(--bright-2); }
 .tower .committee-seal.ink-3 { color: var(--bright-3); }
@@ -2224,3 +2241,7 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 .leaf.blank-page { background: var(--surface); border-style: dashed; box-shadow: none; opacity: .85; }
 .blank-body { display: grid; place-items: center; min-height: 440px; }
 .blank-note { margin: 0; color: var(--text-faint); font: 700 .75rem/1.4 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .16em; text-align: center; text-transform: uppercase; }
+.extra-committees { display: flex; flex-wrap: wrap; gap: .3rem; flex-basis: 100%; }
+.chip-toggle { min-height: 0; padding: .2rem .6rem; font-size: .75rem; font-weight: 600; border-radius: 999px; background: transparent; color: var(--text-muted); border: 1px dashed var(--border-strong); }
+.chip-toggle.on { color: var(--text); border-style: solid; background: var(--surface-2); }
+.chip-toggle.lead { color: var(--on-gold); border-color: transparent; background: linear-gradient(110deg, var(--foil-a), var(--foil-b) 40%, var(--foil-c) 60%, var(--foil-d)); }

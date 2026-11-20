@@ -1,5 +1,6 @@
 import { useId, type CSSProperties, type ReactNode } from 'react'
 import { COMMITTEES, committeeOf, type CommitteeKey } from '../lib/committees'
+import ShapeSeal from './InkSeals'
 
 // The stamp of each committee, in the mythology of the semester:
 //   Clausura  the blue robe Homer wore to recite his poems
@@ -31,35 +32,6 @@ function Clausura({ f, o, p, ps }: Paint) {
       <path style={ps} fill="none" d="M36 73.6H64M40 63Q42 70 41 76M60 63Q58 70 59 76" strokeWidth="1" strokeLinecap="round" />
       <path style={ps} fill="none" d="M26.6 61H34.4M65.6 61H73.4" strokeWidth="1" strokeLinecap="round" />
       <path {...o} d="M44.4 21.4Q50 17.6 55.6 21.4" strokeWidth="1.6" strokeLinecap="round" />
-    </>
-  )
-}
-
-function Meraki({ f, o, p, ps }: Paint) {
-  const wings = (m: boolean) => {
-    const X = (x: number) => (m ? 100 - x : x)
-    return (
-      <g>
-        <path {...f} d={`M${X(50)} 49C${X(42)} 27 ${X(25)} 26 ${X(23)} 38C${X(22)} 47 ${X(36)} 53 ${X(50)} 50Z`} />
-        <path {...f} d={`M${X(50)} 51C${X(41)} 52 ${X(29)} 57 ${X(33)} 67C${X(37)} 75 ${X(46)} 66 ${X(50)} 55Z`} />
-        <circle style={p} cx={X(35)} cy="39" r="3.4" />
-        <circle style={p} cx={X(38.4)} cy="62" r="2.2" />
-        <path style={ps} fill="none" d={`M${X(48)} 49C${X(41)} 42 ${X(33)} 38 ${X(27)} 39M${X(48)} 52C${X(42)} 55 ${X(37)} 58 ${X(35)} 64`} strokeWidth="1" strokeLinecap="round" />
-      </g>
-    )
-  }
-  return (
-    <>
-      {wings(false)}
-      {wings(true)}
-      <ellipse {...f} cx="50" cy="53" rx="2.3" ry="12" />
-      <path {...o} d="M49.2 41Q46 33 40.6 31M50.8 41Q54 33 59.4 31" strokeWidth="1.5" strokeLinecap="round" />
-      <circle {...f} cx="40.4" cy="30.8" r="1.5" />
-      <circle {...f} cx="59.6" cy="30.8" r="1.5" />
-      <path {...o} d="M36 77Q50 82 64 77" strokeWidth="1.4" strokeLinecap="round" />
-      {[40, 46, 54, 60].map((x, i) => (
-        <ellipse key={x} {...f} cx={x} cy={79.2 - (i === 1 || i === 2 ? 0.2 : 1.6)} rx="2.6" ry="1.1" transform={`rotate(${i < 2 ? -30 : 30} ${x} 79)`} />
-      ))}
     </>
   )
 }
@@ -135,7 +107,8 @@ function Caos({ f, p }: Paint) {
   )
 }
 
-const ART: Record<CommitteeKey, (p: Paint) => ReactNode> = { clausura: Clausura, meraki: Meraki, conzumo: Conzumo, carrera: Carrera, caos: Caos }
+// Bienvenida and Meraki have a silhouette of their own (ShapeSeal): a shield and an oval
+const ART: Partial<Record<CommitteeKey, (p: Paint) => ReactNode>> = { clausura: Clausura, conzumo: Conzumo, carrera: Carrera, caos: Caos }
 
 export default function CommitteeSeal({
   committee,
@@ -161,6 +134,9 @@ export default function CommitteeSeal({
     ps: { stroke: PAPER },
   }
   const Art = ART[c.key]
+  const name = label ?? `Sello del comité ${c.name}${lead ? ', coordinador' : ''}`
+  if (c.key === 'bienvenida') return <ShapeSeal kind="shield" art="vest" ink={c.ink} gold={lead} size={size} tilt={tilt} label={name} top="BIENVENIDA" bottom="QUIEN TE RECIBE" />
+  if (c.key === 'meraki') return <ShapeSeal kind="oval" art="butterfly" ink={c.ink} gold={lead} size={size} tilt={tilt} label={name} top="MERAKI" lines={['CON EL ALMA,', 'LA PASIÓN Y', 'EL CORAZÓN']} />
   const rays = Array.from({ length: 36 }, (_, i) => {
     const a = i * 10
     const [x1, y1] = polar(50, 50, 44.6, a - 2.6)
@@ -168,7 +144,6 @@ export default function CommitteeSeal({
     const [x3, y3] = polar(50, 50, i % 2 ? 48.6 : 50, a)
     return <polygon key={i} points={`${x1.toFixed(1)},${y1.toFixed(1)} ${x3.toFixed(1)},${y3.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`} />
   })
-  const name = label ?? `Sello del comité ${c.name}${lead ? ', coordinador' : ''}`
   return (
     <span className={`seal committee-seal ink-${c.ink}${lead ? ' gold' : ''}`} style={{ width: size, height: size, transform: `rotate(${tilt}deg)` }} role="img" aria-label={name}>
       <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
@@ -202,7 +177,7 @@ export default function CommitteeSeal({
               <textPath href={`#cb${uid}`} startOffset="50%">{(lead ? `COORDINADOR · ${c.name}` : c.tagline).toUpperCase()}</textPath>
             </text>
             <g transform="translate(50 50) scale(.92) translate(-50 -50)">
-              <Art {...paint} />
+              {Art && <Art {...paint} />}
             </g>
           </g>
         </g>

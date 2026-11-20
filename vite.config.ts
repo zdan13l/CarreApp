@@ -13,7 +13,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'favicon.svg', 'apple-touch-icon.png'],
       // The 3D map is heavy (~1.9 MB): load it on demand instead of precaching it on every phone.
-      injectManifest: { globPatterns: ['**/*.{js,css,html,woff2,svg,png}'], globIgnores: ['**/MapView-*', '**/*vietnamese*', '**/mammoth*', '**/*excel*', '**/passportPdf-*', '**/server.browser-*', '**/archivo-*-wdth-normal-*.js'] }, // the last three only build the PDF of the passport, on demand
+      injectManifest: { globPatterns: ['**/*.{js,css,html,woff2,svg,png}'], globIgnores: ['**/sellos/**', '**/MapView-*', '**/*vietnamese*', '**/mammoth*', '**/*excel*', '**/passportPdf-*', '**/server.browser-*', '**/archivo-*-wdth-normal-*.js'] }, // the last three only build the PDF of the passport, on demand
       manifest: {
         name: 'CarreApp',
         short_name: 'CarreApp',
