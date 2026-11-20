@@ -111,7 +111,7 @@ async function readPeople(file: string): Promise<{ people: Person[]; problems: s
     })
   })
   // "Coordi Sistemas/Clausura" coordinates the committee after the slash and gets its golden stamp (Caos has two coordinators, 0026).
-  // Coordinators of the Welcome committee and Persona's second committee (Meraki) wait for their own pages: a person has one committee for now.
+  // The extra committees of a person (Welcome, a second one) are applied afterwards with scripts/apply-extras.ts.
   for (const p of people.filter((x) => x.coordinator && x.committee)) if (flat(p.note).endsWith(`/${p.committee}`)) p.lead = true
   return { people, problems }
 }
