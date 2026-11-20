@@ -10,6 +10,7 @@ const state = vi.hoisted(() => ({
   deleteUser: vi.fn(),
   updateUserById: vi.fn(),
   insertProfile: vi.fn(),
+  insertPassport: vi.fn(),
 }))
 
 vi.mock('@supabase/supabase-js', () => ({
@@ -19,9 +20,10 @@ vi.mock('@supabase/supabase-js', () => ({
       admin: { createUser: state.createUser, deleteUser: state.deleteUser, updateUserById: state.updateUserById },
     },
     from: (table: string) => {
-      if (table !== 'profiles') throw new Error(`unexpected table ${table}`)
+      if (table !== 'profiles' && table !== 'passports') throw new Error(`unexpected table ${table}`)
       const select = queryBuilder(() => ({ data: state.callerRole ? { role: state.callerRole } : null }))
-      return { select: select.select, insert: (row: unknown) => Promise.resolve(state.insertProfile(row)) }
+      const insert = table === 'passports' ? state.insertPassport : state.insertProfile
+      return { select: select.select, insert: (row: unknown) => Promise.resolve(insert(row)) }
     },
   }),
 }))
@@ -45,6 +47,7 @@ beforeEach(() => {
   state.deleteUser.mockReset().mockResolvedValue({ error: null })
   state.updateUserById.mockReset().mockResolvedValue({ error: null })
   state.insertProfile.mockReset().mockReturnValue({ error: null })
+  state.insertPassport.mockReset().mockReturnValue({ error: null })
 })
 
 describe('authentication and authorization', () => {
@@ -115,6 +118,32 @@ describe('POST: create a user', () => {
 
   it('lets the coordinator create another coordinator (handover to the next committee)', async () => {
     expect((await call('POST', { ...valid, role: 'admin' })).statusCode).toBe(201)
+  })
+})
+
+describe('POST: the personal passport of an inductor (role "member")', () => {
+  const member = { username: 'Ana.Gomez', password: 'D3lF1nZ4p4t00482', full_name: 'Ana Gómez', role: 'member', event_id: 'evt-1' }
+
+  it('creates the login and a passport row, with no profile and no Carrera', async () => {
+    const res = await call('POST', member)
+    expect(res.statusCode).toBe(201)
+    expect(state.createUser).toHaveBeenCalledWith({ email: 'ana.gomez@carreapp.test', password: 'D3lF1nZ4p4t00482', email_confirm: true })
+    expect(state.insertPassport).toHaveBeenCalledWith({ id: 'new-user', username: 'ana.gomez', full_name: 'Ana Gómez' })
+    expect(state.insertProfile).not.toHaveBeenCalled() // a profile would open the live operation to it
+  })
+
+  it('rolls the login back when the passport cannot be written (and says the migration may be missing)', async () => {
+    state.insertPassport.mockReturnValue({ error: { message: 'relation "passports" does not exist' } })
+    const res = await call('POST', member)
+    expect(res.statusCode).toBe(500)
+    expect((res.body as { error: string }).error).toMatch(/0023/)
+    expect(state.deleteUser).toHaveBeenCalledWith('new-user')
+  })
+
+  it('is only for the coordinator', async () => {
+    state.callerRole = 'runner'
+    expect((await call('POST', member)).statusCode).toBe(403)
+    expect(state.insertPassport).not.toHaveBeenCalled()
   })
 })
 
