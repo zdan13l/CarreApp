@@ -90,7 +90,7 @@ describe('passports and records are private', () => {
     const a = await addPassport(`ana.${++n}`)
     await addRecord(a, t)
     expect(await db.asUser(a).affected(`update public.passport_records set role = 'coordinator' where passport_id = $1`, [a])).toBe(0)
-    expect(await db.asUser(a).affected(`update public.passports set photo_path = 'users/x.jpg' where id = $1`, [a])).toBe(0)
+    expect(await db.asUser(a).affected(`update public.passports set photo_path = 'users/x.jpg' where id = $1`, [a])).toBe(0) // nothing of the passport is the person's
     await expect(db.asUser(a).sql(`insert into public.passport_records (passport_id, term_id, role, career, culture) values ($1, $2, 'runner', 'x', 'griega')`, [a, await newTerm()])).rejects.toThrow()
   })
 
@@ -206,7 +206,7 @@ describe('what the passport shows of the Carrera', () => {
     const [co] = await db.asUser(coord).sql<Ctx>(`select * from public.my_passport_context()`)
     expect(co.team_name).toBeNull()
     expect(co.event_name).toBeTruthy() // the Carrera of his semester
-    expect(Object.keys(a).sort()).toEqual(['base_id', 'base_name', 'event_active', 'event_id', 'event_name', 'partners', 'record_id', 'team_id', 'team_name', 'team_photo_path'])
+    expect(Object.keys(a).sort()).toEqual(['base_id', 'base_name', 'base_photo_path', 'event_active', 'event_id', 'event_name', 'partners', 'record_id', 'team_id', 'team_name', 'team_photo_path'])
     expect((await db.asAnon().sql(`select * from public.my_passport_context()`).catch(() => 'denied'))).toBe('denied')
   })
 
