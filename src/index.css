@@ -65,6 +65,7 @@
   --ink-3: #62e3ac;
   --ink-4: #c7a6ff;
   --ink-5: #ffb862;
+  --bright-1: #86adff; --bright-2: #ff8f86; --bright-3: #62e3ac; --bright-4: #c7a6ff; --bright-5: #ffb862; /* the inks on a dark cover */
   --logo-ink: #eef2ff;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
@@ -133,6 +134,7 @@
   --ink-3: #1b7a52;
   --ink-4: #6a3fa0;
   --ink-5: #a85a00;
+  --bright-1: #86adff; --bright-2: #ff8f86; --bright-3: #62e3ac; --bright-4: #c7a6ff; --bright-5: #ffb862; /* the inks on a dark cover */
   --logo-ink: #013c9c;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
@@ -2060,3 +2062,116 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 /* un velo oscuro en la parte de abajo de la foto, para que el nombre se lea sobre los edificios claros (la foto es lo que lo cubre) */
 .login-hero::after { content: ''; position: absolute; z-index: 1; inset: auto 0 0 0; height: 66%; pointer-events: none; background: linear-gradient(180deg, transparent, rgba(6, 12, 52, .5) 45%, rgba(6, 12, 52, .86)); }
 @media (prefers-reduced-motion: reduce) { .cw, .cw * { animation: none !important; } }
+
+/* =====================================================================
+   Pasaporte personal del inductor (MemberPassport) y lista de Inductores del coordinador
+   Cada carrera recibe una cultura de la temática del semestre: su tinta (--culture-ink), el borde de las páginas y su emblema.
+   Tres versiones: corredor (papel), base (mostrador azul) y coordinador (torre, siempre oscura).
+   ===================================================================== */
+.emblem { color: var(--culture-ink, var(--ink-1)); --emblem-paper: var(--surface); }
+.emblem .f, .ornament .f { fill: currentColor; stroke: none; }
+.emblem .o, .ornament .o { fill: none; stroke: currentColor; }
+.emblem .pp { fill: var(--emblem-paper); stroke: none; }
+.emblem .ps { fill: none; stroke: var(--emblem-paper); }
+.ornament { display: block; color: var(--culture-ink, var(--ink-1)); opacity: .85; }
+.culture-nordica { --culture-bright: var(--bright-4); }
+.culture-griega { --culture-bright: var(--bright-1); }
+.culture-mexicana { --culture-bright: var(--bright-3); }
+.culture-china { --culture-bright: var(--bright-2); }
+.culture-egipcia { --culture-bright: var(--bright-5); }
+
+.member .leaf { padding-top: .9rem; }
+.member .leaf > .ornament:first-child { margin: -.1rem 0 .85rem; }
+.member .leaf > .ornament:last-child { margin: .8rem 0 -.1rem; }
+.member-head { align-items: center; }
+.member-head .head-emblem { flex: none; }
+.member .leaf-title { font-size: 1.55rem; line-height: 1.02; }
+.member .stamp-total { display: flex; align-items: center; gap: .45rem; margin: 0; color: var(--text-muted); font: 700 .75rem/1.15 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.member .stamp-total .num { color: var(--culture-ink); font-size: 2rem; line-height: 1; font-family: inherit; }
+.member .stamp-total span { max-width: 6rem; }
+
+.member-id { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 1rem; margin-top: 1rem; }
+.member-photo { position: relative; margin: 0; display: grid; justify-items: center; gap: .45rem; }
+.member-photo .avatar { border-radius: 14px; border: 3px solid var(--culture-ink); box-shadow: 0 0 0 3px var(--surface), 0 10px 22px -14px rgba(5, 10, 40, .6); background: var(--surface-3); }
+.member-photo figcaption { padding: .12rem .55rem; color: var(--on-gold); background: var(--foil); border-radius: 5px; font-size: .75rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.member-visa { display: grid; place-items: center; }
+.seal { display: inline-block; flex: none; line-height: 0; color: var(--culture-ink); transition: transform .25s cubic-bezier(.2, .8, .2, 1); }
+.seal svg { overflow: visible; }
+.seal-ink { fill: currentColor; stroke: currentColor; }
+.seal-ink text { fill: currentColor; stroke: none; }
+.seal-emblem .emblem { color: inherit; }
+.seal-emblem .pp { fill: var(--surface); }
+.seal-emblem .ps { stroke: var(--surface); }
+.member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem 1rem; margin: 1rem 0 .4rem; padding: .85rem 0; border-block: 1px dashed var(--border-strong); }
+.member-grid dt { color: var(--text-faint); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.member-grid dd { margin: .3rem 0 0; font-weight: 800; font-size: 1.02rem; line-height: 1.15; overflow-wrap: anywhere; }
+.member-grid .wide { grid-column: 1 / -1; }
+.member-grid dd.mono { letter-spacing: .06em; font-size: .95rem; }
+.member-myth { margin: .5rem 0 0; color: var(--text-muted); font-style: italic; font-size: .92rem; }
+.member-stats { display: flex; flex-wrap: wrap; gap: .6rem; margin: .9rem 0 0; }
+.member-stats p { display: flex; align-items: center; gap: .55rem; margin: 0; padding: .45rem .75rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-muted); font-size: .85rem; line-height: 1.1; }
+.member-stats .num { color: var(--culture-ink); font-size: 1.5rem; line-height: 1; }
+.member-stats .live i { display: block; width: 12px; height: 12px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s ease-in-out infinite; }
+.slot-ghost { display: block; width: 104px; height: 104px; border: 2px dashed var(--border-strong); border-radius: 50%; opacity: .7; }
+.member .slot .seal { margin: .1rem 0; }
+.member-hint { margin: .9rem 0 0; font-size: .9rem; }
+.member-note { display: flex; gap: .5rem; align-items: flex-start; margin: 1rem .25rem 0; font-size: .9rem; }
+.member-note svg { flex: none; margin-top: .15rem; }
+.member-history { list-style: none; display: grid; gap: .55rem; margin: .9rem 0 0; padding: 0; }
+.member-history li { display: flex; align-items: center; gap: .8rem; padding: .6rem .75rem; background: var(--surface-2); border: 1px solid var(--border); border-left: 4px solid var(--culture-ink); border-radius: var(--radius-sm); }
+.member-history strong { display: block; font-size: 1rem; }
+.member-history small { display: block; color: var(--text-muted); }
+.hist-emblem { flex: none; }
+.member-zoom .moment-card { --emblem-paper: var(--surface); }
+
+/* la cubierta del pasaporte personal: la tinta de la cultura sobre el azul de la portada */
+.member .cover-inner.member-cover { position: relative; gap: .4rem; }
+.member .cover-top { color: var(--on-hero-muted); font: 700 .75rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; }
+.member .cover-emblem { color: var(--culture-bright, var(--on-hero-gold)); --emblem-paper: var(--hero-b); margin: .6rem 0 .9rem; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, .35)); }
+.member .cover-rule { display: flex; align-items: center; gap: .6rem; width: 12rem; color: var(--on-hero-gold); }
+.member .cover-rule i { flex: 1; height: 1px; background: currentColor; opacity: .6; }
+.member .cover { height: 100%; }
+.member .cover-sub { letter-spacing: .1em; }
+.member .cover-team { margin-top: 1rem; font-size: 1.55rem; }
+.member .cover-orn { position: absolute; left: 1.7rem; right: 1.7rem; bottom: 3.6rem; color: var(--culture-bright, var(--on-hero-gold)); opacity: .8; }
+.member .cover-orn .ornament { color: inherit; }
+.member .cover-bottom { position: absolute; left: 0; right: 0; bottom: 1.4rem; }
+.member .cover-corner { position: absolute; width: 22px; height: 22px; border: 0 solid var(--on-hero-gold); opacity: .8; }
+.member .cover-corner.tl { left: 22px; top: 22px; border-width: 2px 0 0 2px; }
+.member .cover-corner.tr { right: 22px; top: 22px; border-width: 2px 2px 0 0; }
+.member .cover-corner.bl { left: 22px; bottom: 22px; border-width: 0 0 2px 2px; }
+.member .cover-corner.br { right: 22px; bottom: 22px; border-width: 0 2px 2px 0; }
+
+/* base: el mostrador azul */
+.member.role-base .leaf-head.member-head { margin: -.2rem -.3rem 0; padding: .7rem .8rem; color: var(--on-hero); background: linear-gradient(145deg, var(--hero-a), var(--hero-b)); border-radius: var(--radius-sm); }
+.member.role-base .leaf-head.member-head .doc-kicker { color: var(--on-hero-muted); }
+.member.role-base .head-emblem { color: var(--culture-bright); --emblem-paper: var(--hero-b); }
+.member.role-base .cover { --hero-a: var(--pass-navy-2); --hero-b: var(--pass-navy); }
+/* coordinador: la torre de control (la clase .tower ya la pone siempre oscura) */
+.member-tower { min-height: 100dvh; --logo-ink: var(--tw-text); }
+.member.role-coordinator { --culture-ink: var(--culture-bright); }
+.member.role-coordinator .leaf { border-color: var(--border-strong); }
+.member.role-coordinator .emblem { --emblem-paper: var(--surface); }
+.member.role-coordinator .member-photo .avatar { border-color: var(--tw-radar); }
+
+/* Inductores (coordinador) */
+.person { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.person-main { display: grid; gap: .2rem; min-width: 0; }
+.person-main small { overflow-wrap: anywhere; }
+.person-edit { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .3rem; }
+.person-edit select { width: auto; min-height: 36px; padding: .25rem .55rem; font-size: .88rem; }
+.culture-pick { border-left: 4px solid var(--culture-ink-pick, var(--border-strong)); }
+.culture-pick.culture-nordica { --culture-ink-pick: var(--ink-4); }
+.culture-pick.culture-griega { --culture-ink-pick: var(--ink-1); }
+.culture-pick.culture-mexicana { --culture-ink-pick: var(--ink-3); }
+.culture-pick.culture-china { --culture-ink-pick: var(--ink-2); }
+.culture-pick.culture-egipcia { --culture-ink-pick: var(--ink-5); }
+.search { display: flex; align-items: center; gap: .5rem; margin-top: .6rem; padding: 0 .75rem; background: var(--inset, var(--surface-2)); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.search input { border: 0; background: transparent; min-height: 40px; padding-left: 0; }
+.new-term { margin-top: 1rem; }
+.new-term summary { cursor: pointer; font-weight: 700; }
+.new-term .row select, .new-term .row input { min-width: 9rem; }
+.report { margin-top: 1rem; padding: .85rem 1rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.report p { margin: 0 0 .5rem; }
+.data-table select { min-height: 34px; padding: .2rem 1.6rem .2rem .55rem; font-size: .85rem; width: auto; min-width: 6.6rem; }
+.person-edit select { padding-right: 1.8rem; }

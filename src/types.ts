@@ -1,4 +1,5 @@
-export type UserRole = 'admin' | 'base' | 'runner'
+// 'member' is the personal passport of an inductor (no profile row: it lives in public.passports, migration 0023)
+export type UserRole = 'admin' | 'base' | 'runner' | 'member'
 
 export interface Profile {
   id: string
@@ -58,6 +59,7 @@ export const ROLE_LABEL: Record<UserRole, string> = {
   admin: 'Coordinador',
   base: 'Inductor de base',
   runner: 'Corredor',
+  member: 'Inductor',
 }
 
 export type MatchStatus = 'pending' | 'in_progress' | 'finished'

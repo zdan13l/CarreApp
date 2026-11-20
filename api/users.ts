@@ -1,6 +1,7 @@
 // Serverless endpoint (Vercel) to manage users. It needs the Supabase service-role key,
 // which must NEVER reach the browser, so user creation/deletion lives here.
 //   POST   /api/users  { username, password, full_name, role, event_id? } -> create user + profile (event_id: the Carrera of a runner/inductor)
+//                      role "member" creates the personal passport of an inductor instead (public.passports, no profile)
 //   PATCH  /api/users  { user_id, password }                    -> reset password
 //   DELETE /api/users  { user_id }                              -> delete user
 // Only callers whose profile has role "admin" are allowed.
@@ -9,7 +10,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 const EMAIL_DOMAIN = 'carreapp.test'
 const USERNAME_PATTERN = /^[a-z0-9._-]{3,30}$/
-const ROLES = ['admin', 'base', 'runner']
+const ROLES = ['admin', 'base', 'runner', 'member']
 const MIN_PASSWORD_LENGTH = 6
 
 function fail(res: VercelResponse, status: number, message: string) {
@@ -44,7 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const password = String(body.password ?? '')
     const fullName = String(body.full_name ?? '').trim()
     const role = String(body.role ?? '')
-    const eventId = role === 'admin' || !body.event_id ? null : String(body.event_id)
+    const eventId = role === 'admin' || role === 'member' || !body.event_id ? null : String(body.event_id)
 
     if (!USERNAME_PATTERN.test(username))
       return fail(res, 400, 'El usuario debe tener 3-30 caracteres: letras minúsculas, números, punto, guion o guion bajo.')
@@ -63,12 +64,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return fail(res, taken ? 409 : 500, taken ? 'Ese usuario ya existe (los nombres de usuario son únicos en todas las Carreras: prueba con otro, por ejemplo con el año).' : 'No se pudo crear el usuario.')
     }
 
-    const { error: profileError } = await admin
-      .from('profiles')
-      .insert({ id: created.user.id, username, full_name: fullName, role, event_id: eventId })
+    // A personal passport has no profile: it can never reach the live operation (the database gives it no rows there).
+    const { error: profileError } =
+      role === 'member'
+        ? await admin.from('passports').insert({ id: created.user.id, username, full_name: fullName })
+        : await admin.from('profiles').insert({ id: created.user.id, username, full_name: fullName, role, event_id: eventId })
     if (profileError) {
       await admin.auth.admin.deleteUser(created.user.id) // roll back
-      return fail(res, 500, 'No se pudo crear el perfil del usuario.')
+      return fail(res, 500, role === 'member' ? 'No se pudo crear el pasaporte. ¿Ya aplicaste la migración 0023?' : 'No se pudo crear el perfil del usuario.')
     }
     return res.status(201).json({ id: created.user.id, username, full_name: fullName, role })
   }
