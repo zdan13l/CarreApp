@@ -73,7 +73,8 @@ describe('one passport for the whole life in the induction', () => {
   })
 
   it('every induction has its own pages in its own theme: the induction, the committee and the visas; blank pages wait at the end', () => {
-    expect(pass).toMatch(/specs\.push\(\{ kind: 'induction', record \}, \{ kind: 'committee', record \}\)/)
+    expect(pass).toMatch(/specs\.push\(\{ kind: 'induction', record \}\)/)
+    expect(pass).toMatch(/mine\.forEach\(\(m, i\) => specs\.push\(\{ kind: 'committee'/) // one page for each committee of the person
     expect(pass).toMatch(/export const BLANK_PAGES = 3/)
     expect(pass).toMatch(/Inducción \{record\.term\.name\}/)
     expect(pass).toMatch(/Temática \{theme\.name\}/)
@@ -185,8 +186,10 @@ describe('the identity of the passport (migration 0024)', () => {
   })
 
   it('the app keeps working before it is applied: every query that asks for the new columns retries without them', () => {
-    expect(read('src/pages/MemberHome.tsx')).toMatch(/if \(missingColumn\(p\.error\) \|\| missingColumn\(r\.error\)\) \[p, r\] = await read\(false\)/)
+    expect(read('src/pages/MemberHome.tsx')).toMatch(/if \(missingColumn\(p\.error\) \|\| missingColumn\(r\.error\)\) \[p, r\] = await read\(0\)/)
+    expect(read('src/pages/MemberHome.tsx')).toMatch(/\[p, r\] = await read\(1\)/) // without the extra committees of 0027
     expect(read('src/pages/admin/Inductores.tsx')).toMatch(/const without = missingColumn\(p\.error\) \|\| missingColumn\(r\.error\)/)
+    expect(read('src/pages/admin/Inductores.tsx')).toMatch(/0027_more_committees\.sql/)
     expect(read('src/pages/admin/Inductores.tsx')).toMatch(/Falta aplicar la migración <span className="mono">0024_passport_identity\.sql<\/span>/)
   })
 })
@@ -236,9 +239,12 @@ describe('the stamps of the passport', () => {
     for (const figure of ['Mjolnir', 'Medusa', 'Dragon', 'OjoDeHorus', 'PiedraDelSol']) expect(emblem).not.toContain(`function ${figure}(`)
   })
 
-  it('the committees have their five stamps and the golden one made of the foil variables', () => {
+  it('the committees have their stamps (Bienvenida and Meraki with a silhouette of their own) and the golden one made of the foil variables', () => {
     const seal = read('src/components/CommitteeSeal.tsx')
-    for (const fn of ['Clausura', 'Meraki', 'Conzumo', 'Carrera', 'Caos']) expect(seal).toContain(`function ${fn}(`)
+    for (const fn of ['Clausura', 'Conzumo', 'Carrera', 'Caos']) expect(seal).toContain(`function ${fn}(`)
+    expect(seal).toContain('<ShapeSeal kind="shield" art="vest"')
+    expect(seal).toContain('<ShapeSeal kind="oval" art="butterfly"')
+    expect(read('src/components/InkSeals.tsx')).toMatch(/var\(--foil-a\)/)
     expect(seal).toMatch(/var\(--foil-a\)/)
     expect(read('src/index.css')).toMatch(/--foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;/)
   })

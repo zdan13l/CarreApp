@@ -14,10 +14,10 @@ import { SYMBOLS, symbolOf } from '../../src/lib/symbols'
 const html = (el: Parameters<typeof renderToStaticMarkup>[0]) => renderToStaticMarkup(el)
 
 describe('committees', () => {
-  it('are the five of the induction, each with its own ink and its tagline', () => {
-    expect(COMMITTEES.map((c) => c.name)).toEqual(['Clausura', 'Meraki', 'Conzumo', 'Carrera', 'Caos'])
-    expect(new Set(COMMITTEES.map((c) => c.ink)).size).toBe(5)
-    expect(COMMITTEES.map((c) => c.tagline)).toEqual(['La bata de Homero', 'Hecho con el alma', 'La copa de Dionisio', 'Las olimpiadas', 'El fuego de Prometeo'])
+  it('are the six of the induction, each with its tagline', () => {
+    expect(COMMITTEES.map((c) => c.name)).toEqual(['Clausura', 'Meraki', 'Conzumo', 'Carrera', 'Caos', 'Bienvenida'])
+    expect(new Set(COMMITTEES.map((c) => c.ink)).size).toBe(5) // Bienvenida shares the blue of Clausura: its silhouette tells them apart
+    expect(COMMITTEES.map((c) => c.tagline)).toEqual(['La bata de Homero', 'Con el alma, la pasión y el corazón', 'La copa de Dionisio', 'Las olimpiadas', 'El fuego de Prometeo', 'Quien te recibe'])
   })
   it('are found by key, and an unknown one is simply none', () => {
     expect(committeeOf('caos')?.name).toBe('Caos')
@@ -30,7 +30,8 @@ describe('committees', () => {
 })
 
 describe('the stamp of a committee', () => {
-  it.each(COMMITTEES)('$name: its name and its tagline are on the rings and it has a drawing', (c) => {
+  const ringed = COMMITTEES.filter((c) => c.key !== 'bienvenida' && c.key !== 'meraki')
+  it.each(ringed)('$name: its name and its tagline are on the rings and it has a drawing', (c) => {
     const svg = html(createElement(CommitteeSeal, { committee: c.key }))
     expect(svg).toContain(c.name.toUpperCase())
     expect(svg).toContain(c.tagline.toUpperCase())
@@ -40,22 +41,34 @@ describe('the stamp of a committee', () => {
     expect((svg.match(/<(path|circle|ellipse|polygon)\b/g) ?? []).length).toBeGreaterThan(8)
   })
 
-  it('the five drawings are different from one another', () => {
-    const art = COMMITTEES.map((c) => html(createElement(CommitteeSeal, { committee: c.key })).replace(/id="[^"]*"|url\(#[^)]*\)|href="#[^"]*"/g, '').replace(c.name.toUpperCase(), '').replace(c.tagline.toUpperCase(), ''))
-    expect(new Set(art).size).toBe(5)
+  it('Bienvenida is a shield with a vest and Meraki an oval with the butterfly: each has its own silhouette, name and words', () => {
+    const b = html(createElement(CommitteeSeal, { committee: 'bienvenida' }))
+    expect(b).toContain('shape-seal')
+    expect(b).toContain('BIENVENIDA')
+    expect(b).toContain('QUIEN TE RECIBE')
+    const m = html(createElement(CommitteeSeal, { committee: 'meraki' }))
+    expect(m).toContain('shape-seal')
+    expect(m).toContain('MERAKI')
+    for (const word of ['CON EL ALMA,', 'LA PASIÓN Y', 'EL CORAZÓN']) expect(m).toContain(word)
+    expect(b).not.toBe(m)
   })
 
-  it('the coordinator of the committee gets the GOLDEN one: gold foil, rays and "coordinador" on the ring', () => {
+  it('the six drawings are different from one another', () => {
+    const art = COMMITTEES.map((c) => html(createElement(CommitteeSeal, { committee: c.key })).replace(/id="[^"]*"|url\(#[^)]*\)|href="#[^"]*"/g, '').replace(c.name.toUpperCase(), '').replace(c.tagline.toUpperCase(), ''))
+    expect(new Set(art).size).toBe(6)
+  })
+
+  it('the coordinator of the committee gets the GOLDEN one: gold foil (and, on the round ones, rays and "coordinador" on the ring)', () => {
     for (const c of COMMITTEES) {
       const gold = html(createElement(CommitteeSeal, { committee: c.key, lead: true }))
       const plain = html(createElement(CommitteeSeal, { committee: c.key }))
       expect(gold).toContain('linearGradient')
       expect(gold).toContain('var(--foil-a)')
-      expect(gold).toContain(`COORDINADOR · ${c.name.toUpperCase()}`)
       expect(gold).toContain('Sello del comité')
       expect(gold).toContain('coordinador')
-      expect(gold.length).toBeGreaterThan(plain.length) // the ring of rays
+      expect(gold.length).toBeGreaterThan(plain.length - 1) // the foil, the rays or the crown
       expect(plain).not.toContain('COORDINADOR')
+      if (c.key !== 'bienvenida' && c.key !== 'meraki') expect(gold).toContain(`COORDINADOR · ${c.name.toUpperCase()}`)
     }
   })
 
@@ -207,7 +220,7 @@ describe('the Excel with committee, generation, entry and nickname (all optional
 
   it('an unknown committee or a text too long for the database is explained, not guessed', () => {
     const rows = parsePeople(table, ctx())
-    expect(rows[2].errors.join()).toMatch(/comité no se entiende \(Clausura, Meraki, Conzumo, Carrera, Caos\)/)
+    expect(rows[2].errors.join()).toMatch(/comité no se entiende \(Clausura, Meraki, Conzumo, Carrera, Caos, Bienvenida\)/)
     expect(rows[3].errors.join(' ')).toMatch(/generación es muy larga/)
     expect(rows[3].errors.join(' ')).toMatch(/ingreso es muy largo/)
     expect(rows[3].errors.join(' ')).toMatch(/apodo es muy largo/)
