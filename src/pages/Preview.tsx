@@ -154,8 +154,8 @@ function memberData(role: PassportRole, culture: string, career: string, query: 
 }
 const sampleCareers: Record<string, [string, string]> = { nordica: ['nordica', 'Ingeniería de Sistemas'], griega: ['griega', 'Mecatrónica'], mexicana: ['mexicana', 'Ingeniería Industrial'], china: ['china', 'Bioingeniería'], egipcia: ['egipcia', 'Ingeniería Civil'] }
 const samplePeople: PersonRow[] = [
-  { passport: { id: 'a', username: 'gabriel.penuela', full_name: 'Gabriel Alejandro Peñuela Niño', photo_path: null }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
-  { passport: { id: 'b', username: 'sara.ramirez', full_name: 'Sara Castro Ramirez', photo_path: null }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
+  { passport: { id: 'a', username: 'camila.rojas', full_name: 'Camila Andrea Rojas Prieto', photo_path: null }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
+  { passport: { id: 'b', username: 'ana.ruiz', full_name: 'Ana Pardo Ruiz', photo_path: null }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
   { passport: { id: 'c', username: 'dana.sanchez', full_name: 'Dana Alejandra Sanchez', photo_path: null }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
   { passport: { id: 'd', username: 'luna.oyola', full_name: 'Luna Alejandra Oyola Trujillo', photo_path: null }, record: null },
 ]

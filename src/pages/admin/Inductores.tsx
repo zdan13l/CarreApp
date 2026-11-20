@@ -463,7 +463,7 @@ export default function Inductores() {
     if (!supabase || !person.record) return
     void run(async () => {
       const { error: err } = await supabase!.from('passport_records').update(patch).eq('id', person.record!.id)
-      if (err) throw new Error(/dos personas/.test(err.message) ? 'Un grupo tiene como máximo dos personas.' : /otro semestre/.test(err.message) ? err.message : /committee_lead|duplicate key/.test(err.message) ? 'Ese comité ya tiene coordinador este semestre: quítaselo primero.' : missingColumn(err) ? 'Falta aplicar la migración 0024.' : failMessage)
+      if (err) throw new Error(/dos personas/.test(err.message) ? 'Un grupo tiene como máximo dos personas.' : /otro semestre/.test(err.message) ? err.message : missingColumn(err) ? 'Falta aplicar la migración 0024.' : failMessage)
     })
   }
   function updateIdentity(person: PersonRow, patch: { generation?: string | null; joined_term?: string | null; nickname?: string | null; symbol?: string | null; symbol_label?: string | null }) {

@@ -18,15 +18,15 @@ describe('passportUsername', () => {
   const name = (n: string, taken: string[] = []) => passportUsername(n, new Set(taken))
 
   it('first name and first surname, without accents or capitals', () => {
-    expect(name('Gabriel Alejandro Peñuela Niño')).toBe('gabriel.penuela')
-    expect(name('Juan Daniel Ortíz Quecán')).toBe('juan.ortiz')
+    expect(name('Camila Andrea Rojas Prieto')).toBe('camila.rojas')
+    expect(name('Luis Felipe Vásquez Mora')).toBe('luis.vasquez')
     expect(name('María Fernanda Cruz Niño')).toBe('maria.cruz')
   })
 
   it('with three words the last one is the surname; with two, the second', () => {
-    expect(name('Sara Castro Ramirez')).toBe('sara.ramirez')
+    expect(name('Ana Pardo Ruiz')).toBe('ana.ruiz')
     expect(name('Juan Antonio Hernández')).toBe('juan.hernandez')
-    expect(name('Mariana Hernandez')).toBe('mariana.hernandez')
+    expect(name('Marta Herrera')).toBe('marta.herrera')
   })
 
   it('a single word still gives a valid @', () => {
@@ -47,7 +47,7 @@ describe('passportUsername', () => {
   })
 
   it('respects the @ that already exist (also the ones of other users)', () => {
-    expect(name('Sara Castro Ramirez', ['sara.ramirez'])).not.toBe('sara.ramirez')
+    expect(name('Ana Pardo Ruiz', ['ana.ruiz'])).not.toBe('ana.ruiz')
   })
 
   it('stays inside the 30 characters of an @, even for very long names', () => {
@@ -104,14 +104,14 @@ describe('parsePeople (the Excel the coordinator uploads)', () => {
   it('reads names and careers, gives each one a culture and a unique @', () => {
     const rows = parsePeople(
       table(
-        ['Gabriel Alejandro Peñuela Niño', 'Ingeniería de Sistemas'],
+        ['Camila Andrea Rojas Prieto', 'Ingeniería de Sistemas'],
         ['Juan Diego Santamaría Pinzón', 'Ingeniería Mecánica'],
         ['Jose Miguel Giraldo Gomez', 'Ingeniería Civil'],
       ),
       ctx(),
     )
     expect(rows.map((r) => [r.username, r.culture, r.role])).toEqual([
-      ['gabriel.penuela', 'nordica', 'runner'],
+      ['camila.rojas', 'nordica', 'runner'],
       ['juan.santamaria', 'china', 'runner'],
       ['jose.giraldo', 'egipcia', 'runner'],
     ])

@@ -112,8 +112,8 @@ const plain = (text: string) =>
     .filter(Boolean)
 
 /**
- * "Gabriel Alejandro Peñuela Niño" -> "gabriel.penuela": the first name and the first surname. With three words the last one is the
- * surname ("Sara Castro Ramirez" -> "sara.ramirez"). When it is taken ("juan.sanchez") the initial of the second name is added
+ * "Camila Andrea Rojas Prieto" -> "camila.rojas": the first name and the first surname. With three words the last one is the
+ * surname ("Ana Pardo Ruiz" -> "ana.ruiz"). When it is taken ("juan.sanchez") the initial of the second name is added
  * ("juan.sanchez.s"), then a number. `taken` is updated so a whole list can be named at once.
  */
 export function passportUsername(fullName: string, taken: Set<string>): string {

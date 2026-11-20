@@ -110,14 +110,9 @@ async function readPeople(file: string): Promise<{ people: Person[]; problems: s
       note: coordinator ? cell(C.role) : '',
     })
   })
-  // the leader of a committee is the coordinator that is alone in it; where two coordinate it (or it is not clear) the maintainer chooses in Inductores
-  const byCommittee = new Map<string, Person[]>()
-  for (const p of people.filter((x) => x.coordinator && x.committee)) byCommittee.set(p.committee!, [...(byCommittee.get(p.committee!) ?? []), p])
-  for (const [c, list] of byCommittee) {
-    const real = list.filter((p) => /\/\s*/.test(p.note) && flat(p.note).endsWith(`/${c}`))
-    if (real.length === 1) real[0].lead = true
-    else problems.push(`Comité ${c}: ${real.length} coordinadores (${real.map((p) => p.fullName).join(', ') || '—'}), ninguno queda como líder dorado; se elige en Inductores.`)
-  }
+  // "Coordi Sistemas/Clausura" coordinates the committee after the slash and gets its golden stamp (Caos has two coordinators, 0026).
+  // Coordinators of the Welcome committee and Tomás's second committee (Meraki) wait for their own pages: a person has one committee for now.
+  for (const p of people.filter((x) => x.coordinator && x.committee)) if (flat(p.note).endsWith(`/${p.committee}`)) p.lead = true
   return { people, problems }
 }
 
