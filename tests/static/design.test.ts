@@ -21,8 +21,9 @@ describe('visual rules', () => {
 
   it('has no colour literals in TypeScript: colours are CSS variables (the map markers are styled in CSS)', () => {
     const found: string[] = []
-    // (the colours of the header of the Excel files the coordinator downloads are not part of the interface)
-    for (const { file, text } of code.filter((s) => !s.file.endsWith('lib/passports.ts'))) {
+    // (not part of the interface: the colours of the header of the Excel files the coordinator downloads, and the fixed, light colours of
+    // the PDF of the passport, which is drawn apart from the page and cannot read its CSS variables)
+    for (const { file, text } of code.filter((s) => !/lib\/(passports|passportPdf)\.ts$/.test(s.file))) {
       text.split('\n').forEach((line, i) => {
         if (/#[0-9a-fA-F]{3,8}\b/.test(line) && !/^\s*(\/\/|\*)/.test(line)) found.push(`${file}:${i + 1} ${line.trim().slice(0, 80)}`)
       })
