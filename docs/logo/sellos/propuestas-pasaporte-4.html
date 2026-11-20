@@ -86,8 +86,7 @@ a { color: inherit; }
   </div>
 
   <h2>1 · Sellos de comité y generación</h2>
-  <p class="sub">Bienvenida (Valeria en dorado), Meraki con «Con el alma, la pasión y el corazón» (Tomás en dorado; también Eliana y Juanes), y las generaciones Peluches, Barbies, Champiñones y Textiles.</p>
-  <div class="people"><span class="lead">Bienvenida · Valeria</span><span>Tommy</span><span>Crab</span><span>Emily</span><span>Mari</span><span>Sebas</span> <span class="lead">Meraki · Tomás</span><span>Eliana</span><span>Juanes</span><span>Valeria</span></div>
+  <p class="sub">Bienvenida y Meraki (cada uno se ve de miembro y en dorado, para quien coordina), y las generaciones Peluches, Barbies, Champiñones y Textiles.</p>
   <div class="grid" id="sellos"></div>
 
   <h2>2 · Placas de las carreras, línea gruesa</h2>
@@ -218,9 +217,9 @@ const pair = (a, b) => `<div class="pair"><div class="cap">${a}<span>miembro</sp
 const BLUE = '#12306b', VIOLET = '#6a3fa0'
 
 const bien = { art: (c) => vest(c), ink: BLUE, top: 'BIENVENIDA', bottom: 'QUIEN TE RECIBE', label: 'Bienvenida' }
-card('sellos', 'B1', 'Bienvenida · escudo', 'El chaleco en un escudo azul oscuro; Valeria lo lleva en dorado con una corona de picos.', pair(shapeSeal('shield', bien), shapeSeal('shield', { ...bien, gold: true })), false, 'wide')
+card('sellos', 'B1', 'Bienvenida · escudo', 'El chaleco en un escudo azul oscuro; Quien coordina lo lleva en dorado con una corona de picos.', pair(shapeSeal('shield', bien), shapeSeal('shield', { ...bien, gold: true })), false, 'wide')
 const mer = { art: (c) => (c === GOLD ? butterfly(c, c, c, PAPER) : butterfly('url(#wingA)', 'url(#wingA)', '#241a52', 'rgba(255,255,255,.8)')), ink: VIOLET, top: 'MERAKI', lines: ['CON EL ALMA,', 'LA PASIÓN Y', 'EL CORAZÓN'], label: 'Meraki' }
-card('sellos', 'M2', 'Meraki · óvalo', 'La mariposa a color en un óvalo vertical, como una cartela; Tomás lo lleva en dorado.', pair(shapeSeal('oval', mer), shapeSeal('oval', { ...mer, gold: true })), false, 'wide')
+card('sellos', 'M2', 'Meraki · óvalo', 'La mariposa a color en un óvalo vertical, como una cartela; Quien coordina lo lleva en dorado.', pair(shapeSeal('oval', mer), shapeSeal('oval', { ...mer, gold: true })), false, 'wide')
 card('sellos', 'PE2', 'Peluches · arco', 'El arco deja ver al osito completo (antes el círculo le cortaba las orejas).', `<div class="pair">${shapeSeal('arch', { img: 'ref/peluches.png', ink: '#7a4a1d', bottom: 'PELUCHES · 2610', label: 'Peluches' })}</div>`, false)
 card('sellos', 'BA2', 'Barbies · ticket', 'Una etiqueta horizontal con muescas: el logo se ve entero y a lo ancho.', `<div class="pair">${shapeSeal('ticket', { img: 'ref/barbies.png', ink: '#d6307f', bottom: 'BARBIES · 2630', label: 'Barbies' })}</div>`, false)
 card('sellos', 'CH2', 'Champiñones · bloque', 'Un bloque con remaches, como el de los videojuegos, con el hongo en el centro.', `<div class="pair">${shapeSeal('block', { img: 'ref/champinones.png', ink: '#c3231f', bottom: 'CHAMPIÑONES · 2510', label: 'Champiñones' })}</div>`, false)
