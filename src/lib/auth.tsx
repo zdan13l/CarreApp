@@ -45,7 +45,12 @@ async function fetchProfile(userId: string): Promise<{ profile: Profile | null; 
   let { data, error } = await read('id, username, full_name, role, photo_path')
   if (error?.code === '42703' || /photo_path/.test(error?.message ?? '')) ({ data, error } = await read('id, username, full_name, role'))
   if (error) return { profile: null, failed: true }
-  return { profile: (data as unknown as Profile | null) ?? null, failed: false }
+  if (data) return { profile: data as unknown as Profile, failed: false }
+  // No profile: it can be the personal login of an inductor (migration 0023), which opens only their passport.
+  const passport = await supabase.from('passports').select('id, username, full_name, photo_path').eq('id', userId).maybeSingle()
+  if (passport.data) return { profile: { ...passport.data, role: 'member' }, failed: false }
+  // (a missing table or a policy error means the SQL is not applied yet: that is "no profile", not a network failure)
+  return { profile: null, failed: Boolean(passport.error && !passport.error.code) }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -126,4 +131,4 @@ export function useAuth(): AuthState {
   return ctx
 }
 
-export const homePathForRole = { admin: '/admin', base: '/base', runner: '/corredor' } as const
+export const homePathForRole = { admin: '/admin', base: '/base', runner: '/corredor', member: '/pasaporte' } as const

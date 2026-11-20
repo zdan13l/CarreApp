@@ -20,6 +20,9 @@ async function call(method: 'POST' | 'PATCH' | 'DELETE', body: object): Promise<
 
 export const createUser = (u: { username: string; password: string; full_name: string; role: UserRole; event_id?: string | null }) =>
   call('POST', u)
+// The personal passport of an inductor: a login (the @) that opens only their passport, with no Carrera and no operation access.
+export const createPassportUser = (u: { username: string; password: string; full_name: string }) =>
+  call('POST', { ...u, role: 'member' })
 export const resetPassword = (userId: string, password: string) =>
   call('PATCH', { user_id: userId, password })
 export const deleteUser = (userId: string) => call('DELETE', { user_id: userId })

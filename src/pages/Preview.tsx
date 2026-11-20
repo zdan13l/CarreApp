@@ -34,6 +34,10 @@ import NoActiveCarrera from '../components/NoActiveCarrera'
 import { confirmDialog, promptDialog } from '../lib/dialog'
 import TeamNames from '../components/TeamNames'
 import type { MatchRow, StandingRow, TeamRow } from '../types'
+import MemberPage from '../components/MemberPage'
+import type { MemberPassportData } from '../components/MemberPassport'
+import { PersonItem, UploadPreview, type PersonRow } from './admin/Inductores'
+import type { PassportRole, PassportStampRow, PersonIn } from '../lib/passports'
 
 const user = { full_name: 'Daniel Rodríguez', username: 'daniel' }
 const names = ['Dioses Griegos', 'Dioses Nórdicos', 'Samuráis', 'Guerreros Aztecas']
@@ -119,8 +123,81 @@ function PreviewTop({ teams }: { teams: { team_id: string; name: string; photo_p
   )
 }
 
+
+// The personal passport of an inductor (three versions) and the coordinator's list of inductors.
+const mTerm = { id: 'tm2', name: '2026-2', theme: 'mitologias', is_current: true }
+const mOld = { id: 'tm1', name: '2026-1', theme: 'vikingos', is_current: false } // a theme this version does not know: falls back
+const mStamp = (record: string, kind: PassportStampRow['kind'], base: string, round: number, event = 'Carrera 2026-2'): PassportStampRow => ({
+  record_id: record, event_id: `ev-${event}`, event_name: event, kind, base_name: kind === 'coordinated' ? null : base, base_key: kind === 'coordinated' ? null : `b-${base}`, round_number: round, stamped_at: `2026-11-1${round}T1${round}:20:00Z`,
+})
+function memberData(role: PassportRole, culture: string, career: string): MemberPassportData {
+  const rec = { id: 'rec2', passport_id: 'p1', term_id: mTerm.id, role, career, culture, team_id: role === 'runner' ? 'tm' : null, base_id: role === 'base' ? 'bs' : null, term: mTerm }
+  const old = { ...rec, id: 'rec1', term_id: mOld.id, role: (role === 'coordinator' ? 'coordinator' : 'base') as PassportRole, base_id: null, team_id: null, term: mOld }
+  const stamps: PassportStampRow[] =
+    role === 'runner'
+      ? [mStamp('rec2', 'visited', 'Atrio', 1), mStamp('rec2', 'visited', 'Biblioteca', 2), mStamp('rec2', 'visited', 'Cafetería', 3), mStamp('rec2', 'visited', 'Capilla', 4)]
+      : role === 'base'
+        ? [mStamp('rec2', 'hosted', 'Atrio', 1), mStamp('rec2', 'hosted', 'Atrio', 2), mStamp('rec2', 'hosted', 'Atrio', 3)]
+        : []
+  if (role === 'coordinator') stamps.push(mStamp('rec1', 'coordinated', '', 0, 'Carrera 2026-1'))
+  else stamps.push(mStamp('rec1', 'hosted', 'Mirador', 1, 'Carrera 2026-1'), mStamp('rec1', 'hosted', 'Mirador', 2, 'Carrera 2026-1'))
+  return {
+    person: { id: 'p1', username: 'daniel.rodriguez', full_name: 'Daniel Arturo Rodríguez Peña', photo_path: null },
+    records: [rec, old],
+    stamps,
+    context: [{ record_id: 'rec2', team_id: 'tm', team_name: 'Dioses Nórdicos', team_photo_path: null, partners: ['Sofía Cortés Salazar'], base_id: 'bs', base_name: 'Atrio', event_id: 'ev', event_name: 'Carrera 2026-2', event_active: true }],
+  }
+}
+const sampleCareers: Record<string, [string, string]> = { nordica: ['nordica', 'Ingeniería de Sistemas'], griega: ['griega', 'Mecatrónica'], mexicana: ['mexicana', 'Ingeniería Industrial'], china: ['china', 'Bioingeniería'], egipcia: ['egipcia', 'Ingeniería Civil'] }
+const samplePeople: PersonRow[] = [
+  { passport: { id: 'a', username: 'persona3', full_name: 'Persona Anónima 1', photo_path: null }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
+  { passport: { id: 'b', username: 'persona4', full_name: 'Persona Anónima 2', photo_path: null }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
+  { passport: { id: 'c', username: 'persona11', full_name: 'Persona Anónima 5', photo_path: null }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
+  { passport: { id: 'd', username: 'persona12', full_name: 'Persona Anónima 6', photo_path: null }, record: null },
+]
+const sampleRows: PersonIn[] = [
+  { line: 2, fullName: 'Persona Anónima 7', career: 'Bioingeniería', role: 'runner', culture: 'china', username: 'juan.sanchez', existing: false, errors: [] },
+  { line: 3, fullName: 'Persona Anónima 8', career: 'Ingeniería Civil', role: 'runner', culture: 'egipcia', username: 'jose.gomez', existing: false, errors: [] },
+  { line: 4, fullName: 'Persona Anónima 9', career: 'Ingeniería Ambiental', role: 'base', culture: null, username: 'persona13', existing: false, errors: [] },
+  { line: 5, fullName: 'Persona Anónima 10', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'persona14', existing: true, errors: [] },
+  { line: 6, fullName: 'Persona Anónima 10', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'persona14', existing: true, errors: ['Esta persona está repetida en el archivo.'] },
+]
+
 export default function Preview() {
   const { screen } = useParams()
+
+  if (screen?.startsWith('pasaporte-')) {
+    // pasaporte-corredor, pasaporte-base, pasaporte-coordi, plus ?cultura=griega (nordica by default) and ?portada (closed cover)
+    const query = new URLSearchParams(window.location.search)
+    const [culture, career] = sampleCareers[query.get('cultura') ?? 'nordica'] ?? sampleCareers.nordica
+    const role: PassportRole = screen === 'pasaporte-base' ? 'base' : screen === 'pasaporte-coordi' ? 'coordinator' : 'runner'
+    return <MemberPage data={memberData(role, culture, career)} user={{ full_name: 'Daniel Rodríguez', username: 'daniel.rodriguez' }} startOpen={!query.has('portada')} startPage={Number(query.get('pagina') ?? 0)} />
+  }
+
+  if (screen === 'inductores') {
+    return (
+      <div className="admin tower">
+        <AdminNav eventName="Carrera 2027-1" eventActive mode="setup" running onMode={noop} user={user} onSignOut={noop} />
+        <main className="admin-main">
+          <AdminTopbar user={user} onSignOut={noop} />
+          <h1>Inductores</h1>
+          <section className="card">
+            <h2>Cargar inductores</h2>
+            <UploadPreview rows={sampleRows} themeKey="mitologias" onChange={noop} />
+            <div className="row"><button>Crear 3 pasaportes y descargar las contraseñas</button><button className="ghost">Cancelar</button></div>
+          </section>
+          <section className="card">
+            <h2>Lista de 2026-2</h2>
+            <ul className="list people">
+              {samplePeople.map((p) => (
+                <PersonItem key={p.passport.id} person={p} themeKey="mitologias" teams={[{ id: 'g1', label: 'Dioses Nórdicos (1/2)' }]} bases={[{ id: 'b1', label: 'Atrio' }]} busy={false} onRole={noop} onLink={noop} onCulture={noop} onPhoto={noop} onReset={noop} onDelete={noop} />
+              ))}
+            </ul>
+          </section>
+        </main>
+      </div>
+    )
+  }
 
   if (screen === 'dialogs') {
     return (
@@ -602,5 +679,5 @@ export default function Preview() {
     )
   }
 
-  return <p className="page">Pantallas: dialogs, base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, runner-fin, base, base-llegada, base-fin, base-demora, base-info, carga-fallida, admin, admin-carrera, admin-forms</p>
+  return <p className="page">Pantallas: dialogs, base-resultados, logos, sin-carrera, sin-carrera-base, map, runner, runner-ruta, runner-alertas, runner-top, runner-fin, base, base-llegada, base-fin, base-demora, base-info, carga-fallida, admin, admin-carrera, admin-forms, inductores, pasaporte-corredor, pasaporte-base, pasaporte-coordi (?cultura=griega|mexicana|china|egipcia, ?portada)</p>
 }

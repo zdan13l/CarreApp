@@ -1,4 +1,4 @@
-import { Flag, KeyRound, MapPin, Radar, ShieldCheck, SlidersHorizontal, Swords, TowerControl, Users } from 'lucide-react'
+import { Contact, Flag, KeyRound, MapPin, Radar, ShieldCheck, SlidersHorizontal, Swords, TowerControl, Users } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import AccountMenu from '../../components/AccountMenu'
@@ -28,6 +28,7 @@ export const SETUP_TABS: NavItem[] = [
   { to: '/admin/bases', label: 'Bases', icon: <MapPin {...ICON} /> },
   { to: '/admin/cruces', label: 'Cruces', icon: <Swords {...ICON} /> },
   { to: '/admin/usuarios', label: 'Usuarios', icon: <KeyRound {...ICON} /> },
+  { to: '/admin/inductores', label: 'Inductores', icon: <Contact {...ICON} /> },
 ]
 
 // Brand and sign-out for phones (the side menu has them on computers).

@@ -5,7 +5,7 @@ import Logo from './Logo'
 import AccountMenu from './AccountMenu'
 import { confirmDialog } from '../lib/dialog'
 
-const ROLE: Record<string, string> = { runner: 'Corredor', base: 'Inductor de base', admin: 'Coordinador' }
+const ROLE: Record<string, string> = { runner: 'Corredor', base: 'Inductor de base', admin: 'Coordinador', member: 'Inductor' }
 
 export default function AppShell({
   title,
