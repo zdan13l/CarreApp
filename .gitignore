@@ -30,3 +30,6 @@ dist-ssr
 # Skills de terceros instaladas en el proyecto (pesadas y se instalan de sus repositorios; no se versionan)
 .claude/skills/
 .claude/agents/impeccable-*.md
+
+# Credenciales generadas por scripts/seed-2710.ts (contienen contraseñas)
+credenciales-*.xlsx
