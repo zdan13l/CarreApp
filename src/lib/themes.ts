@@ -1,16 +1,18 @@
-// The theme of a semester ("temática") and the cultures inside it. Every inductor belongs to the culture that their career is
-// assigned to in the theme of the semester, and their passport is dressed in it (colour, border ornament, emblem). A new
-// semester with a new theme only needs a new entry here; nothing in the database changes (terms.theme is just the key).
-export type CultureKey = 'nordica' | 'griega' | 'mexicana' | 'china' | 'egipcia'
-export type Ornament = 'runes' | 'meander' | 'steps' | 'clouds' | 'lotus'
+// The theme of an induction ("temática") and the cultures inside it. THE THEME BELONGS TO ONE INDUCTION ONLY: the passport of a person is
+// for their whole life in the induction, so nothing general (the cover, the identity page, the career) speaks of the theme; only the pages
+// of each induction do. Every inductor belongs to the culture that their career is assigned to in the theme of THAT induction. A new
+// induction with a new theme ("2720 · casas de Harry Potter") only needs a new entry here; nothing in the database changes
+// (terms.theme is just the key). A theme this version of the app does not know shows a neutral page instead of another theme's cultures.
+export type CultureKey = 'nordica' | 'griega' | 'mexicana' | 'china' | 'egipcia' | 'general'
+export type Ornament = 'runes' | 'meander' | 'steps' | 'clouds' | 'lotus' | 'plain'
 
 export interface Culture {
   key: CultureKey
   name: string // "Nórdica"
   myth: string // what the culture is known for, one line for the passport
-  ink: 1 | 2 | 3 | 4 | 5 // --ink-N in index.css: the colour of its passport
-  ornament: Ornament // the border drawn on every page
-  emblem: string // what the cover shows
+  ink: 1 | 2 | 3 | 4 | 5 // --ink-N in index.css: the colour of its pages
+  ornament: Ornament // the border drawn on its pages
+  emblem: string
 }
 
 export interface Theme {
@@ -24,12 +26,14 @@ export interface Theme {
 const plain = (text: string) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 const MITOLOGIAS: Culture[] = [
-  { key: 'nordica', name: 'Nórdica', myth: 'Runas, martillos y el árbol del mundo', ink: 4, ornament: 'runes', emblem: 'Mjölnir' },
-  { key: 'griega', name: 'Griega', myth: 'Dioses del Olimpo, héroes y monstruos', ink: 1, ornament: 'meander', emblem: 'Gorgoneion' },
-  { key: 'mexicana', name: 'Mexicana', myth: 'El quinto sol y la serpiente emplumada', ink: 3, ornament: 'steps', emblem: 'Piedra del Sol' },
-  { key: 'china', name: 'China', myth: 'Dragones, fénix y el equilibrio del yin y el yang', ink: 2, ornament: 'clouds', emblem: 'Dragón' },
-  { key: 'egipcia', name: 'Egipcia', myth: 'Ra, Horus y el viaje al más allá', ink: 5, ornament: 'lotus', emblem: 'Ojo de Horus' },
+  { key: 'nordica', name: 'Nórdica', myth: 'Runas, martillos y el árbol del mundo', ink: 4, ornament: 'runes', emblem: 'Drakkar' },
+  { key: 'griega', name: 'Griega', myth: 'Dioses del Olimpo, héroes y monstruos', ink: 1, ornament: 'meander', emblem: 'Templo' },
+  { key: 'mexicana', name: 'Mexicana', myth: 'El quinto sol y la serpiente emplumada', ink: 3, ornament: 'steps', emblem: 'Pirámide' },
+  { key: 'china', name: 'China', myth: 'Dragones, fénix y el equilibrio del yin y el yang', ink: 2, ornament: 'clouds', emblem: 'Pagoda' },
+  { key: 'egipcia', name: 'Egipcia', myth: 'Ra, Horus y el viaje al más allá', ink: 5, ornament: 'lotus', emblem: 'Pirámides' },
 ]
+
+const GENERAL: Culture = { key: 'general', name: 'Tu grupo', myth: 'Tu lugar en esta inducción', ink: 1, ornament: 'plain', emblem: 'Estrella' }
 
 export const THEMES: Record<string, Theme> = {
   mitologias: {
@@ -50,9 +54,12 @@ export const THEMES: Record<string, Theme> = {
 
 export const DEFAULT_THEME = 'mitologias'
 
-/** A theme that this version of the app does not know (it was written by a newer one) falls back to the default. */
+const pretty = (key: string) => key.replace(/[-_]+/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
+
+/** The theme of a key. One this version does not know gets a neutral theme with its own name, never another theme's cultures. */
 export function themeOf(key: string | null | undefined): Theme {
-  return THEMES[key ?? ''] ?? THEMES[DEFAULT_THEME]
+  const k = key ?? ''
+  return THEMES[k] ?? { key: k, name: pretty(k || 'Temática'), cultures: [GENERAL], cultureOf: () => 'general' }
 }
 
 export function cultureOf(theme: string | null | undefined, key: string | null | undefined): Culture {
