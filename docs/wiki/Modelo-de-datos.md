@@ -164,7 +164,7 @@ erDiagram
 | El estado del cruce se actualiza solo (1–2 ítems = en juego, 3 = terminado) | Trigger `after_score_change` |
 | Solo una Carrera activa a la vez | Índice único parcial en `events(is_active)` |
 | Solo un corredor transmite GPS por grupo | Índice único parcial en `team_runners(team_id)` |
-| Un comité tiene **un solo coordinador por semestre** | Índice único parcial en `passport_records(term_id, committee)` donde `committee_lead` |
+| Un comité puede tener **varios coordinadores** (Caos tiene dos), todos con sello dorado | Sin índice único desde 0026 (antes lo había, 0024) |
 | Nadie edita su propio pasaporte (todo lo pone el coordinador; el @ y la contraseña los cambia el servidor) | Sin política de escritura para la persona y disparador `passports_guard` (0025) |
 | Un solo semestre vigente | Índice único parcial en `terms(is_current)` |
 | Una persona tiene **un registro por semestre**; un grupo tiene **dos personas como máximo**, del mismo semestre | `unique (passport_id, term_id)` y trigger `validate_passport_record` |
