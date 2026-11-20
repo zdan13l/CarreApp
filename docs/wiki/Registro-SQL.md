@@ -37,7 +37,8 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0022 | [`0022_score_needs_arrival.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0022_score_needs_arrival.sql) | 2026-11-19 | Una base solo puede calificar si ya confirmó la llegada de los dos grupos |
 | 0023 | [`0023_passports.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0023_passports.sql) | 2026-11-19 | Pasaporte personal del inductor: semestres con temática, un registro por persona y semestre, sellos guardados para siempre |
 | 0024 | [`0024_passport_identity.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0024_passport_identity.sql) | 2026-11-19 | Identidad del pasaporte: comité (y su coordinador), generación, ingreso, apodo y símbolo |
-| 0025 | [`0025_passport_pages.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0025_passport_pages.sql) | _pendiente_ | Palabras de los coordinadores y de cada comité por inducción, foto de la base en el pasaporte, apodo y símbolo solo del coordinador |
+| 0025 | [`0025_passport_pages.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0025_passport_pages.sql) | 2026-11-20 | Palabras de los coordinadores y de cada comité por inducción, foto de la base en el pasaporte, apodo y símbolo solo del coordinador |
+| 0026 | [`0026_committee_coordinators.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0026_committee_coordinators.sql) | 2026-11-20 | Un comité puede tener más de un coordinador (Caos tiene dos) |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -453,6 +454,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/passport-pages-0025.test.ts` (palabras de la inducción y de los comités, límites, quién lee y quién escribe, nadie edita su pasaporte, foto de la base en el contexto).
 
 **Cómo revertir** `drop function public.my_passport_context(); drop table public.term_committees; alter table public.terms drop column welcome;` y volver a crear `my_passport_context()` y la política `passports_self_update` de 0023 / 0024.
+
+## 0026 — Más de un coordinador por comité
+
+**Qué cambia** Se quita el índice único `passport_records_committee_lead` de 0024: un comité puede tener varios coordinadores (Caos tiene dos) y todos reciben el sello dorado.
+
+**Por qué** La regla de "un solo coordinador por comité" no era cierta en la inducción real.
+
+**Verificación** `tests/db/passport-identity-0024.test.ts` (dos coordinadores del mismo comité) y `tests/static/passports.test.ts`.
+
+**Cómo revertir** `create unique index passport_records_committee_lead on public.passport_records (term_id, committee) where committee_lead;` (falla si ya hay dos coordinadores en un comité).
 
 ## Plantilla para nuevos registros
 
