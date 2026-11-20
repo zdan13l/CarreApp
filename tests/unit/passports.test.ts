@@ -1,8 +1,8 @@
 // The personal passport: usernames, the Excel that comes in and goes out, cultures per career, the stamps that are merged.
 import { describe, expect, it } from 'vitest'
-import { documentNumber } from '../../src/components/MemberPassport'
 import {
   credentialsData,
+  personNumber,
   parsePeople,
   passportUsername,
   PASSPORT_ROLE_LABEL,
@@ -88,9 +88,11 @@ describe('the culture of each career in the theme "Mitologías"', () => {
     expect(new Set(theme.cultures.map((c) => c.ornament)).size).toBe(5)
   })
 
-  it('an unknown theme (written by a newer version) falls back instead of breaking the passport', () => {
-    expect(themeOf('vikingos').key).toBe('mitologias')
-    expect(cultureOf('vikingos', 'no-existe').key).toBe('nordica')
+  it('the theme belongs to one induction: an unknown one (the next induction) gets a neutral page with its own name, never mythology', () => {
+    expect(themeOf('casas-de-harry-potter').name).toBe('Casas de harry potter')
+    expect(themeOf('casas-de-harry-potter').cultures.map((c) => c.key)).toEqual(['general'])
+    expect(themeOf('casas-de-harry-potter').cultureOf('Ingeniería Civil')).toBe('general')
+    expect(cultureOf('casas-de-harry-potter', 'nordica').key).toBe('general')
     expect(cultureOf('mitologias', 'china').name).toBe('China')
   })
 })
@@ -177,12 +179,12 @@ describe('the Excel that goes out', () => {
 
   it('has the @ and the password of every person, with a header', () => {
     expect(data).toHaveLength(3)
-    expect(data[0].map((c) => (c as { value: string }).value)).toEqual(['Nombre', 'Carrera', 'Temática', 'Cultura', 'Rol', 'Usuario (@)', 'Contraseña', 'Entrar en'])
-    expect(data[1]).toEqual(['Ana Gómez', 'Ingeniería Civil', 'Mitologías', 'Egipcia', PASSPORT_ROLE_LABEL.runner, '@ana.gomez', 'D3lF1nZ4p4t00482', 'carreapp.vercel.app'])
+    expect(data[0].map((c) => (c as { value: string }).value)).toEqual(['Nombre', 'Carrera', 'Temática', 'Cultura', 'Comité', 'Rol', 'Usuario (@)', 'Contraseña', 'Entrar en'])
+    expect(data[1]).toEqual(['Ana Gómez', 'Ingeniería Civil', 'Mitologías', 'Egipcia', '', PASSPORT_ROLE_LABEL.runner, '@ana.gomez', 'D3lF1nZ4p4t00482', 'carreapp.vercel.app'])
   })
 
   it('does not invent a password for someone who already had a passport', () => {
-    expect(data[2][6]).toBe('(ya tenía)')
+    expect(data[2][7]).toBe('(ya tenía)')
   })
 
   it('the template has the same columns the upload asks for', () => {
@@ -209,10 +211,10 @@ describe('the stamps of the passport', () => {
   })
 })
 
-describe('documentNumber', () => {
-  it('is the same every time for the same person and semester, and different for another', () => {
-    expect(documentNumber('abc', '2026-2')).toBe(documentNumber('abc', '2026-2'))
-    expect(documentNumber('abc', '2026-2')).not.toBe(documentNumber('abd', '2026-2'))
-    expect(documentNumber('abc', '2026-2')).toMatch(/^PUJ-20262-\d{4}$/)
+describe('personNumber', () => {
+  it('is one number for the whole life of the person (no semester in it), the same every time, and different for another person', () => {
+    expect(personNumber('abc')).toBe(personNumber('abc'))
+    expect(personNumber('abc')).not.toBe(personNumber('abd'))
+    expect(personNumber('abc')).toMatch(/^PUJ-\d{6}$/)
   })
 })
