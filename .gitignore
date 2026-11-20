@@ -33,3 +33,6 @@ dist-ssr
 
 # Credenciales generadas por scripts/seed-2710.ts (contienen contraseñas)
 credenciales-*.xlsx
+
+# Imágenes de referencia de las galerías de sellos (marcas de terceros, solo para ver)
+docs/logo/sellos/ref/

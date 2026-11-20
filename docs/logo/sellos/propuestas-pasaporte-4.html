@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Propuestas del pasaporte · ronda 4</title>
+<style>
+@font-face { font-family: 'Archivo Variable'; font-style: normal; font-weight: 100 900; font-stretch: 62% 125%;
+  src: url(../../../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2) format('woff2-variations'); }
+:root {
+  --bg: #e8ecf4; --surface: #fafbfd; --border: #cbd3e5; --border-strong: #8e9bc0;
+  --text: #0c1740; --text-muted: #404c78; --paper: #fafbfd;
+  --navy: #031d44; --navy-2: #062a5c; --gold: #f2cf7a;
+  --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
+}
+:root[data-theme='dark'] {
+  --bg: #060a1b; --surface: #0d1430; --border: #243062; --border-strong: #3d4d92;
+  --text: #eef2ff; --text-muted: #b6c0e6; --paper: #0d1430;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; color: var(--text); font: 16px/1.5 'Archivo Variable', system-ui, sans-serif; background: var(--bg); }
+.mono { font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 90px; }
+.head { position: relative; overflow: hidden; color: #fff; border-radius: 22px; padding: 26px 28px 24px; background: linear-gradient(135deg, var(--navy-2), var(--navy)); }
+.eyebrow { font: 700 .72rem/1 ui-monospace, Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
+h1 { margin: .55rem 0 .4rem; font-size: clamp(1.7rem, 4.4vw, 2.5rem); line-height: 1.05; font-weight: 800; font-stretch: 82%; }
+.head p { margin: 0; max-width: 70ch; color: #c9d6ff; }
+.tools { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 14px 0 8px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.tools label { font: 600 .84rem 'Archivo Variable', sans-serif; display: inline-flex; gap: .4rem; align-items: center; }
+.tools button { font: 700 .82rem 'Archivo Variable', sans-serif; padding: .45rem .8rem; border-radius: 10px; border: 1px solid var(--border-strong); background: transparent; color: var(--text); cursor: pointer; }
+.tools .pick { margin-left: auto; color: #1a1200; background: var(--foil); border: 0; }
+h2 { margin: 2.6rem 0 .2rem; font-size: 1.35rem; font-weight: 800; font-stretch: 82%; }
+.sub { margin: 0 0 1rem; color: var(--text-muted); max-width: 76ch; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 14px; }
+.card { position: relative; display: grid; justify-items: center; gap: .5rem; padding: 40px 14px 14px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+.card.chosen { outline: 3px solid #c39a3a; }
+.card .id { position: absolute; left: 12px; top: 12px; min-width: 34px; height: 30px; padding: 0 8px; display: grid; place-items: center; border-radius: 15px; font: 800 .86rem/1 'Archivo Variable', sans-serif; color: #1a1200; background: var(--foil); }
+.card .pickbox { position: absolute; right: 12px; top: 14px; display: inline-flex; gap: .35rem; align-items: center; font: 600 .78rem 'Archivo Variable', sans-serif; color: var(--text-muted); }
+.card h3 { margin: 0; font-size: 1rem; font-weight: 800; text-align: center; }
+.card p { margin: 0; font-size: .86rem; color: var(--text-muted); text-align: center; max-width: 34ch; }
+.pair { display: flex; gap: 6px; align-items: center; justify-content: center; }
+.pair .cap { display: grid; justify-items: center; font: 700 .62rem/1.2 ui-monospace, Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+svg.seal { width: 148px; height: 148px; overflow: visible; }
+.pair svg.seal { width: 150px; height: 150px; }
+.card.wide .pair svg.seal { width: 128px; height: 128px; }
+.card.wide { grid-column: span 2; }
+svg.plate { width: 190px; height: 232px; }
+.worn svg.seal { filter: url(#worn); }
+.people { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 1rem; }
+.people span { padding: .2rem .6rem; border-radius: 99px; border: 1px solid var(--border-strong); font-size: .8rem; }
+.people .lead { background: var(--foil); color: #1a1200; border: 0; font-weight: 700; }
+a { color: inherit; }
+</style>
+</head>
+<body>
+<!-- shared definitions -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gold" gradientUnits="userSpaceOnUse" x1="-40" y1="-20" x2="240" y2="220">
+      <stop offset="0" stop-color="#a47c28"/><stop offset=".36" stop-color="#f7de8f"/><stop offset=".58" stop-color="#b98b30"/><stop offset="1" stop-color="#f4d575"/>
+    </linearGradient>
+    <linearGradient id="wingA" gradientUnits="userSpaceOnUse" x1="30" y1="20" x2="85" y2="85">
+      <stop offset="0" stop-color="#2b1d63"/><stop offset=".5" stop-color="#7a63d6"/><stop offset="1" stop-color="#7fd0e0"/>
+    </linearGradient>
+    <filter id="worn" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  12 0 0 0 -4.5" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">CarreApp · pasaporte personal · ronda 4</div>
+    <h1>Cada sello con su propia forma</h1>
+    <p>Tus elegidos, ahora con una silueta distinta cada uno (escudo, óvalo, arco, ticket, bloque y carrete) y el peluche completo. Más abajo, las placas de Sistemas y Civil con la línea mucho más marcada. Las mitologías están en <a href="sellos-mitologias-3.html" style="color:var(--gold)">otra página</a>.</p>
+  </header>
+
+  <div class="tools" id="tools">
+    <label><input type="checkbox" id="dark"> Modo noche</label>
+    <label><input type="checkbox" id="wornToggle"> Tinta gastada</label>
+    <label><input type="checkbox" id="plateDark" checked> Placas en noche</label>
+    <button class="pick" id="copy" type="button">Copiar mi elección</button>
+  </div>
+
+  <h2>1 · Sellos de comité y generación</h2>
+  <p class="sub">Bienvenida (Valeria en dorado), Meraki con «Con el alma, la pasión y el corazón» (Tomás en dorado; también Eliana y Juanes), y las generaciones Peluches, Barbies, Champiñones y Textiles.</p>
+  <div class="people"><span class="lead">Bienvenida · Valeria</span><span>Tommy</span><span>Crab</span><span>Emily</span><span>Mari</span><span>Sebas</span> <span class="lead">Meraki · Tomás</span><span>Eliana</span><span>Juanes</span><span>Valeria</span></div>
+  <div class="grid" id="sellos"></div>
+
+  <h2>2 · Placas de las carreras, línea gruesa</h2>
+  <p class="sub">Sistemas y Civil con cuatro variaciones cada una. Trónicas, Biomec e Industrial (fábrica) ya elegidas, con el mismo trazo grueso.</p>
+  <div class="grid" id="carreras"></div>
+</div>
+
+<script>
+const PAPER = 'var(--paper)'
+let uid = 0
+const rad = (d) => (d * Math.PI) / 180
+const GOLD = 'url(#gold)'
+const FONT = 'font-family="Archivo Variable, sans-serif" font-weight="800"'
+
+// ---------- art ----------
+const vest = (c) => `
+  <path fill="${c}" d="M31 20L43 20L50 37L57 20L69 20L77 34L72 50L74 82L50 89L26 82L28 50L23 34Z"/>
+  <path fill="none" stroke="${PAPER}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M50 37V87M28 50Q33 44 31 34M72 50Q67 44 69 34"/>
+  ${[48, 59, 70].map((y) => `<circle cx="55" cy="${y}" r="2.5" fill="${PAPER}"/>`).join('')}
+  <path fill="none" stroke="${PAPER}" stroke-width="1.8" stroke-linecap="round" d="M30 66H41M61 70H70"/>`
+const wings = { up: 'M33 55C36 38 52 20 68 22C84 24 86 44 80 54C72 62 50 62 33 55Z', low: 'M34 58C50 60 72 60 78 66C80 78 64 86 52 78C42 72 36 66 34 58Z' }
+const butterfly = (fillUp, fillLow, body, cut) => `
+  <g transform="rotate(-8 50 50)">
+    <path d="M31 53C24 46 18 40 14 34M33 51C28 42 24 36 21 32" fill="none" stroke="${body}" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="14" cy="34" r="1.8" fill="${body}"/><circle cx="21" cy="32" r="1.8" fill="${body}"/>
+    <path d="M30 56C28 54 29 50 32 50C35 51 36 54 35 58L37 78C37 80 34 80 34 78Z" fill="${body}"/>
+    <path d="${wings.low}" fill="${fillLow}"/><path d="${wings.up}" fill="${fillUp}"/>
+    <path d="M36 56C48 46 60 38 74 34M36 57C52 54 66 50 80 50M38 60C52 66 64 70 70 76" fill="none" stroke="${cut}" stroke-width="1.2" stroke-linecap="round"/>
+    ${[[60, 27, 5.5, -20], [69, 30, 4.4, -10], [51, 33, 3.6, -30], [77, 38, 3, 0]].map(([x, y, rx, a]) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="2" transform="rotate(${a} ${x} ${y})" fill="${cut}"/>`).join('')}
+    <circle cx="60" cy="72" r="2" fill="${cut}"/><circle cx="52" cy="70" r="1.4" fill="${cut}"/>
+  </g>`
+const tspool = (c) => `
+  <rect x="35" y="29" width="30" height="42" fill="${c}"/>
+  <path d="M35 36L65 31M35 44L65 39M35 52L65 47M35 60L65 55M35 68L65 63" stroke="${PAPER}" stroke-width="1.2" opacity=".75"/>
+  <path fill="${PAPER}" d="M40 36H60V43H53.6V64H46.4V43H40Z"/>`
+
+function picFilter(id, ink) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(ink.slice(i, i + 2), 16) / 255)
+  return `<filter id="${id}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 ${r.toFixed(3)}  0 0 0 0 ${g.toFixed(3)}  0 0 0 0 ${b.toFixed(3)}  -0.55 -0.95 -0.2 0 1.5"/></filter>`
+}
+const picture = (id, img, x, y, w, h, clip) => `<g clip-path="url(#${clip})"><g filter="url(#${id})"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff"/><image href="${img}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet"/></g></g>`
+const T = (x, y, s, size, c, ls = 1.2) => `<text x="${x}" y="${y}" text-anchor="middle" ${FONT} font-size="${size}" letter-spacing="${ls}" fill="${c}">${s}</text>`
+const MONO = (x, y, s, size, c) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-weight="700" font-size="${size}" letter-spacing="2" fill="${c}">${s}</text>`
+
+// ---------- the six silhouettes ----------
+function shapeSeal(kind, o) {
+  const id = 'k' + uid++, gold = o.gold, c = gold ? GOLD : o.ink
+  const wrap = (inner, defs = '') => `<svg class="seal" viewBox="0 0 200 200" role="img" aria-label="${o.label}"><defs>${defs}</defs>${inner}</svg>`
+  const art = (cx, cy, sc) => `<g transform="translate(${cx} ${cy}) scale(${sc}) translate(-50 -50)">${o.art(c)}</g>`
+  if (kind === 'shield') {
+    const d = 'M30 16H170V102C170 150 138 176 100 194C62 176 30 150 30 102Z'
+    return wrap(`<path d="${d}" fill="none" stroke="${c}" stroke-width="6" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="1.6" transform="translate(100 105) scale(.9) translate(-100 -105)"/>
+      ${T(100, 40, o.top, 13, c, 3)}${art(100, 86, 0.8)}<rect x="60" y="138" width="80" height="16" rx="3" fill="${c}"/>${T(100, 149.6, o.bottom, 8.6, PAPER, 1.2)}
+      ${gold ? [0, 1, 2, 3, 4].map((i) => `<path d="M${64 + i * 18} 12l2 -7 2 7z" fill="${c}"/>`).join('') : ''}`)
+  }
+  if (kind === 'oval') {
+    return wrap(`<ellipse cx="100" cy="100" rx="76" ry="96" fill="none" stroke="${c}" stroke-width="6"/><ellipse cx="100" cy="100" rx="68" ry="88" fill="none" stroke="${c}" stroke-width="1.6"/>
+      ${T(100, 32, o.top, 13, c, 4)}${art(100, 82, 0.9)}${o.lines.map((l, i) => T(100, 148 + i * 11.5, l, 8.4, c, 1.2)).join('')}
+      <path d="M72 138H128" stroke="${c}" stroke-width="1.4"/>${gold ? Array.from({ length: 16 }, (_, k) => { const a = (k * 360) / 16 + 11, x = 100 + 100 * Math.cos(rad(a)), y = 100 + 100 * 1.26 * Math.sin(rad(a)); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.4" fill="${c}"/>` }).join('') : ''}`)
+  }
+  if (kind === 'arch') {
+    const d = 'M24 196V100A76 76 0 0 1 176 100V196Z'
+    return wrap(`<path d="${d}" fill="none" stroke="${c}" stroke-width="6" stroke-linejoin="round"/><path d="M33 188V100A67 67 0 0 1 167 100V188Z" fill="none" stroke="${c}" stroke-width="1.4"/>
+      ${picture(id + 'f', o.img, 36, 40, 128, 128, id + 'c')}${MONO(100, 180, 'GENERACIÓN', 7, c)}${T(100, 194, o.bottom, 12, c, 1.6)}`,
+      `<clipPath id="${id}c"><path d="M33 168V100A67 67 0 0 1 167 100V168Z"/></clipPath>${picFilter(id + 'f', o.ink)}`)
+  }
+  if (kind === 'ticket') {
+    const d = 'M34 42H166A28 28 0 0 0 194 70V130A28 28 0 0 0 166 158H34A28 28 0 0 0 6 130V70A28 28 0 0 0 34 42Z'
+    return wrap(`<path d="${d}" fill="none" stroke="${c}" stroke-width="6" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="1.4" transform="translate(100 100) scale(.93 .86) translate(-100 -100)"/>
+      ${picture(id + 'f', o.img, 26, 52, 148, 72, id + 'c')}${MONO(100, 138, 'GENERACIÓN', 7, c)}${T(100, 150, o.bottom, 11, c, 1.6)}`,
+      `<clipPath id="${id}c"><rect x="26" y="52" width="148" height="72" rx="6"/></clipPath>${picFilter(id + 'f', o.ink)}`)
+  }
+  if (kind === 'block') {
+    return wrap(`<rect x="22" y="22" width="156" height="156" rx="22" fill="none" stroke="${c}" stroke-width="6"/><rect x="31" y="31" width="138" height="138" rx="14" fill="none" stroke="${c}" stroke-width="1.4"/>
+      ${[[38, 38], [162, 38], [38, 162], [162, 162]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.4" fill="${c}"/>`).join('')}
+      ${MONO(100, 50, 'GENERACIÓN', 7.4, c)}${picture(id + 'f', o.img, 50, 56, 100, 90, id + 'c')}${T(100, 164, o.bottom, 9, c, 0.6)}`,
+      `<clipPath id="${id}c"><rect x="50" y="56" width="100" height="90"/></clipPath>${picFilter(id + 'f', o.ink)}`)
+  }
+  // spool
+  const d = 'M48 12H152Q160 12 160 20V34Q160 42 152 42H138V158H152Q160 158 160 166V180Q160 188 152 188H48Q40 188 40 180V166Q40 158 48 158H62V42H48Q40 42 40 34V20Q40 12 48 12Z'
+  return wrap(`<path d="${d}" fill="none" stroke="${c}" stroke-width="6" stroke-linejoin="round"/>${MONO(100, 32, 'GENERACIÓN', 8, c)}${T(100, 177, o.bottom, 13, c, 3)}${art(100, 100, 0.78)}
+    <path d="M62 70Q50 74 40 70M138 130Q150 126 160 130" stroke="${c}" stroke-width="1.4" fill="none"/>`)
+}
+
+// ---------- plates, bold line ----------
+function guilloche(cx, cy, color, n = 28) {
+  let out = ''
+  for (let i = 0; i < n; i++) out += `<ellipse cx="${cx}" cy="${cy}" rx="70" ry="22" transform="rotate(${(i * 180) / n} ${cx} ${cy})" fill="none" stroke="${color}" stroke-width=".45"/>`
+  for (let i = 1; i < 6; i++) out += `<circle cx="${cx}" cy="${cy}" r="${i * 13}" fill="none" stroke="${color}" stroke-width=".35"/>`
+  return out
+}
+const L = (c, w = 5) => `fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"`
+const helmet = (c, sc = 1, ty = 0) => `<g transform="translate(50 ${50 + ty}) scale(${sc}) translate(-50 -50)"><path d="M16 64A34 34 0 0 1 84 64Z" ${L(c)} fill="${c}" fill-opacity=".18"/><path d="M12 64H88V70Q88 74 84 74H16Q12 74 12 70Z" ${L(c)} fill="${c}" fill-opacity=".35"/><path d="M42 30V64H58V30Z" ${L(c, 4.4)} fill="${c}" fill-opacity=".35"/></g>`
+const ICON = {
+  s1: (c) => `<rect x="16" y="16" width="68" height="48" rx="6" ${L(c)} fill="${c}" fill-opacity=".14"/><path d="M42 30L32 40L42 50M58 30L68 40L58 50M54 28L46 52" ${L(c, 4.4)}/><path d="M50 64V76M30 82H70" ${L(c, 5.4)}/>`,
+  s2: (c) => `<rect x="22" y="20" width="56" height="40" rx="5" ${L(c)} fill="${c}" fill-opacity=".14"/><path d="M12 66H88L82 78H18Z" ${L(c)} fill="${c}" fill-opacity=".3"/><path d="M36 32L46 40L36 48M52 49H64" ${L(c, 4.6)}/>`,
+  s3: (c) => `<rect x="58" y="16" width="28" height="64" rx="5" ${L(c)} fill="${c}" fill-opacity=".14"/><path d="M64 28H80M64 36H80" ${L(c, 4)}/><circle cx="72" cy="62" r="6" ${L(c, 4)}/><rect x="12" y="30" width="40" height="30" rx="4" ${L(c)} fill="${c}" fill-opacity=".14"/><path d="M32 60V72M20 76H44" ${L(c, 5)}/><path d="M22 41L26 45L22 49M30 49H38" ${L(c, 3.2)}/>`,
+  s4: (c) => `<rect x="16" y="16" width="68" height="48" rx="6" ${L(c)} fill="${c}" fill-opacity=".14"/><path d="M28 32L33 29V50" ${L(c, 4.4)}/><ellipse cx="50" cy="40" rx="5.6" ry="9" ${L(c, 4.2)}/><path d="M66 32L71 29V50" ${L(c, 4.4)}/><path d="M50 64V76M30 82H70" ${L(c, 5.4)}/>`,
+  tronicas: (c) => `<rect x="14" y="18" width="72" height="64" rx="6" ${L(c)} fill="${c}" fill-opacity=".14"/><rect x="36" y="38" width="28" height="28" rx="3" ${L(c)} fill="${c}" fill-opacity=".3"/>${[0, 1, 2].map((i) => `<path d="M${43 + i * 7} 38V30M${43 + i * 7} 66V74M36 ${45 + i * 7}H28M64 ${45 + i * 7}H72" ${L(c, 3.2)}/>`).join('')}<path d="M14 34H24L30 40M86 68H76L70 62" ${L(c, 3.2)}/>${[[30, 40], [70, 62]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" ${L(c, 2.6)}/>`).join('')}`,
+  biomec: (c) => `<path d="M68 76L59 91H41L32 76L41 61H59Z" ${L(c)} fill="${c}" fill-opacity=".3"/><circle cx="50" cy="76" r="6.4" ${L(c, 4)}/><path d="M50 70V46" ${L(c)}/><path d="M50 56C38 56 31 49 30 38C42 38 49 45 50 56Z" ${L(c, 4.4)} fill="${c}" fill-opacity=".3"/><path d="M50 48C62 48 69 41 70 30C58 30 51 37 50 48Z" ${L(c, 4.4)} fill="${c}" fill-opacity=".3"/>`,
+  c1: (c) => helmet(c),
+  c2: (c) => `${helmet(c, 0.74, -14)}<path d="M24 70H76M24 88H76M50 70V88" ${L(c, 5.4)}/>`,
+  c3: (c) => `${helmet(c, 0.7, -16)}<path d="M12 86H88" ${L(c, 5.4)}/><path d="M20 86Q50 52 80 86" ${L(c, 4.6)}/><path d="M36 86V72M50 86V66M64 86V72" ${L(c, 3.4)}/>`,
+  c4: (c) => `${helmet(c, 0.74, -14)}<rect x="14" y="72" width="72" height="16" rx="4" ${L(c)} fill="${c}" fill-opacity=".2"/><circle cx="50" cy="80" r="3.6" ${L(c, 3)}/><path d="M26 72V78M38 72V76M62 72V76M74 72V78" ${L(c, 3)}/>`,
+  ind2: (c) => `<path d="M12 82V50L34 62V50L56 62V50L76 62V28H88V82Z" ${L(c)} fill="${c}" fill-opacity=".2"/><path d="M12 82H88M24 72H30M44 72H50M64 72H70" ${L(c, 4)}/><path d="M78 22C78 16 84 18 84 12" ${L(c, 3)}/>`,
+}
+function plate(icon, name, serial) {
+  const id = 'q' + uid++
+  return `<svg class="plate" viewBox="0 0 190 232" role="img" aria-label="${name}">
+    <defs><linearGradient id="${id}bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--pl-a)"/><stop offset="1" stop-color="var(--pl-b)"/></linearGradient><clipPath id="${id}c"><rect x="6" y="6" width="178" height="220" rx="18"/></clipPath></defs>
+    <rect x="1.5" y="1.5" width="187" height="229" rx="22" fill="url(#${id}bg)" stroke="url(#gold)" stroke-width="4"/>
+    <g clip-path="url(#${id}c)">${guilloche(95, 98, 'var(--pl-line)')}</g>
+    <rect x="9" y="9" width="172" height="214" rx="15" fill="none" stroke="url(#gold)" stroke-width="1.6"/>
+    <rect x="14" y="14" width="162" height="204" rx="11" fill="none" stroke="var(--pl-line)" stroke-width=".8"/>
+    <circle cx="95" cy="98" r="62" fill="var(--pl-disc)" stroke="url(#gold)" stroke-width="3.2"/>
+    <circle cx="95" cy="98" r="56" fill="none" stroke="url(#gold)" stroke-width="1"/>
+    <g transform="translate(53 56) scale(.84)">${icon('url(#gold)')}</g>
+    <path d="M40 180H150" stroke="url(#gold)" stroke-width="1.4"/><path d="M92 177l3-3 3 3-3 3z" fill="url(#gold)"/>
+    <text x="95" y="199" text-anchor="middle" font-family="Archivo Variable, sans-serif" font-weight="800" font-size="13" letter-spacing="3.4" fill="url(#gold)">${name}</text>
+    <text x="95" y="213" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-size="6.4" letter-spacing="2.2" fill="url(#gold)" opacity=".85">INGENIERÍA · ${serial}</text>
+  </svg>`
+}
+
+// ---------- page ----------
+const cards = { sellos: [], carreras: [] }
+const card = (g, id, title, note, inner, pick = true, cls = '') => cards[g].push(`<article class="card ${cls}" data-id="${id}"><span class="id">${id}</span>${pick ? `<label class="pickbox"><input type="checkbox" data-pick="${id}"> elijo esta</label>` : '<span class="pickbox">elegido</span>'}${inner}<h3>${title}</h3><p>${note}</p></article>`)
+const pair = (a, b) => `<div class="pair"><div class="cap">${a}<span>miembro</span></div><div class="cap">${b}<span>coordinador/a</span></div></div>`
+const BLUE = '#12306b', VIOLET = '#6a3fa0'
+
+const bien = { art: (c) => vest(c), ink: BLUE, top: 'BIENVENIDA', bottom: 'QUIEN TE RECIBE', label: 'Bienvenida' }
+card('sellos', 'B1', 'Bienvenida · escudo', 'El chaleco en un escudo azul oscuro; Valeria lo lleva en dorado con una corona de picos.', pair(shapeSeal('shield', bien), shapeSeal('shield', { ...bien, gold: true })), false, 'wide')
+const mer = { art: (c) => (c === GOLD ? butterfly(c, c, c, PAPER) : butterfly('url(#wingA)', 'url(#wingA)', '#241a52', 'rgba(255,255,255,.8)')), ink: VIOLET, top: 'MERAKI', lines: ['CON EL ALMA,', 'LA PASIÓN Y', 'EL CORAZÓN'], label: 'Meraki' }
+card('sellos', 'M2', 'Meraki · óvalo', 'La mariposa a color en un óvalo vertical, como una cartela; Tomás lo lleva en dorado.', pair(shapeSeal('oval', mer), shapeSeal('oval', { ...mer, gold: true })), false, 'wide')
+card('sellos', 'PE2', 'Peluches · arco', 'El arco deja ver al osito completo (antes el círculo le cortaba las orejas).', `<div class="pair">${shapeSeal('arch', { img: 'ref/peluches.png', ink: '#7a4a1d', bottom: 'PELUCHES · 2610', label: 'Peluches' })}</div>`, false)
+card('sellos', 'BA2', 'Barbies · ticket', 'Una etiqueta horizontal con muescas: el logo se ve entero y a lo ancho.', `<div class="pair">${shapeSeal('ticket', { img: 'ref/barbies.png', ink: '#d6307f', bottom: 'BARBIES · 2630', label: 'Barbies' })}</div>`, false)
+card('sellos', 'CH2', 'Champiñones · bloque', 'Un bloque con remaches, como el de los videojuegos, con el hongo en el centro.', `<div class="pair">${shapeSeal('block', { img: 'ref/champinones.png', ink: '#c3231f', bottom: 'CHAMPIÑONES · 2510', label: 'Champiñones' })}</div>`, false)
+card('sellos', 'TX2', 'Textiles · carrete', 'El sello tiene forma de carrete de hilo y la T va en su centro.', `<div class="pair">${shapeSeal('spool', { art: (c) => tspool(c), ink: '#2c3e8f', bottom: 'TEXTILES', label: 'Textiles' })}</div>`, false)
+
+;[['S1', 's1', 'Sistemas · monitor', 'El computador de escritorio con el código en pantalla, trazo grueso.'], ['S2', 's2', 'Sistemas · portátil', 'Un portátil con el símbolo de la terminal.'], ['S3', 's3', 'Sistemas · torre y pantalla', 'La torre del PC con su pantalla pequeña.'], ['S4', 's4', 'Sistemas · binario', 'Monitor con ceros y unos.']].forEach(([id, k, t, n]) => card('carreras', id, t, n, plate(ICON[k], 'SISTEMAS', '01/05')))
+card('carreras', 'C2', 'Trónicas (elegida)', 'La tarjeta de circuito con trazo grueso.', plate(ICON.tronicas, 'TRÓNICAS', '02/05'), false)
+card('carreras', 'C3', 'Biomec (elegida)', 'La plantita sobre la tuerca con trazo grueso.', plate(ICON.biomec, 'BIOMEC', '03/05'), false)
+;[['V1', 'c1', 'Civil · casco', 'El casco de obra, relleno y con trazo grueso.'], ['V2', 'c2', 'Civil · casco y viga', 'El casco sobre una viga en I.'], ['V3', 'c3', 'Civil · casco y puente', 'El casco sobre un puente de arco.'], ['V4', 'c4', 'Civil · casco y nivel', 'El casco con un nivel de burbuja.']].forEach(([id, k, t, n]) => card('carreras', id, t, n, plate(ICON[k], 'CIVIL', '04/05')))
+card('carreras', 'I2', 'Industrial · fábrica (elegida)', 'La fábrica con trazo grueso.', plate(ICON.ind2, 'INDUSTRIAL', '05/05'), false)
+
+for (const [g, list] of Object.entries(cards)) document.getElementById(g).innerHTML = list.join('')
+
+// ---------- tools ----------
+const root = document.documentElement
+const set = (k, v) => { try { localStorage.setItem('prop4-' + k, JSON.stringify(v)) } catch {} }
+const get = (k, d) => { try { return JSON.parse(localStorage.getItem('prop4-' + k)) ?? d } catch { return d } }
+const dark = document.getElementById('dark'), worn = document.getElementById('wornToggle'), plateDark = document.getElementById('plateDark')
+function apply() {
+  root.dataset.theme = dark.checked ? 'dark' : 'light'
+  document.body.classList.toggle('worn', worn.checked)
+  const night = plateDark.checked
+  root.style.setProperty('--pl-a', night ? '#0a1f4a' : '#fbf3dc'); root.style.setProperty('--pl-b', night ? '#031538' : '#efe2bb')
+  root.style.setProperty('--pl-line', night ? 'rgba(242,207,122,.28)' : 'rgba(122,80,0,.26)'); root.style.setProperty('--pl-disc', night ? 'rgba(2,12,36,.55)' : 'rgba(255,250,235,.7)')
+  set('dark', dark.checked); set('worn', worn.checked); set('plate', night)
+}
+dark.checked = get('dark', false); worn.checked = get('worn', false); plateDark.checked = get('plate', true)
+;[dark, worn, plateDark].forEach((el) => el.addEventListener('change', apply)); apply()
+const picks = new Set(get('picks', []))
+document.querySelectorAll('[data-pick]').forEach((box) => {
+  box.checked = picks.has(box.dataset.pick); box.closest('.card').classList.toggle('chosen', box.checked)
+  box.addEventListener('change', () => { box.checked ? picks.add(box.dataset.pick) : picks.delete(box.dataset.pick); box.closest('.card').classList.toggle('chosen', box.checked); set('picks', [...picks]) })
+})
+document.getElementById('copy').addEventListener('click', async (e) => {
+  const text = 'Mi elección: ' + ([...picks].sort().join(', ') || 'ninguna todavía')
+  try { await navigator.clipboard.writeText(text); e.target.textContent = 'Copiado ✓' } catch { e.target.textContent = text }
+  setTimeout(() => (e.target.textContent = 'Copiar mi elección'), 4000)
+})
+</script>
+</body>
+</html>
