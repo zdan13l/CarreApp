@@ -24,7 +24,7 @@ describe('users are scoped to the Carrera on every screen', () => {
   })
 
   it('the users API only stores a Carrera for runners and inductors, never for the coordinator', () => {
-    expect(read('api/users.ts')).toMatch(/role === 'admin' \|\| !body\.event_id \? null/)
+    expect(read('api/users.ts')).toMatch(/role === 'admin' \|\| role === 'member' \|\| !body\.event_id \? null/)
   })
 })
 
