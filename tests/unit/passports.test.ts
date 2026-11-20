@@ -18,13 +18,13 @@ describe('passportUsername', () => {
   const name = (n: string, taken: string[] = []) => passportUsername(n, new Set(taken))
 
   it('first name and first surname, without accents or capitals', () => {
-    expect(name('Persona Anónima 1')).toBe('persona3')
+    expect(name('Persona Anónima 2')).toBe('persona1')
     expect(name('Persona Anónima 15')).toBe('persona21')
     expect(name('Persona Anónima 16')).toBe('persona22')
   })
 
   it('with three words the last one is the surname; with two, the second', () => {
-    expect(name('Persona Anónima 2')).toBe('persona4')
+    expect(name('Persona Anónima 3')).toBe('persona4')
     expect(name('Persona Anónima 17')).toBe('persona23')
     expect(name('Persona Anónima 18')).toBe('persona24')
   })
@@ -47,7 +47,7 @@ describe('passportUsername', () => {
   })
 
   it('respects the @ that already exist (also the ones of other users)', () => {
-    expect(name('Persona Anónima 2', ['persona4'])).not.toBe('persona4')
+    expect(name('Persona Anónima 3', ['persona4'])).not.toBe('persona4')
   })
 
   it('stays inside the 30 characters of an @, even for very long names', () => {
@@ -102,14 +102,14 @@ describe('parsePeople (the Excel the coordinator uploads)', () => {
   it('reads names and careers, gives each one a culture and a unique @', () => {
     const rows = parsePeople(
       table(
-        ['Persona Anónima 1', 'Ingeniería de Sistemas'],
+        ['Persona Anónima 2', 'Ingeniería de Sistemas'],
         ['Persona Anónima 20', 'Ingeniería Mecánica'],
         ['Persona Anónima 8', 'Ingeniería Civil'],
       ),
       ctx(),
     )
     expect(rows.map((r) => [r.username, r.culture, r.role])).toEqual([
-      ['persona3', 'nordica', 'runner'],
+      ['persona1', 'nordica', 'runner'],
       ['persona26', 'china', 'runner'],
       ['persona27', 'egipcia', 'runner'],
     ])

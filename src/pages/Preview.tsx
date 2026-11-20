@@ -150,8 +150,8 @@ function memberData(role: PassportRole, culture: string, career: string): Member
 }
 const sampleCareers: Record<string, [string, string]> = { nordica: ['nordica', 'Ingeniería de Sistemas'], griega: ['griega', 'Mecatrónica'], mexicana: ['mexicana', 'Ingeniería Industrial'], china: ['china', 'Bioingeniería'], egipcia: ['egipcia', 'Ingeniería Civil'] }
 const samplePeople: PersonRow[] = [
-  { passport: { id: 'a', username: 'persona3', full_name: 'Persona Anónima 1', photo_path: null }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
-  { passport: { id: 'b', username: 'persona4', full_name: 'Persona Anónima 2', photo_path: null }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
+  { passport: { id: 'a', username: 'persona1', full_name: 'Persona Anónima 2', photo_path: null }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
+  { passport: { id: 'b', username: 'persona4', full_name: 'Persona Anónima 3', photo_path: null }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
   { passport: { id: 'c', username: 'persona11', full_name: 'Persona Anónima 5', photo_path: null }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
   { passport: { id: 'd', username: 'persona12', full_name: 'Persona Anónima 6', photo_path: null }, record: null },
 ]

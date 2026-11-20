@@ -24,6 +24,7 @@ El panel tiene **dos modos** que se eligen arriba del menú lateral: **Preparaci
 | **Grupos** | Nombre, foto y corredores (con el que transmite el GPS). | |
 | **Bases** | Nombre, foto del lugar, información, 3 preguntas, inductores y ubicación (el mapa se abre solo si se necesita). | |
 | **Cruces** | El cronograma se arma **a mano**, ronda por ronda (no hay generador automático); revisión (descansos, bases repetidas). | Armar y ajustar el cronograma. |
+| **Inductores** | La lista de personas del **semestre** y sus pasaportes personales: elige o crea el semestre (nombre y temática), **sube el Excel** (Nombre, Carrera, Rol opcional) con vista previa, y recibe otro Excel con el @ y la contraseña de cada uno. En la lista: papel (corredor / base / coordinador), cultura, **grupo de dos** (o base), foto, nueva contraseña y eliminar. | Alguien nuevo, cambiar de papel, enlazar a su grupo. |
 | **Usuarios** | Los de la Carrera elegida, cada uno con su **foto** (botón de cámara; reemplaza la inicial en su cabecera y en la lista) (más los coordinadores): crear, cambiar contraseña y eliminar. Los usuarios anteriores a esta regla aparecen en *Sin Carrera asignada* para adoptarlos o eliminarlos. Corredores e inductores se crean siempre dentro de una Carrera. | |
 
 ## Corredor (`/corredor`)
@@ -37,6 +38,9 @@ Una **barra de estado siempre visible** (el grupo, "En vivo" y **los puntos de s
 | **Top** | El **mismo ticket de pasajero** de Visado (nombre, en vivo y puntos) y, bajo una tarjeta blanca con el título, **los demás equipos** solo con foto y nombre (sin puntos y en orden alfabético). La tarjeta de pasajero solo está en Visado y en Top. |
 
 Los ajustes de **sonido y notificaciones** están en la campana de la barra superior (campana tachada con un punto si el sonido está apagado; el panel se abre sobre la pantalla). Sin Carrera activa para su usuario se ve una explicación tranquila ("No hay ninguna Carrera activa para tu usuario").
+
+## Pasaporte personal (`/pasaporte`)
+Lo que ve un inductor al entrar con su @ personal (sin acceso a la operación; el grupo o la base entra con su propio usuario). Un pasaporte que se abre al tocar la cubierta, con tres versiones: **corredor** (papel, su grupo y con quién corre), **base** (mostrador azul, su base) y **coordinador** (torre de control, siempre oscura). Páginas: identidad (foto que sube el coordinador, carrera, cultura, papel, grupo o base, @, documento), **sellos** (el visado de entrada de su cultura y un sello por cada base visitada o atendida, o por cada Carrera coordinada) e **historial** de semestres. Cada carrera recibe una **cultura** de la temática del semestre y el pasaporte se viste con ella: color, borde de las páginas y emblema. Se actualiza solo cuando una Carrera empieza o termina.
 
 ## Entrada (`/login`)
 La foto del campus arriba (con la de noche en modo oscuro), un velo oscuro en la parte de abajo de la foto y el formulario como tarjeta de embarque. Arriba a la izquierda, el escudo y el nombre CarreApp en blanco, quietos.

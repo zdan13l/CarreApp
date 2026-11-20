@@ -95,6 +95,45 @@ erDiagram
   }
 ```
 
+## Pasaporte personal (migración 0023)
+
+```mermaid
+erDiagram
+  terms ||--o{ events : "tiene Carreras"
+  terms ||--o{ passport_records : "un registro por persona"
+  passports ||--o{ passport_records : "uno por semestre"
+  teams ||--o{ passport_records : "hasta dos corredores"
+  bases ||--o{ passport_records : "su inductor"
+  passport_records ||--o{ passport_stamps : "sellos para siempre"
+  terms {
+    uuid id PK
+    text name "2026-2"
+    text theme "mitologias"
+    bool is_current "uno solo"
+  }
+  passports {
+    uuid id PK "= auth.users"
+    text username
+    text full_name
+    text photo_path
+  }
+  passport_records {
+    uuid id PK
+    text role "runner | base | coordinator"
+    text career
+    text culture "la de su carrera en la temática"
+    uuid team_id "solo si corre"
+    uuid base_id "solo si es base"
+  }
+  passport_stamps {
+    uuid id PK
+    text kind "visited | hosted | coordinated"
+    text event_name
+    text base_name
+    int round_number
+  }
+```
+
 ## Reglas de negocio (las hace cumplir la base de datos)
 
 | Regla | Cómo se garantiza |
@@ -112,6 +151,9 @@ erDiagram
 | El estado del cruce se actualiza solo (1–2 ítems = en juego, 3 = terminado) | Trigger `after_score_change` |
 | Solo una Carrera activa a la vez | Índice único parcial en `events(is_active)` |
 | Solo un corredor transmite GPS por grupo | Índice único parcial en `team_runners(team_id)` |
+| Un solo semestre vigente | Índice único parcial en `terms(is_current)` |
+| Una persona tiene **un registro por semestre**; un grupo tiene **dos personas como máximo**, del mismo semestre | `unique (passport_id, term_id)` y trigger `validate_passport_record` |
+| Los sellos del pasaporte se archivan **antes** de reiniciar la Carrera | Trigger `events_archive_stamps` (alfabéticamente antes que `events_reset_on_deactivate`) |
 
 ## Ranking
 La vista `team_standings` suma los puntos de cada grupo (cada `match_scores` ganado = 1 punto). Es `security_invoker`, o sea que respeta los permisos de quien consulta.

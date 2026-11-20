@@ -39,6 +39,9 @@ Hay **tres roles**. Los permisos se aplican en la **base de datos** (RLS), no so
 
 Si la `service_role` se llega a exponer, se **regenera** en Supabase (Project Settings > API) y se actualiza en Vercel.
 
+## Pasaporte personal (migración 0023)
+Además de los tres roles de la operación, cada inductor tiene un **usuario personal** que solo abre su **pasaporte personal**. Ese usuario **no tiene perfil**: ninguna política le da filas de grupos, bases, cruces, puntajes ni perfiles, así que no puede entrar a la Carrera con él. Lee únicamente su propia persona, sus registros por semestre y sus sellos (más la lista de semestres), y dos funciones que solo devuelven nombres y cruces terminados (`my_passport_context()`, `my_live_stamps()`). El coordinador crea, enlaza (corredor → grupo de dos, base → base), cambia de papel, sube la foto y elimina; la persona no puede cambiarse el papel ni la foto. Quien corre entra a la operación con el **usuario del grupo**, y quien califica, con el de su base.
+
 ## Usuarios y Carreras
 Corredores e inductores pertenecen a **una** Carrera (`profiles.event_id`) y no pueden asignarse a otra; el coordinador no pertenece a ninguna y ve todas. Ver [Registro SQL](Registro-SQL) `0014`.
 
