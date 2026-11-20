@@ -101,6 +101,7 @@ erDiagram
 erDiagram
   terms ||--o{ events : "tiene Carreras"
   terms ||--o{ passport_records : "un registro por persona"
+  terms ||--o{ term_committees : "palabras de cada comité"
   passports ||--o{ passport_records : "uno por semestre"
   teams ||--o{ passport_records : "hasta dos corredores"
   bases ||--o{ passport_records : "su inductor"
@@ -110,18 +111,30 @@ erDiagram
     text name "2026-2"
     text theme "mitologias"
     bool is_current "uno solo"
+    text welcome "palabras de los coordinadores"
+  }
+  term_committees {
+    uuid term_id PK
+    text committee PK
+    text message "palabras del comité"
   }
   passports {
     uuid id PK "= auth.users"
     text username
     text full_name
     text photo_path
+    text nickname "lo pone el coordinador, una vez"
+    text symbol "ícono que la representa"
+    text generation "lo pone el coordinador"
+    text joined_term "cuándo entró a la inducción"
   }
   passport_records {
     uuid id PK
     text role "runner | base | coordinator"
     text career
     text culture "la de su carrera en la temática"
+    text committee "clausura | meraki | conzumo | carrera | caos"
+    bool committee_lead "el coordinador del comité (dorado)"
     uuid team_id "solo si corre"
     uuid base_id "solo si es base"
   }
@@ -151,6 +164,8 @@ erDiagram
 | El estado del cruce se actualiza solo (1–2 ítems = en juego, 3 = terminado) | Trigger `after_score_change` |
 | Solo una Carrera activa a la vez | Índice único parcial en `events(is_active)` |
 | Solo un corredor transmite GPS por grupo | Índice único parcial en `team_runners(team_id)` |
+| Un comité tiene **un solo coordinador por semestre** | Índice único parcial en `passport_records(term_id, committee)` donde `committee_lead` |
+| Nadie edita su propio pasaporte (todo lo pone el coordinador; el @ y la contraseña los cambia el servidor) | Sin política de escritura para la persona y disparador `passports_guard` (0025) |
 | Un solo semestre vigente | Índice único parcial en `terms(is_current)` |
 | Una persona tiene **un registro por semestre**; un grupo tiene **dos personas como máximo**, del mismo semestre | `unique (passport_id, term_id)` y trigger `validate_passport_record` |
 | Los sellos del pasaporte se archivan **antes** de reiniciar la Carrera | Trigger `events_archive_stamps` (alfabéticamente antes que `events_reset_on_deactivate`) |
