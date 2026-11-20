@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sellos de mitologías · propuesta</title>
+<style>
+@font-face { font-family: 'Archivo Variable'; font-style: normal; font-weight: 100 900; font-stretch: 62% 125%;
+  src: url(../../../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2) format('woff2-variations'); }
+:root {
+  --bg: #e8ecf4; --surface: #fafbfd; --surface-2: #eef1f8; --border: #cbd3e5; --border-strong: #8e9bc0;
+  --text: #0c1740; --text-muted: #404c78; --gold-ink: #7a5000; --paper: #fafbfd;
+  --ink-1: #1f49b8; --ink-2: #b3261e; --ink-3: #1b7a52; --ink-4: #6a3fa0; --ink-5: #a85a00;
+  --navy: #031d44; --navy-2: #062a5c; --gold: #f2cf7a;
+  --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
+  --pattern: url(../../../public/login-pattern.svg);
+}
+:root[data-theme='dark'] {
+  --bg: #060a1b; --surface: #0d1430; --surface-2: #141d44; --border: #243062; --border-strong: #3d4d92;
+  --text: #eef2ff; --text-muted: #b6c0e6; --gold-ink: #f2cf7a; --paper: #0d1430;
+  --ink-1: #86adff; --ink-2: #ff8f86; --ink-3: #62e3ac; --ink-4: #c7a6ff; --ink-5: #ffb862;
+  --pattern: url(../../../public/login-pattern-dark.svg);
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; color: var(--text); font: 16px/1.5 'Archivo Variable', system-ui, sans-serif; background: var(--bg) var(--pattern) 0 0 / 460px 460px fixed; }
+.sans { font-family: 'Archivo Variable', system-ui, sans-serif; font-stretch: 76%; }
+.mono { font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 80px; }
+
+.head { position: relative; overflow: hidden; color: #fff; border-radius: 22px; padding: 26px 28px 24px; background: linear-gradient(135deg, var(--navy-2), var(--navy)); box-shadow: 0 24px 40px -26px rgba(3, 29, 68, .8); }
+.head::after { content: ''; position: absolute; right: -30px; top: -30px; width: 220px; height: 220px; border-radius: 50%; border: 2px dashed rgba(242, 207, 122, .35); }
+.eyebrow { font: 700 .72rem/1 ui-monospace, Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
+h1 { margin: .55rem 0 .4rem; font-size: clamp(1.7rem, 4.4vw, 2.5rem); line-height: 1.05; font-weight: 800; font-stretch: 82%; letter-spacing: -.01em; }
+.head p { margin: 0; max-width: 66ch; color: #c9d6ff; }
+.tools { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 18px 0 8px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.tools .lab { font: 700 .68rem/1 ui-monospace, Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
+.seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 10px; overflow: hidden; flex-wrap: wrap; }
+.seg button { font: 600 .82rem 'Archivo Variable', sans-serif; padding: .4rem .75rem; color: var(--text); background: transparent; border: 0; cursor: pointer; }
+.seg button[aria-pressed='true'] { color: #1a1200; background: var(--foil); }
+.dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1.5px var(--border-strong); cursor: pointer; padding: 0; }
+.dot[aria-pressed='true'] { box-shadow: 0 0 0 2.5px var(--text); }
+
+h2 { margin: 2.6rem 0 .2rem; font-size: 1.35rem; font-weight: 800; font-stretch: 82%; }
+.sub { margin: 0 0 1rem; color: var(--text-muted); max-width: 72ch; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(236px, 1fr)); gap: 14px; }
+.card { position: relative; display: grid; justify-items: center; gap: .45rem; padding: 18px 14px 14px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); box-shadow: 0 14px 28px -24px rgba(13, 22, 51, .5); }
+.card .rank { position: absolute; left: 12px; top: 12px; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; font: 800 .9rem/1 'Archivo Variable', sans-serif; color: #1a1200; background: var(--foil); box-shadow: 0 0 0 2px var(--surface); }
+.card .shape { position: absolute; right: 12px; top: 14px; font: 700 .62rem/1 ui-monospace, Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.card .stage { display: grid; place-items: center; width: 100%; height: 214px; }
+.card h3 { margin: 0; font-size: 1.02rem; font-weight: 800; font-stretch: 84%; text-align: center; }
+.card p { margin: 0; font-size: .82rem; line-height: 1.35; color: var(--text-muted); text-align: center; text-wrap: balance; }
+.card .tag { font: 700 .62rem/1 ui-monospace, Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-ink); }
+
+.stamp { display: inline-block; line-height: 0; width: 200px; height: 200px; transition: transform .25s cubic-bezier(.2, .8, .2, 1); }
+.stamp svg { width: 100%; height: 100%; overflow: visible; }
+.card:hover .stamp { transform: rotate(0deg) scale(1.05) !important; }
+.ink { fill: var(--ink); stroke: var(--ink); }
+.ink text { stroke: none; }
+.ink .f { stroke: none; }
+.ink .o { fill: none; }
+.ink .pp { fill: var(--paper); stroke: none; }
+.ink .ps { fill: none; stroke: var(--paper); }
+.ink .tx { stroke: none; }
+.ink .fs { stroke: var(--paper); }
+
+.page { position: relative; overflow: hidden; margin-top: 12px; padding: 22px 22px 18px; border: 1px solid var(--border-strong); border-radius: 18px;
+  background: linear-gradient(180deg, var(--surface), var(--surface-2)); box-shadow: 0 24px 40px -30px rgba(13, 22, 51, .6); }
+.page::before { content: ''; position: absolute; inset: 0; background: var(--pattern) 0 0 / 380px 380px; opacity: .3; pointer-events: none; }
+.page .pt { position: relative; display: flex; justify-content: space-between; font: 700 .68rem/1 ui-monospace, Consolas, monospace; letter-spacing: .14em; color: var(--text-muted); text-transform: uppercase; }
+.sheet { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 6px 0 4px; }
+.sheet .cell { display: grid; place-items: center; height: 214px; }
+.sheet .cell:nth-child(2) { transform: translateY(14px); }
+.sheet .cell:nth-child(5) { transform: translateY(-10px); }
+.sheet .stamp { width: 190px; height: 190px; }
+.mrz { position: relative; margin: 10px 0 0; font: 600 .78rem/1.35 ui-monospace, Consolas, monospace; letter-spacing: .16em; color: var(--text-muted); word-break: break-all; }
+@media (max-width: 760px) { .sheet { grid-template-columns: repeat(2, 1fr); } .sheet .cell:nth-child(n+5) { display: none; } }
+
+.rule { display: grid; gap: 14px; padding: 18px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; font: 800 .95rem/1 'Archivo Variable', sans-serif; color: var(--text-muted); background: var(--surface-2); border: 1px solid var(--border); }
+.chip.on { color: #1a1200; background: var(--foil); border-color: transparent; }
+.rule ul { margin: 0; padding-left: 1.1rem; color: var(--text-muted); }
+.rule li { margin: .25rem 0; }
+.rule b { color: var(--text); }
+.cult { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.cult div { padding: 10px 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); font-size: .84rem; color: var(--text-muted); }
+.cult b { display: block; color: var(--text); font-size: .95rem; margin-bottom: 2px; }
+.note { margin-top: 1.2rem; padding: 12px 14px; border-left: 4px solid var(--gold); border-radius: 10px; background: var(--surface); color: var(--text-muted); font-size: .88rem; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="wear1" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="11" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  13 0 0 0 -3.6" result="s"/><feComposite in="SourceGraphic" in2="s" operator="in"/></filter>
+    <filter id="wear2" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="29" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  13 0 0 0 -3.6" result="s"/><feComposite in="SourceGraphic" in2="s" operator="in"/></filter>
+    <filter id="wear3" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="47" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  13 0 0 0 -3.6" result="s"/><feComposite in="SourceGraphic" in2="s" operator="in"/></filter>
+    <filter id="wear4" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="63" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  13 0 0 0 -3.6" result="s"/><feComposite in="SourceGraphic" in2="s" operator="in"/></filter>
+    <filter id="wear5" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="81" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  13 0 0 0 -3.6" result="s"/><feComposite in="SourceGraphic" in2="s" operator="in"/></filter>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Propuesta · aún no está en la app</div>
+    <h1>Mitologías: 15 sellos para una Carrera</h1>
+    <p>La temática de esta Carrera son las mitologías: griega, nórdica, china, mexicana y egipcia, tres sellos de cada una. Cada cultura tiene su propia forma de adornar el borde (greca, runas, nubes, escalones, franjas) para que se reconozca de lejos. Tinta gastada, inclinación y colores variados, como el pasaporte actual.</p>
+  </header>
+
+  <div class="tools" id="tools">
+    <span class="lab">Fondo</span>
+    <span class="seg" id="theme"><button data-v="light" aria-pressed="true">Papel</button><button data-v="dark" aria-pressed="false">Noche</button></span>
+    <span class="lab">Tinta</span>
+    <span id="inks" style="display:inline-flex;gap:8px;align-items:center"></span>
+    <span class="lab">Inclinación</span>
+    <span class="seg" id="tilt"><button data-v="1" aria-pressed="true">Con</button><button data-v="0" aria-pressed="false">Recta</button></span>
+    <span class="lab">Tinta gastada</span>
+    <span class="seg" id="wear"><button data-v="1" aria-pressed="true">Sí</button><button data-v="0" aria-pressed="false">No</button></span>
+    <span class="lab">Cultura</span>
+    <span class="seg" id="cul"></span>
+  </div>
+
+  <h2>Los 15, por prioridad</h2>
+  <p class="sub">El número dorado es la prioridad: se alternan las culturas para que, con pocas bases, el pasaporte ya mezcle las cinco (los 5 primeros son uno de cada una). Pasa el cursor para verlo recto y grande.</p>
+  <div class="grid" id="grid"></div>
+
+  <h2>Así se ve una página del pasaporte</h2>
+  <p class="sub">Seis sellos de una misma persona: uno de cada cultura y uno repetido.</p>
+  <div class="page">
+    <div class="pt"><span>Página 3 · Visados</span><span>PUJ · Carrera de mitologías</span></div>
+    <div class="sheet" id="sheet"></div>
+    <div class="mrz">P&lt;PUJ&lt;&lt;LOS&lt;QUE&lt;SIRVEN&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br>SELLOS06&lt;&lt;RONDAS08&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</div>
+  </div>
+
+  <h2>Las cinco culturas</h2>
+  <div class="cult" id="cult"></div>
+
+  <h2>Cómo se asignan</h2>
+  <div class="rule">
+    <div class="chips" id="chips"></div>
+    <ul>
+      <li><b>Prioridad:</b> con 9 bases se usan los sellos 1 al 9; con 5, uno de cada cultura. Si hay más bases que sellos se repiten desde el 1.</li>
+      <li><b>Aleatorio:</b> entre los elegidos, el reparto se baraja una vez al crear la Carrera y queda fijo.</li>
+      <li><b>Un pasaporte único por temática:</b> los sellos son un paquete de la Carrera. Otra temática (otra inducción) trae otro paquete de 15 sin tocar el resto de la app.</li>
+      <li><b>Qué se conserva:</b> inclinación, tinta variada (sale del id de la base) y tinta gastada. La foto de la base deja de ir en el sello; el nombre y el código van en la franja.</li>
+    </ul>
+  </div>
+  <p class="note">Todos son dibujos nuevos hechos para esta propuesta, inspirados en símbolos tradicionales de cada mitología. Si alguno no te convence (o prefieres otro personaje, por ejemplo Medusa, Odín, Sun Wukong, Ra o Ah Puch), dime cuál y lo cambio.</p>
+</div>
+
+<script>
+/* ---------- utilidades ---------- */
+const rad = (d) => (d * Math.PI) / 180
+const polar = (cx, cy, r, deg) => [cx + r * Math.cos(rad(deg)), cy + r * Math.sin(rad(deg))]
+const f = (n) => +n.toFixed(2)
+const PT = (x, y) => `${f(x)},${f(y)}`
+const lerp = (a, b, t) => a + (b - a) * t
+const TX = (x, y, txt, o, klass) => {
+  const { s = 7, w = 800, ls = 0.6, cls = 'sans', a = 'middle' } = o
+  return `<text x="${x}" y="${y}" font-size="${s}" font-weight="${w}" letter-spacing="${ls}" text-anchor="${a}" class="${cls} ${klass}">${txt}</text>`
+}
+const T = (x, y, txt, o = {}) => TX(x, y, txt, o, 'tx')
+const TP = (x, y, txt, o = {}) => TX(x, y, txt, o, 'pp')
+const ring = (r, w, cx = 50, cy = 50) => `<circle class="o" cx="${cx}" cy="${cy}" r="${r}" stroke-width="${w}"/>`
+const arcDef = (u, k, r, top) => `<path id="${u}${k}" d="M${50 - r} 50 A${r} ${r} 0 0 ${top ? 1 : 0} ${50 + r} 50" fill="none" stroke="none"/>`
+const arcTxt = (u, k, txt, s, ls) => `<text font-size="${s}" font-weight="800" letter-spacing="${ls}" text-anchor="middle" class="sans tx"><textPath href="#${u}${k}" startOffset="50%">${txt}</textPath></text>`
+const sz = (n, big, small, lim) => (n.length > lim ? small : big)
+const scale = (pts, k, cx = 50, cy = 50) => `translate(${cx} ${cy}) scale(${k}) translate(${-cx} ${-cy})`
+const band = (x, y, w, h, name, s) => {
+  const fit = Math.min(s, +((((w - 3) / name.length) - 0.7) / 0.62).toFixed(1)) // the name always fits inside its band
+  return `<rect class="f" x="${x}" y="${y}" width="${w}" height="${h}" rx="1"/>${TP(x + w / 2, f(y + h * 0.76), name, { s: fit, ls: 0.7 })}`
+}
+/* cruces entre dos triángulos y quién va por encima (para el nudo de Odín) */
+function segX(a, b, c, d) {
+  const r = [b[0] - a[0], b[1] - a[1]], s = [d[0] - c[0], d[1] - c[1]], den = r[0] * s[1] - r[1] * s[0]
+  if (Math.abs(den) < 1e-9) return null
+  const t = ((c[0] - a[0]) * s[1] - (c[1] - a[1]) * s[0]) / den, u = ((c[0] - a[0]) * r[1] - (c[1] - a[1]) * r[0]) / den
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? [a[0] + t * r[0], a[1] + t * r[1]] : null
+}
+function weave(tris) {
+  const cen = tris.map((t) => [(t[0][0] + t[1][0] + t[2][0]) / 3, (t[0][1] + t[1][1] + t[2][1]) / 3])
+  const X = []
+  for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) {
+    const p = segX(tris[i][a], tris[i][(a + 1) % 3], tris[j][b], tris[j][(b + 1) % 3])
+    if (p && !X.some((x) => x.i === i && x.j === j && Math.hypot(x.p[0] - p[0], x.p[1] - p[1]) < 0.05)) X.push({ i, j, p })
+  }
+  for (let m = 0; m < 1 << X.length; m++) { // 0: gana el menor, 1: gana el mayor
+    const win = X.map((x, k) => ((m >> k) & 1 ? x.j : x.i))
+    const ok = [0, 1, 2].every((t) => {
+      const mine = X.map((x, k) => ({ x, k })).filter(({ x }) => x.i === t || x.j === t)
+        .sort((u, v) => Math.atan2(u.x.p[1] - cen[t][1], u.x.p[0] - cen[t][0]) - Math.atan2(v.x.p[1] - cen[t][1], v.x.p[0] - cen[t][0]))
+      return mine.every((e, n) => (win[e.k] === t) !== (win[mine[(n + 1) % mine.length].k] === t))
+    })
+    if (ok) return X.map((x, k) => ({ ...x, win: win[k] }))
+  }
+  return X.map((x) => ({ ...x, win: x.j }))
+}
+const foot = (x, y, txt, s = 4.6, a = 'middle') => T(x, y, txt, { s, w: 700, ls: 0.8, cls: 'mono', a })
+const leaf = (x, y, len, wid, rot, rib = true) => `<g transform="translate(${f(x)} ${f(y)}) rotate(${f(rot)})"><path class="f" d="M0 0Q${f(len / 2)} ${-wid} ${len} 0Q${f(len / 2)} ${wid} 0 0Z"/>${rib ? `<path class="ps" d="M${f(len * 0.12)} 0H${f(len * 0.86)}" stroke-width=".55"/>` : ''}</g>`
+
+/* meandro griego: ganchos que se repiten */
+function greek(x0, x1, y, h) {
+  const a = h * 1.3, gap = h * 0.55
+  let d = ''
+  for (let x = x0; x + a <= x1 + 0.01; x += a + gap) d += `M${f(x)} ${f(y + h)}V${f(y)}H${f(x + a)}V${f(y + h * 0.64)}H${f(x + a * 0.4)}V${f(y + h * 0.34)}`
+  return `<path class="o" d="${d}" stroke-width="1.15" stroke-linejoin="miter"/>`
+}
+/* escalones mexicanos: pirámides escalonadas */
+function steps(x0, x1, y, h) {
+  const w = h * 2.6
+  let d = ''
+  for (let x = x0; x + w <= x1 + 0.01; x += w + 1.6) {
+    const q = w / 6, t = h / 3
+    d += `M${f(x)} ${f(y + h)}V${f(y + 2 * t)}H${f(x + q)}V${f(y + t)}H${f(x + 2 * q)}V${f(y)}H${f(x + 4 * q)}V${f(y + t)}H${f(x + 5 * q)}V${f(y + 2 * t)}H${f(x + w)}V${f(y + h)}Z`
+  }
+  return `<path class="f" d="${d}"/>`
+}
+/* runas (caja de 10 x 14) */
+const RUNES = {
+  fehu: 'M2 14V0M2 4.5L9 0.5M2 9L9 5', uruz: 'M2 14V0M2 0L8 5V14', thurs: 'M2 0V14M2 3.5L8 7L2 10.5', ansuz: 'M2 0V14M2 1.5L8 5.5M2 6.5L8 10.5',
+  raidho: 'M2 0V14M2 1L8 4.5L2 8L8 13', kenaz: 'M8 2L3 7L8 12', gebo: 'M1.5 1.5L8.5 12.5M8.5 1.5L1.5 12.5', wunjo: 'M2 0V14M2 1.5L8 4.5L2 7.5',
+  hagalaz: 'M2 0V14M8 0V14M2 4.5L8 9.5', nauthiz: 'M5 0V14M2 5L8 9', isa: 'M5 0V14', jera: 'M2 1L5 4.5L2 8M8 6L5 9.5L8 13',
+  tiwaz: 'M5 0V14M1.5 4L5 0.5L8.5 4', berkano: 'M2 0V14M2 0L8 3.5L2 7M2 7L8 10.5L2 14',
+}
+const rune = (name, x, y, k, rot = 0) => `<path class="o" transform="translate(${x} ${y}) rotate(${rot}) scale(${k}) translate(-5 -7)" d="${RUNES[name]}" stroke-width="${f(1.7 / k)}" stroke-linecap="round" stroke-linejoin="round"/>`
+
+/* ---------- los 15 sellos (cada uno devuelve el interior de un viewBox 0 0 100 100) ---------- */
+const STAMPS = [
+  /* 1 · EGIPTO · ojo de Horus */
+  {
+    key: 'horus', cul: 'Egipto', title: 'El ojo de Horus', shape: 'Cartucho', ink: 5,
+    note: 'El udjat: el ojo que protege y sana, dentro de un cartucho como los de los faraones.',
+    draw: (c) => `
+      <rect class="o" x="21" y="3" width="58" height="94" rx="25" stroke-width="3"/><rect class="o" x="26.5" y="8.5" width="47" height="83" rx="20" stroke-width="1"/>
+      ${foot(50, 21, 'UDJAT', 4.8)}
+      <path class="o" d="M30.5 31.6Q50 22.4 70 31.6" stroke-width="2.6" stroke-linecap="round"/>
+      <path class="o" d="M28.5 41Q39 33.4 51 33.4Q63 33.4 71.5 40Q62.5 49.6 50 49.6Q37 49.6 28.5 41Z" stroke-width="2" stroke-linejoin="round"/>
+      <circle class="f" cx="52" cy="41.2" r="5.4"/><circle class="pp" cx="50.2" cy="39.4" r="1.5"/>
+      <path class="o" d="M43 49.4V58.5Q43 62.5 38 62.5" stroke-width="2.2" stroke-linecap="round"/>
+      <path class="o" d="M58 48.6Q65.5 53 68 60Q69.4 66 64 67Q60 67.6 59.4 63.4" stroke-width="2.2" stroke-linecap="round"/>
+      ${band(30, 71, 40, 9, c.n, sz(c.n, 6, 5, 8))}
+      ${foot(50, 86.2, `${c.code}·R${c.r}`, 4.4)}`,
+  },
+  /* 2 · MÉXICO · Piedra del Sol */
+  {
+    key: 'sol', cul: 'México', title: 'La Piedra del Sol', shape: 'Círculo', ink: 2,
+    note: 'El calendario azteca: Tonatiuh, el sol, rodeado de los veinte signos de los días.',
+    draw: (c) => {
+      let cells = '', rays = ''
+      for (let k = 0; k < 20; k++) {
+        const a = k * 18, [x, y] = polar(50, 50, 39.6, a)
+        cells += `<g transform="translate(${f(x)} ${f(y)}) rotate(${a + 90})"><rect class="f" x="-2.7" y="-3" width="5.4" height="6" rx=".9"/><circle class="pp" cx="0" cy="-.3" r=".95"/></g>`
+      }
+      for (let k = 0; k < 8; k++) {
+        const a = k * 45 + 22.5, [x1, y1] = polar(50, 43, 14, a - 7), [x2, y2] = polar(50, 43, 14, a + 7), [x3, y3] = polar(50, 43, 20.5, a)
+        if (k !== 3 && k !== 4) rays += `<polygon class="f" points="${PT(x1, y1)} ${PT(x3, y3)} ${PT(x2, y2)}"/>`
+      }
+      return `${ring(47, 3)}${ring(43.7, 1)}${cells}${ring(35.4, 1)}${rays}
+        ${ring(11.6, 1.5, 50, 43)}<path class="f" d="M41 34.6H59V37H41Z"/>
+        <rect class="f" x="43.2" y="39" width="4.6" height="3.2" rx="1"/><rect class="f" x="52.2" y="39" width="4.6" height="3.2" rx="1"/>
+        <path class="f" d="M50 41.6L47.6 46.4H52.4Z"/><path class="f" d="M43 48.3Q50 53.6 57 48.3Q50 50.4 43 48.3Z"/><path class="f" d="M48.6 50.5L50 55.2L51.4 50.5Z"/>
+        ${band(27, 63.5, 46, 9.4, c.n, sz(c.n, 6.8, 5.6, 9))}${foot(50, 80, `${c.code}·R${c.r}`, 4.4)}`
+    },
+  },
+  /* 3 · GRECIA · búho de Atenea */
+  {
+    key: 'buho', cul: 'Grecia', title: 'El búho de Atenea', shape: 'Frontón', ink: 1,
+    note: 'La lechuza de la diosa de la sabiduría, bajo el frontón de un templo.',
+    draw: (c) => `
+      <path class="o" d="M50 4L96 28V94H4V28Z" stroke-width="3" stroke-linejoin="round"/>
+      <path class="o" d="M4 32H96" stroke-width="1.6"/>
+      ${T(50, 26.2, 'ATENEA', { s: 6.2, ls: 1.6 })}
+      <rect class="f" x="9" y="38" width="5" height="40"/><rect class="f" x="86" y="38" width="5" height="40"/>
+      <rect class="f" x="7" y="35" width="9" height="3"/><rect class="f" x="84" y="35" width="9" height="3"/><rect class="f" x="7" y="78" width="9" height="3"/><rect class="f" x="84" y="78" width="9" height="3"/>
+      <path class="f" d="M50 37C38.5 37 33.6 46 35.2 56C36.8 65 43 69.4 50 69.4C57 69.4 63.2 65 64.8 56C66.4 46 61.5 37 50 37Z"/>
+      <circle class="pp" cx="43.6" cy="48" r="6.6"/><circle class="pp" cx="56.4" cy="48" r="6.6"/><circle class="f" cx="43.6" cy="48" r="3.1"/><circle class="f" cx="56.4" cy="48" r="3.1"/>
+      <circle class="pp" cx="42.6" cy="47" r=".9"/><circle class="pp" cx="55.4" cy="47" r=".9"/>
+      <path class="pp" d="M50 51.4L47.4 56.6H52.6Z"/>
+      <path class="ps" d="M44 61q3 3 6 0q3 3 6 0M46 65.4q4 2.6 8 0" stroke-width="1" stroke-linecap="round"/>
+      <path class="ps" d="M36.4 52Q35 61 40.6 66M63.6 52Q65 61 59.4 66" stroke-width="1" stroke-linecap="round"/>
+      <path class="o" d="M42 69.6v3.2M46 69.6v3.2M54 69.6v3.2M58 69.6v3.2" stroke-width="1.4" stroke-linecap="round"/>
+      ${band(21, 75, 58, 9.2, c.n, sz(c.n, 6.8, 5.6, 10))}${foot(50, 90.4, `${c.code}·R${c.r}`, 4.4)}`,
+  },
+  /* 4 · NÓRDICA · Mjölnir */
+  {
+    key: 'mjolnir', cul: 'Nórdica', title: 'Mjölnir, el martillo de Thor', shape: 'Hexágono', ink: 4,
+    note: 'El martillo del trueno, con runas del Futhark antiguo a cada lado.',
+    draw: (c) => {
+      const H = '50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5'
+      const hand = [44, 50, 56, 62].map((y, i) => `<path class="ps" d="M47.6 ${y}H52.4" stroke-width="1"/>`).join('')
+      return `<polygon class="o" points="${H}" stroke-width="3" stroke-linejoin="round"/>
+        ${foot(50, 21, 'THOR', 5.2)}
+        ${rune('fehu', 22, 33, 0.9)}${rune('uruz', 22, 48, 0.9)}${rune('ansuz', 22, 63, 0.9)}
+        ${rune('tiwaz', 78, 33, 0.9)}${rune('raidho', 78, 48, 0.9)}${rune('hagalaz', 78, 63, 0.9)}
+        <path class="f" d="M34.5 25H65.5L67.5 27.2V36.8L65.5 39H34.5L32.5 36.8V27.2Z"/>
+        <path class="ps" d="M37 32H63M45 27.4V36.6M55 27.4V36.6" stroke-width=".9"/>
+        <path class="f" d="M47.4 39H52.6V66H47.4Z"/>${hand}
+        <circle class="o" cx="50" cy="69.5" r="3.1" stroke-width="1.5"/>
+        ${band(30, 74, 40, 8.6, c.n, 6.2)}${foot(50, 89, `${c.code}·R${c.r}`, 4.2)}`
+    },
+  },
+  /* 5 · CHINA · dragón */
+  {
+    key: 'dragon', cul: 'China', title: 'El dragón y la perla', shape: 'Círculo', ink: 2,
+    note: 'El dragón (long) persiguiendo la perla de la sabiduría, dentro del anillo.',
+    draw: (c) => {
+      const pts = []
+      const N = 170
+      for (let i = 0; i <= N; i++) {
+        const u = i / N, a = lerp(205, -85, u), r = lerp(21, 17, u), [x, y] = polar(50, 50, r, a)
+        pts.push({ u, x, y, a, r, w: Math.max(0.6, 5.6 * Math.pow(1 - u, 0.85)) })
+      }
+      let body = '', spines = '', scales = ''
+      pts.forEach((p, i) => {
+        body += `<circle class="f" cx="${f(p.x)}" cy="${f(p.y)}" r="${f(p.w)}"/>`
+        if (i % 14 === 6 && p.u < 0.9) {
+          const [x1, y1] = polar(50, 50, p.r + p.w * 0.6, p.a + 4), [x2, y2] = polar(50, 50, p.r + p.w + 1.6, p.a), [x3, y3] = polar(50, 50, p.r + p.w * 0.6, p.a - 4)
+          spines += `<polygon class="f" points="${PT(x1, y1)} ${PT(x2, y2)} ${PT(x3, y3)}"/>`
+        }
+        if (i % 9 === 3 && p.u > 0.08 && p.u < 0.85) {
+          const [x, y] = polar(50, 50, p.r, p.a)
+          scales += `<circle class="pp" cx="${f(x)}" cy="${f(y)}" r="${f(Math.max(0.45, p.w * 0.2))}"/>`
+        }
+      })
+      const claw = (u, side) => {
+        const p = pts[Math.round(u * N)], dir = side ? 1 : -1, [x1, y1] = polar(50, 50, p.r - p.w * 0.6, p.a), [x2, y2] = polar(50, 50, p.r - p.w - 3.4, p.a + dir * 9)
+        return `<path class="o" d="M${PT(x1, y1)}L${PT(x2, y2)}" stroke-width="1.1" stroke-linecap="round"/>`
+      }
+      const head = `<g transform="translate(${f(pts[0].x)} ${f(pts[0].y)}) rotate(-38) scale(.82)">
+        <path class="f" d="M-5 -4.8Q0 -7 6 -4.2Q13 -3.6 16.4 -1.4Q17.4 0.4 15.4 1.6L7.6 2.6Q10 3.8 15.6 3.4Q13.6 6.8 5.4 6.4Q-2 7 -5 3.2Z"/>
+        <path class="o" d="M-2 -4.6Q-7.5 -10.4 -14.6 -8.4M0.6 -5Q-2.6 -9.4 -8.4 -10.8" stroke-width="1.8" stroke-linecap="round"/>
+        <path class="o" d="M-4.4 -1Q-11.6 -3.2 -16.4 1.2M-4.4 2Q-10.6 3.2 -14.6 8.6M-3.4 4.4Q-7.6 8.6 -9.4 12.6" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="o" d="M14.4 0Q22 -3.4 25 3Q26 6.4 22.6 8.4M13.4 2.2Q20 5.4 19.6 11" stroke-width="1.1" stroke-linecap="round"/>
+        <circle class="pp" cx="3.2" cy="-1.3" r="1.9"/><circle class="f" cx="3.7" cy="-1.3" r=".9"/><path class="ps" d="M8.6 2.6L15 2.3" stroke-width=".9"/>
+      </g>`
+      let flame = ''
+      for (let k = 0; k < 7; k++) {
+        const a = k * (360 / 7) - 90, [x1, y1] = polar(50, 50, 6.3, a), [x2, y2] = polar(50, 50, 9.4, a + 10), [x3, y3] = polar(50, 50, 6.3, a + 24)
+        flame += `<path class="f" d="M${PT(x1, y1)}Q${PT(x2, y2)} ${PT(x3, y3)}Z"/>`
+      }
+      return `${ring(47, 3)}${ring(40.8, 1)}${ring(30, 1)}${arcDef(c.u, 't', 32.8, 1)}${arcDef(c.u, 'b', 37.2, 0)}
+        ${arcTxt(c.u, 't', 'DRAGÓN · LONG', 5.5, 1)}${arcTxt(c.u, 'b', `${c.n} · ${c.code}·R${c.r}`, 5.4, 0.5)}
+        ${flame}<circle class="f" cx="50" cy="50" r="5.2"/><circle class="pp" cx="48.4" cy="48.4" r="1.4"/>
+        ${body}${spines}${scales}${claw(0.3, 1)}${claw(0.52, 1)}${claw(0.72, 1)}${head}`
+    },
+  },
+  /* 6 · EGIPTO · Anubis */
+  {
+    key: 'anubis', cul: 'Egipto', title: 'Anubis', shape: 'Pilono', ink: 3,
+    note: 'El dios chacal que guía a los muertos, de perfil, con su collar, bajo la puerta de un templo.',
+    draw: (c) => `
+      <path class="o" d="M19 7H81L93 94H7Z" stroke-width="3" stroke-linejoin="round"/>
+      <path class="o" d="M21.4 17H78.6" stroke-width="1.2"/>
+      ${foot(50, 14, `ANUBIS · ${c.code}·R${c.r}`, 4.4)}
+      <path class="f" d="M33 58L36 44Q37 38 43 36L45 20L53 33Q58 34 61 37L75 44Q78 45.4 76.6 48.4L75 51L61 52.4Q58 57 54 56L52.4 62Z"/>
+      <path class="f" d="M44.4 36L48 21L52.4 34Z" stroke="var(--ink)" stroke-width=".4"/>
+      <path class="pp" d="M46.6 33L48.2 25.4L50.6 33.6Z"/>
+      <path class="pp" d="M57.6 41.2Q61.2 38.4 64.6 41.6Q61.2 44.2 57.6 41.2Z"/><circle class="f" cx="61" cy="41.4" r="1.15"/>
+      <path class="ps" d="M56.4 41.4H49M62 51.4L75 49.6" stroke-width=".85" stroke-linecap="round"/>
+      <path class="f" d="M28.6 60Q50 83 71.4 60L66 56.6Q50 68 34.4 56.6Z"/>
+      <path class="ps" d="M33 62Q50 77 67 62M37.4 65Q50 74 62.6 65" stroke-width=".8"/>
+      ${band(27, 76.4, 46, 9, c.n, sz(c.n, 6.4, 5.4, 9))}`,
+  },
+  /* 7 · MÉXICO · Quetzalcóatl */
+  {
+    key: 'quetzal', cul: 'México', title: 'Quetzalcóatl', shape: 'Cuadrado con greca', ink: 3,
+    note: 'La serpiente emplumada: cuerpo ondulado, penacho de plumas de quetzal y colmillos.',
+    draw: (c) => {
+      const pts = [], N = 150
+      for (let i = 0; i <= N; i++) {
+        const u = i / N, x = lerp(76, 24, u), y = 47 + 9.5 * Math.sin(lerp(0, 2.5 * Math.PI, u) + 0.4)
+        pts.push({ u, x, y, w: Math.max(0.5, 4.6 * Math.pow(1 - u * 0.96, 0.8)) })
+      }
+      let body = '', dots = ''
+      pts.forEach((p, i) => {
+        body += `<circle class="f" cx="${f(p.x)}" cy="${f(p.y)}" r="${f(p.w)}"/>`
+        if (i % 8 === 4 && p.u > 0.06 && p.u < 0.88) dots += `<path class="ps" d="M${f(p.x - 0.9)} ${f(p.y - p.w * 0.35)}q.9 1.2 1.8 0" stroke-width=".7" stroke-linecap="round"/>`
+      })
+      const top = pts[0]
+      return `<rect class="o" x="4" y="4" width="92" height="92" rx="8" stroke-width="3"/><rect class="o" x="14.5" y="14.5" width="71" height="71" rx="3" stroke-width="1"/>
+        ${steps(9, 91, 6.3, 5.6)}${steps(9, 91, 88.2, 5.6)}
+        ${foot(50, 25.6, 'QUETZALCÓATL', 5.2)}
+        ${leaf(27, 53.6, 12, 2.9, 168)}${leaf(26, 54, 13, 2.9, 188)}${leaf(26.4, 55, 12, 2.8, 150)}
+        ${body}${dots}
+        <g transform="translate(${f(top.x)} ${f(top.y)}) rotate(8) scale(.82)">
+          <path class="f" d="M-6 -4.6Q0 -7 7 -4.4Q13 -3.6 16 -0.8Q16.6 1 14.6 1.8L7 2.4Q9.4 4.4 14 3.8Q12 7 4.8 6.6Q-2 7 -6 3.4Z"/>
+          <path class="pp" d="M10 2.2L11.4 5L12.6 2.2ZM13.8 2.1L14.6 3.9L15.4 2Z"/>
+          <circle class="pp" cx="3.4" cy="-1.4" r="1.9"/><circle class="f" cx="3.8" cy="-1.4" r=".9"/>
+          ${leaf(-2, -4, 15, 3, -72)}${leaf(0, -4.4, 15, 3, -52)}${leaf(-4, -3.4, 14, 3, -96)}
+        </g>
+        ${band(26, 69, 48, 9.4, c.n, sz(c.n, 6.8, 5.6, 9))}${foot(50, 83, `${c.code}·R${c.r}`, 4.4)}`
+    },
+  },
+  /* 8 · GRECIA · laberinto */
+  {
+    key: 'laberinto', cul: 'Grecia', title: 'El laberinto del Minotauro', shape: 'Cuadrado con meandro', ink: 1,
+    note: 'El laberinto de Creta con los cuernos del Minotauro en el centro y la greca griega en el borde.',
+    draw: (c) => {
+      let maze = ''
+      const rs = [6.6, 10.8, 15, 19.2]
+      rs.forEach((r, i) => {
+        const gap = i % 2 === 0 ? -90 : 90, g = 26, a0 = gap + g, a1 = gap - g + 360
+        const [x0, y0] = polar(50, 46, r, a0), [x1, y1] = polar(50, 46, r, a1)
+        maze += `<path class="o" d="M${PT(x0, y0)}A${r} ${r} 0 1 1 ${PT(x1, y1)}" stroke-width="1.9" stroke-linecap="round"/>`
+      })
+      return `<rect class="o" x="4" y="4" width="92" height="92" rx="3" stroke-width="3"/><rect class="o" x="14.5" y="19" width="71" height="64" stroke-width="1"/>
+        ${greek(9, 91, 7.4, 5.6)}${greek(9, 91, 87, 5.6)}
+        ${foot(50, 24.2, 'LABERINTO · CRETA', 4.6)}
+        ${maze}<path class="o" d="M44.2 47.2Q46.2 41.6 50 45.2Q53.8 41.6 55.8 47.2" stroke-width="1.5" stroke-linecap="round"/><circle class="f" cx="50" cy="48.6" r="1.7"/>
+        ${band(25, 66.4, 50, 9.2, c.n, 6.8)}${foot(50, 79.6, `${c.code}·R${c.r}`, 4.4)}`
+    },
+  },
+  /* 9 · NÓRDICA · valknut */
+  {
+    key: 'valknut', cul: 'Nórdica', title: 'Valknut, el nudo de Odín', shape: 'Rombo', ink: 5,
+    note: 'Tres triángulos entrelazados: el nudo de Odín, el que cae en la batalla.',
+    draw: (c) => {
+      const D = '50,3 97,50 50,97 3,50'
+      const R = 17, rho = 8, cy0 = 40.6
+      const tris = [0, 1, 2].map((i) => {
+        const a = -68 + i * 120, cx = 50 + rho * Math.cos(rad(a)), cy = cy0 + rho * Math.sin(rad(a))
+        return [-90, 30, 150].map((d) => polar(cx, cy, R, d))
+      })
+      const path = (v) => `M${PT(...v[0])}L${PT(...v[1])}L${PT(...v[2])}Z`
+      const ribbon = (d) => `<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="3.6" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="var(--paper)" stroke-width="1.1" stroke-linejoin="round"/>`
+      const X = weave(tris)
+      // las cintas se dibujan en orden 0,1,2 (la última queda arriba); donde debe ganar la de abajo, se vuelve a dibujar recortada en el cruce
+      const over = X.filter((x) => x.win === x.i).map((x, k) => `<clipPath id="${c.u}k${k}"><circle cx="${f(x.p[0])}" cy="${f(x.p[1])}" r="3.8"/></clipPath>`)
+      const redo = X.filter((x) => x.win === x.i).map((x, k) => `<g clip-path="url(#${c.u}k${k})">${ribbon(path(tris[x.i]))}</g>`)
+      return `<polygon class="o" points="${D}" stroke-width="3" stroke-linejoin="round"/>
+        <polygon class="o" points="${D}" stroke-width="1" transform="${scale(0, 0.86)}"/>
+        <defs>${over.join('')}</defs>
+        ${tris.map((t) => ribbon(path(t))).join('')}${redo.join('')}
+        ${band(30, 61.2, 40, 8.6, c.n, 6.2)}${foot(50, 76.4, `${c.code}·R${c.r}`, 4.4)}`
+    },
+  },
+  /* 10 · CHINA · bagua */
+  {
+    key: 'bagua', cul: 'China', title: 'Yin y yang y los ocho trigramas', shape: 'Octágono', ink: 4,
+    note: 'El equilibrio de los opuestos, rodeado del bagua: ocho trigramas del I Ching.',
+    draw: (c) => {
+      const O = '93.4,68 68,93.4 32,93.4 6.6,68 6.6,32 32,6.6 68,6.6 93.4,32'
+      const PAT = [7, 6, 5, 4, 3, 2, 1, 0] // bits: 1 = línea entera (de fuera hacia dentro)
+      let tri = ''
+      PAT.forEach((p, k) => {
+        const a = -90 + k * 45
+        for (let j = 0; j < 3; j++) {
+          const r = 40.4 - j * 3.9, full = (p >> (2 - j)) & 1, [x, y] = polar(50, 50, r, a)
+          const seg = (len, off) => `<rect class="f" x="${f(off - len / 2)}" y="-.95" width="${len}" height="1.9"/>`
+          tri += `<g transform="translate(${f(x)} ${f(y)}) rotate(${a + 90})">${full ? seg(9.4, 0) : seg(3.9, -2.75) + seg(3.9, 2.75)}</g>`
+        }
+      })
+      return `<polygon class="o" points="${O}" stroke-width="3" stroke-linejoin="round"/>${tri}${ring(30.4, 1)}
+        <path class="f" d="M50 28.4A15 15 0 0 1 50 58.4A7.5 7.5 0 0 1 50 43.4A7.5 7.5 0 0 0 50 28.4Z"/>
+        <circle class="o" cx="50" cy="43.4" r="15" stroke-width="1.4"/><circle class="pp" cx="50" cy="50.9" r="2.2"/><circle class="f" cx="50" cy="35.9" r="2.2"/>
+        ${band(31, 63.4, 38, 8.6, c.n, 6)}${foot(50, 77.2, `${c.code}·R${c.r}`, 4.2)}`
+    },
+  },
+  /* 11 · EGIPTO · escarabajo */
+  {
+    key: 'escarabajo', cul: 'Egipto', title: 'Khepri, el escarabajo', shape: 'Óvalo vertical', ink: 1,
+    note: 'El escarabajo que empuja el sol cada mañana: símbolo de renacer.',
+    draw: (c) => {
+      const leg = (m) => {
+        const X = (x) => (m ? 100 - x : x)
+        return `<path class="o" d="M${X(40)} 43L${X(30)} 36.4M${X(38.6)} 54.4L${X(27.6)} 55.6M${X(40.4)} 66L${X(31)} 73.6M${X(44)} 31L${X(41.2)} 22" stroke-width="2" stroke-linecap="round"/>`
+      }
+      let rays = ''
+      for (let k = 0; k < 12; k++) {
+        const a = -90 + k * 30, [x1, y1] = polar(50, 14.4, 8.4, a), [x2, y2] = polar(50, 14.4, 11.2, a)
+        rays += `M${PT(x1, y1)}L${PT(x2, y2)}`
+      }
+      return `<ellipse class="o" cx="50" cy="50" rx="40" ry="47" stroke-width="3"/><ellipse class="o" cx="50" cy="50" rx="34.5" ry="41.5" stroke-width="1"/>
+        <circle class="f" cx="50" cy="14.4" r="5.6"/><path class="o" d="${rays}" stroke-width="1.3" stroke-linecap="round"/>
+        ${leg(0)}${leg(1)}
+        <path class="f" d="M43.6 31.4L46 28.6L47.8 31L50 28L52.2 31L54 28.6L56.4 31.4L54.6 34.6H45.4Z"/>
+        <ellipse class="f" cx="50" cy="38.4" rx="11.6" ry="6.2"/>
+        <path class="f" d="M50 46.4C37 46.4 33 56 35 65C37 73.6 43 77.6 50 77.6C57 77.6 63 73.6 65 65C67 56 63 46.4 50 46.4Z"/>
+        <path class="ps" d="M50 46.8V77.2" stroke-width="1.3"/><path class="ps" d="M41 52Q50 56.4 59 52" stroke-width=".9"/>
+        ${band(25, 76.2, 50, 8.4, c.n, 6)}${foot(50, 89.4, `${c.code}·R${c.r}`, 4)}`
+    },
+  },
+  /* 12 · MÉXICO · Mictlán */
+  {
+    key: 'mictlan', cul: 'México', title: 'Mictlán, el inframundo', shape: 'Tablilla de esquinas cortadas', ink: 2,
+    note: 'La calavera del reino de los muertos, con flores de cempasúchil que guían el camino.',
+    draw: (c) => {
+      const P = '14,4 86,4 96,14 96,86 86,96 14,96 4,86 4,14'
+      const flower = (x, y) => {
+        let p = ''
+        for (let k = 0; k < 8; k++) { const [px, py] = polar(x, y, 3.3, k * 45); p += `<circle class="f" cx="${f(px)}" cy="${f(py)}" r="1.9"/>` }
+        return `${p}<circle class="pp" cx="${x}" cy="${y}" r="1.2"/>`
+      }
+      let teeth = ''
+      for (let k = 0; k < 6; k++) teeth += `M${f(39.4 + k * 4.2)} 53.6V60.4`
+      return `<polygon class="o" points="${P}" stroke-width="3" stroke-linejoin="round"/>
+        <polygon class="o" points="${P}" stroke-width="1" transform="${scale(0, 0.9)}"/>
+        ${flower(21, 22)}${flower(79, 22)}${flower(21, 52)}${flower(79, 52)}
+        <path class="f" d="M50 11C36 11 29 21 30 33C31 40 35 43 36 48L36 56Q36 59.4 40 59.4H60Q64 59.4 64 56L64 48C65 43 69 40 70 33C71 21 64 11 50 11Z"/>
+        <circle class="pp" cx="42" cy="33" r="6.6"/><circle class="pp" cx="58" cy="33" r="6.6"/><circle class="f" cx="42.4" cy="33.4" r="2.2"/><circle class="f" cx="57.6" cy="33.4" r="2.2"/>
+        <path class="pp" d="M50 41.4L46.6 48.6H53.4Z"/>
+        <path class="ps" d="M37.4 53.6H62.6M37.4 57H62.6${teeth}" stroke-width=".9"/>
+        <path class="ps" d="M41 17.4H59M43.4 20.8H56.6" stroke-width=".9" stroke-linecap="round"/>
+        ${foot(50, 67, 'MICTLÁN', 5)}${band(25, 70, 50, 9.2, c.n, sz(c.n, 6.8, 5.6, 10))}${foot(50, 86.4, `${c.code}·R${c.r}`, 4.4)}`
+    },
+  },
+  /* 13 · GRECIA · rayo de Zeus */
+  {
+    key: 'zeus', cul: 'Grecia', title: 'El rayo de Zeus', shape: 'Rectángulo con meandro', ink: 5,
+    note: 'El rayo del rey de los dioses del Olimpo, entre dos franjas de greca.',
+    draw: (c) => `
+      <rect class="o" x="3" y="14" width="94" height="72" rx="4" stroke-width="3"/><rect class="o" x="8.5" y="19.5" width="83" height="61" rx="1" stroke-width="1"/>
+      ${greek(13, 87, 22.4, 5)}${greek(13, 87, 72.6, 5)}
+      <path class="f" d="M31 33L19 53H27L21.6 68L38.6 46H30.4L37 33Z"/>
+      ${foot(65, 37.4, `OLIMPO · ${c.code}·R${c.r}`, 4.2)}
+      ${T(65, 53.4, 'ZEUS', { s: 16.5, ls: 1.6 })}
+      ${band(43, 57, 44, 9, c.n, 6.6)}`,
+  },
+  /* 14 · NÓRDICA · Yggdrasil */
+  {
+    key: 'yggdrasil', cul: 'Nórdica', title: 'Yggdrasil, el árbol del mundo', shape: 'Arco', ink: 3,
+    note: 'El fresno que sostiene los nueve mundos: nueve puntos en la copa y raíces profundas.',
+    draw: (c) => {
+      const A = 'M15 93V40A35 35 0 0 1 85 40V93Z', B = 'M20.4 88V40A29.6 29.6 0 0 1 79.6 40V88Z'
+      let worlds = ''
+      for (let k = 0; k < 9; k++) { const [x, y] = polar(50, 32, 17.4, -90 + k * 40); worlds += `<circle class="f" cx="${f(x)}" cy="${f(y)}" r="2.3"/>` }
+      const tip = (x, y) => `<circle class="f" cx="${x}" cy="${y}" r="1.45"/>`
+      return `<path class="o" d="${A}" stroke-width="3" stroke-linejoin="round"/><path class="o" d="${B}" stroke-width="1"/>
+        ${ring(17.4, 1.3, 50, 32)}${worlds}
+        <path class="o" d="M50 57V21M50 47Q42 45.4 38.4 37.4M50 47Q58 45.4 61.6 37.4M50 40.4Q44.4 38 42 31M50 40.4Q55.6 38 58 31M50 33Q47.4 28 48 24.6M50 33Q52.6 28 52 24.6" stroke-width="1.8" stroke-linecap="round"/>
+        ${tip(38, 36.4)}${tip(62, 36.4)}${tip(41.6, 29.6)}${tip(58.4, 29.6)}${tip(47.8, 23.2)}${tip(52.2, 23.2)}
+        <path class="f" d="M47.2 54H52.8L55 60.4H45Z"/>
+        <path class="o" d="M47.4 60Q43.6 63.6 35.6 64.4M52.6 60Q56.4 63.6 64.4 64.4M49 60.6Q47.6 64.6 44.4 67.4M51 60.6Q52.4 64.6 55.6 67.4M50 60.6V67.6" stroke-width="1.7" stroke-linecap="round"/>
+        ${band(25, 70.4, 50, 8.6, c.n, 6.4)}${foot(50, 84.6, `YGGDRASIL · ${c.code}·R${c.r}`, 3.9)}`
+    },
+  },
+  /* 15 · CHINA · conejo de jade */
+  {
+    key: 'conejo', cul: 'China', title: 'El conejo de jade en la luna', shape: 'Sello festoneado', ink: 3,
+    note: 'La liebre que machaca el elixir de la inmortalidad en la Luna, entre nubes y estrellas.',
+    draw: (c) => {
+      let d = `M${PT(...polar(50, 50, 43, 0))}`
+      for (let i = 1; i <= 24; i++) d += `A5.9 5.9 0 0 1 ${PT(...polar(50, 50, 43, i * 15))}`
+      const star = (x, y, r) => `<path class="f" d="M${x} ${f(y - r)}L${f(x + r * 0.28)} ${f(y - r * 0.28)}L${f(x + r)} ${y}L${f(x + r * 0.28)} ${f(y + r * 0.28)}L${x} ${f(y + r)}L${f(x - r * 0.28)} ${f(y + r * 0.28)}L${f(x - r)} ${y}L${f(x - r * 0.28)} ${f(y - r * 0.28)}Z"/>`
+      return `<path class="o" d="${d}Z" stroke-width="2.6" stroke-linejoin="round"/>${ring(36, 1)}${ring(26, 1)}${arcDef(c.u, 't', 28.6, 1)}${arcDef(c.u, 'b', 33.6, 0)}
+        ${arcTxt(c.u, 't', 'CONEJO DE JADE', 5.4, 0.8)}${arcTxt(c.u, 'b', `${c.n} · ${c.code}·R${c.r}`, 5.2, 0.5)}
+        <circle class="o" cx="50" cy="48" r="19" stroke-width="1.4"/>
+        <g transform="translate(50 49) scale(1.12) translate(-50 -49)">
+        <ellipse class="f" cx="52.6" cy="53" rx="9.4" ry="7.2"/><circle class="f" cx="43.4" cy="45.2" r="5"/>
+        <ellipse class="f" cx="44.6" cy="35.6" rx="1.9" ry="6.6" transform="rotate(-10 44.6 35.6)"/><ellipse class="f" cx="48.6" cy="36" rx="1.8" ry="6.2" transform="rotate(8 48.6 36)"/>
+        <circle class="pp" cx="41.6" cy="44.4" r="1.2"/><circle class="f" cx="42" cy="44.4" r=".6"/>
+        <circle class="f" cx="62.4" cy="56" r="3.3"/>
+        <path class="f" d="M33.4 56H44.4L43 62.2H34.8Z"/><path class="o" d="M40.8 51.4L36.4 45" stroke-width="1.8" stroke-linecap="round"/>
+        <path class="ps" d="M52 49.6Q57 49 60 53" stroke-width=".8" stroke-linecap="round"/></g>
+        ${star(32, 33, 2)}${star(68, 36, 1.7)}`
+    },
+  },
+]
+
+const SAMPLES = [
+  ['Atrio', 'ATR'], ['Biblioteca', 'BIB'], ['Cafetería', 'CAF'], ['Capilla', 'CAP'], ['Cancha', 'CAN'], ['Laboratorio', 'LAB'], ['Auditorio', 'AUD'], ['Plazoleta', 'PLA'],
+  ['Mirador', 'MIR'], ['Jardín', 'JAR'], ['Coliseo', 'COL'], ['Claustro', 'CLA'], ['Torre', 'TOR'], ['Museo', 'MUS'], ['Portería', 'POR'],
+]
+const TILTS = [-4, 3, -2, 5, -5, 2, -3, 4, -1, 5, -4, 3, -2, 4, -5]
+const CULS = ['Todas', 'Grecia', 'Nórdica', 'China', 'México', 'Egipto']
+const state = { ink: 0, tilt: 1, wear: 1, cul: 'Todas' }
+const clip = (t, n) => (t.length > n ? t.slice(0, n - 1) + '…' : t)
+
+function stamp(i, size, overrides = {}) {
+  const S = STAMPS[i], [name, code] = SAMPLES[i]
+  const c = { u: `s${i}${overrides.suffix || ''}`, n: clip(name.toUpperCase(), 12), code, r: overrides.round || (i % 8) + 1, t: overrides.time || '10:42' }
+  const ink = state.ink || overrides.ink || S.ink
+  const tilt = state.tilt ? (overrides.tilt ?? TILTS[i]) : 0
+  const filter = state.wear ? ` filter="url(#wear${(i % 5) + 1})"` : ''
+  return `<span class="stamp" style="--ink:var(--ink-${ink});${size ? `width:${size}px;height:${size}px;` : ''}transform:rotate(${tilt}deg)" role="img" aria-label="${S.title}">
+    <svg viewBox="0 0 100 100" aria-hidden="true"><g class="ink"${filter}>${S.draw(c)}</g></svg></span>`
+}
+
+function render() {
+  document.getElementById('grid').innerHTML = STAMPS.map((S, i) => ({ S, i })).filter(({ S }) => state.cul === 'Todas' || S.cul === state.cul).map(({ S, i }) => `
+    <article class="card"><span class="rank">${i + 1}</span><span class="shape">${S.shape}</span>
+      <div class="stage">${stamp(i)}</div><span class="tag">${S.cul}</span><h3>${S.title}</h3><p>${S.note}</p></article>`).join('')
+  const six = [0, 1, 2, 3, 4, 5]
+  document.getElementById('sheet').innerHTML = six.map((i, k) => `<div class="cell">${stamp(i, 190, { suffix: 'p', ink: [5, 2, 1, 4, 3, 2][k], tilt: [-6, 5, 3, -4, 6, -3][k], round: k + 1 })}</div>`).join('')
+  document.getElementById('chips').innerHTML = STAMPS.map((_, i) => `<span class="chip${i < 9 ? ' on' : ''}" title="${STAMPS[i].title}">${i + 1}</span>`).join('')
+}
+document.getElementById('cult').innerHTML = [
+  ['Grecia', 'Frontón, meandro y búho: sabiduría y orden. Borde: greca.'],
+  ['Nórdica', 'Runas, martillo y nudos: fuerza y destino. Borde: runas.'],
+  ['China', 'Dragón, yin-yang y luna: equilibrio. Borde: anillos y nubes.'],
+  ['México', 'Sol, serpiente emplumada y calavera: tiempo y vida. Borde: escalones.'],
+  ['Egipto', 'Ojo, chacal y escarabajo: protección y renacer. Borde: cartucho y pilono.'],
+].map(([a, b]) => `<div><b>${a}</b>${b}</div>`).join('')
+
+/* ---------- controles ---------- */
+const seg = (id, fn) => document.getElementById(id).addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  document.querySelectorAll(`#${id} button`).forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset.v)
+})
+seg('theme', (v) => { document.documentElement.dataset.theme = v })
+seg('tilt', (v) => { state.tilt = +v; render() })
+seg('wear', (v) => { state.wear = +v; render() })
+document.getElementById('cul').innerHTML = CULS.map((n, k) => `<button data-v="${n}" aria-pressed="${k === 0}">${n}</button>`).join('')
+seg('cul', (v) => { state.cul = v; render() })
+const inks = document.getElementById('inks')
+inks.innerHTML = `<span class="seg"><button data-i="0" aria-pressed="true">Variada</button></span>` + [1, 2, 3, 4, 5].map((n) => `<button class="dot" data-i="${n}" aria-label="Tinta ${n}" aria-pressed="false" style="background:var(--ink-${n})"></button>`).join('')
+inks.addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  inks.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); state.ink = +b.dataset.i; render()
+})
+render()
+</script>
+</body>
+</html>
