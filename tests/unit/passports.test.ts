@@ -20,12 +20,12 @@ describe('passportUsername', () => {
   it('first name and first surname, without accents or capitals', () => {
     expect(name('Camila Andrea Rojas Prieto')).toBe('camila.rojas')
     expect(name('Luis Felipe Vásquez Mora')).toBe('luis.vasquez')
-    expect(name('Persona Anónima 3')).toBe('persona9')
+    expect(name('Marcela Andrea Díaz Rey')).toBe('marcela.diaz')
   })
 
   it('with three words the last one is the surname; with two, the second', () => {
     expect(name('Ana Pardo Ruiz')).toBe('ana.ruiz')
-    expect(name('Persona Anónima 4')).toBe('persona10')
+    expect(name('Jorge Esteban Lozano')).toBe('jorge.lozano')
     expect(name('Marta Herrera')).toBe('marta.herrera')
   })
 
@@ -35,14 +35,14 @@ describe('passportUsername', () => {
 
   it('never repeats an @: it adds the initial of the second name, then a number', () => {
     const taken = new Set<string>()
-    const a = passportUsername('Persona Anónima 5', taken)
-    const b = passportUsername('Persona Anónima 6', taken) // different surname
-    const c = passportUsername('Persona Anónima 5', taken) // the same person typed twice
-    const d = passportUsername('Juan Carlos Galán Sánchez', taken)
-    const e = passportUsername('Persona Anónima 5', taken)
+    const a = passportUsername('Camilo José Mora Ibáñez', taken)
+    const b = passportUsername('Felipe Andrés Cano Duarte', taken) // different surname
+    const c = passportUsername('Camilo José Mora Ibáñez', taken) // the same person typed twice
+    const d = passportUsername('Carlos Mario Mora Pérez', taken)
+    const e = passportUsername('Camilo José Mora Ibáñez', taken)
     expect(new Set([a, b, c, d, e]).size).toBe(5)
-    expect(a).toBe('persona11')
-    expect(c).toBe('persona11.c')
+    expect(a).toBe('camilo.mora')
+    expect(c).toBe('camilo.mora.j')
     for (const u of [a, b, c, d, e]) expect(USERNAME_PATTERN.test(u)).toBe(true)
   })
 
@@ -105,15 +105,15 @@ describe('parsePeople (the Excel the coordinator uploads)', () => {
     const rows = parsePeople(
       table(
         ['Camila Andrea Rojas Prieto', 'Ingeniería de Sistemas'],
-        ['Persona Anónima 7', 'Ingeniería Mecánica'],
-        ['Persona Anónima 8', 'Ingeniería Civil'],
+        ['Diego Alonso Rivas Torres', 'Ingeniería Mecánica'],
+        ['Miguel Ángel Vera Soto', 'Ingeniería Civil'],
       ),
       ctx(),
     )
     expect(rows.map((r) => [r.username, r.culture, r.role])).toEqual([
       ['camila.rojas', 'nordica', 'runner'],
-      ['persona12', 'china', 'runner'],
-      ['persona13', 'egipcia', 'runner'],
+      ['diego.rivas', 'china', 'runner'],
+      ['miguel.vera', 'egipcia', 'runner'],
     ])
     expect(rows.every((r) => r.errors.length === 0 && !r.existing)).toBe(true)
   })
