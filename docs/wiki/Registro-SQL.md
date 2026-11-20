@@ -39,6 +39,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0024 | [`0024_passport_identity.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0024_passport_identity.sql) | 2026-11-19 | Identidad del pasaporte: comité (y su coordinador), generación, ingreso, apodo y símbolo |
 | 0025 | [`0025_passport_pages.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0025_passport_pages.sql) | 2026-11-20 | Palabras de los coordinadores y de cada comité por inducción, foto de la base en el pasaporte, apodo y símbolo solo del coordinador |
 | 0026 | [`0026_committee_coordinators.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0026_committee_coordinators.sql) | 2026-11-20 | Un comité puede tener más de un coordinador (Caos tiene dos) |
+| 0027 | [`0027_more_committees.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0027_more_committees.sql) | _pendiente_ | Una persona puede estar en más de un comité (los comités extra y cuáles coordina) |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -464,6 +465,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/passport-identity-0024.test.ts` (dos coordinadores del mismo comité) y `tests/static/passports.test.ts`.
 
 **Cómo revertir** `create unique index passport_records_committee_lead on public.passport_records (term_id, committee) where committee_lead;` (falla si ya hay dos coordinadores en un comité).
+
+## 0027 — Más de un comité por persona
+
+**Qué cambia** `passport_records.extra_committees` (los demás comités de la persona) y `extra_leads` (los de esos que coordina, con sello dorado). El comité principal sigue en `committee` / `committee_lead`. Dos `check`: cada comité es una clave en minúsculas y los que coordina están entre los que tiene.
+
+**Por qué** Hay quien coordina dos comités (Caos y Meraki) o es miembro de uno y además del de Bienvenida. Sin esta migración el pasaporte abre igual pero solo con el comité principal, e *Inductores* avisa que falta.
+
+**Verificación** `tests/db/passport-more-committees-0027.test.ts`.
+
+**Cómo revertir** `alter table public.passport_records drop column extra_committees, drop column extra_leads;` (se pierden esos datos).
 
 ## Plantilla para nuevos registros
 

@@ -134,7 +134,9 @@ erDiagram
     text career
     text culture "la de su carrera en la temática"
     text committee "clausura | meraki | conzumo | carrera | caos"
-    bool committee_lead "el coordinador del comité (dorado)"
+    bool committee_lead "coordina el comité principal (dorado)"
+    text_array extra_committees "los otros comités (0027)"
+    text_array extra_leads "los de esos que coordina (0027)"
     uuid team_id "solo si corre"
     uuid base_id "solo si es base"
   }
