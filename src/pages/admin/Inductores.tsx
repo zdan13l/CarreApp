@@ -16,6 +16,7 @@ import {
   PERSON_COLUMNS,
   PERSON_COLUMNS_BASE,
   RECORD_COLUMNS,
+  RECORD_COLUMNS_0024,
   RECORD_COLUMNS_BASE,
   type PassportPerson,
   type PassportRecordRow,
@@ -61,6 +62,7 @@ export function PersonItem({
   onCulture,
   onCommittee,
   onLead,
+  onExtra,
   onIdentity,
   onPhoto,
   onReset,
@@ -76,6 +78,7 @@ export function PersonItem({
   onCulture: (culture: CultureKey) => void
   onCommittee: (committee: string | null) => void
   onLead: (lead: boolean) => void
+  onExtra: (committee: string, to: 'off' | 'member' | 'lead') => void
   onIdentity: (patch: { generation?: string | null; joined_term?: string | null; nickname?: string | null; symbol?: string | null; symbol_label?: string | null }) => void
   onPhoto: (file: File) => void
   onReset: () => void
@@ -117,6 +120,17 @@ export function PersonItem({
                 Coordina el comité
               </label>
             )}
+            <span className="extra-committees" role="group" aria-label={`Otros comités de ${p.full_name}`}>
+              {COMMITTEES.filter((c) => c.key !== r.committee).map((c) => {
+                const on = (r.extra_committees ?? []).includes(c.key)
+                const lead = (r.extra_leads ?? []).includes(c.key)
+                return (
+                  <button key={c.key} type="button" className={`chip-toggle${on ? ' on' : ''}${lead ? ' lead' : ''}`} aria-pressed={on} disabled={busy} onClick={() => onExtra(c.key, !on ? 'member' : lead ? 'off' : 'lead')} title="Toca para cambiar: no está, miembro, coordina">
+                    {c.name}{lead ? ' · coordina' : on ? ' · miembro' : ''}
+                  </button>
+                )
+              })}
+            </span>
             {r.role === 'runner' && (
               <select value={r.team_id ?? ''} disabled={busy} onChange={(e) => onLink(e.target.value || null)} aria-label={`Grupo de ${p.full_name}`}>
                 <option value="">Sin grupo</option>
@@ -247,6 +261,7 @@ export default function Inductores() {
   const [missingSql, setMissingSql] = useState(false)
   const [missing0024, setMissing0024] = useState(false) // committee, generation… need migration 0024
   const [missing0025, setMissing0025] = useState(false) // the words of the induction need migration 0025
+  const [missing0027, setMissing0027] = useState(false) // the extra committees need migration 0027
   const [welcome, setWelcome] = useState('')
   const [committeeWords, setCommitteeWords] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
@@ -285,14 +300,17 @@ export default function Inductores() {
     const words = current ? await supabase.from('term_committees').select('term_id, committee, message').eq('term_id', current) : { data: [], error: null }
     setCommitteeWords(Object.fromEntries((words.data ?? []).map((w) => [w.committee, w.message])))
     const sb = supabase
-    const read = (withIdentity: boolean) =>
+    const read = (level: 0 | 1 | 2) =>
       Promise.all([
-        sb.from('passports').select(withIdentity ? PERSON_COLUMNS : PERSON_COLUMNS_BASE).order('full_name'),
-        current ? sb.from('passport_records').select(withIdentity ? RECORD_COLUMNS : RECORD_COLUMNS_BASE).eq('term_id', current) : Promise.resolve({ data: [], error: null }),
+        sb.from('passports').select(level > 0 ? PERSON_COLUMNS : PERSON_COLUMNS_BASE).order('full_name'),
+        current ? sb.from('passport_records').select(level === 2 ? RECORD_COLUMNS : level === 1 ? RECORD_COLUMNS_0024 : RECORD_COLUMNS_BASE).eq('term_id', current) : Promise.resolve({ data: [], error: null }),
       ])
-    let [p, r] = await read(true)
+    let [p, r] = await read(2)
+    const no0027 = missingColumn(r.error) && !missingColumn(p.error)
+    if (no0027) [p, r] = await read(1)
     const without = missingColumn(p.error) || missingColumn(r.error)
-    if (without) [p, r] = await read(false)
+    if (without) [p, r] = await read(0)
+    setMissing0027(no0027 && !without)
     setMissing0024(without)
     const [ev, pf, free] = await Promise.all([
       current ? supabase.from('events').select('id, name, teams(id, name, sort_order), bases(id, name, sort_order)').eq('term_id', current).order('created_at', { ascending: false }) : Promise.resolve({ data: [], error: null }),
@@ -463,7 +481,7 @@ export default function Inductores() {
     if (!supabase || !person.record) return
     void run(async () => {
       const { error: err } = await supabase!.from('passport_records').update(patch).eq('id', person.record!.id)
-      if (err) throw new Error(/dos personas/.test(err.message) ? 'Un grupo tiene como máximo dos personas.' : /otro semestre/.test(err.message) ? err.message : missingColumn(err) ? 'Falta aplicar la migración 0024.' : failMessage)
+      if (err) throw new Error(/dos personas/.test(err.message) ? 'Un grupo tiene como máximo dos personas.' : /otro semestre/.test(err.message) ? err.message : missingColumn(err) ? 'Falta aplicar la migración 0024 (o la 0027 para los comités extra).' : failMessage)
     })
   }
   function updateIdentity(person: PersonRow, patch: { generation?: string | null; joined_term?: string | null; nickname?: string | null; symbol?: string | null; symbol_label?: string | null }) {
@@ -539,6 +557,7 @@ export default function Inductores() {
       </p>
       {error && <p className="error" role="alert">{error}</p>}
       {missing0025 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0025_passport_pages.sql</span> para las palabras de la inducción y de los comités.</p>}
+      {missing0027 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0027_more_committees.sql</span> para que una persona esté en más de un comité.</p>}
       {missing0024 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0024_passport_identity.sql</span> para guardar el comité, la generación y el ingreso.</p>}
 
       {creds && (
@@ -737,8 +756,15 @@ export default function Inductores() {
                   onRole={(role) => onRole(x, role)}
                   onLink={(id) => update(x, x.record?.role === 'runner' ? { team_id: id } : { base_id: id })}
                   onCulture={(culture) => update(x, { culture })}
-                  onCommittee={(committee) => update(x, { committee, committee_lead: false })}
+                  onCommittee={(committee) => update(x, { committee, committee_lead: false, extra_committees: (x.record?.extra_committees ?? []).filter((k) => k !== committee), extra_leads: (x.record?.extra_leads ?? []).filter((k) => k !== committee) })}
                   onLead={(lead) => update(x, { committee_lead: lead })}
+                  onExtra={(committee, to) => {
+                    const members = (x.record?.extra_committees ?? []).filter((k) => k !== committee)
+                    const leads = (x.record?.extra_leads ?? []).filter((k) => k !== committee)
+                    if (to !== 'off') members.push(committee)
+                    if (to === 'lead') leads.push(committee)
+                    update(x, { extra_committees: members, extra_leads: leads })
+                  }}
                   onIdentity={(patch) => updateIdentity(x, patch)}
                   onPhoto={(file) => onPhoto(x.passport, file)}
                   onReset={() => void onReset(x.passport)}

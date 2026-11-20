@@ -26,6 +26,7 @@ import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
 import { BaseGuide, BaseTicket, BaseWhere, ClosedDesk, MatchCard, NextRound, type BaseMatch, type Team } from './BaseHome'
 import { stampLook } from '../lib/stamp'
+import { SEAL_ORDER, sealForSeed } from '../lib/seals'
 import { AfterCard, CurrentRound, FinishedCard, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
 import { AlertBanner, AlertBell } from '../components/Alerts'
 import LoadFailed from '../components/LoadFailed'
@@ -86,7 +87,7 @@ const teamRow: TeamRow = {
 }
 const profiles = [
   { id: 'u1', username: 'daniel', full_name: 'Daniel Rodríguez', role: 'runner' as const },
-  { id: 'u2', username: 'valeria', full_name: 'Valeria Gómez', role: 'runner' as const },
+  { id: 'u2', username: 'vanesa', full_name: 'Vanesa Gómez', role: 'runner' as const },
   { id: 'u3', username: 'nico', full_name: 'Nicolás Pérez', role: 'runner' as const },
 ]
 const adminMatches: MatchRow[] = [
@@ -109,7 +110,7 @@ const baseTabs = [
 const noop = () => {}
 const noopAsync = async () => {}
 // The base screen: the inductor, the stamp ink of the base (as BaseHome sets it) and the flight codes of the groups.
-const inspector = { full_name: 'Valeria Gómez', username: 'valeria' }
+const inspector = { full_name: 'Vanesa Gómez', username: 'vanesa' }
 const previewBase = { id: 'x1', name: 'Atrio', location_photo_path: '/campus-800.jpg' }
 const baseInk = { '--base-ink': `var(--ink-${stampLook('x1').ink})` } as CSSProperties
 const baseCodes = flightCodes(towerTeams)
@@ -121,7 +122,7 @@ function PreviewTop({ teams }: { teams: { team_id: string; name: string; photo_p
   return (
     <>
       <TopTab teamId="t0" points={7} teams={teams} onSelect={setOpen} />
-      {t && <TeamDialog name={t.name} photoPath={t.photo_path} usernames={['valeria', 'nico']} onClose={() => setOpen(null)} />}
+      {t && <TeamDialog name={t.name} photoPath={t.photo_path} usernames={['vanesa', 'nico']} onClose={() => setOpen(null)} />}
     </>
   )
 }
@@ -134,7 +135,7 @@ const mStamp = (record: string, kind: PassportStampRow['kind'], base: string, ro
   record_id: record, event_id: `ev-${event}`, event_name: event, kind, base_name: kind === 'coordinated' ? null : base, base_key: kind === 'coordinated' ? null : `b-${base}`, round_number: round, stamped_at: `2026-11-1${round}T1${round}:20:00Z`,
 })
 function memberData(role: PassportRole, culture: string, career: string, query: URLSearchParams): MemberPassportData {
-  const rec = { id: 'rec2', passport_id: 'p1', term_id: mTerm.id, role, career, culture, team_id: role === 'runner' ? 'tm' : null, base_id: role === 'base' ? 'bs' : null, committee: ['clausura', 'meraki', 'conzumo', 'carrera', 'caos'][career.length % 5], committee_lead: role === 'coordinator', term: mTerm }
+  const rec = { id: 'rec2', passport_id: 'p1', term_id: mTerm.id, role, career, culture, team_id: role === 'runner' ? 'tm' : null, base_id: role === 'base' ? 'bs' : null, committee: role === 'coordinator' ? 'caos' : ['clausura', 'meraki', 'conzumo', 'carrera', 'caos'][career.length % 5], committee_lead: role === 'coordinator', extra_committees: role === 'coordinator' || query.has('comites') ? ['meraki', 'bienvenida'] : [], extra_leads: role === 'coordinator' ? ['meraki'] : [], term: mTerm }
   const old = { ...rec, id: 'rec1', term_id: mOld.id, role: (role === 'coordinator' ? 'coordinator' : 'base') as PassportRole, base_id: null, team_id: null, term: mOld }
   const stamps: PassportStampRow[] =
     role === 'runner'
@@ -145,26 +146,26 @@ function memberData(role: PassportRole, culture: string, career: string, query: 
   if (role === 'coordinator') stamps.push(mStamp('rec1', 'coordinated', '', 0, 'Carrera 2026-1'))
   else stamps.push(mStamp('rec1', 'hosted', 'Mirador', 1, 'Carrera 2026-1'), mStamp('rec1', 'hosted', 'Mirador', 2, 'Carrera 2026-1'))
   return {
-    person: { id: 'p1', username: 'daniel.rodriguez', full_name: 'Daniel Arturo Rodríguez Peña', photo_path: null, nickname: 'Dani', symbol: 'cat', symbol_label: 'Gato blanco', generation: query.has('sin') ? null : 'Generación 7', joined_term: query.has('sin') ? null : '2024-2' },
+    person: { id: 'p1', username: 'daniel.rodriguez', full_name: 'Daniel Arturo Rodríguez Peña', photo_path: null, nickname: 'Dani', symbol: 'cat', symbol_label: 'Gato blanco', generation: query.has('sin') ? null : query.get('gen') ?? 'Peluches', joined_term: query.has('sin') ? null : '2024-2' },
     records: [rec, old],
     stamps,
-    context: [{ record_id: 'rec2', team_id: 'tm', team_name: 'Dioses Nórdicos', team_photo_path: '/campus-800.jpg', partners: ['Sofía Cortés Salazar'], base_id: 'bs', base_name: 'Atrio', base_photo_path: '/campus-800.jpg', event_id: 'ev', event_name: 'Carrera 2710', event_active: true }],
-    committeeMessages: [{ term_id: 'tm2', committee: ['clausura', 'meraki', 'conzumo', 'carrera', 'caos'][career.length % 5], message: 'Somos quienes cierran lo que otros empiezan. Gracias por quedarse hasta el final y por hacer sentir a cada neo que valió la pena llegar.' }],
+    context: [{ record_id: 'rec2', team_id: 'tm', team_name: 'Dioses Nórdicos', team_photo_path: '/campus-800.jpg', partners: ['Sara Lucía Montes'], base_id: 'bs', base_name: 'Atrio', base_photo_path: '/campus-800.jpg', event_id: 'ev', event_name: 'Carrera 2710', event_active: true }],
+    committeeMessages: [{ term_id: 'tm2', committee: role === 'coordinator' ? 'caos' : ['clausura', 'meraki', 'conzumo', 'carrera', 'caos'][career.length % 5], message: 'Somos quienes cierran lo que otros empiezan. Gracias por quedarse hasta el final y por hacer sentir a cada neo que valió la pena llegar.' }],
   }
 }
 const sampleCareers: Record<string, [string, string]> = { nordica: ['nordica', 'Ingeniería de Sistemas'], griega: ['griega', 'Mecatrónica'], mexicana: ['mexicana', 'Ingeniería Industrial'], china: ['china', 'Bioingeniería'], egipcia: ['egipcia', 'Ingeniería Civil'] }
 const samplePeople: PersonRow[] = [
   { passport: { id: 'a', username: 'camila.rojas', full_name: 'Camila Andrea Rojas Prieto', photo_path: null }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
   { passport: { id: 'b', username: 'ana.ruiz', full_name: 'Ana Pardo Ruiz', photo_path: null }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
-  { passport: { id: 'c', username: 'dana.sanchez', full_name: 'Dana Alejandra Sanchez', photo_path: null }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
-  { passport: { id: 'd', username: 'luna.oyola', full_name: 'Luna Alejandra Oyola Trujillo', photo_path: null }, record: null },
+  { passport: { id: 'c', username: 'diana.pardo', full_name: 'Diana Carolina Pardo', photo_path: null }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
+  { passport: { id: 'd', username: 'lucia.ortega', full_name: 'Lucía Marcela Ortega Páez', photo_path: null }, record: null },
 ]
 const sampleRows: PersonIn[] = [
-  { line: 2, fullName: 'Juan Camilo Galán Sánchez', career: 'Bioingeniería', role: 'runner', culture: 'china', username: 'juan.sanchez', existing: false, committee: 'caos', generation: '', joined: '', nickname: '', errors: [] },
-  { line: 3, fullName: 'Jose Miguel Giraldo Gomez', career: 'Ingeniería Civil', role: 'runner', culture: 'egipcia', username: 'jose.gomez', existing: false, committee: null, generation: '', joined: '', nickname: '', errors: [] },
-  { line: 4, fullName: 'Laura Sofia Poloche', career: 'Ingeniería Ambiental', role: 'base', culture: null, username: 'laura.poloche', existing: false, committee: 'meraki', generation: '', joined: '', nickname: '', errors: [] },
-  { line: 5, fullName: 'Sofia Ney Bernal', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'sofia.bernal', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: [] },
-  { line: 6, fullName: 'Sofia Ney Bernal', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'sofia.bernal', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: ['Esta persona está repetida en el archivo.'] },
+  { line: 2, fullName: 'Camilo José Mora Ibáñez', career: 'Bioingeniería', role: 'runner', culture: 'china', username: 'camilo.mora', existing: false, committee: 'caos', generation: '', joined: '', nickname: '', errors: [] },
+  { line: 3, fullName: 'Miguel Ángel Vera Soto', career: 'Ingeniería Civil', role: 'runner', culture: 'egipcia', username: 'miguel.vera', existing: false, committee: null, generation: '', joined: '', nickname: '', errors: [] },
+  { line: 4, fullName: 'Laura Camila Pinto', career: 'Ingeniería Ambiental', role: 'base', culture: null, username: 'laura.pinto', existing: false, committee: 'meraki', generation: '', joined: '', nickname: '', errors: [] },
+  { line: 5, fullName: 'Sara Nelly Beltrán', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'sara.beltran', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: [] },
+  { line: 6, fullName: 'Sara Nelly Beltrán', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'sara.beltran', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: ['Esta persona está repetida en el archivo.'] },
 ]
 
 // The pages of the PDF of the passport as pictures, and a button that builds the whole PDF (development only).
@@ -274,7 +275,7 @@ export default function Preview() {
             <h2>Lista de 2026-2</h2>
             <ul className="list people">
               {samplePeople.map((p) => (
-                <PersonItem key={p.passport.id} person={p} themeKey="mitologias" teams={[{ id: 'g1', label: 'Dioses Nórdicos (1/2)' }]} bases={[{ id: 'b1', label: 'Atrio' }]} busy={false} onRole={noop} onLink={noop} onCulture={noop} onCommittee={noop} onLead={noop} onIdentity={noop} onPhoto={noop} onReset={noop} onDelete={noop} />
+                <PersonItem key={p.passport.id} person={p} themeKey="mitologias" teams={[{ id: 'g1', label: 'Dioses Nórdicos (1/2)' }]} bases={[{ id: 'b1', label: 'Atrio' }]} busy={false} onRole={noop} onLink={noop} onCulture={noop} onCommittee={noop} onLead={noop} onExtra={noop} onIdentity={noop} onPhoto={noop} onReset={noop} onDelete={noop} />
               ))}
             </ul>
           </section>
@@ -363,6 +364,26 @@ export default function Preview() {
         <StatusBar name="Dioses Griegos" photoPath={null} points={3} />
         <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} totalRounds={5} />
         <StampMoment seed="x2" name="Biblioteca Alfonso Borrero" photoPath="/campus-800.jpg" round={2} time="12:04" onClose={noop} />
+      </AppShell>
+    )
+  }
+
+  if (screen === 'sellos-15') {
+    // one seed for each of the fifteen mythology seals, so every one can be reviewed
+    const seeds = SEAL_ORDER.map((key) => {
+      for (let n = 0; n < 5000; n++) if (sealForSeed(`s${n}`).key === key) return `s${n}`
+      return 's0'
+    })
+    return (
+      <AppShell title="Sellos" user={user}>
+        <section className="card">
+          <h2>Los quince sellos de las bases</h2>
+          <div className="row" style={{ gap: '1rem' }}>
+            {seeds.map((seed, i) => (
+              <Stamp key={seed} seed={seed} name={['Atrio', 'Biblioteca', 'Cancha de Fútbol', 'Claustro', 'Laboratorio', 'Cafetería', 'Auditorio', 'Plaza', 'Mirador', 'Jardín', 'Coliseo', 'Capilla', 'Torre', 'Museo', 'Portería'][i]} round={i + 1} time="12:04" state="stamped" size={150} straight />
+            ))}
+          </div>
+        </section>
       </AppShell>
     )
   }
@@ -692,7 +713,7 @@ export default function Preview() {
               <section className="card">
                 <h2>Lista</h2>
                 <ul className="list">
-                  {[['Daniel Rodríguez', 'daniel', 'Corredor'], ['Valeria Gómez', 'valeria', 'Inductor de base'], ['María José Pérez Villamizar', 'maria.perez', 'Corredor']].map(([n, u, r]) => (
+                  {[['Daniel Rodríguez', 'daniel', 'Corredor'], ['Vanesa Gómez', 'vanesa', 'Inductor de base'], ['María José Pérez Villamizar', 'maria.perez', 'Corredor']].map(([n, u, r]) => (
                     <li key={u}>
                       <Avatar name={n} size={44} />
                       <span className="grow">
@@ -719,7 +740,7 @@ export default function Preview() {
                     <thead><tr><th>#</th><th>Nombre</th><th>Rol</th><th>Grupo o base</th><th>Usuario</th><th>Estado</th></tr></thead>
                     <tbody>
                       <tr><td>2</td><td>Daniel Rodríguez</td><td>Corredor</td><td>Dioses Griegos · GPS</td><td className="mono">daniel.rodriguez</td><td><span className="badge ok">Correcta</span></td></tr>
-                      <tr className="bad"><td>3</td><td>Valeria Gómez</td><td>—</td><td>Dioses Griegos</td><td className="mono">valeria.gomez</td><td>Rol no válido ("Capitán"). Usa "Corredor" o "Base".</td></tr>
+                      <tr className="bad"><td>3</td><td>Vanesa Gómez</td><td>—</td><td>Dioses Griegos</td><td className="mono">vanesa.gomez</td><td>Rol no válido ("Capitán"). Usa "Corredor" o "Base".</td></tr>
                     </tbody>
                   </table>
                 </div>

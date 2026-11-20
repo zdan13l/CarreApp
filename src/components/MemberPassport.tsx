@@ -2,7 +2,8 @@ import { Star } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { airportCode } from '../lib/flight'
-import { committeeOf } from '../lib/committees'
+import { committeeOf, committeesOfRecord } from '../lib/committees'
+import { generationsOf } from '../lib/seals'
 import {
   PASSPORT_ROLE_LONG,
   personNumber,
@@ -20,6 +21,8 @@ import { photoUrl } from '../lib/storage'
 import { cultureOf, themeOf, type CultureKey } from '../lib/themes'
 import Avatar from './Avatar'
 import CareerEmblem, { careerKey } from './CareerEmblem'
+import CareerPlate from './CareerPlate'
+import GenerationSeals from './GenerationSeal'
 import CommitteeSeal from './CommitteeSeal'
 import CultureEmblem, { CultureOrnament } from './CultureEmblem'
 import Mrz from './Mrz'
@@ -84,7 +87,7 @@ export const visaPagesFor = (slots: number, per = PER_PAGE, min = MIN_VISA_PAGES
 export type PageSpec =
   | { kind: 'dni' }
   | { kind: 'induction'; record: MemberRecord }
-  | { kind: 'committee'; record: MemberRecord }
+  | { kind: 'committee'; record: MemberRecord; committee: string | null; lead: boolean; first: boolean }
   | { kind: 'visa'; record: MemberRecord; index: number; slots: VisaSlot[] }
   | { kind: 'blank'; n: number }
 
@@ -93,7 +96,10 @@ export function pageSpecsOf(data: MemberPassportData): PageSpec[] {
   const specs: PageSpec[] = [{ kind: 'dni' }]
   for (const record of data.records) {
     const slots = visaSlotsOf(record, data.stamps, data.records)
-    specs.push({ kind: 'induction', record }, { kind: 'committee', record })
+    specs.push({ kind: 'induction', record })
+    const mine = committeesOfRecord(record)
+    if (mine.length === 0) specs.push({ kind: 'committee', record, committee: null, lead: false, first: true })
+    mine.forEach((m, i) => specs.push({ kind: 'committee', record, committee: m.key, lead: m.lead, first: i === 0 }))
     for (let i = 0; i < visaPagesFor(slots.length); i++) specs.push({ kind: 'visa', record, index: i, slots: slots.slice(i * PER_PAGE, (i + 1) * PER_PAGE) })
   }
   for (let n = 0; n < BLANK_PAGES; n++) specs.push({ kind: 'blank', n })
@@ -101,8 +107,8 @@ export function pageSpecsOf(data: MemberPassportData): PageSpec[] {
 }
 
 export const contextOf = (data: MemberPassportData, record: MemberRecord) => data.context.find((c) => c.record_id === record.id)
-export const committeeWords = (data: MemberPassportData, record: MemberRecord) =>
-  (data.committeeMessages ?? []).find((m) => m.term_id === record.term_id && m.committee === record.committee)?.message ?? null
+export const committeeWords = (data: MemberPassportData, record: MemberRecord, committee: string | null = record.committee ?? null) =>
+  (data.committeeMessages ?? []).find((m) => m.term_id === record.term_id && m.committee === committee)?.message ?? null
 
 /** The golden stamp with a photo: the group a runner runs with, or the base an inductor staffs (null for the rest). */
 export function photoSealOf(record: MemberRecord, ctx: PassportContextRow | undefined): { path: string | null; top: string; bottom: string } | null {
@@ -192,9 +198,15 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
             <div><dt>Número</dt><dd className="mono">{personNumber(person.id)}</dd></div>
           </dl>
           <ul className="slots identity-slots dni-slots">
+            <li className="slot done career-slot">
+              <div className="slot-btn">
+                <CareerPlate career={career} size={92} />
+                <span className="slot-name">Tu carrera</span>
+              </div>
+            </li>
             <li className={`slot ${generation ? 'done' : 'rest'}`}>
               <div className="slot-btn">
-                {generation ? <TextSeal center={generation} top="Generación" bottom="Inducción Javeriana" size={104} tilt={-3} /> : <span className="slot-ghost" aria-hidden="true"><b>GENERACIÓN</b></span>}
+                {generationsOf(generation).some((g) => g.kind) ? <GenerationSeals generation={generation} size={104} /> : generation ? <TextSeal center={generation} top="Generación" bottom="Inducción Javeriana" size={104} tilt={-3} /> : <span className="slot-ghost" aria-hidden="true"><b>GENERACIÓN</b></span>}
                 <span className="slot-name">Generación</span>
                 <span className={`flap-mini${generation ? ' done' : ''}`}>{generation || 'Por definir'}</span>
               </div>
@@ -214,7 +226,8 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
     const record = spec.record
     const theme = themeOf(record.term.theme)
     const culture = cultureOf(record.term.theme, record.culture)
-    const committee = committeeOf(record.committee)
+    const committee = committeeOf(spec.kind === 'committee' ? spec.committee : record.committee)
+    const lead = spec.kind === 'committee' ? spec.lead : Boolean(record.committee_lead)
     const ctx = contextOf(data, record)
     const role = record.role
     articleStyle = inkOf(culture)
@@ -256,8 +269,8 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
         </>
       )
     } else if (spec.kind === 'committee') {
-      const photo = photoSealOf(record, ctx)
-      const seal = (size: number, tilt: number) => (committee ? <CommitteeSeal committee={committee.key} lead={Boolean(record.committee_lead)} size={size} tilt={tilt} /> : null)
+      const photo = spec.kind === 'committee' && spec.first ? photoSealOf(record, ctx) : null
+      const seal = (size: number, tilt: number) => (committee ? <CommitteeSeal committee={committee.key} lead={lead} size={size} tilt={tilt} /> : null)
       const photoSeal = (size: number) => photo && <PhotoSeal url={photoUrl(photo.path)} top={photo.top} bottom={photo.bottom} size={size} tilt={3} />
       content = (
         <>
@@ -266,12 +279,12 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
               <p className="doc-kicker">Tu comité · {record.term.name}</p>
               <h2 className="leaf-title">{committee ? committee.name : 'Sin comité todavía'}</h2>
             </div>
-            {record.committee_lead && <span className="flap-mini gold">Coordinador</span>}
+            {lead && <span className="flap-mini gold">Coordinador</span>}
           </header>
           <div className="leaf-body">
             <div className="committee-seal-row">
               {committee ? (
-                <button type="button" className="seal-btn" aria-haspopup="dialog" aria-label="Ver el sello de tu comité" onClick={() => show(`Comité ${committee.name}`, seal(250, 0), record.committee_lead ? 'Coordinador' : 'Miembro', committee.myth)}>
+                <button type="button" className="seal-btn" aria-haspopup="dialog" aria-label="Ver el sello de tu comité" onClick={() => show(`Comité ${committee.name}`, seal(250, 0), lead ? 'Coordinador' : 'Miembro', committee.myth)}>
                   {seal(150, -4)}
                 </button>
               ) : (
@@ -279,7 +292,7 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
               )}
               {committee && <p className="committee-tagline">{committee.tagline}</p>}
             </div>
-            <Words title={committee ? `Palabras del comité ${committee.name}` : 'Palabras de tu comité'} text={committeeWords(data, record)} empty={committee ? 'Tu comité te dejará aquí unas palabras.' : 'Cuando te asignen un comité, aquí estarán sus palabras.'} />
+            <Words title={committee ? `Palabras del comité ${committee.name}` : 'Palabras de tu comité'} text={committeeWords(data, record, committee?.key ?? null)} empty={committee ? 'Tu comité te dejará aquí unas palabras.' : 'Cuando te asignen un comité, aquí estarán sus palabras.'} />
             {photo && (
               <div className="photo-seal-row">
                 <button type="button" className="seal-btn" aria-haspopup="dialog" aria-label={`Ver el sello dorado: ${photo.bottom}`} onClick={() => show(photo.top, photoSeal(250), photo.bottom, role === 'runner' ? 'Es único: el grupo con el que corres.' : 'Es único: tú no corres, tu sello es tu base.')}>

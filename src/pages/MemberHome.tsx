@@ -44,15 +44,19 @@ export default function MemberHome() {
   const load = useCallback(async () => {
     if (!supabase || !userId) return
     const sb = supabase
-    const read = async (withIdentity: boolean) =>
+    // level 2: everything; 1: without the extra committees (migration 0027); 0: without the identity either (0024). The passport always opens.
+    const read = async (level: 0 | 1 | 2) =>
       Promise.all([
-        sb.from('passports').select(withIdentity ? PERSON_COLUMNS : PERSON_COLUMNS_BASE).eq('id', userId).maybeSingle(),
-        withIdentity
-          ? sb.from('passport_records').select('id, passport_id, term_id, role, career, culture, team_id, base_id, committee, committee_lead, terms(id, name, theme, is_current, created_at, welcome)').eq('passport_id', userId)
-          : sb.from('passport_records').select('id, passport_id, term_id, role, career, culture, team_id, base_id, terms(id, name, theme, is_current, created_at)').eq('passport_id', userId),
+        sb.from('passports').select(level > 0 ? PERSON_COLUMNS : PERSON_COLUMNS_BASE).eq('id', userId).maybeSingle(),
+        level === 2
+          ? sb.from('passport_records').select('id, passport_id, term_id, role, career, culture, team_id, base_id, committee, committee_lead, extra_committees, extra_leads, terms(id, name, theme, is_current, created_at, welcome)').eq('passport_id', userId)
+          : level === 1
+            ? sb.from('passport_records').select('id, passport_id, term_id, role, career, culture, team_id, base_id, committee, committee_lead, terms(id, name, theme, is_current, created_at, welcome)').eq('passport_id', userId)
+            : sb.from('passport_records').select('id, passport_id, term_id, role, career, culture, team_id, base_id, terms(id, name, theme, is_current, created_at)').eq('passport_id', userId),
       ])
-    let [p, r] = await read(true)
-    if (missingColumn(p.error) || missingColumn(r.error)) [p, r] = await read(false) // migration 0024 is not applied yet: the passport still opens
+    let [p, r] = await read(2)
+    if (missingColumn(r.error) && !missingColumn(p.error)) [p, r] = await read(1)
+    if (missingColumn(p.error) || missingColumn(r.error)) [p, r] = await read(0)
     const [st, ctx, live, words] = await Promise.all([
       sb.from('passport_stamps').select('record_id, event_id, event_name, kind, base_name, base_key, round_number, stamped_at'),
       sb.rpc('my_passport_context'),

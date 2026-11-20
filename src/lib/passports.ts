@@ -42,7 +42,9 @@ export interface PassportPerson {
 /** The columns of the passport, with and without the ones of migration 0024 (the app keeps working until it is applied). */
 export const PERSON_COLUMNS = 'id, username, full_name, photo_path, nickname, symbol, symbol_label, generation, joined_term'
 export const PERSON_COLUMNS_BASE = 'id, username, full_name, photo_path'
-export const RECORD_COLUMNS = 'id, passport_id, term_id, role, career, culture, team_id, base_id, committee, committee_lead'
+export const RECORD_COLUMNS = 'id, passport_id, term_id, role, career, culture, team_id, base_id, committee, committee_lead, extra_committees, extra_leads'
+/** The columns before migration 0027 (the extra committees). */
+export const RECORD_COLUMNS_0024 = 'id, passport_id, term_id, role, career, culture, team_id, base_id, committee, committee_lead'
 export const RECORD_COLUMNS_BASE = 'id, passport_id, term_id, role, career, culture, team_id, base_id'
 /** True when a request failed because a column of migration 0024 does not exist yet. */
 export const missingColumn = (e: { code?: string; message?: string } | null | undefined) => Boolean(e && (e.code === '42703' || /column .* does not exist|schema cache/i.test(e.message ?? '')))
@@ -58,6 +60,8 @@ export interface PassportRecordRow {
   base_id: string | null
   committee?: string | null // one of the five committees (migration 0024)
   committee_lead?: boolean // the coordinator of the committee: golden stamp
+  extra_committees?: string[] // the other committees they belong to (migration 0027)
+  extra_leads?: string[] // the ones of those they coordinate: golden stamp
 }
 
 export type StampKind = 'visited' | 'hosted' | 'coordinated'
