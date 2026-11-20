@@ -35,7 +35,9 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0020 | [`0020_reset_on_deactivate.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0020_reset_on_deactivate.sql) | 2026-11-18 | Desactivar una Carrera reinicia todo su avance |
 | 0021 | [`0021_team_contacts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0021_team_contacts.sql) | 2026-11-19 | `team_contacts()`: el @ de los corredores de cada grupo de la propia Carrera |
 | 0022 | [`0022_score_needs_arrival.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0022_score_needs_arrival.sql) | 2026-11-19 | Una base solo puede calificar si ya confirmó la llegada de los dos grupos |
-| 0023 | [`0023_passports.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0023_passports.sql) | _pendiente_ | Pasaporte personal del inductor: semestres con temática, un registro por persona y semestre, sellos guardados para siempre |
+| 0023 | [`0023_passports.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0023_passports.sql) | 2026-11-19 | Pasaporte personal del inductor: semestres con temática, un registro por persona y semestre, sellos guardados para siempre |
+| 0024 | [`0024_passport_identity.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0024_passport_identity.sql) | 2026-11-19 | Identidad del pasaporte: comité (y su coordinador), generación, ingreso, apodo y símbolo |
+| 0025 | [`0025_passport_pages.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0025_passport_pages.sql) | _pendiente_ | Palabras de los coordinadores y de cada comité por inducción, foto de la base en el pasaporte, apodo y símbolo solo del coordinador |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -421,7 +423,36 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 
 **Verificación** `tests/db/passports-0023.test.ts` (20 pruebas: semestre vigente único, privacidad entre personas y frente a la operación, un registro por semestre, máximo dos por grupo, mismo semestre, archivado antes del reinicio, sin duplicados, sin sellos si no se jugó, sellos que sobreviven al borrar la Carrera, contexto y sellos en vivo). En Supabase: `select count(*) from public.terms;` debe responder (0 al inicio).
 
+**Aplicada en producción el 2026-11-19** (a mano en el SQL Editor de Supabase, confirmado por el mantenedor).
+
 **Cómo revertir** `drop trigger events_archive_stamps on public.events; drop trigger events_default_term on public.events; alter table public.events drop column term_id; drop function public.my_live_stamps(); drop function public.my_passport_context(); drop function public.events_archive_stamps(); drop function public.archive_event_stamps(uuid); drop function public.events_default_term(); drop table public.passport_stamps, public.passport_records, public.passports, public.terms cascade; drop function public.validate_passport_record();` (se pierden los pasaportes y sus sellos).
+
+## 0024 — La identidad del pasaporte personal
+
+**Qué cambia**
+- `passport_records.committee` (uno de los cinco comités de la inducción: la app guarda la clave, p. ej. `clausura`) y `committee_lead` (el coordinador del comité, que recibe el sello dorado). Un comité tiene **un solo coordinador por semestre** (índice único parcial en `(term_id, committee)`) y solo alguien con comité puede coordinarlo (`check`).
+- `passports.generation` y `passports.joined_term` (generación y cuándo entró a la inducción: los pone el coordinador) y `passports.nickname`, `symbol`, `symbol_label` (apodo y símbolo: los pone cada persona). Todos con límite de largo y, el símbolo, de formato (`^[a-z0-9-]{2,24}$`).
+- Una política nueva (`passports_self_update`) deja a cada persona actualizar **su** fila de `passports`, y el disparador `passports_guard` solo le deja tocar el apodo y el símbolo: el nombre, el @, la foto, la generación y el ingreso siguen siendo del coordinador (que puede cambiar todo). El servidor, con la llave de servicio (sin usuario), cambia el @ cuando la persona lo pide con su contraseña (`api/account.ts`). Los registros por semestre (rol, comité…) siguen siendo solo del coordinador.
+
+**Por qué** El pasaporte personal necesita decir a qué comité pertenece cada inductor (cinco comités, cada uno con su coordinador y su sello), de qué generación es, cuándo entró a la inducción y dejar que cada quien ponga su apodo y su símbolo. Sin esta migración la app sigue funcionando (el pasaporte abre sin esos datos y *Inductores* avisa que falta).
+
+**Verificación** `tests/db/passport-identity-0024.test.ts` (comité y coordinador únicos por semestre, la persona no puede tomar comité ni coordinar, qué edita cada lado, límites) y `tests/api/account.test.ts` (cambio de @ y contraseña).
+
+**Cómo revertir** `drop trigger passports_guard on public.passports; drop function public.passports_guard(); drop policy passports_self_update on public.passports; drop index public.passport_records_committee_lead; alter table public.passport_records drop column committee_lead, drop column committee; alter table public.passports drop column nickname, drop column symbol, drop column symbol_label, drop column generation, drop column joined_term;` (se pierden esos datos).
+
+## 0025 — Las páginas del pasaporte
+
+**Qué cambia**
+- `terms.welcome`: las palabras de los coordinadores a sus inductores **en esa inducción** (salen en la página de la inducción de cada pasaporte).
+- Tabla `term_committees` (`term_id`, `committee`, `message`): las palabras de cada comité, por inducción. Las lee cualquier usuario con sesión y solo las escribe el coordinador. Se borran con su inducción.
+- `my_passport_context()` también devuelve `base_photo_path` (la foto de la base de quien la atiende: es su sello dorado).
+- El apodo, el símbolo y su nombre **se ponen una sola vez y no se vuelven a cambiar**: se quita la política `passports_self_update` de 0024, así que nadie edita su propia fila y solo el coordinador (o el servidor) los pone o corrige.
+
+**Por qué** El pasaporte es el de toda la vida de la persona en la inducción: la cubierta y la página de identidad son generales (sin temática, comité, papel ni pareja) y cada inducción trae sus propias páginas, con su temática (Mitologías solo es la de la 2710). Esas páginas necesitan las palabras de los coordinadores y de cada comité, y el sello dorado con la foto necesita la de la base. Sin esta migración el pasaporte abre igual, sin esas palabras, y *Inductores* avisa que falta.
+
+**Verificación** `tests/db/passport-pages-0025.test.ts` (palabras de la inducción y de los comités, límites, quién lee y quién escribe, nadie edita su pasaporte, foto de la base en el contexto).
+
+**Cómo revertir** `drop function public.my_passport_context(); drop table public.term_committees; alter table public.terms drop column welcome;` y volver a crear `my_passport_context()` y la política `passports_self_update` de 0023 / 0024.
 
 ## Plantilla para nuevos registros
 
