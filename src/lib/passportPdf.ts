@@ -6,7 +6,8 @@
 // every induction has its own pages (the induction, the committee, the visas) in its own theme; blank pages wait at the end.
 import { createElement, type ReactElement } from 'react'
 import { airportCode } from './flight'
-import { committeeOf } from './committees'
+import { committeeOf, committeesOfRecord } from './committees'
+import { embedSealAssets, generationsOf, sealForSeed, type GenerationSeal } from './seals'
 import { personNumber, PASSPORT_ROLE_LONG } from './passports'
 import { jpegPdf } from './pdf'
 import { mrzText, stampLook, stampTime } from './stamp'
@@ -14,6 +15,8 @@ import { photoUrl } from './storage'
 import { symbolOf } from './symbols'
 import { cultureOf, themeOf } from './themes'
 import CareerEmblem, { careerKey } from '../components/CareerEmblem'
+import CareerPlate from '../components/CareerPlate'
+import GenerationSeals from '../components/GenerationSeal'
 import CommitteeSeal from '../components/CommitteeSeal'
 import CultureEmblem, { CultureOrnament } from '../components/CultureEmblem'
 import {
@@ -86,7 +89,7 @@ function css(font: string): string {
   const inks = INKS.map((c, i) => (i ? `--ink-${i}:${c};` : '')).join('')
   return `
 @font-face{font-family:'Archivo Variable';src:url(${font}) format('woff2');font-weight:100 900;font-stretch:62% 125%}
-svg{${inks}--seal-paper:${PAPER};--emblem-paper:${PAPER};--stamp-paper:${PAPER};--surface:${PAPER};--foil-a:${FOIL[0]};--foil-b:${FOIL[1]};--foil-c:${FOIL[2]};--foil-d:${FOIL[3]}}
+svg{${inks}--seal-paper:${PAPER};--emblem-paper:${PAPER};--stamp-paper:${PAPER};--surface:${PAPER};--foil-a:${FOIL[0]};--foil-b:${FOIL[1]};--foil-c:${FOIL[2]};--foil-d:${FOIL[3]};--plate-a:#0a1f4a;--plate-b:#031538;--plate-line:rgba(242,207,122,.28);--plate-disc:rgba(2,12,36,.55)}
 text{font-family:'Archivo Variable',Helvetica,Arial,sans-serif}
 .sans,.stamp-text,.stamp-initial{font-family:'Archivo Variable',Helvetica,Arial,sans-serif;font-stretch:76%}
 .mono,.stamp-mono{font-family:ui-monospace,Menlo,Consolas,'Courier New',monospace}
@@ -97,7 +100,7 @@ text{font-family:'Archivo Variable',Helvetica,Arial,sans-serif}
 .seal-emblem .pp{fill:var(--seal-paper);stroke:none}.seal-emblem .ps{fill:none;stroke:var(--seal-paper)}
 .stamp-ink{stroke:var(--stamp-ink);fill:var(--stamp-ink)}.stamp-onink{fill:var(--stamp-paper);stroke:none}
 .stamp-empty{stroke:var(--stamp-ink);fill:none}
-${INKS.map((c, i) => (i ? `.committee-seal.ink-${i}{color:${c}}` : '')).join('')}`
+${INKS.map((c, i) => (i ? `.committee-seal.ink-${i}{color:${c}}.shape-seal.ink-${i}{color:${c}}` : '')).join('')}`
 }
 
 // ---------- small drawing helpers ----------
@@ -228,10 +231,11 @@ function identity(ctx: PageContext, no: number, total: number): string {
   const photo = ctx.assets.photo
     ? `<clipPath id="ph"><rect x="56" y="160" width="150" height="190" rx="14"/></clipPath><image href="${ctx.assets.photo}" x="56" y="160" width="150" height="190" preserveAspectRatio="xMidYMid slice" clip-path="url(#ph)"/>`
     : `<rect x="56" y="160" width="150" height="190" rx="14" fill="#dfe5f1"/>${text(131, 275, (person.full_name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('') || '?').toUpperCase(), { size: 58, weight: 800, fill: MUTED, anchor: 'middle', stretch: true })}`
+  const genSeal: GenerationSeal | undefined = generationsOf(generation).find((g) => g.kind)
   const slot = (x: number, label: string, value: string | undefined, top: string, bottom: string, tilt: number) =>
     `${value ? piece(createElement(TextSeal, { center: value, top, bottom, size: 150, tilt: 0 }), x, 566, 150, 150, tilt, ink, PAPER) : `<circle cx="${x + 75}" cy="641" r="72" fill="none" stroke="${LINE}" stroke-width="2" stroke-dasharray="6 6"/>${text(x + 75, 646, label.toUpperCase(), { size: 12, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' })}`}${text(x + 75, 736, label, { size: 14, weight: 800, anchor: 'middle', stretch: true })}${text(x + 75, 752, (value ?? 'Por definir').toUpperCase().slice(0, 22), { size: 9.5, mono: true, spacing: 1.6, fill: FAINT, anchor: 'middle' })}`
   const body = `
-    ${piece(createElement(CareerEmblem, { career, size: 64 }), 52, 62, 70, 70, 0, ink)}
+    ${piece(createElement(CareerPlate, { career, size: 58 }), 52, 54, 58, 71, 0)}
     ${text(136, 82, 'DOCUMENTO DE IDENTIDAD · INDUCCIÓN', { size: 11, mono: true, spacing: 2.4, fill: FAINT })}
     ${lines(136, 112, nameLines.slice(0, 2), 30, { size: 26, weight: 800, stretch: true })}
     <path d="M56 140H544" stroke="${LINE}" stroke-dasharray="3 4"/>
@@ -242,7 +246,7 @@ function identity(ctx: PageContext, no: number, total: number): string {
     ${SymbolIcon ? `<g style="color:${ink}">${place(svgOf(ctx.render(createElement(SymbolIcon, { size: 30, strokeWidth: 1.8 }))), 99, 257, 285, 30, 30)}</g>` : text(272, 308, '?', { size: 24, fill: FAINT, anchor: 'middle' })}
     ${text(318, 304, symbol ? person.symbol_label?.trim() || symbol.name : 'Sin símbolo', { size: 15, fill: MUTED })}
     ${grid}
-    ${slot(86, 'Generación', generation, 'Generación', 'Inducción Javeriana', -3)}${slot(364, 'Ingresó a inducción', joined, 'Ingresó a inducción', 'Pontificia Universidad Javeriana', 4)}`
+    ${genSeal ? piece(createElement(GenerationSeals, { generation: genSeal.name, size: 150 }), 86, 566, 150, 150, -3, ink, PAPER) + text(161, 740, 'GENERACIÓN', { size: 9.5, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' }) : slot(86, 'Generación', generation, 'Generación', 'Inducción Javeriana', -3)}${slot(364, 'Ingresó a inducción', joined, 'Ingresó a inducción', 'Pontificia Universidad Javeriana', 4)}`
   return page(ctx, { culture: 'general', mrz: mrzOf(person.full_name, `PUJ<<${careerKey(career).toUpperCase()}<<${personNumber(person.id).slice(4)}`) }, body, no, total, ink)
 }
 
@@ -282,19 +286,19 @@ function induction(ctx: PageContext, record: MemberRecord, no: number, total: nu
   return page(ctx, l, body, no, total, l.ink)
 }
 
-function committeePage(ctx: PageContext, record: MemberRecord, no: number, total: number): string {
-  const committee = committeeOf(record.committee)
+function committeePage(ctx: PageContext, record: MemberRecord, which: { key: string | null; lead: boolean; first: boolean }, no: number, total: number): string {
+  const committee = committeeOf(which.key)
   const l = look(ctx, record)
   const c = contextOf(ctx.data, record)
   const { piece } = pieces(ctx)
-  const words = committeeWords(ctx.data, record)
-  const photo = photoSealOf(record, c)
+  const words = committeeWords(ctx.data, record, which.key)
+  const photo = which.first ? photoSealOf(record, c) : null
   const body = `
     ${text(56, 82, `TU COMITÉ · ${record.term.name}`.toUpperCase(), { size: 12, mono: true, spacing: 3, fill: FAINT })}
     ${text(56, 124, committee ? committee.name : 'Sin comité todavía', { size: 40, weight: 800, fill: l.ink, stretch: true })}
-    ${record.committee_lead ? `<rect x="400" y="96" width="144" height="26" rx="6" fill="#f4d575"/>${text(472, 114, 'COORDINADOR', { size: 11, mono: true, spacing: 2, fill: '#1a1200', anchor: 'middle' })}` : ''}
+    ${which.lead ? `<rect x="400" y="96" width="144" height="26" rx="6" fill="#f4d575"/>${text(472, 114, 'COORDINADOR', { size: 11, mono: true, spacing: 2, fill: '#1a1200', anchor: 'middle' })}` : ''}
     <path d="M56 148H544" stroke="${LINE}" stroke-dasharray="3 4"/>
-    ${committee ? piece(createElement(CommitteeSeal, { committee: committee.key, lead: Boolean(record.committee_lead), size: 220 }), 56, 172, 220, 220, -4, undefined, PAPER) : `<circle cx="166" cy="282" r="100" fill="none" stroke="${LINE}" stroke-width="2" stroke-dasharray="6 6"/>${text(166, 288, 'COMITÉ', { size: 15, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' })}`}
+    ${committee ? piece(createElement(CommitteeSeal, { committee: committee.key, lead: which.lead, size: 220 }), 56, 172, 220, 220, -4, undefined, PAPER) : `<circle cx="166" cy="282" r="100" fill="none" stroke="${LINE}" stroke-width="2" stroke-dasharray="6 6"/>${text(166, 288, 'COMITÉ', { size: 15, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' })}`}
     ${committee ? lines(310, 250, wrap(committee.tagline, 18), 34, { size: 30, weight: 800, fill: l.ink, stretch: true }) : ''}
     ${committee ? lines(310, 330, wrap(committee.myth, 34), 17, { size: 13, italic: true, fill: MUTED }) : ''}
     ${text(56, 436, (committee ? `PALABRAS DEL COMITÉ ${committee.name}` : 'PALABRAS DE TU COMITÉ').toUpperCase(), { size: 10, mono: true, spacing: 2.4, fill: FAINT })}
@@ -334,14 +338,21 @@ function blankPage(ctx: PageContext, n: number, no: number, total: number): stri
 }
 
 /** Every page of the passport as an SVG document (before it becomes a picture). */
+/** One page for each committee of a record (a person with none gets the page that waits for it). */
+function committeePagesOf(record: MemberRecord): { key: string | null; lead: boolean; first: boolean }[] {
+  const mine = committeesOfRecord(record)
+  return mine.length === 0 ? [{ key: null, lead: false, first: true }] : mine.map((m, i) => ({ key: m.key, lead: m.lead, first: i === 0 }))
+}
+
 export function passportPageSvgs(ctx: PageContext): string[] {
   const { records, stamps } = ctx.data
   const visaCount = (r: MemberRecord) => Math.max(MIN_VISA_PAGES_PDF, Math.ceil(visaSlotsOf(r, stamps, records).length / PER_PAGE_PDF))
-  const total = 2 + records.reduce((n, r) => n + 2 + visaCount(r), 0) + BLANK_PAGES_PDF
+  const total = 2 + records.reduce((n, r) => n + 1 + committeePagesOf(r).length + visaCount(r), 0) + BLANK_PAGES_PDF
   const svgs = [cover(ctx), identity(ctx, 2, total)]
   let no = 3
   for (const r of records) {
-    svgs.push(induction(ctx, r, no++, total), committeePage(ctx, r, no++, total))
+    svgs.push(induction(ctx, r, no++, total))
+    for (const w of committeePagesOf(r)) svgs.push(committeePage(ctx, r, w, no++, total))
     const slots = visaSlotsOf(r, stamps, records)
     for (let i = 0; i < visaCount(r); i++) svgs.push(visaPageSvg(ctx, r, i, slots.slice(i * PER_PAGE_PDF, (i + 1) * PER_PAGE_PDF), no++, total))
   }
@@ -409,12 +420,20 @@ async function loadPhotos(data: MemberPassportData): Promise<{ photo: string | n
   return { photo, photos }
 }
 
+/** The picture files of the seals this passport shows: the base stamps and the generation. */
+function sealFilesOf(data: MemberPassportData): string[] {
+  const files = data.stamps.filter((s) => s.kind !== 'coordinated').map((s) => sealForSeed(s.base_key ?? s.base_name ?? '').file)
+  for (const g of generationsOf(data.person.generation)) if (g.source) files.push(g.source.file)
+  return files
+}
+
 /** The passport as a PDF (A5, one page per page of the booklet). */
 export async function buildPassportPdf(data: MemberPassportData, scale = 2.2): Promise<Blob> {
   const [{ renderToStaticMarkup }, fontModule, photos] = await Promise.all([
     import('react-dom/server'),
     import('@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?inline'),
     loadPhotos(data),
+    embedSealAssets(sealFilesOf(data)), // the seals are pictures turned into ink: an SVG drawn as a picture cannot fetch them itself
   ])
   const svgs = passportPageSvgs({ data, assets: { ...photos, font: fontModule.default }, render: (el) => renderToStaticMarkup(el) })
   const pages = []

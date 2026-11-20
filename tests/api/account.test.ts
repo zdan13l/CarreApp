@@ -115,14 +115,14 @@ describe('changing the @', () => {
 
   it('answers 409 when the @ is taken (by another login) and changes nothing', async () => {
     state.updateUserById.mockResolvedValue({ error: { message: 'A user with this email address has already been registered' } })
-    const res = await call({ current_password: 'clave', username: 'persona12' })
+    const res = await call({ current_password: 'clave', username: 'persona2' })
     expect(res.statusCode).toBe(409)
     expect(state.updatePassport).not.toHaveBeenCalled()
   })
 
   it('undoes the email when the passport row cannot take the new @ (no login out of step with its passport)', async () => {
     state.updatePassport.mockReturnValue({ error: { message: 'duplicate key value violates unique constraint' } })
-    const res = await call({ current_password: 'clave', username: 'persona12' })
+    const res = await call({ current_password: 'clave', username: 'persona2' })
     expect(res.statusCode).toBe(409)
     expect(state.updateUserById).toHaveBeenLastCalledWith('me', { email: 'ana.gomez@carreapp.test', email_confirm: true })
   })
