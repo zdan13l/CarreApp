@@ -18,15 +18,15 @@ describe('passportUsername', () => {
   const name = (n: string, taken: string[] = []) => passportUsername(n, new Set(taken))
 
   it('first name and first surname, without accents or capitals', () => {
-    expect(name('Persona Anónima 2')).toBe('persona1')
-    expect(name('Persona Anónima 15')).toBe('persona21')
-    expect(name('Persona Anónima 16')).toBe('persona22')
+    expect(name('Camila Andrea Rojas Prieto')).toBe('camila.rojas')
+    expect(name('Luis Felipe Vásquez Mora')).toBe('luis.vasquez')
+    expect(name('Persona Anónima 13')).toBe('persona17')
   })
 
   it('with three words the last one is the surname; with two, the second', () => {
-    expect(name('Persona Anónima 3')).toBe('persona4')
-    expect(name('Persona Anónima 17')).toBe('persona23')
-    expect(name('Persona Anónima 18')).toBe('persona24')
+    expect(name('Ana Pardo Ruiz')).toBe('ana.ruiz')
+    expect(name('Persona Anónima 14')).toBe('persona18')
+    expect(name('Marta Herrera')).toBe('marta.herrera')
   })
 
   it('a single word still gives a valid @', () => {
@@ -35,19 +35,19 @@ describe('passportUsername', () => {
 
   it('never repeats an @: it adds the initial of the second name, then a number', () => {
     const taken = new Set<string>()
-    const a = passportUsername('Persona Anónima 7', taken)
-    const b = passportUsername('Persona Anónima 19', taken) // different surname
-    const c = passportUsername('Persona Anónima 7', taken) // the same person typed twice
+    const a = passportUsername('Persona Anónima 4', taken)
+    const b = passportUsername('Persona Anónima 15', taken) // different surname
+    const c = passportUsername('Persona Anónima 4', taken) // the same person typed twice
     const d = passportUsername('Juan Carlos Galán Sánchez', taken)
-    const e = passportUsername('Persona Anónima 7', taken)
+    const e = passportUsername('Persona Anónima 4', taken)
     expect(new Set([a, b, c, d, e]).size).toBe(5)
-    expect(a).toBe('persona25')
-    expect(c).toBe('persona25.c')
+    expect(a).toBe('persona19')
+    expect(c).toBe('persona19.c')
     for (const u of [a, b, c, d, e]) expect(USERNAME_PATTERN.test(u)).toBe(true)
   })
 
   it('respects the @ that already exist (also the ones of other users)', () => {
-    expect(name('Persona Anónima 3', ['persona4'])).not.toBe('persona4')
+    expect(name('Ana Pardo Ruiz', ['ana.ruiz'])).not.toBe('ana.ruiz')
   })
 
   it('stays inside the 30 characters of an @, even for very long names', () => {
@@ -104,16 +104,16 @@ describe('parsePeople (the Excel the coordinator uploads)', () => {
   it('reads names and careers, gives each one a culture and a unique @', () => {
     const rows = parsePeople(
       table(
-        ['Persona Anónima 2', 'Ingeniería de Sistemas'],
-        ['Persona Anónima 20', 'Ingeniería Mecánica'],
-        ['Persona Anónima 8', 'Ingeniería Civil'],
+        ['Camila Andrea Rojas Prieto', 'Ingeniería de Sistemas'],
+        ['Persona Anónima 16', 'Ingeniería Mecánica'],
+        ['Persona Anónima 5', 'Ingeniería Civil'],
       ),
       ctx(),
     )
     expect(rows.map((r) => [r.username, r.culture, r.role])).toEqual([
-      ['persona1', 'nordica', 'runner'],
-      ['persona26', 'china', 'runner'],
-      ['persona27', 'egipcia', 'runner'],
+      ['camila.rojas', 'nordica', 'runner'],
+      ['persona20', 'china', 'runner'],
+      ['persona21', 'egipcia', 'runner'],
     ])
     expect(rows.every((r) => r.errors.length === 0 && !r.existing)).toBe(true)
   })

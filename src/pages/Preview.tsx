@@ -154,17 +154,17 @@ function memberData(role: PassportRole, culture: string, career: string, query: 
 }
 const sampleCareers: Record<string, [string, string]> = { nordica: ['nordica', 'Ingeniería de Sistemas'], griega: ['griega', 'Mecatrónica'], mexicana: ['mexicana', 'Ingeniería Industrial'], china: ['china', 'Bioingeniería'], egipcia: ['egipcia', 'Ingeniería Civil'] }
 const samplePeople: PersonRow[] = [
-  { passport: { id: 'a', username: 'persona1', full_name: 'Persona Anónima 2', photo_path: null }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
-  { passport: { id: 'b', username: 'persona4', full_name: 'Persona Anónima 3', photo_path: null }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
-  { passport: { id: 'c', username: 'persona11', full_name: 'Persona Anónima 5', photo_path: null }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
-  { passport: { id: 'd', username: 'persona12', full_name: 'Persona Anónima 6', photo_path: null }, record: null },
+  { passport: { id: 'a', username: 'camila.rojas', full_name: 'Camila Andrea Rojas Prieto', photo_path: null }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
+  { passport: { id: 'b', username: 'ana.ruiz', full_name: 'Ana Pardo Ruiz', photo_path: null }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
+  { passport: { id: 'c', username: 'persona8', full_name: 'Persona Anónima 2', photo_path: null }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
+  { passport: { id: 'd', username: 'persona9', full_name: 'Persona Anónima 3', photo_path: null }, record: null },
 ]
 const sampleRows: PersonIn[] = [
-  { line: 2, fullName: 'Persona Anónima 7', career: 'Bioingeniería', role: 'runner', culture: 'china', username: 'juan.sanchez', existing: false, committee: 'caos', generation: '', joined: '', nickname: '', errors: [] },
-  { line: 3, fullName: 'Persona Anónima 8', career: 'Ingeniería Civil', role: 'runner', culture: 'egipcia', username: 'jose.gomez', existing: false, committee: null, generation: '', joined: '', nickname: '', errors: [] },
-  { line: 4, fullName: 'Persona Anónima 9', career: 'Ingeniería Ambiental', role: 'base', culture: null, username: 'persona13', existing: false, committee: 'meraki', generation: '', joined: '', nickname: '', errors: [] },
-  { line: 5, fullName: 'Persona Anónima 10', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'persona14', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: [] },
-  { line: 6, fullName: 'Persona Anónima 10', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'persona14', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: ['Esta persona está repetida en el archivo.'] },
+  { line: 2, fullName: 'Persona Anónima 4', career: 'Bioingeniería', role: 'runner', culture: 'china', username: 'juan.sanchez', existing: false, committee: 'caos', generation: '', joined: '', nickname: '', errors: [] },
+  { line: 3, fullName: 'Persona Anónima 5', career: 'Ingeniería Civil', role: 'runner', culture: 'egipcia', username: 'jose.gomez', existing: false, committee: null, generation: '', joined: '', nickname: '', errors: [] },
+  { line: 4, fullName: 'Persona Anónima 6', career: 'Ingeniería Ambiental', role: 'base', culture: null, username: 'persona10', existing: false, committee: 'meraki', generation: '', joined: '', nickname: '', errors: [] },
+  { line: 5, fullName: 'Persona Anónima 7', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'persona11', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: [] },
+  { line: 6, fullName: 'Persona Anónima 7', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'persona11', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: ['Esta persona está repetida en el archivo.'] },
 ]
 
 // The pages of the PDF of the passport as pictures, and a button that builds the whole PDF (development only).
