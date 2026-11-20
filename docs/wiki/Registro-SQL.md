@@ -35,6 +35,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0020 | [`0020_reset_on_deactivate.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0020_reset_on_deactivate.sql) | 2026-11-18 | Desactivar una Carrera reinicia todo su avance |
 | 0021 | [`0021_team_contacts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0021_team_contacts.sql) | 2026-11-19 | `team_contacts()`: el @ de los corredores de cada grupo de la propia Carrera |
 | 0022 | [`0022_score_needs_arrival.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0022_score_needs_arrival.sql) | 2026-11-19 | Una base solo puede calificar si ya confirmó la llegada de los dos grupos |
+| 0023 | [`0023_passports.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0023_passports.sql) | _pendiente_ | Pasaporte personal del inductor: semestres con temática, un registro por persona y semestre, sellos guardados para siempre |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -404,6 +405,23 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Aplicada en producción el 2026-11-19** (a mano en el SQL Editor de Supabase, confirmado por el mantenedor).
 
 **Cómo revertir** Volver a crear `validate_score()` con el cuerpo de `0006_void_items.sql`.
+
+## 0023 — El pasaporte personal del inductor
+
+**Qué cambia**
+- Tabla `terms` (semestre: `name` único, `theme` = la temática, p. ej. `mitologias`, y `is_current`; **un solo semestre vigente** por índice único parcial). `events.term_id` (columna nueva): cada Carrera nueva queda en el semestre vigente (trigger `events_default_term`).
+- Tabla `passports` (la persona: `id` = su usuario en `auth.users`, `username`, `full_name`, `photo_path`). **No tiene fila en `profiles`**: el usuario personal no es corredor, base ni coordinador de la operación en vivo, así que ninguna política le da filas de grupos, bases, cruces ni puntajes.
+- Tabla `passport_records` (el registro de **un semestre**: `role` corredor / base / coordinador, `career`, `culture`, `team_id` si corre, `base_id` si es base). Único por `(passport_id, term_id)`; solo un corredor tiene grupo y solo una base tiene base (`check`); un grupo tiene **como máximo dos personas** y el grupo o la base deben ser de una Carrera **del mismo semestre** (trigger `validate_passport_record`).
+- Tabla `passport_stamps` (los sellos que se guardan para siempre: `kind` visited / hosted / coordinated, nombre de la Carrera y de la base, ronda y hora). `archive_event_stamps(evento)` los escribe y **corre antes** de que la desactivación reinicie la Carrera (`events_archive_stamps` va antes que `events_reset_on_deactivate` porque los disparadores se ejecutan en orden alfabético): corredores reciben un sello por cada cruce que su grupo terminó, bases por cada cruce terminado en su base y coordinadores del semestre uno por la Carrera, solo si se jugó algo. Volver a activar y terminar la misma Carrera no duplica sellos.
+- RLS: cada persona lee solo **su** pasaporte, sus registros y sus sellos; `terms` lo lee cualquier usuario autenticado; el coordinador lo gestiona todo.
+- `my_passport_context()` (mi grupo con el nombre de con quién corro, mi base y mi Carrera) y `my_live_stamps()` (los sellos que ya gané en la Carrera activa): solo nombres y cruces terminados, ni puntos ni el cruce.
+- No toca el enum `user_role` ni `profiles`.
+
+**Por qué** El coordinador de cada semestre sube el Excel de inductores (nombre y carrera) y la app crea un usuario personal por persona. Ese @ abre un pasaporte propio con su carrera, su cultura según la temática del semestre y los sellos de su paso por la Carrera, que debe seguir ahí semestre tras semestre aunque el avance de cada Carrera se reinicie al desactivarla. Cada persona puede correr en un semestre y ser base en otro, por eso el registro es por semestre. El usuario del grupo (el que entra a la operación) sigue siendo aparte.
+
+**Verificación** `tests/db/passports-0023.test.ts` (20 pruebas: semestre vigente único, privacidad entre personas y frente a la operación, un registro por semestre, máximo dos por grupo, mismo semestre, archivado antes del reinicio, sin duplicados, sin sellos si no se jugó, sellos que sobreviven al borrar la Carrera, contexto y sellos en vivo). En Supabase: `select count(*) from public.terms;` debe responder (0 al inicio).
+
+**Cómo revertir** `drop trigger events_archive_stamps on public.events; drop trigger events_default_term on public.events; alter table public.events drop column term_id; drop function public.my_live_stamps(); drop function public.my_passport_context(); drop function public.events_archive_stamps(); drop function public.archive_event_stamps(uuid); drop function public.events_default_term(); drop table public.passport_stamps, public.passport_records, public.passports, public.terms cascade; drop function public.validate_passport_record();` (se pierden los pasaportes y sus sellos).
 
 ## Plantilla para nuevos registros
 
