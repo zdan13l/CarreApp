@@ -3,8 +3,18 @@ import AppShell from '../components/AppShell'
 import LoadFailed from '../components/LoadFailed'
 import MemberPage from '../components/MemberPage'
 import type { MemberPassportData, MemberRecord } from '../components/MemberPassport'
+import type { MemberActions } from '../components/MemberProfile'
+import { updateAccount } from '../lib/accountApi'
 import { useAuth } from '../lib/auth'
-import type { PassportContextRow, PassportPerson, PassportStampRow } from '../lib/passports'
+import {
+  missingColumn,
+  PERSON_COLUMNS,
+  PERSON_COLUMNS_BASE,
+  type PassportContextRow,
+  type PassportPerson,
+  type PassportStampRow,
+  type TermCommitteeRow,
+} from '../lib/passports'
 import { useRealtimeReload } from '../lib/realtime'
 import { supabase } from '../lib/supabase'
 
@@ -18,26 +28,36 @@ export function mergeStamps(kept: PassportStampRow[], live: PassportStampRow[]):
   return [...map.values()]
 }
 
-// What an inductor sees after signing in with their personal @: their passport. Nothing else: the group's or the base's own
-// user is the one that enters the live Carrera.
+// What an inductor sees after signing in with their personal @: their passport and their profile. Nothing else: the group's or the base's
+// own user is the one that enters the live Carrera.
 export default function MemberHome() {
   const { profile } = useAuth()
   const [data, setData] = useState<MemberPassportData | null>(null)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [pdfBusy, setPdfBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const userId = profile?.id
 
   const load = useCallback(async () => {
     if (!supabase || !userId) return
-    const [p, r, st, ctx, live] = await Promise.all([
-      supabase.from('passports').select('id, username, full_name, photo_path').eq('id', userId).maybeSingle(),
-      supabase
-        .from('passport_records')
-        .select('id, passport_id, term_id, role, career, culture, team_id, base_id, terms(id, name, theme, is_current, created_at)')
-        .eq('passport_id', userId),
-      supabase.from('passport_stamps').select('record_id, event_id, event_name, kind, base_name, base_key, round_number, stamped_at'),
-      supabase.rpc('my_passport_context'),
-      supabase.rpc('my_live_stamps'),
+    const sb = supabase
+    const read = async (withIdentity: boolean) =>
+      Promise.all([
+        sb.from('passports').select(withIdentity ? PERSON_COLUMNS : PERSON_COLUMNS_BASE).eq('id', userId).maybeSingle(),
+        withIdentity
+          ? sb.from('passport_records').select('id, passport_id, term_id, role, career, culture, team_id, base_id, committee, committee_lead, terms(id, name, theme, is_current, created_at, welcome)').eq('passport_id', userId)
+          : sb.from('passport_records').select('id, passport_id, term_id, role, career, culture, team_id, base_id, terms(id, name, theme, is_current, created_at)').eq('passport_id', userId),
+      ])
+    let [p, r] = await read(true)
+    if (missingColumn(p.error) || missingColumn(r.error)) [p, r] = await read(false) // migration 0024 is not applied yet: the passport still opens
+    const [st, ctx, live, words] = await Promise.all([
+      sb.from('passport_stamps').select('record_id, event_id, event_name, kind, base_name, base_key, round_number, stamped_at'),
+      sb.rpc('my_passport_context'),
+      sb.rpc('my_live_stamps'),
+      sb.from('term_committees').select('term_id, committee, message'), // migration 0025: without it the words are simply missing
     ])
     if (p.error || r.error || st.error) {
       setFailed(true) // keep what is on screen: an empty passport would look like lost stamps
@@ -45,7 +65,7 @@ export default function MemberHome() {
       return
     }
     setFailed(false)
-    const person = p.data as PassportPerson | null
+    const person = p.data as unknown as PassportPerson | null
     if (!person) {
       setLoading(false)
       return
@@ -59,6 +79,7 @@ export default function MemberHome() {
       records,
       stamps: mergeStamps((st.data ?? []) as PassportStampRow[], (live.data ?? []) as PassportStampRow[]),
       context: (ctx.data ?? []) as PassportContextRow[],
+      committeeMessages: (words.data ?? []) as TermCommitteeRow[],
     })
     setLoading(false)
   }, [userId])
@@ -69,7 +90,50 @@ export default function MemberHome() {
   // Ending or starting a Carrera changes the stamps (they are archived when it ends)
   useRealtimeReload(['events'], load, 2000)
 
-  if (data) return <MemberPage data={data} /> // if a refresh fails the passport stays on screen and the next poll tries again
+  async function run(action: () => Promise<string | null>) {
+    setBusy(true)
+    setError(null)
+    setNotice(null)
+    try {
+      setNotice(await action())
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ocurrió un error inesperado.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const actions: MemberActions = {
+    busy,
+    error,
+    notice,
+    pdfBusy,
+    changeUsername: (username, currentPassword) =>
+      void run(async () => {
+        await updateAccount({ current_password: currentPassword, username })
+        await supabase!.auth.refreshSession() // the session now carries the new @: the screens read it again
+        return `Listo: tu usuario ahora es @${username}. Úsalo la próxima vez que entres.`
+      }),
+    changePassword: (currentPassword, newPassword) =>
+      void run(async () => {
+        await updateAccount({ current_password: currentPassword, new_password: newPassword })
+        return 'Contraseña cambiada. Úsala la próxima vez que entres.'
+      }),
+    downloadPdf: () => {
+      if (!data) return
+      setPdfBusy(true)
+      setError(null)
+      setNotice(null)
+      void import('../lib/passportPdf')
+        .then((m) => m.downloadPassportPdf(data))
+        .then(() => setNotice('Tu pasaporte está listo.'))
+        .catch((e: unknown) => setError(e instanceof Error ? e.message : 'No se pudo armar el PDF.'))
+        .finally(() => setPdfBusy(false))
+    },
+  }
+
+  if (data) return <MemberPage data={data} actions={actions} /> // if a refresh fails the passport stays on screen and the next poll tries again
   return (
     <AppShell title="Mi pasaporte" showTitle={false}>
       {loading ? (

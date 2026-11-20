@@ -68,6 +68,7 @@
   --bright-1: #86adff; --bright-2: #ff8f86; --bright-3: #62e3ac; --bright-4: #c7a6ff; --bright-5: #ffb862; /* the inks on a dark cover */
   --logo-ink: #eef2ff;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
+  --foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
   /* Torre de control (coordinador): siempre oscura, con colores de instrumento */
   --tw-bg: #060b13;
@@ -137,6 +138,7 @@
   --bright-1: #86adff; --bright-2: #ff8f86; --bright-3: #62e3ac; --bright-4: #c7a6ff; --bright-5: #ffb862; /* the inks on a dark cover */
   --logo-ink: #013c9c;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
+  --foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
   /* Torre de control (coordinador): siempre oscura, con colores de instrumento */
   --tw-bg: #060b13;
@@ -2100,8 +2102,23 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 .seal-ink { fill: currentColor; stroke: currentColor; }
 .seal-ink text { fill: currentColor; stroke: none; }
 .seal-emblem .emblem { color: inherit; }
-.seal-emblem .pp { fill: var(--surface); }
-.seal-emblem .ps { stroke: var(--surface); }
+.committee-seal { --seal-paper: var(--surface); }
+.committee-seal.ink-1 { color: var(--ink-1); }
+.committee-seal.ink-2 { color: var(--ink-2); }
+.committee-seal.ink-3 { color: var(--ink-3); }
+.committee-seal.ink-4 { color: var(--ink-4); }
+.committee-seal.ink-5 { color: var(--ink-5); }
+.committee-seal svg { overflow: visible; }
+.tower .committee-seal.ink-1 { color: var(--bright-1); }
+.tower .committee-seal.ink-2 { color: var(--bright-2); }
+.tower .committee-seal.ink-3 { color: var(--bright-3); }
+.tower .committee-seal.ink-4 { color: var(--bright-4); }
+.tower .committee-seal.ink-5 { color: var(--bright-5); }
+.seal { --seal-paper: var(--surface); }
+.seal-emblem .f { fill: currentColor; stroke: none; }
+.seal-emblem .o { fill: none; stroke: currentColor; }
+.seal-emblem .pp { fill: var(--seal-paper); stroke: none; }
+.seal-emblem .ps { fill: none; stroke: var(--seal-paper); }
 .member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem 1rem; margin: 1rem 0 .4rem; padding: .85rem 0; border-block: 1px dashed var(--border-strong); }
 .member-grid dt { color: var(--text-faint); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
 .member-grid dd { margin: .3rem 0 0; font-weight: 800; font-size: 1.02rem; line-height: 1.15; overflow-wrap: anywhere; }
@@ -2112,7 +2129,33 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 .member-stats p { display: flex; align-items: center; gap: .55rem; margin: 0; padding: .45rem .75rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-muted); font-size: .85rem; line-height: 1.1; }
 .member-stats .num { color: var(--culture-ink); font-size: 1.5rem; line-height: 1; }
 .member-stats .live i { display: block; width: 12px; height: 12px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s ease-in-out infinite; }
-.slot-ghost { display: block; width: 104px; height: 104px; border: 2px dashed var(--border-strong); border-radius: 50%; opacity: .7; }
+.slot-ghost { display: grid; place-items: center; width: 104px; height: 104px; border: 2px dashed var(--border-strong); border-radius: 50%; opacity: .7; }
+.slot-ghost b { max-width: 78px; color: var(--text-faint); font: 700 .75rem/1.1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .1em; text-align: center; overflow-wrap: anywhere; }
+.identity-slots .slot-btn { padding-top: .9rem; }
+.identity-slots .seal { margin: .1rem 0; }
+.slot.blank .slot-btn { border-style: dashed; background: transparent; opacity: .55; }
+.flap-mini.gold { color: var(--on-gold); background: var(--foil); }
+.page-no { margin: .55rem 0 0; text-align: center; color: var(--text-faint); font-size: .75rem; letter-spacing: .2em; }
+.member-alias { display: grid; justify-items: start; gap: .35rem; min-width: 0; }
+.alias-label { margin: 0; color: var(--text-faint); font-size: .75rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.alias-name { margin: 0; font-stretch: 76%; font-weight: 800; font-size: 1.7rem; line-height: 1; overflow-wrap: anywhere; color: var(--culture-ink); }
+.alias-name.empty { color: var(--text-faint); font-size: 1.1rem; font-weight: 700; }
+.alias-edit { min-height: 36px; padding: .2rem .7rem; font-size: .85rem; }
+.symbol-badge { display: inline-flex; align-items: center; gap: .6rem; }
+.symbol-badge small { color: var(--text-muted); font-weight: 700; font-size: .9rem; overflow-wrap: anywhere; }
+.symbol-disc { display: grid; place-items: center; flex: none; color: var(--culture-ink, var(--text)); background: var(--surface-2); border: 2px solid var(--culture-ink, var(--border-strong)); border-radius: 50%; }
+.symbol-disc.empty { color: var(--text-faint); border-style: dashed; font-weight: 800; }
+.member-id { align-items: start; }
+.words-form textarea { width: 100%; min-height: 4.5rem; }
+.lead-check { display: inline-flex; align-items: center; gap: .35rem; min-height: 36px; font-size: .85rem; font-weight: 700; color: var(--gold-ink); }
+.lead-check input { width: auto; min-height: 0; }
+.identity-edit input { width: 9.5rem; min-height: 36px; padding: .25rem .55rem; font-size: .88rem; }
+.symbol-field { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: .4rem; }
+.symbol-pick { display: grid; place-items: center; min-height: 48px; padding: 0; color: var(--text-muted); background: var(--surface-2); border: 1.5px solid var(--border); border-radius: 12px; }
+.symbol-pick.on { color: var(--on-gold); background: var(--foil); border-color: transparent; }
+.symbol-preview { display: flex; justify-content: center; padding: .4rem 0; }
+.member-profile .card h2 { display: flex; align-items: center; gap: .5rem; }
+.notice { margin: .6rem 0; padding: .6rem .8rem; color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); border-radius: var(--radius-sm); font-weight: 600; }
 .member .slot .seal { margin: .1rem 0; }
 .member-hint { margin: .9rem 0 0; font-size: .9rem; }
 .member-note { display: flex; gap: .5rem; align-items: flex-start; margin: 1rem .25rem 0; font-size: .9rem; }
@@ -2127,14 +2170,12 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 /* la cubierta del pasaporte personal: la tinta de la cultura sobre el azul de la portada */
 .member .cover-inner.member-cover { position: relative; gap: .4rem; }
 .member .cover-top { color: var(--on-hero-muted); font: 700 .75rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; }
-.member .cover-emblem { color: var(--culture-bright, var(--on-hero-gold)); --emblem-paper: var(--hero-b); margin: .6rem 0 .9rem; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, .35)); }
+.member .cover-emblem { color: var(--on-hero-gold); --emblem-paper: var(--hero-b); margin: .6rem 0 .9rem; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, .35)); }
 .member .cover-rule { display: flex; align-items: center; gap: .6rem; width: 12rem; color: var(--on-hero-gold); }
 .member .cover-rule i { flex: 1; height: 1px; background: currentColor; opacity: .6; }
 .member .cover { height: 100%; }
 .member .cover-sub { letter-spacing: .1em; }
 .member .cover-team { margin-top: 1rem; font-size: 1.55rem; }
-.member .cover-orn { position: absolute; left: 1.7rem; right: 1.7rem; bottom: 3.6rem; color: var(--culture-bright, var(--on-hero-gold)); opacity: .8; }
-.member .cover-orn .ornament { color: inherit; }
 .member .cover-bottom { position: absolute; left: 0; right: 0; bottom: 1.4rem; }
 .member .cover-corner { position: absolute; width: 22px; height: 22px; border: 0 solid var(--on-hero-gold); opacity: .8; }
 .member .cover-corner.tl { left: 22px; top: 22px; border-width: 2px 0 0 2px; }
@@ -2142,17 +2183,6 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 .member .cover-corner.bl { left: 22px; bottom: 22px; border-width: 0 0 2px 2px; }
 .member .cover-corner.br { right: 22px; bottom: 22px; border-width: 0 2px 2px 0; }
 
-/* base: el mostrador azul */
-.member.role-base .leaf-head.member-head { margin: -.2rem -.3rem 0; padding: .7rem .8rem; color: var(--on-hero); background: linear-gradient(145deg, var(--hero-a), var(--hero-b)); border-radius: var(--radius-sm); }
-.member.role-base .leaf-head.member-head .doc-kicker { color: var(--on-hero-muted); }
-.member.role-base .head-emblem { color: var(--culture-bright); --emblem-paper: var(--hero-b); }
-.member.role-base .cover { --hero-a: var(--pass-navy-2); --hero-b: var(--pass-navy); }
-/* coordinador: la torre de control (la clase .tower ya la pone siempre oscura) */
-.member-tower { min-height: 100dvh; --logo-ink: var(--tw-text); }
-.member.role-coordinator { --culture-ink: var(--culture-bright); }
-.member.role-coordinator .leaf { border-color: var(--border-strong); }
-.member.role-coordinator .emblem { --emblem-paper: var(--surface); }
-.member.role-coordinator .member-photo .avatar { border-color: var(--tw-radar); }
 
 /* Inductores (coordinador) */
 .person { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
@@ -2175,3 +2205,22 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 .report p { margin: 0 0 .5rem; }
 .data-table select { min-height: 34px; padding: .2rem 1.6rem .2rem .55rem; font-size: .85rem; width: auto; min-width: 6.6rem; }
 .person-edit select { padding-right: 1.8rem; }
+
+.member { --culture-ink: var(--ink-1); }
+/* Las páginas del pasaporte por inducción: palabras, sello del comité y sellos dorados con foto; las páginas en blanco esperan */
+.words { margin: .9rem 0 0; }
+.words-text { margin: .35rem 0 0; font-size: 1rem; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
+.words-text.empty { color: var(--text-faint); font-style: italic; }
+.induction-culture, .photo-seal-row { display: flex; align-items: center; gap: 1rem; margin: 1.1rem 0 0; }
+.induction-culture .alias-name, .photo-seal-row .alias-name { margin-bottom: .1rem; }
+.alias-name.gold { color: var(--gold-ink); }
+.seal-btn { flex: none; display: grid; place-items: center; min-height: 0; padding: 0; background: transparent; border: 0; border-radius: 50%; }
+.seal-btn:hover:not(:disabled) { background: transparent; }
+.committee-seal-row { display: grid; justify-items: center; gap: .3rem; margin-top: .9rem; }
+.committee-tagline { margin: 0; color: var(--culture-ink); font-stretch: 76%; font-weight: 800; font-size: 1.2rem; text-transform: uppercase; letter-spacing: .04em; }
+.slot-ghost.big { width: 150px; height: 150px; }
+.seal.photo-seal { color: var(--foil-c); }
+.dni-slots { margin-top: 1rem; }
+.leaf.blank-page { background: var(--surface); border-style: dashed; box-shadow: none; opacity: .85; }
+.blank-body { display: grid; place-items: center; min-height: 440px; }
+.blank-note { margin: 0; color: var(--text-faint); font: 700 .75rem/1.4 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .16em; text-align: center; text-transform: uppercase; }

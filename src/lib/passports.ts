@@ -1,6 +1,7 @@
 // The personal passport of each inductor: types, the Excel the coordinator uploads (names and careers) and the Excel the app returns
 // (the @ and the password of every person). Pure functions where possible: the screen shows a preview before anything is created.
 import { readTablesFromFile } from './bulk'
+import { COMMITTEES } from './committees'
 import { generatePassword } from './password'
 import { cultureOf, themeOf, type CultureKey } from './themes'
 import { USERNAME_PATTERN } from './username'
@@ -15,6 +16,14 @@ export interface TermRow {
   name: string
   theme: string
   is_current: boolean
+  welcome?: string | null // the words of the coordinators to their inductors in this induction (migration 0025)
+}
+
+/** The words of one committee in one induction. */
+export interface TermCommitteeRow {
+  term_id: string
+  committee: string
+  message: string
 }
 
 export interface PassportPerson {
@@ -22,7 +31,21 @@ export interface PassportPerson {
   username: string
   full_name: string
   photo_path: string | null
+  // migration 0024: the coordinator sets generation and entry; each person sets nickname and symbol
+  nickname?: string | null
+  symbol?: string | null
+  symbol_label?: string | null
+  generation?: string | null
+  joined_term?: string | null
 }
+
+/** The columns of the passport, with and without the ones of migration 0024 (the app keeps working until it is applied). */
+export const PERSON_COLUMNS = 'id, username, full_name, photo_path, nickname, symbol, symbol_label, generation, joined_term'
+export const PERSON_COLUMNS_BASE = 'id, username, full_name, photo_path'
+export const RECORD_COLUMNS = 'id, passport_id, term_id, role, career, culture, team_id, base_id, committee, committee_lead'
+export const RECORD_COLUMNS_BASE = 'id, passport_id, term_id, role, career, culture, team_id, base_id'
+/** True when a request failed because a column of migration 0024 does not exist yet. */
+export const missingColumn = (e: { code?: string; message?: string } | null | undefined) => Boolean(e && (e.code === '42703' || /column .* does not exist|schema cache/i.test(e.message ?? '')))
 
 export interface PassportRecordRow {
   id: string
@@ -33,6 +56,8 @@ export interface PassportRecordRow {
   culture: string
   team_id: string | null
   base_id: string | null
+  committee?: string | null // one of the five committees (migration 0024)
+  committee_lead?: boolean // the coordinator of the committee: golden stamp
 }
 
 export type StampKind = 'visited' | 'hosted' | 'coordinated'
@@ -55,9 +80,24 @@ export interface PassportContextRow {
   partners: string[]
   base_id: string | null
   base_name: string | null
+  base_photo_path?: string | null // migration 0025
   event_id: string | null
   event_name: string | null
   event_active: boolean
+}
+
+function hash(text: string): number {
+  let h = 2166136261
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+
+/** "PUJ-483920": the number of the identity page of a person, the same for their whole life in the induction (decorative, from the id). */
+export function personNumber(personId: string): string {
+  return `PUJ-${String(hash(personId) % 1000000).padStart(6, '0')}`
 }
 
 // ---------- the @ of each person ----------
@@ -99,16 +139,25 @@ export interface PersonIn {
   culture: CultureKey | null // null: the theme has no rule for this career
   username: string
   existing: boolean // already has a passport (same @): it only gets a record for this semester
+  committee: string | null // one of the five committees (optional column)
+  generation: string // optional columns: generation, entry to the induction and nickname
+  joined: string
+  nickname: string
   errors: string[]
 }
 
-const key = (s: string) => plain(s).join(' ')
+const key = (s: string) => plain(s.replace(/\(.*?\)/g, '')).join(' ') // "Rol (opcional)" is the column "rol"
 
 const ROLE_WORDS: [RegExp, PassportRole][] = [
   [/base|inductor/, 'base'],
   [/coord|admin/, 'coordinator'],
   [/corred|runner/, 'runner'],
 ]
+function parseCommittee(text: string): string | null | undefined {
+  const k = key(text)
+  if (!k) return null
+  return COMMITTEES.find((c) => c.key === k || key(c.name) === k)?.key
+}
 function parseRole(text: string): PassportRole | null {
   const k = key(text)
   if (!k) return null
@@ -137,6 +186,8 @@ export function parsePeople(tables: string[][][], ctx: PeopleContext): PersonIn[
   if (!table) throw new Error('No se encontró la tabla. El Excel necesita las columnas "Nombre" y "Carrera" (usa la plantilla).')
   const col = (name: string) => table.header.findIndex((c) => key(c) === name)
   const [iName, iCareer, iRole, iUser] = [col('nombre'), col('carrera'), col('rol'), col('usuario')]
+  const [iCommittee, iGeneration, iJoined, iNick] = [col('comite'), col('generacion'), col('ingreso'), col('apodo')]
+  const cell = (r: string[], i: number) => (i >= 0 ? (r[i] ?? '').replace(/\s+/g, ' ').trim() : '')
   const theme = themeOf(ctx.theme)
   const taken = new Set(ctx.usernames)
   const seen = new Set<string>()
@@ -151,6 +202,14 @@ export function parsePeople(tables: string[][][], ctx: PeopleContext): PersonIn[
     const roleText = iRole >= 0 ? (r[iRole] ?? '') : ''
     const parsedRole = parseRole(roleText)
     if (roleText.trim() && !parsedRole) errors.push('El rol no se entiende (corredor, base o coordinador).')
+    const committee = parseCommittee(cell(r, iCommittee))
+    if (committee === undefined) errors.push(`El comité no se entiende (${COMMITTEES.map((c) => c.name).join(', ')}).`)
+    const generation = cell(r, iGeneration)
+    const joined = cell(r, iJoined)
+    const nickname = cell(r, iNick)
+    if (generation.length > 30) errors.push('La generación es muy larga (máximo 30 letras).')
+    if (joined.length > 20) errors.push('El ingreso es muy largo (máximo 20 letras).')
+    if (nickname.length > 24) errors.push('El apodo es muy largo (máximo 24 letras).')
     if (seen.has(key(fullName)) && fullName) errors.push('Esta persona está repetida en el archivo.')
     seen.add(key(fullName))
     const knownUser = ctx.known.get(key(fullName))
@@ -172,6 +231,10 @@ export function parsePeople(tables: string[][][], ctx: PeopleContext): PersonIn[
       culture: career ? theme.cultureOf(career) : null,
       username,
       existing: Boolean(knownUser),
+      committee: committee ?? null,
+      generation,
+      joined,
+      nickname,
       errors,
     })
   })
@@ -190,6 +253,7 @@ export interface CredentialRow {
   career: string
   role: PassportRole
   culture: string // the name, e.g. "Nórdica"
+  committee?: string // the name of the committee, if it has one
   username: string
   password: string // empty when the person already had a passport
 }
@@ -199,12 +263,13 @@ const head = (value: string) => ({ value, fontWeight: 'bold' as const, backgroun
 /** The rows of the Excel that goes out (a header and one line per person). Pure, so it can be checked without a browser. */
 export function credentialsData(rows: CredentialRow[], themeKey: string) {
   return [
-    ['Nombre', 'Carrera', 'Temática', 'Cultura', 'Rol', 'Usuario (@)', 'Contraseña', 'Entrar en'].map(head),
+    ['Nombre', 'Carrera', 'Temática', 'Cultura', 'Comité', 'Rol', 'Usuario (@)', 'Contraseña', 'Entrar en'].map(head),
     ...rows.map((r) => [
       r.fullName,
       r.career,
       themeOf(themeKey).name,
       r.culture,
+      r.committee ?? '',
       PASSPORT_ROLE_LABEL[r.role],
       `@${r.username}`,
       r.password || '(ya tenía)',
@@ -218,21 +283,21 @@ export async function credentialsWorkbook(rows: CredentialRow[], termName: strin
   const { default: writeXlsxFile } = await import('write-excel-file/browser')
   return writeXlsxFile(credentialsData(rows, themeKey), {
     sheet: `Pasaportes ${termName}`.slice(0, 31),
-    columns: [{ width: 34 }, { width: 26 }, { width: 14 }, { width: 12 }, { width: 12 }, { width: 28 }, { width: 22 }, { width: 22 }],
+    columns: [{ width: 34 }, { width: 26 }, { width: 14 }, { width: 12 }, { width: 12 }, { width: 12 }, { width: 28 }, { width: 22 }, { width: 22 }],
     stickyRowsCount: 1,
   }).toBlob()
 }
 
 export const TEMPLATE_DATA = [
-  ['Nombre', 'Carrera', 'Rol (opcional)'].map(head),
-  ['Ana María Pérez Gómez', 'Ingeniería de Sistemas', 'Corredor'],
-  ['Luis Fernando Ruiz', 'Ingeniería Civil', 'Base'],
-  ['Camila Torres Vega', 'Bioingeniería', ''],
+  ['Nombre', 'Carrera', 'Rol (opcional)', 'Comité (opcional)', 'Generación (opcional)', 'Ingreso (opcional)', 'Apodo (opcional)'].map(head),
+  ['Ana María Pérez Gómez', 'Ingeniería de Sistemas', 'Corredor', 'Clausura', 'Generación 7', '2024-2', 'Anita'],
+  ['Luis Fernando Ruiz', 'Ingeniería Civil', 'Base', 'Caos', '', '', ''],
+  ['Camila Torres Vega', 'Bioingeniería', '', '', '', '', ''],
 ]
 
 export async function templateWorkbook(): Promise<Blob> {
   const { default: writeXlsxFile } = await import('write-excel-file/browser')
-  return writeXlsxFile(TEMPLATE_DATA, { sheet: 'Inductores', columns: [{ width: 36 }, { width: 28 }, { width: 18 }], stickyRowsCount: 1 }).toBlob()
+  return writeXlsxFile(TEMPLATE_DATA, { sheet: 'Inductores', columns: [{ width: 36 }, { width: 28 }, { width: 18 }, { width: 20 }, { width: 22 }, { width: 20 }, { width: 18 }], stickyRowsCount: 1 }).toBlob()
 }
 
 export function downloadBlob(blob: Blob, fileName: string) {

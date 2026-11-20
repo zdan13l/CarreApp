@@ -2,7 +2,7 @@
 // look can be reviewed without signing in. Not included in the production build.
 //   /preview/runner  /preview/runner-ruta  /preview/runner-top  /preview/runner-fin
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { BookMarked, BellRing, Camera, ChevronRight, ClipboardCheck, KeyRound, LocateFixed, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy, Users } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
@@ -34,6 +34,9 @@ import NoActiveCarrera from '../components/NoActiveCarrera'
 import { confirmDialog, promptDialog } from '../lib/dialog'
 import TeamNames from '../components/TeamNames'
 import type { MatchRow, StandingRow, TeamRow } from '../types'
+import CommitteeSeal from '../components/CommitteeSeal'
+import CultureEmblem from '../components/CultureEmblem'
+import { COMMITTEES } from '../lib/committees'
 import MemberPage from '../components/MemberPage'
 import type { MemberPassportData } from '../components/MemberPassport'
 import { PersonItem, UploadPreview, type PersonRow } from './admin/Inductores'
@@ -125,13 +128,13 @@ function PreviewTop({ teams }: { teams: { team_id: string; name: string; photo_p
 
 
 // The personal passport of an inductor (three versions) and the coordinator's list of inductors.
-const mTerm = { id: 'tm2', name: '2026-2', theme: 'mitologias', is_current: true }
-const mOld = { id: 'tm1', name: '2026-1', theme: 'vikingos', is_current: false } // a theme this version does not know: falls back
+const mTerm = { id: 'tm2', name: '2710', theme: 'mitologias', is_current: true, welcome: 'Gracias por darle vida a la inducción. Cada sello que reparten es el primer recuerdo de alguien que llega: háganlo con el corazón.' }
+const mOld = { id: 'tm1', name: '2700', theme: 'casas-de-harry-potter', is_current: false, welcome: null } // a theme this version does not know: falls back
 const mStamp = (record: string, kind: PassportStampRow['kind'], base: string, round: number, event = 'Carrera 2026-2'): PassportStampRow => ({
   record_id: record, event_id: `ev-${event}`, event_name: event, kind, base_name: kind === 'coordinated' ? null : base, base_key: kind === 'coordinated' ? null : `b-${base}`, round_number: round, stamped_at: `2026-11-1${round}T1${round}:20:00Z`,
 })
-function memberData(role: PassportRole, culture: string, career: string): MemberPassportData {
-  const rec = { id: 'rec2', passport_id: 'p1', term_id: mTerm.id, role, career, culture, team_id: role === 'runner' ? 'tm' : null, base_id: role === 'base' ? 'bs' : null, term: mTerm }
+function memberData(role: PassportRole, culture: string, career: string, query: URLSearchParams): MemberPassportData {
+  const rec = { id: 'rec2', passport_id: 'p1', term_id: mTerm.id, role, career, culture, team_id: role === 'runner' ? 'tm' : null, base_id: role === 'base' ? 'bs' : null, committee: ['clausura', 'meraki', 'conzumo', 'carrera', 'caos'][career.length % 5], committee_lead: role === 'coordinator', term: mTerm }
   const old = { ...rec, id: 'rec1', term_id: mOld.id, role: (role === 'coordinator' ? 'coordinator' : 'base') as PassportRole, base_id: null, team_id: null, term: mOld }
   const stamps: PassportStampRow[] =
     role === 'runner'
@@ -142,10 +145,11 @@ function memberData(role: PassportRole, culture: string, career: string): Member
   if (role === 'coordinator') stamps.push(mStamp('rec1', 'coordinated', '', 0, 'Carrera 2026-1'))
   else stamps.push(mStamp('rec1', 'hosted', 'Mirador', 1, 'Carrera 2026-1'), mStamp('rec1', 'hosted', 'Mirador', 2, 'Carrera 2026-1'))
   return {
-    person: { id: 'p1', username: 'daniel.rodriguez', full_name: 'Daniel Arturo Rodríguez Peña', photo_path: null },
+    person: { id: 'p1', username: 'daniel.rodriguez', full_name: 'Daniel Arturo Rodríguez Peña', photo_path: null, nickname: 'Dani', symbol: 'cat', symbol_label: 'Gato blanco', generation: query.has('sin') ? null : 'Generación 7', joined_term: query.has('sin') ? null : '2024-2' },
     records: [rec, old],
     stamps,
-    context: [{ record_id: 'rec2', team_id: 'tm', team_name: 'Dioses Nórdicos', team_photo_path: null, partners: ['Sofía Cortés Salazar'], base_id: 'bs', base_name: 'Atrio', event_id: 'ev', event_name: 'Carrera 2026-2', event_active: true }],
+    context: [{ record_id: 'rec2', team_id: 'tm', team_name: 'Dioses Nórdicos', team_photo_path: '/campus-800.jpg', partners: ['Sofía Cortés Salazar'], base_id: 'bs', base_name: 'Atrio', base_photo_path: '/campus-800.jpg', event_id: 'ev', event_name: 'Carrera 2710', event_active: true }],
+    committeeMessages: [{ term_id: 'tm2', committee: ['clausura', 'meraki', 'conzumo', 'carrera', 'caos'][career.length % 5], message: 'Somos quienes cierran lo que otros empiezan. Gracias por quedarse hasta el final y por hacer sentir a cada neo que valió la pena llegar.' }],
   }
 }
 const sampleCareers: Record<string, [string, string]> = { nordica: ['nordica', 'Ingeniería de Sistemas'], griega: ['griega', 'Mecatrónica'], mexicana: ['mexicana', 'Ingeniería Industrial'], china: ['china', 'Bioingeniería'], egipcia: ['egipcia', 'Ingeniería Civil'] }
@@ -156,22 +160,102 @@ const samplePeople: PersonRow[] = [
   { passport: { id: 'd', username: 'persona12', full_name: 'Persona Anónima 6', photo_path: null }, record: null },
 ]
 const sampleRows: PersonIn[] = [
-  { line: 2, fullName: 'Persona Anónima 7', career: 'Bioingeniería', role: 'runner', culture: 'china', username: 'juan.sanchez', existing: false, errors: [] },
-  { line: 3, fullName: 'Persona Anónima 8', career: 'Ingeniería Civil', role: 'runner', culture: 'egipcia', username: 'jose.gomez', existing: false, errors: [] },
-  { line: 4, fullName: 'Persona Anónima 9', career: 'Ingeniería Ambiental', role: 'base', culture: null, username: 'persona13', existing: false, errors: [] },
-  { line: 5, fullName: 'Persona Anónima 10', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'persona14', existing: true, errors: [] },
-  { line: 6, fullName: 'Persona Anónima 10', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'persona14', existing: true, errors: ['Esta persona está repetida en el archivo.'] },
+  { line: 2, fullName: 'Persona Anónima 7', career: 'Bioingeniería', role: 'runner', culture: 'china', username: 'juan.sanchez', existing: false, committee: 'caos', generation: '', joined: '', nickname: '', errors: [] },
+  { line: 3, fullName: 'Persona Anónima 8', career: 'Ingeniería Civil', role: 'runner', culture: 'egipcia', username: 'jose.gomez', existing: false, committee: null, generation: '', joined: '', nickname: '', errors: [] },
+  { line: 4, fullName: 'Persona Anónima 9', career: 'Ingeniería Ambiental', role: 'base', culture: null, username: 'persona13', existing: false, committee: 'meraki', generation: '', joined: '', nickname: '', errors: [] },
+  { line: 5, fullName: 'Persona Anónima 10', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'persona14', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: [] },
+  { line: 6, fullName: 'Persona Anónima 10', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'persona14', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: ['Esta persona está repetida en el archivo.'] },
 ]
+
+// The pages of the PDF of the passport as pictures, and a button that builds the whole PDF (development only).
+function PdfPreview({ data }: { data: MemberPassportData }) {
+  const [pages, setPages] = useState<string[]>([])
+  const [info, setInfo] = useState('')
+  const [pdfUrl, setPdfUrl] = useState('')
+  useEffect(() => {
+    let urls: string[] = []
+    void (async () => {
+      const [{ renderToStaticMarkup }, font, pdf] = await Promise.all([
+        import('react-dom/server'),
+        import('@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?inline'),
+        import('../lib/passportPdf'),
+      ])
+      const svgs = pdf.passportPageSvgs({ data, assets: { photo: null, font: font.default }, render: (el) => renderToStaticMarkup(el) })
+      urls = svgs.map((s) => URL.createObjectURL(new Blob([s], { type: 'image/svg+xml' })))
+      setPages(urls)
+    })()
+    return () => urls.forEach((u) => URL.revokeObjectURL(u))
+  }, [data])
+  return (
+    <main className="page">
+      <h1>PDF del pasaporte</h1>
+      <button
+        onClick={() =>
+          void import('../lib/passportPdf').then(async (m) => {
+            const blob = await m.buildPassportPdf(data, 1.2)
+            const head = new TextDecoder('latin1').decode(new Uint8Array(await blob.arrayBuffer()).slice(0, 8))
+            const text = new TextDecoder('latin1').decode(new Uint8Array(await blob.arrayBuffer()))
+            setPdfUrl(URL.createObjectURL(blob))
+            setInfo(`${head.trim()} · ${(blob.size / 1024).toFixed(0)} KB · ${(text.match(/\/Type \/Page /g) ?? []).length} páginas`)
+          })
+        }
+      >
+        Armar el PDF
+      </button>
+      <p id="pdf-info">{info}</p>
+      {pdfUrl && <iframe title="PDF" src={pdfUrl} style={{ width: '100%', height: 640, border: '1px solid var(--border-strong)' }} />}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '.6rem' }}>
+        {pages.map((u) => (
+          <img key={u} src={u} alt="" style={{ width: '100%', border: '1px solid var(--border-strong)' }} />
+        ))}
+      </div>
+    </main>
+  )
+}
 
 export default function Preview() {
   const { screen } = useParams()
+
+  if (screen === 'pasaporte-pdf') {
+    const query = new URLSearchParams(window.location.search)
+    const [culture, career] = sampleCareers[query.get('cultura') ?? 'nordica'] ?? sampleCareers.nordica
+    return <PdfPreview data={memberData('runner', culture, career, query)} />
+  }
+
+  if (screen === 'comites') {
+    // the five committee stamps, normal and golden (the coordinator of the committee), and the mark of each culture
+    return (
+      <main className="page">
+        <h1>Sellos de los comités</h1>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
+          {COMMITTEES.map((c) => (
+            <CommitteeSeal key={c.key} committee={c.key} size={170} tilt={-3} />
+          ))}
+        </div>
+        <h2>Coordinadores (dorado)</h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
+          {COMMITTEES.map((c) => (
+            <CommitteeSeal key={c.key} committee={c.key} lead size={170} tilt={3} />
+          ))}
+        </div>
+        <h2>La cultura que te tocó</h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
+          {(['nordica', 'griega', 'mexicana', 'china', 'egipcia'] as const).map((k) => (
+            <span key={k} className={`culture-${k}`} style={{ '--culture-ink': `var(--ink-${{ nordica: 4, griega: 1, mexicana: 3, china: 2, egipcia: 5 }[k]})` } as CSSProperties}>
+              <CultureEmblem culture={k} size={170} />
+            </span>
+          ))}
+        </div>
+      </main>
+    )
+  }
 
   if (screen?.startsWith('pasaporte-')) {
     // pasaporte-corredor, pasaporte-base, pasaporte-coordi, plus ?cultura=griega (nordica by default) and ?portada (closed cover)
     const query = new URLSearchParams(window.location.search)
     const [culture, career] = sampleCareers[query.get('cultura') ?? 'nordica'] ?? sampleCareers.nordica
     const role: PassportRole = screen === 'pasaporte-base' ? 'base' : screen === 'pasaporte-coordi' ? 'coordinator' : 'runner'
-    return <MemberPage data={memberData(role, culture, career)} user={{ full_name: 'Daniel Rodríguez', username: 'daniel.rodriguez' }} startOpen={!query.has('portada')} startPage={Number(query.get('pagina') ?? 0)} />
+    return <MemberPage data={memberData(role, culture, career, query)} user={{ full_name: 'Daniel Rodríguez', username: 'daniel.rodriguez' }} startOpen={!query.has('portada')} startPage={Number(query.get('pagina') ?? 0)} startTab={query.get('tab') === 'perfil' ? 'perfil' : 'pasaporte'} />
   }
 
   if (screen === 'inductores') {
@@ -190,7 +274,7 @@ export default function Preview() {
             <h2>Lista de 2026-2</h2>
             <ul className="list people">
               {samplePeople.map((p) => (
-                <PersonItem key={p.passport.id} person={p} themeKey="mitologias" teams={[{ id: 'g1', label: 'Dioses Nórdicos (1/2)' }]} bases={[{ id: 'b1', label: 'Atrio' }]} busy={false} onRole={noop} onLink={noop} onCulture={noop} onPhoto={noop} onReset={noop} onDelete={noop} />
+                <PersonItem key={p.passport.id} person={p} themeKey="mitologias" teams={[{ id: 'g1', label: 'Dioses Nórdicos (1/2)' }]} bases={[{ id: 'b1', label: 'Atrio' }]} busy={false} onRole={noop} onLink={noop} onCulture={noop} onCommittee={noop} onLead={noop} onIdentity={noop} onPhoto={noop} onReset={noop} onDelete={noop} />
               ))}
             </ul>
           </section>

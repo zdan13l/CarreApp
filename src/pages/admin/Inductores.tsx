@@ -12,6 +12,11 @@ import {
   readPeopleFile,
   templateWorkbook,
   type CredentialRow,
+  missingColumn,
+  PERSON_COLUMNS,
+  PERSON_COLUMNS_BASE,
+  RECORD_COLUMNS,
+  RECORD_COLUMNS_BASE,
   type PassportPerson,
   type PassportRecordRow,
   type PassportRole,
@@ -20,6 +25,8 @@ import {
 } from '../../lib/passports'
 import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
+import { COMMITTEES, committeeOf } from '../../lib/committees'
+import { SYMBOLS } from '../../lib/symbols'
 import { cultureOf, DEFAULT_THEME, THEMES, themeOf, type CultureKey } from '../../lib/themes'
 import { createPassportUser, deleteUser, resetPassword } from '../../lib/usersApi'
 import { errMsg } from './AdminContext'
@@ -52,6 +59,9 @@ export function PersonItem({
   onRole,
   onLink,
   onCulture,
+  onCommittee,
+  onLead,
+  onIdentity,
   onPhoto,
   onReset,
   onDelete,
@@ -64,6 +74,9 @@ export function PersonItem({
   onRole: (role: PassportRole) => void
   onLink: (id: string | null) => void
   onCulture: (culture: CultureKey) => void
+  onCommittee: (committee: string | null) => void
+  onLead: (lead: boolean) => void
+  onIdentity: (patch: { generation?: string | null; joined_term?: string | null; nickname?: string | null; symbol?: string | null; symbol_label?: string | null }) => void
   onPhoto: (file: File) => void
   onReset: () => void
   onDelete: () => void
@@ -92,6 +105,18 @@ export function PersonItem({
                 <option key={c.key} value={c.key}>{c.name}</option>
               ))}
             </select>
+            <select value={r.committee ?? ''} disabled={busy} onChange={(e) => onCommittee(e.target.value || null)} aria-label={`Comité de ${p.full_name}`}>
+              <option value="">Sin comité</option>
+              {COMMITTEES.map((c) => (
+                <option key={c.key} value={c.key}>{c.name}</option>
+              ))}
+            </select>
+            {r.committee && (
+              <label className="lead-check">
+                <input type="checkbox" checked={Boolean(r.committee_lead)} disabled={busy} onChange={(e) => onLead(e.target.checked)} />
+                Coordina el comité
+              </label>
+            )}
             {r.role === 'runner' && (
               <select value={r.team_id ?? ''} disabled={busy} onChange={(e) => onLink(e.target.value || null)} aria-label={`Grupo de ${p.full_name}`}>
                 <option value="">Sin grupo</option>
@@ -112,6 +137,18 @@ export function PersonItem({
         ) : (
           <small className="muted">No está en este semestre.</small>
         )}
+        <span className="person-edit identity-edit">
+          <input defaultValue={p.generation ?? ''} maxLength={30} placeholder="Generación" aria-label={`Generación de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.generation ?? '') && onIdentity({ generation: e.target.value.trim() || null })} />
+          <input defaultValue={p.joined_term ?? ''} maxLength={20} placeholder="Ingresó (2024-2)" aria-label={`Ingreso a inducción de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.joined_term ?? '') && onIdentity({ joined_term: e.target.value.trim() || null })} />
+          <input defaultValue={p.nickname ?? ''} maxLength={24} placeholder="Apodo" aria-label={`Apodo de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.nickname ?? '') && onIdentity({ nickname: e.target.value.trim() || null })} />
+          <select value={p.symbol ?? ''} disabled={busy} onChange={(e) => onIdentity({ symbol: e.target.value || null })} aria-label={`Símbolo de ${p.full_name}`}>
+            <option value="">Sin símbolo</option>
+            {SYMBOLS.map((s) => (
+              <option key={s.key} value={s.key}>{s.name}</option>
+            ))}
+          </select>
+          <input defaultValue={p.symbol_label ?? ''} maxLength={24} placeholder="Nombre del símbolo" aria-label={`Nombre del símbolo de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.symbol_label ?? '') && onIdentity({ symbol_label: e.target.value.trim() || null })} />
+        </span>
       </span>
       <label className={`btn-like icon-only${busy ? ' disabled' : ''}`} title={p.photo_path ? 'Cambiar foto' : 'Agregar foto'}>
         <Camera size={18} aria-hidden="true" />
@@ -208,6 +245,10 @@ export default function Inductores() {
   const [usernames, setUsernames] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [missingSql, setMissingSql] = useState(false)
+  const [missing0024, setMissing0024] = useState(false) // committee, generation… need migration 0024
+  const [missing0025, setMissing0025] = useState(false) // the words of the induction need migration 0025
+  const [welcome, setWelcome] = useState('')
+  const [committeeWords, setCommitteeWords] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [rows, setRows] = useState<PersonIn[] | null>(null)
@@ -225,7 +266,10 @@ export default function Inductores() {
 
   const load = useCallback(async () => {
     if (!supabase) return
-    const t = await supabase.from('terms').select('id, name, theme, is_current, created_at').order('created_at', { ascending: false })
+    type TermsResult = { data: TermRow[] | null; error: { code?: string; message?: string } | null }
+    let t = (await supabase.from('terms').select('id, name, theme, is_current, created_at, welcome').order('created_at', { ascending: false })) as unknown as TermsResult
+    setMissing0025(missingColumn(t.error))
+    if (missingColumn(t.error)) t = (await supabase.from('terms').select('id, name, theme, is_current, created_at').order('created_at', { ascending: false })) as unknown as TermsResult
     if (t.error) {
       setMissingSql(missingTable(t.error))
       if (!missingTable(t.error)) setError('No se pudo cargar la lista.')
@@ -237,23 +281,34 @@ export default function Inductores() {
     setTerms(list)
     const current = termId && list.some((x) => x.id === termId) ? termId : (list.find((x) => x.is_current) ?? list[0])?.id ?? null
     setTermId(current)
-    const [p, r, ev, pf, free] = await Promise.all([
-      supabase.from('passports').select('id, username, full_name, photo_path').order('full_name'),
-      current ? supabase.from('passport_records').select('id, passport_id, term_id, role, career, culture, team_id, base_id').eq('term_id', current) : Promise.resolve({ data: [], error: null }),
+    setWelcome(list.find((x) => x.id === current)?.welcome ?? '')
+    const words = current ? await supabase.from('term_committees').select('term_id, committee, message').eq('term_id', current) : { data: [], error: null }
+    setCommitteeWords(Object.fromEntries((words.data ?? []).map((w) => [w.committee, w.message])))
+    const sb = supabase
+    const read = (withIdentity: boolean) =>
+      Promise.all([
+        sb.from('passports').select(withIdentity ? PERSON_COLUMNS : PERSON_COLUMNS_BASE).order('full_name'),
+        current ? sb.from('passport_records').select(withIdentity ? RECORD_COLUMNS : RECORD_COLUMNS_BASE).eq('term_id', current) : Promise.resolve({ data: [], error: null }),
+      ])
+    let [p, r] = await read(true)
+    const without = missingColumn(p.error) || missingColumn(r.error)
+    if (without) [p, r] = await read(false)
+    setMissing0024(without)
+    const [ev, pf, free] = await Promise.all([
       current ? supabase.from('events').select('id, name, teams(id, name, sort_order), bases(id, name, sort_order)').eq('term_id', current).order('created_at', { ascending: false }) : Promise.resolve({ data: [], error: null }),
       supabase.from('profiles').select('username'),
       supabase.from('events').select('id, name').is('term_id', null).order('created_at', { ascending: false }),
     ])
     if (p.error || r.error || ev.error) setError('No se pudo cargar la lista.')
-    setPassports((p.data ?? []) as PassportPerson[])
-    setRecords((r.data ?? []) as PassportRecordRow[])
+    setPassports((p.data ?? []) as unknown as PassportPerson[])
+    setRecords((r.data ?? []) as unknown as PassportRecordRow[])
     type Ev = { id: string; name: string; teams: { id: string; name: string; sort_order: number }[]; bases: { id: string; name: string; sort_order: number }[] }
     const events = (ev.data ?? []) as unknown as Ev[]
     setTermEvents(events.map((e) => e.name))
     setFreeEvents((free.data ?? []) as { id: string; name: string }[])
     setTeams(events.flatMap((e) => [...e.teams].sort((a, b) => a.sort_order - b.sort_order).map((x) => ({ id: x.id, name: x.name, event: e.name }))))
     setBases(events.flatMap((e) => [...e.bases].sort((a, b) => a.sort_order - b.sort_order).map((x) => ({ id: x.id, name: x.name, event: e.name }))))
-    setUsernames(new Set([...(p.data ?? []).map((x) => x.username), ...(pf.data ?? []).map((x) => x.username)]))
+    setUsernames(new Set([...((p.data ?? []) as unknown as PassportPerson[]).map((x) => x.username), ...(pf.data ?? []).map((x) => x.username)]))
     setLoading(false)
   }, [termId])
 
@@ -283,6 +338,23 @@ export default function Inductores() {
       const { data, error: err } = await supabase!.from('terms').insert({ name, theme: newTheme, is_current: true }).select('id').single()
       if (err) throw new Error(err.message.includes('duplicate') ? 'Ya existe un semestre con ese nombre.' : 'No se pudo crear el semestre.')
       setTermId(data.id)
+    })
+  }
+  // the words of the coordinators and of each committee for THIS induction (they open its pages in every passport)
+  function onSaveWords(form: HTMLFormElement) {
+    if (!term || !supabase) return
+    const data = new FormData(form)
+    const welcomeText = String(data.get('welcome') ?? '').trim()
+    void run(async () => {
+      const a = await supabase!.from('terms').update({ welcome: welcomeText || null }).eq('id', term.id)
+      if (a.error) throw new Error(missingColumn(a.error) ? 'Falta aplicar la migración 0025.' : 'No se pudieron guardar las palabras.')
+      for (const c of COMMITTEES) {
+        const message = String(data.get(`c-${c.key}`) ?? '').trim()
+        const r = message
+          ? await supabase!.from('term_committees').upsert({ term_id: term.id, committee: c.key, message }, { onConflict: 'term_id,committee' })
+          : await supabase!.from('term_committees').delete().eq('term_id', term.id).eq('committee', c.key)
+        if (r.error) throw new Error('No se pudieron guardar las palabras de un comité.')
+      }
     })
   }
   function onMakeCurrent() {
@@ -352,14 +424,16 @@ export default function Inductores() {
             id = (await createPassportUser({ username: r.username, password, full_name: r.fullName })).id
             if (!id) throw new Error('No se pudo crear el usuario.')
           }
-          const { error: err } = await sb.from('passport_records').insert({ passport_id: id, term_id: term.id, role: r.role, career: r.career, culture: r.culture! })
+          const identity = r.existing ? {} : { ...(r.generation ? { generation: r.generation } : {}), ...(r.joined ? { joined_term: r.joined } : {}), ...(r.nickname ? { nickname: r.nickname } : {}) }
+          if (Object.keys(identity).length) await sb.from('passports').update(identity).eq('id', id) // optional columns of the Excel (migration 0024)
+          const { error: err } = await sb.from('passport_records').insert({ passport_id: id, term_id: term.id, role: r.role, career: r.career, culture: r.culture!, ...(r.committee ? { committee: r.committee } : {}) })
           if (err) {
             if (!r.existing) await deleteUser(id).catch(() => undefined) // do not leave a login without a record
             throw new Error('No se pudo registrar en el semestre.')
           }
           if (r.existing) out.reused++
           else out.created++
-          sheetRows.push({ fullName: r.fullName, career: r.career, role: r.role, culture: cultureOf(term.theme, r.culture).name, username: r.username, password })
+          sheetRows.push({ fullName: r.fullName, career: r.career, role: r.role, culture: cultureOf(term.theme, r.culture).name, committee: committeeOf(r.committee)?.name, username: r.username, password })
         } catch (e) {
           out.failed.push({ name: r.fullName, why: errMsg(e) })
         }
@@ -389,7 +463,14 @@ export default function Inductores() {
     if (!supabase || !person.record) return
     void run(async () => {
       const { error: err } = await supabase!.from('passport_records').update(patch).eq('id', person.record!.id)
-      if (err) throw new Error(/dos personas/.test(err.message) ? 'Un grupo tiene como máximo dos personas.' : /otro semestre/.test(err.message) ? err.message : failMessage)
+      if (err) throw new Error(/dos personas/.test(err.message) ? 'Un grupo tiene como máximo dos personas.' : /otro semestre/.test(err.message) ? err.message : /committee_lead|duplicate key/.test(err.message) ? 'Ese comité ya tiene coordinador este semestre: quítaselo primero.' : missingColumn(err) ? 'Falta aplicar la migración 0024.' : failMessage)
+    })
+  }
+  function updateIdentity(person: PersonRow, patch: { generation?: string | null; joined_term?: string | null; nickname?: string | null; symbol?: string | null; symbol_label?: string | null }) {
+    if (!supabase) return
+    void run(async () => {
+      const { error: err } = await supabase!.from('passports').update(patch).eq('id', person.passport.id)
+      if (err) throw new Error(missingColumn(err) ? 'Falta aplicar la migración 0024.' : 'No se pudo guardar el cambio.')
     })
   }
   const onRole = (p: PersonRow, role: PassportRole) => update(p, { role, team_id: null, base_id: null })
@@ -457,6 +538,8 @@ export default function Inductores() {
         Sube el Excel de inductores (nombre y carrera): la app crea el @ y la contraseña de cada uno, te devuelve otro Excel con todo, y cada persona entra a su pasaporte personal. Aquí decides quién corre, quién es base y quién coordina, y enlazas cada corredor con su grupo.
       </p>
       {error && <p className="error" role="alert">{error}</p>}
+      {missing0025 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0025_passport_pages.sql</span> para las palabras de la inducción y de los comités.</p>}
+      {missing0024 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0024_passport_identity.sql</span> para guardar el comité, la generación y el ingreso.</p>}
 
       {creds && (
         <section className="card creds">
@@ -504,6 +587,29 @@ export default function Inductores() {
             )}
           </>
         )}
+        {term && (
+          <details className="new-term">
+            <summary>Palabras para los pasaportes de esta inducción</summary>
+            {missing0025 ? (
+              <p className="warn">Falta aplicar la migración <span className="mono">0025_passport_pages.sql</span>.</p>
+            ) : (
+              <form key={`${term.id}-${welcome.length}-${Object.keys(committeeWords).length}`} className="form words-form" onSubmit={(e) => { e.preventDefault(); onSaveWords(e.currentTarget) }}>
+                <p className="muted">Salen en la página de la inducción y en la de cada comité de todos los pasaportes de «{term.name}». Máximo 700 letras cada una.</p>
+                <label>
+                  Palabras de los coordinadores a sus inductores
+                  <textarea name="welcome" rows={4} maxLength={700} defaultValue={welcome} />
+                </label>
+                {COMMITTEES.map((c) => (
+                  <label key={c.key}>
+                    Palabras del comité {c.name}
+                    <textarea name={`c-${c.key}`} rows={3} maxLength={700} defaultValue={committeeWords[c.key] ?? ''} />
+                  </label>
+                ))}
+                <button type="submit" disabled={busy}>Guardar las palabras</button>
+              </form>
+            )}
+          </details>
+        )}
         <details className="new-term" open={terms.length === 0}>
           <summary>Nuevo semestre</summary>
           <div className="row">
@@ -515,7 +621,7 @@ export default function Inductores() {
             </select>
             <button disabled={busy || !newName.trim()} onClick={onNewTerm}>Crear semestre</button>
           </div>
-          <p className="muted">La temática reparte una cultura por carrera. En «{themeOf(newTheme).name}»: {themeOf(newTheme).cultures.map((c) => c.name).join(', ')}.</p>
+          <p className="muted">Cada inducción tiene su temática, que reparte una cultura por carrera solo para esa inducción. En «{themeOf(newTheme).name}»: {themeOf(newTheme).cultures.map((c) => c.name).join(', ')}.</p>
         </details>
       </section>
 
@@ -523,7 +629,7 @@ export default function Inductores() {
         <section className="card">
           <h2>Cargar inductores</h2>
           <p className="muted">
-            Excel con las columnas <strong>Nombre</strong> y <strong>Carrera</strong> (y, si quieres, <strong>Rol</strong>). Cada carrera recibe su cultura de «{themeOf(term.theme).name}». Quien ya tenía pasaporte de un semestre anterior conserva su @ y solo se le abre una página nueva.
+            Excel con las columnas <strong>Nombre</strong> y <strong>Carrera</strong> (y, si quieres, <strong>Rol</strong>). Cada carrera recibe su cultura según la temática de esta inducción («{themeOf(term.theme).name}»), solo para ella. Quien ya tenía pasaporte de una inducción anterior conserva su @ y solo se le abren páginas nuevas.
           </p>
           <div className="row">
             <button type="button" className="ghost" onClick={async () => downloadBlob(await templateWorkbook(), 'plantilla-inductores.xlsx')}>
@@ -631,6 +737,9 @@ export default function Inductores() {
                   onRole={(role) => onRole(x, role)}
                   onLink={(id) => update(x, x.record?.role === 'runner' ? { team_id: id } : { base_id: id })}
                   onCulture={(culture) => update(x, { culture })}
+                  onCommittee={(committee) => update(x, { committee, committee_lead: false })}
+                  onLead={(lead) => update(x, { committee_lead: lead })}
+                  onIdentity={(patch) => updateIdentity(x, patch)}
                   onPhoto={(file) => onPhoto(x.passport, file)}
                   onReset={() => void onReset(x.passport)}
                   onDelete={() => void onDelete(x.passport)}
