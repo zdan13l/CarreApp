@@ -180,8 +180,8 @@ describe('the identity of the passport (migration 0024)', () => {
     expect(sql).not.toMatch(/new\.(nickname|symbol)/) // those two are the person's
   })
 
-  it('one coordinator per committee and semester', () => {
-    expect(sql).toMatch(/create unique index passport_records_committee_lead on public\.passport_records \(term_id, committee\) where committee_lead/)
+  it('a committee may have several coordinators: 0026 drops the unique index of 0024', () => {
+    expect(read('supabase/migrations/0026_committee_coordinators.sql')).toMatch(/drop index if exists public\.passport_records_committee_lead/)
   })
 
   it('the app keeps working before it is applied: every query that asks for the new columns retries without them', () => {

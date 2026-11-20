@@ -37,11 +37,11 @@ describe('committees', () => {
     expect(row).toEqual({ committee: 'clausura', committee_lead: true })
   })
 
-  it('a committee has ONE coordinator per semester (but each committee has its own, and a new semester starts over)', async () => {
+  it('a committee can have several coordinators (0026: Caos has two) and members without limit', async () => {
     const t = await newTerm()
     await addRecord(await addPassport(), t, 'caos', true)
-    await expect(addRecord(await addPassport(), t, 'caos', true)).rejects.toThrow()
-    await addRecord(await addPassport(), t, 'caos', false) // members without limit
+    await addRecord(await addPassport(), t, 'caos', true)
+    await addRecord(await addPassport(), t, 'caos', false)
     await addRecord(await addPassport(), t, 'meraki', true) // another committee
     await addRecord(await addPassport(), await newTerm(), 'caos', true) // another semester
   })
