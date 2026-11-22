@@ -54,7 +54,7 @@ describe('the state of a flight comes from its matches', () => {
     const win = { winner_team_id: 't1', voided: false }
     expect(stageStates([], false).map((s) => s.state)).toEqual(['todo', 'todo', 'todo'])
     expect(stageStates([], true).map((s) => s.state)).toEqual(['active', 'todo', 'todo'])
-    expect(stageStates([{ item: 'barra', ...win }, { item: 'pregunta', winner_team_id: null, voided: true }], true).map((s) => s.state)).toEqual(['done', 'done', 'active'])
+    expect(stageStates([{ item: 'minijuego', ...win }, { item: 'pregunta', winner_team_id: null, voided: true }], true).map((s) => s.state)).toEqual(['done', 'done', 'active'])
     expect(stageStates([{ item: 'barra', ...win }, { item: 'pregunta', ...win }, { item: 'minijuego', ...win }], true).map((s) => s.state)).toEqual(['done', 'done', 'done'])
   })
 })

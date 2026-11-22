@@ -22,7 +22,7 @@ describe('buildResultsCsv', () => {
   })
   it('lists each match by round with its items (unplayed, voided or the winner)', () => {
     const detail = lines.slice(lines.indexOf('Detalle por cruce') + 2)
-    expect(detail[0]).toBe('1;Atrio;Alfa;"Beta; ""Los"" mejores";"Beta; ""Los"" mejores";Invalidado;Sin jugar')
+    expect(detail[0]).toBe('1;Atrio;Alfa;"Beta; ""Los"" mejores";Sin jugar;Invalidado;"Beta; ""Los"" mejores"')
     expect(detail[1]).toBe('2;Atrio;Alfa;Cero;Sin jugar;Sin jugar;Sin jugar')
   })
   it('starts with a BOM so Excel reads the accents', () => {
