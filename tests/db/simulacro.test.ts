@@ -107,8 +107,9 @@ async function runImport(db: TestDb, admin: string, file: ParsedFile, target: { 
       const id = bases.get(nameKey(b.name))!
       if (b.lat !== null && b.lng !== null) await sb.sql(`update public.bases set lat = $2, lng = $3 where id = $1`, [id, b.lat, b.lng])
       if (b.info) await sb.sql(`insert into public.base_details (base_id, info) values ($1, $2) on conflict (base_id) do update set info = excluded.info`, [id, b.info])
-      for (const [i, q] of b.questions.entries()) {
-        await sb.sql(`insert into public.base_questions (base_id, position, question) values ($1, $2, $3) on conflict (base_id, position) do update set question = excluded.question`, [id, i + 1, q])
+      // the template has 3 questions: a base needs 5 with their answer to activate (0030), so the test completes them
+      for (const [i, q] of [...b.questions, '¿Pregunta de refuerzo 4?', '¿Pregunta de refuerzo 5?'].entries()) {
+        await sb.sql(`insert into public.base_questions (base_id, position, question, answer) values ($1, $2, $3, $4) on conflict (base_id, position) do update set question = excluded.question, answer = excluded.answer`, [id, i + 1, q, `Respuesta ${i + 1}`])
       }
     }
 
@@ -259,7 +260,7 @@ describe('1. load the test Carrera file exactly like "Cargar la Carrera desde un
     expect(bases.size).toBe(3)
     for (const b of bases.values()) {
       expect(await db.sql(`select 1 from public.base_details where base_id = $1 and length(info) > 0`, [b.id])).toHaveLength(1)
-      expect(await db.sql(`select 1 from public.base_questions where base_id = $1`, [b.id])).toHaveLength(3)
+      expect(await db.sql(`select 1 from public.base_questions where base_id = $1`, [b.id])).toHaveLength(5)
     }
 
     // 9 users: profiles carry the Carrera (like api/users.ts), role and assignment match the file
@@ -677,7 +678,7 @@ describe('4. the final result and privacy', () => {
     const atrio = bases.get('Atrio')!
     const mine = await db.asUser(atrio.staff).sql<{ base_id: string }>(`select base_id from public.base_details`)
     expect(mine.map((x) => x.base_id)).toEqual([atrio.id])
-    expect(await db.asUser(atrio.staff).sql(`select * from public.base_questions`)).toHaveLength(3)
+    expect(await db.asUser(atrio.staff).sql(`select * from public.base_questions`)).toHaveLength(5)
     const anon = db.asAnon()
     for (const t of ['matches', 'teams', 'bases', 'base_details', 'match_scores', 'team_locations', 'alerts', 'profiles']) {
       expect(await anon.sql(`select * from public.${t}`), t).toHaveLength(0)

@@ -134,7 +134,7 @@ describe('activating a Carrera', () => {
     expect(list).toContain('no tiene ningún corredor')
     expect(list).toContain('La base "Base 1" no tiene foto del lugar')
     expect(list).toContain('no tiene la información que se da')
-    expect(list).toContain('tiene 0 de 3 preguntas')
+    expect(list).toContain('tiene 0 de 5 preguntas con su respuesta')
     await expect(db.sql(`update public.events set is_active = true where id = $1`, [c.eventId])).rejects.toThrow(/No se puede activar la Carrera/)
   })
 

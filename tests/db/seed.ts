@@ -89,8 +89,8 @@ export async function seedCarrera(db: TestDb, opts: SeedOptions = {}): Promise<C
     )
     if (complete) {
       await db.sql(`insert into public.base_details (base_id, info) values ($1, $2)`, [row.id, `Información de la base ${i}`])
-      for (let q = 1; q <= 3; q++) {
-        await db.sql(`insert into public.base_questions (base_id, position, question) values ($1, $2, $3)`, [row.id, q, `¿Pregunta ${q} de la base ${i}?`])
+      for (let q = 1; q <= 5; q++) {
+        await db.sql(`insert into public.base_questions (base_id, position, question, answer) values ($1, $2, $3, $4)`, [row.id, q, `¿Pregunta ${q} de la base ${i}?`, `Respuesta ${q} de la base ${i}`])
       }
     }
     const staff = await addUser(db, `inductor.${t}.${i}`, 'base')

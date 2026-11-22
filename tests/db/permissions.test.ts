@@ -108,7 +108,7 @@ describe('a base\'s information and questions are private', () => {
   })
   it('the coordinator sees every base', async () => {
     expect(await admin().sql(`select * from public.base_details`)).toHaveLength(2)
-    expect(await admin().sql(`select * from public.base_questions`)).toHaveLength(6)
+    expect(await admin().sql(`select * from public.base_questions`)).toHaveLength(10)
   })
   it('runners still read what they need: base name, photo and location', async () => {
     const rows = await runnerA().sql<{ name: string; location_photo_path: string; lat: number }>(`select name, location_photo_path, lat from public.bases where event_id = $1`, [c.eventId])
