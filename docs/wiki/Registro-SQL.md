@@ -40,6 +40,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0025 | [`0025_passport_pages.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0025_passport_pages.sql) | 2026-11-20 | Palabras de los coordinadores y de cada comité por inducción, foto de la base en el pasaporte, apodo y símbolo solo del coordinador |
 | 0026 | [`0026_committee_coordinators.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0026_committee_coordinators.sql) | 2026-11-20 | Un comité puede tener más de un coordinador (Caos tiene dos) |
 | 0027 | [`0027_more_committees.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0027_more_committees.sql) | 2026-11-21 | Una persona puede estar en más de un comité (los comités extra y cuáles coordina) |
+| 0028 | [`0028_event_archives.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0028_event_archives.sql) | _pendiente_ | Historial de puntajes: al desactivar una Carrera se guarda su tabla final y cada punto antes del reinicio |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -475,6 +476,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/passport-more-committees-0027.test.ts`.
 
 **Cómo revertir** `alter table public.passport_records drop column extra_committees, drop column extra_leads;` (se pierden esos datos).
+
+## 0028 — El historial de puntajes
+
+**Qué cambia** Tabla `event_archives` (`event_name`, `term_name`, `archived_at`, `matches_played`, `standings` y `results` en `jsonb`) y el disparador `events_archive_scores`. Al desactivar una Carrera que ya tuvo puntos, antes del reinicio de la 0020, se guarda la tabla final de los grupos y cada punto de cada cruce, con los nombres del grupo y de la base escritos tal cual. Cada vez que se desactiva después de jugarse de nuevo, se guarda otra copia. Si la Carrera nunca se jugó, no guarda nada. Si luego se borra la Carrera, el historial queda (`event_id` pasa a nulo). Solo el coordinador la lee y la borra (RLS); la función no la puede llamar la app. El nombre del disparador va antes de `events_archive_stamps` y de `events_reset_on_deactivate`.
+
+**Por qué** Las Carreras no se eliminan: quedan desactivadas como historial del coordinador, pero desactivar reinicia sus puntajes. Con esto el historial conserva también quién ganó cada cruce. La pantalla *Historial* del panel lo muestra.
+
+**Verificación** `tests/db/event-archives-0028.test.ts` (copia antes del reinicio, nada si no se jugó, una copia por desactivación, sobrevive al borrado, solo el coordinador).
+
+**Cómo revertir** `drop trigger events_archive_scores on public.events; drop function public.events_archive_scores(); drop function public.archive_event_scores(uuid); drop table public.event_archives;` (se pierde el historial guardado).
 
 ## Plantilla para nuevos registros
 

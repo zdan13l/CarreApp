@@ -171,6 +171,7 @@ erDiagram
 | Un solo semestre vigente | Índice único parcial en `terms(is_current)` |
 | Una persona tiene **un registro por semestre**; un grupo tiene **dos personas como máximo**, del mismo semestre | `unique (passport_id, term_id)` y trigger `validate_passport_record` |
 | Los sellos del pasaporte se archivan **antes** de reiniciar la Carrera | Trigger `events_archive_stamps` (alfabéticamente antes que `events_reset_on_deactivate`) |
+| Al desactivar, los puntajes se guardan en el historial (`event_archives`, con nombres) antes del reinicio | Trigger `events_archive_scores` (0028, antes de `events_archive_stamps` y `events_reset_on_deactivate`) |
 
 ## Ranking
 La vista `team_standings` suma los puntos de cada grupo (cada `match_scores` ganado = 1 punto). Es `security_invoker`, o sea que respeta los permisos de quien consulta.
