@@ -29,7 +29,8 @@ describe('MatchCard: states of the counter', () => {
     expect(html).toContain('Sin tiempo de traslado definido') // no leg data in this sample
     expect(html).toContain('JV 200')
     expect(html).toContain('aria-label="Apurar a Dioses Griegos"')
-    expect(html).not.toContain('desk-flow') // the steps and the versus board only show once the groups are here
+    expect(html).toContain('desk-flow') // the three steps are there from the start: Llegada pending, Etapas 0 de 3, Sello luego
+    expect(html).toContain('0 de 3')
     expect(html).not.toContain('class="versus"')
   })
 

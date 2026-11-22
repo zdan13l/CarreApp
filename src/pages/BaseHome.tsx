@@ -1,5 +1,5 @@
 import { Ban, BellRing, BookOpen, Check, CircleHelp, ClipboardCheck, Flag, MapPin, Send, Trophy, Users, UsersRound, Shuffle } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import AppShell from '../components/AppShell'
 import { AlertBanner } from '../components/Alerts'
 import { sendMatchAlert } from '../components/DelaysPanel'
@@ -106,8 +106,10 @@ export default function BaseHome() {
 
   const userId = profile?.id
 
+  const loadSeq = useRef(0) // only the newest load may touch the screen: bursts of realtime reloads can answer out of order
   const load = useCallback(async () => {
     if (!supabase || !userId) return
+    const seq = ++loadSeq.current
     // The base this inductor staffs in the ACTIVE Carrera.
     const sb = supabase
     const readBase = (withAnswers: boolean) =>
@@ -130,14 +132,17 @@ export default function BaseHome() {
             .maybeSingle()
     let { data: b, error: baseErr } = await readBase(true)
     if (baseErr && /answer|column|schema cache/i.test(baseErr.message)) ({ data: b, error: baseErr } = await readBase(false)) // migration 0030 is not applied yet
+    if (seq !== loadSeq.current) return
     if (baseErr) {
       setLoadFailed(true) // a network error is not "no active Carrera": say so (or keep what is on screen) until the next refresh
       return
     }
-    setLoadFailed(false)
-    setBase((b as MyBase | null) ?? null)
-    if (!b) return
-    const [m, t, all, bs] = await Promise.all([
+    if (!b) {
+      setLoadFailed(false)
+      setBase(null)
+      return
+    }
+    const [m, t, all, bs, rot, ack] = await Promise.all([
       supabase
         .from('matches')
         .select('id, round_number, team_a, team_b, status, arrived_at, match_scores(item, winner_team_id, voided)')
@@ -149,17 +154,21 @@ export default function BaseHome() {
         .select('id, round_number, base_id, team_a, team_b, status, arrived_at, finished_at')
         .eq('event_id', b.event_id),
       supabase.from('bases').select('id, name').eq('event_id', b.event_id),
+      supabase.from('round_rotations').select('id, round_number, created_at').eq('event_id', b.event_id),
+      supabase.from('rotation_acks').select('rotation_id').eq('base_id', b.id),
     ])
+    if (seq !== loadSeq.current) return
     if (m.error || t.error || all.error) return // keep what is on screen on a failed request
+    // everything is applied in one go, so the screen never shows a half-updated state (scored but no rotation yet, and so on)
+    setLoadFailed(false)
+    setBase(b as MyBase)
     setEventMatches((all.data ?? []) as TimedMatch[])
     if (!bs.error) setBaseNames(new Map((bs.data ?? []).map((x) => [x.id as string, x.name as string])))
     setMatches((m.data ?? []) as BaseMatch[])
     setTeams(new Map((t.data ?? []).map((x) => [x.id, x])))
-    const rot = await supabase.from('round_rotations').select('id, round_number, created_at').eq('event_id', b.event_id)
     if (!rot.error) {
       setRotations((rot.data ?? []) as { id: string; round_number: number; created_at: string }[])
-      const mine = await supabase.from('rotation_acks').select('rotation_id').eq('base_id', b.id)
-      if (!mine.error) setRotated(new Set((mine.data ?? []).map((x) => x.rotation_id as string)))
+      if (!ack.error) setRotated(new Set((ack.data ?? []).map((x) => x.rotation_id as string)))
     }
   }, [userId])
 
@@ -844,6 +853,7 @@ export function MatchCard({
 
       {!arrived ? (
         <>
+          <DeskFlow arrived={false} scored={0} total={SCORE_ITEMS.length} />
           <WalkingGroups match={match} teams={teams} legs={legs ?? {}} baseNames={baseNames} codes={codes} busy={busy || locked} started={!locked} coolUntil={coolUntil} onCooling={(n) => void tooSoon(n)} canHurry={Boolean(eventId)} onHurry={(id) => void hurry(id)} />
           {notice && <p className="ok-text">{notice}</p>}
           {error && <p className="error">{error}</p>}

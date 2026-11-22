@@ -96,7 +96,7 @@ describe('the base screen', () => {
 
   it('Ronda is one thing at a time: clocks, then scoring, then only the rotation button, then the clocks again', () => {
     // 1) groups on their way: clock rows + hurry + arrival confirmation (no steps, no versus board)
-    expect(base).toMatch(/\{!arrived \? \(\s*<>\s*<WalkingGroups/)
+    expect(base).toMatch(/\{!arrived \? \(\s*<>\s*<DeskFlow arrived=\{false\}[^\n]*\n\s*<WalkingGroups/)
     // 2) arrived: only the stages to score
     expect(base).toMatch(/<DeskFlow arrived=\{arrived\}/)
     // 3) all scored: the rotation card is the whole tab (no match card, no next round); 4) once the groups are let go the next match shows its clock

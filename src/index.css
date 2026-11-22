@@ -2377,3 +2377,7 @@ button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justi
 .cruce .won-items span { padding-left: .06em; }
 
 .tour-dots { justify-content: center; }
+
+/* Review: the three steps breathe a little more on a narrow phone. */
+.desk-flow li { padding: .6rem .6rem; gap: .4rem; }
+.desk-flow .desk-step b { font-size: .95rem; }
