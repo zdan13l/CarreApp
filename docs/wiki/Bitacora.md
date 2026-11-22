@@ -2,6 +2,14 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Pulido de la base y del tutorial (2026-11-22)
+- **Tutorial:** textos más cortos, el marco iluminado siempre cabe en la pantalla y los pasos sin nada que señalar salen centrados. Pasos nuevos: activar notificaciones, alertas con sonido y modo claro/oscuro. El tutorial y las ventanas emergentes bloquean el scroll del fondo.
+- **Aviso de la Carrera (candado)** en Resultados y Mi base: separado de la barra superior.
+- **Mapa:** botón de centrar en la Javeriana solo con el icono (también en el editor de ubicación de la base).
+- **Cruces de tu base:** las cajas de etapa van centradas. **Equipos de la Carrera:** la fila se pone amarilla al elegirla. **Ticket de la base:** solo dice «Inductor base».
+- **Carrera Terminada:** *Cambiar foto* y *Cambiar ubicación* quedan bloqueados.
+- **Alertas y sonidos:** fuera de *Iniciada* las alertas del coordinador no se muestran ni suenan en bases y corredores (las de demora ya solo corrían iniciada).
+
 ## Ajustes de la base: tutorial, apurar y cruces (2026-11-22)
 - **Ver tutorial** solo en la pestaña *Ronda* (en las demás queda un aviso corto de que la Carrera no ha empezado). El tutorial ahora señala la tarjeta o el botón de cada paso.
 - **Apurar:** al presionar se pone amarillo; tras enviar un aviso los botones descansan 15 s (siguen tocables: si se pulsan sale «Espera un momento… espera N segundos»).
