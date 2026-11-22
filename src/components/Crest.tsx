@@ -1,4 +1,4 @@
-import { photoUrl } from '../lib/storage'
+import PhotoImg, { hasPhoto } from './PhotoImg'
 
 // Team crest: the team photo, or its initials when it has none.
 export function initials(name: string | undefined): string {
@@ -17,10 +17,9 @@ export default function Crest({
   photoPath?: string | null
   size?: 'sm' | 'lg' | 'xl'
 }) {
-  const url = photoUrl(photoPath ?? null)
   return (
     <span className={`crest${size ? ` ${size}` : ''}`} aria-hidden="true">
-      {url ? <img src={url} alt="" /> : initials(name)}
+      {hasPhoto(photoPath) ? <PhotoImg path={photoPath} /> : initials(name)}
     </span>
   )
 }

@@ -514,7 +514,7 @@ export default function Inductores() {
     })
   }
   async function onDelete(p: PassportPerson) {
-    if (!(await confirmDialog({ title: `¿Eliminar el pasaporte de ${p.full_name}?`, message: `@${p.username}. Se borran también sus sellos de todos los semestres. No se puede deshacer.`, confirmLabel: 'Eliminar', tone: 'danger', icon: 'trash' }))) return
+    if (!(await confirmDialog({ title: `¿Retirar a ${p.full_name} de la inducción?`, message: `@${p.username}. Antes pídele que descargue su pasaporte en PDF (Mi perfil): al retirarla se borran su usuario, su foto y sus sellos de todos los semestres para liberar espacio. No se puede deshacer.`, confirmLabel: 'Retirar', tone: 'danger', icon: 'trash' }))) return
     void run(async () => {
       await deleteUser(p.id)
       await deletePhoto(p.photo_path)

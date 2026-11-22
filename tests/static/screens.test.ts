@@ -54,7 +54,7 @@ describe('user photos (0018)', () => {
     const us = read('src/pages/admin/Usuarios.tsx')
     expect(us).toMatch(/uploadPhoto\('users', file\)/)
     expect(us).toMatch(/update\(\{ photo_path: path \}\)/)
-    expect(read('src/components/Avatar.tsx')).toMatch(/photoUrl\(photoPath/)
+    expect(read('src/components/Avatar.tsx')).toMatch(/PhotoImg path={photoPath}/) // the small copy, with the big photo as a fallback
   })
   it('signing in keeps working while the SQL is pending (the profile is read without the photo if the column is missing)', () => {
     expect(read('src/lib/auth.tsx')).toMatch(/42703/)

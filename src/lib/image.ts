@@ -3,10 +3,10 @@
 const MAX_SIDE = 1000
 const QUALITY = 0.82
 
-export async function resizeImage(file: File): Promise<Blob> {
+export async function resizeImage(file: File, maxSide = MAX_SIDE, quality = QUALITY): Promise<Blob> {
   if (!file.type.startsWith('image/')) throw new Error('El archivo debe ser una imagen.')
   const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
-  const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height))
+  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height))
   const width = Math.round(bitmap.width * scale)
   const height = Math.round(bitmap.height * scale)
 
@@ -22,7 +22,7 @@ export async function resizeImage(file: File): Promise<Blob> {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error('No se pudo procesar la imagen.'))),
       'image/jpeg',
-      QUALITY,
+      quality,
     )
   })
 }
