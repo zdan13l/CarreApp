@@ -17,8 +17,8 @@ alter table public.events
   add column if not exists started_at timestamptz,
   add column if not exists finished_at timestamptz;
 
-update public.events set phase = case when is_active then 'started' else 'disabled' end,
-                         started_at = case when is_active then now() else null end;
+-- the Carreras that are active today become started (only the ones still out of step: running this again changes nothing)
+update public.events set phase = 'started', started_at = now() where is_active and phase = 'disabled';
 
 -- is_active and phase always agree; the pairs below are the only moves a Carrera can make.
 create or replace function public.events_sync_phase() returns trigger
@@ -60,16 +60,61 @@ create trigger events_a_sync_phase before insert or update on public.events
   for each row execute function public.events_sync_phase();
 
 -- "update of is_active" triggers only fire when is_active is in the SET list, and moving the phase changes it from inside the trigger above:
--- the three that react to a Carrera being deactivated must listen to the phase too.
-drop trigger if exists events_reset_on_deactivate on public.events;
-create trigger events_reset_on_deactivate after update of is_active, phase on public.events
-  for each row execute function public.events_reset_on_deactivate();
-drop trigger if exists events_archive_stamps on public.events;
-create trigger events_archive_stamps after update of is_active, phase on public.events
-  for each row execute function public.events_archive_stamps();
-drop trigger if exists events_archive_scores on public.events;
+-- the three that react to a Carrera being deactivated must listen to the phase too. The three small functions are written out again here
+-- (same bodies as 0020, 0023 and 0028) so this script does not depend on what the database already has; any trigger that used them is
+-- dropped first, whatever its name.
+do $$
+declare t record;
+begin
+  for t in
+    select tg.tgname from pg_trigger tg join pg_proc p on p.oid = tg.tgfoid
+    where tg.tgrelid = 'public.events'::regclass and not tg.tgisinternal
+      and p.proname in ('events_reset_on_deactivate', 'events_archive_stamps', 'events_archive_scores')
+  loop
+    execute format('drop trigger if exists %I on public.events', t.tgname);
+  end loop;
+end $$;
+
+create or replace function public.events_reset_on_deactivate() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if old.is_active and not new.is_active then
+    perform public.reset_event_progress(new.id);
+  end if;
+  return null;
+end;
+$$;
+revoke all on function public.events_reset_on_deactivate() from public, anon, authenticated;
+
+create or replace function public.events_archive_stamps() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if old.is_active and not new.is_active then
+    perform public.archive_event_stamps(new.id);
+  end if;
+  return null;
+end;
+$$;
+revoke all on function public.events_archive_stamps() from public, anon, authenticated;
+
+create or replace function public.events_archive_scores() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if old.is_active and not new.is_active then
+    perform public.archive_event_scores(new.id);
+  end if;
+  return null;
+end;
+$$;
+revoke all on function public.events_archive_scores() from public, anon, authenticated;
+
+-- they fire in alphabetical order: scores archive, stamps archive, and only then the progress is reset
 create trigger events_archive_scores after update of is_active, phase on public.events
   for each row execute function public.events_archive_scores();
+create trigger events_archive_stamps after update of is_active, phase on public.events
+  for each row execute function public.events_archive_stamps();
+create trigger events_reset_on_deactivate after update of is_active, phase on public.events
+  for each row execute function public.events_reset_on_deactivate();
 
 -- The coordinator's moves, with their rules. Only the coordinator calls it.
 create or replace function public.event_action(p_event uuid, p_action text) returns void
