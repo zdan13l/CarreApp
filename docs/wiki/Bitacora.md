@@ -2,6 +2,18 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Preguntas con respuesta y ajustes de Mi base (2026-11-22, migración 0030, pendiente de aplicar)
+- **Mínimo 5 preguntas con su respuesta:** en *Bases* cada base muestra 5 filas (pregunta y respuesta) y se pueden agregar hasta 10; para activar una Carrera cada base debe tener 5 completas (`event_problems`). En *Mi base* el inductor ve la respuesta debajo de cada pregunta. La carga masiva acepta hasta 10 columnas «Pregunta N» y «Respuesta N».
+- **Sello de la base:** se quitaron los textos «Toca el sello…» y «Este es el sello que recibe cada grupo…». El nombre que lleva el sello es el de la base real (en las vistas previas es una base de ejemplo llamada Atrio).
+
+## Cambios de la pantalla de base (2026-11-22, migración 0029, pendiente de aplicar)
+- **Orden de las etapas:** ahora se califica primero el minijuego, luego la pregunta y por último la barra (`SCORE_ITEMS`). Cambia en todas las pantallas que las listan (base, corredor, matriz de Pasaportes, Excel de resultados).
+- **Avisos:** apurar a los grupos ya no pide un mensaje: solo confirmar o cancelar (aviso fijo «Apúrense: la base los está esperando»), y se quitó el texto de «les llega como notificación…». Se quitó también el texto de «cuando estén los dos grupos en tu base, confírmalo…». Todos los diálogos de la base usan `confirmDialog` (pregunta, detalles, verbo y ícono).
+- **Equipos en rotación (0029):** al calificar un cruce, la base ve la tarjeta «Equipos en rotación»: espera el aviso del coordinador y entonces confirma «Ya los dejé ir». El coordinador tiene en *En vivo* la tarjeta «Rotación · ronda N»: avisa a todas las bases (suena su teléfono) y ve cuántas ya confirmaron y cuáles faltan.
+- **Resultados:** tocar un equipo abre su foto en grande, como en la pantalla del corredor.
+- **Mi base:** una caja con el sello de la base; al tocarla se ve grande, con la mitología a la que pertenece y qué significa (`story` de cada sello).
+- **Círculo dorado:** vuelve el círculo dorado alrededor de la foto de la persona en su cuenta.
+
 ## Historial de puntajes (2026-11-22, migración 0028, aplicada)
 Como las Carreras no se eliminan, al desactivar una se guarda antes del reinicio su tabla final y cada punto de cada cruce (`event_archives`, con los nombres escritos). Pantalla nueva *Historial* en Preparación: la tabla final y, plegado, cada punto ronda por ronda; el coordinador puede borrar una copia.
 

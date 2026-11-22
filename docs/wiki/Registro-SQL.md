@@ -41,6 +41,8 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0026 | [`0026_committee_coordinators.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0026_committee_coordinators.sql) | 2026-11-20 | Un comité puede tener más de un coordinador (Caos tiene dos) |
 | 0027 | [`0027_more_committees.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0027_more_committees.sql) | 2026-11-21 | Una persona puede estar en más de un comité (los comités extra y cuáles coordina) |
 | 0028 | [`0028_event_archives.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0028_event_archives.sql) | 2026-11-22 | Historial de puntajes: al desactivar una Carrera se guarda su tabla final y cada punto antes del reinicio |
+| 0029 | [`0029_round_rotations.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0029_round_rotations.sql) | _pendiente_ | Rotación de las bases: el coordinador avisa «ya pueden rotar» por ronda y cada base confirma que dejó ir a sus grupos |
+| 0030 | [`0030_question_answers.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0030_question_answers.sql) | _pendiente_ | Cada base tiene mínimo 5 preguntas, cada una con su respuesta (hasta 10) |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -486,6 +488,26 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/event-archives-0028.test.ts` (copia antes del reinicio, nada si no se jugó, una copia por desactivación, sobrevive al borrado, solo el coordinador).
 
 **Cómo revertir** `drop trigger events_archive_scores on public.events; drop function public.events_archive_scores(); drop function public.archive_event_scores(uuid); drop table public.event_archives;` (se pierde el historial guardado).
+
+## 0029 — La rotación entre rondas
+
+**Qué cambia** Tablas `round_rotations` (una fila por Carrera y ronda: el coordinador avisa que ya pueden rotar) y `rotation_acks` (una fila por rotación y base: la base confirma que dejó ir a sus dos grupos), ambas en Realtime. Solo el coordinador avisa; cada pantalla lee las rotaciones de su Carrera; una base solo confirma por sí misma, una vez y mientras su Carrera está activa. `reset_event_progress` también borra las rotaciones al desactivar la Carrera (las confirmaciones se van en cascada).
+
+**Por qué** Para cuadrar las bases a una distancia parecida, nadie se va hasta que todas terminan: el coordinador avisa y cada base confirma. Sin esta migración las pantallas siguen funcionando, sin la tarjeta de rotación, y *En vivo* avisa que falta.
+
+**Verificación** `tests/db/round-rotations-0029.test.ts` (quién avisa, quién lee, una confirmación por base, reinicio al desactivar).
+
+**Cómo revertir** `drop table public.rotation_acks; drop table public.round_rotations;` y volver a crear `reset_event_progress` como en la 0020.
+
+## 0030 — Cinco preguntas con su respuesta
+
+**Qué cambia** `base_questions.answer` (la respuesta, hasta 600 caracteres), la posición de una pregunta sube de 3 a 10 y `event_problems` exige, para activar una Carrera, que cada base tenga **al menos 5 preguntas con su respuesta** (las que no tienen respuesta no cuentan). Las respuestas se leen igual que las preguntas: solo el coordinador y la base. Las Carreras que ya están activas siguen funcionando; la regla se aplica la próxima vez que se active una.
+
+**Por qué** El inductor necesita tener a la mano la respuesta de cada pregunta que puede hacer. Las bases de la Carrera de prueba tienen 3 preguntas sin respuesta: hay que completarlas en *Bases* antes de volver a activarla (el *seed* nuevo ya trae 5 con respuesta).
+
+**Verificación** `tests/db/question-answers-0030.test.ts` (una Carrera completa no tiene problemas, con menos de 5 o sin respuestas no se activa y dice cuántas tiene, hasta 10 preguntas) y las pruebas de la base y de la Carrera de prueba, que ahora crean 5 preguntas con respuesta.
+
+**Cómo revertir** `alter table public.base_questions drop column answer;`, volver a poner `check (position between 1 and 3)` (falla si hay preguntas 4 a 10) y recrear `event_problems` como en la 0019.
 
 ## Plantilla para nuevos registros
 
