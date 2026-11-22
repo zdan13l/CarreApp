@@ -2,6 +2,16 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Las Carreras se desactivan, no se eliminan (2026-11-22)
+Decisión del coordinador: al terminar una Carrera no se elimina; se desactiva y queda como historial. Costo en espacio despreciable (unos 10 MB de fotos por Carrera) y se mantienen vivas las fotos de grupos y bases que usa el sello dorado del pasaporte. Desactivar reinicia los puntajes de esa Carrera (`reset_event_progress`), así que el historial conserva grupos, bases, usuarios y cronograma, no los puntos.
+
+## Fotos en dos tamaños, respaldo y que el proyecto no se pause (2026-11-22)
+Antes de seguir con correcciones se cuidó el espacio y los datos para el largo plazo.
+- **Fotos en dos tamaños:** cada foto nueva se sube a 1000 px (el sello dorado, los diálogos) y con una copia de 240 px (`-s.jpg`) para avatares, escudos y listas (`PhotoImg`). Las fotos anteriores no tienen copia pequeña: la pantalla vuelve sola a la grande. Al borrar una foto se borran las dos. Las listas bajan a menos de la quinta parte de lo que descargaban.
+- **Respaldo:** `scripts/backup.ts` copia todas las tablas (JSON), los usuarios (solo id y @: las contraseñas no se pueden exportar) y todas las fotos a `../carreapp-respaldos/AAAA-MM-DD-HHMM` (fuera del repositorio: tiene datos personales). Solo lee. Una prueba exige que cubra cada tabla que crean las migraciones. El plan gratis de Supabase no guarda respaldos propios: conviene correrlo después de cada bloque importante y antes de la Carrera, y copiar la carpeta a un USB o a una carpeta privada.
+- **Que el proyecto no se pause:** un proyecto gratis se pausa tras una semana sin actividad. `api/keepalive.ts` (llamado una vez al día por el cron de `vercel.json`) pide una fila a la base y cuenta como actividad. Funciona mientras Vercel siga desplegando el proyecto; con el plan pago de Supabase no hace falta.
+- **Retirar a una persona:** el botón de *Inductores* ahora dice «Retirar» y avisa que antes descargue su PDF; borra su usuario, su foto (y la copia pequeña) y sus sellos.
+
 ## Los sellos nuevos entran al pasaporte y a las bases (2026-11-21)
 Después de elegir en las galerías (`docs/logo/sellos/`) se puso todo en la app. Migración **0027** (pendiente de aplicar a mano).
 - **Sellos de las bases:** los quince de mitologías (Horus, Anubis, Khepri, Mjölnir, Loki, los cuervos, Zeus, Pegaso, Poseidón, el jaguar, el águila, Mictlán, el dragón, Wukong y el tigre) son ahora el sello de cada base (`Stamp.tsx`). Lo que se guarda es **solo la tinta** (`public/sellos/ink/*.png`: blanco donde hay tinta, transparente donde hay papel; las imágenes originales no están en el repositorio) y el navegador la usa como máscara (`InkPicture`), así toma la tinta del sello y sigue el tema. El sello de una base sale de su id (`sealForSeed`), con su silueta (hexágono, escudo, arco, óvalo, tablilla…), el nombre en una banda debajo (sin tapar el dibujo) y el código con la ronda; la tinta y la inclinación también salen del id. Los cinco primeros sellos en el orden de prioridad (`SEAL_ORDER`) son de culturas distintas. Los archivos de tinta no se precargan en el service worker.

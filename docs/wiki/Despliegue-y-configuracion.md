@@ -65,3 +65,8 @@ Para que las alertas lleguen con el teléfono bloqueado o la app cerrada (una so
 4. Solo los **corredores** abren la app, entran y pulsan **Activar notificaciones** (en iPhone, desde la app instalada en la pantalla de inicio).
 
 Para apagarlas: `select cron.unschedule(jobid) from cron.job where jobname = 'check-delays';`
+
+## Respaldo y que el proyecto no se pause
+- **Respaldo (a mano):** `npx tsx --env-file=.env.local scripts/backup.ts` (necesita `SUPABASE_SERVICE_ROLE_KEY` en `.env.local`). Crea `../carreapp-respaldos/AAAA-MM-DD-HHMM` con cada tabla en JSON, `auth_users.json` (id y @), las fotos y un `manifest.json` con los conteos. Solo lee. La carpeta tiene datos personales: guárdala privada y cópiala a otro lugar. Córrelo antes de cada Carrera, después de cargar o retirar inductores y de vez en cuando. Lo que **no** respalda: las contraseñas (se reinician desde el panel) y las suscripciones de notificaciones (los teléfonos se vuelven a suscribir).
+- **Restaurar:** hoy se hace a mano, tabla por tabla, en el orden de la lista `TABLES` del script (las tablas de las que otras dependen van primero), y creando los usuarios con `api/users.ts` antes de `profiles` y `passports`.
+- **Que no se pause:** el plan gratis de Supabase pausa el proyecto tras 7 días sin actividad. `vercel.json` llama a `/api/keepalive` una vez al día (15:00 UTC) y ese endpoint pide una fila a la base. Si Vercel dejara de desplegar el proyecto, hay que tener otro aviso, o pasar a un plan pago, que no se pausa. Si se pausara, se reactiva con *Restore project* en el panel de Supabase (los datos no se pierden en las primeras semanas).
