@@ -36,3 +36,7 @@ credenciales-*.xlsx
 
 # Imágenes de referencia de las galerías de sellos (marcas de terceros, solo para ver)
 docs/logo/sellos/ref/
+
+# Respaldos de la base de datos (datos personales): se guardan fuera del repositorio, esto es por si acaso
+backups/
+carreapp-respaldos/
