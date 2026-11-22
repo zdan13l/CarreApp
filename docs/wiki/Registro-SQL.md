@@ -45,6 +45,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0030 | [`0030_question_answers.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0030_question_answers.sql) | 2026-11-22 | Cada base tiene mínimo 5 preguntas, cada una con su respuesta (hasta 10) |
 | 0031 | [`0031_targeted_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0031_targeted_alerts.sql) | 2026-11-22 | El aviso «apúrense» puede ir a un solo grupo del cruce (`alerts.team_id`) |
 | 0032 | [`0032_event_phases.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0032_event_phases.sql) | 2026-11-22 | Los cuatro estados de la Carrera (`events.phase`), `event_action()`, las bases solo actúan con la Carrera Iniciada y el reloj de demora cuenta desde el aviso de rotación |
+| 0033 | [`0033_alert_rate_and_title.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0033_alert_rate_and_title.sql) | _pendiente_ | Límite de 15 s entre avisos de una base y la notificación dice «Aviso del coordi» |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -530,6 +531,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/event-phases-0032.test.ts` (transiciones y quién las hace, bloqueo de las bases por estado, reiniciar sin historial, deshabilitar con historial, reloj desde la rotación).
 
 **Cómo revertir** Recrear `scores_base_insert`, `alerts_base_insert` (0019), `confirm_arrival` (0007), `acks_insert` (0029) y `check_delays` (0016) con `is_staff_of_match` / `e.is_active`; recrear los tres triggers con `after update of is_active`; `drop function public.event_action(uuid, text), public.staff_can_act(uuid); drop trigger events_a_sync_phase on public.events; alter table public.events drop column phase, drop column started_at, drop column finished_at;`.
+
+## 0033 — Avisos de 15 s y nombre corto
+
+**Qué cambia** El límite entre dos avisos de una base al mismo destinatario baja de 20 s a 15 s (`alerts_rate_limit`) y la notificación al inductor se titula «Aviso del coordi» (`alerts_push`).
+
+**Por qué** El botón de apurar descansa 16 s en la app; con el límite de 20 s el aviso enviado justo después fallaba con «No se pudo enviar el aviso».
+
+**Verificación** `tests/db/alert-rate-0033.test.ts`.
+
+**Cómo revertir** Volver a crear `alerts_rate_limit` y `alerts_push` como en la 0031.
 
 ## Plantilla para nuevos registros
 
