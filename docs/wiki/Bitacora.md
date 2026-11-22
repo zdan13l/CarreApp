@@ -2,14 +2,13 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
-## Estados de la Carrera, tutorial y reloj desde la rotación (2026-11-22, migración 0032, pendiente)
+## Estados de la Carrera, tutorial y reloj desde la rotación (2026-11-22, migración 0032, aplicada)
 - **Cuatro estados** (`events.phase`): *Deshabilitada* (borrador o historial), *Habilitada* (lista, sin actividad), *Iniciada* (corre el tiempo y las bases actúan) y *Terminada* (bloqueada, para validar). Un solo control, `PhaseControl`, en *Preparación → Carrera* y arriba de *En vivo*, con el estado en pasos y los botones que tocan: Habilitar, Iniciar, Terminar, Reiniciar, Deshabilitar. Todo pasa por `event_action()` en la base de datos.
 - **Habilitada:** bases y corredores ven sus pantallas con un aviso («La Carrera aún no empieza») y todos los botones desactivados; la base de datos lo exige (una base no puede confirmar llegada, calificar, avisar ni confirmar rotación hasta que se inicie). Botón **Ver tutorial** (solo bases y corredores): un recorrido por las pantallas y opciones (`Tutorial`, pasos en `lib/tutorials.ts`) que cambia de pestaña solo y señala los elementos.
 - **Iniciada:** corre el tiempo y se habilitan los botones. El reloj de la primera ronda cuenta desde el inicio de la Carrera.
 - **Terminada:** los botones se bloquean otra vez; el coordinador valida puntajes y top (puede corregir). **Deshabilitar** pasa al Historial y reinicia el avance como antes (descarga los resultados primero). **Reiniciar** (solo desde Terminada) borra el avance SIN Historial y deja la Carrera Habilitada para otra prueba.
 - **Reloj desde el aviso de rotación:** la demora cuenta desde el aviso de rotación de la ronda anterior (o desde que terminó el cruce, si no hubo aviso o es más tarde), en la base (cronómetro), en el corredor, en el coordinador y en `check_delays()`. Solo corre con la Carrera Iniciada.
 - La **X** de las ventanas emergentes (cuenta, equipo, sello, tutorial) ahora es roja.
-- Aplicar `0032` antes de usar la app nueva: sin ella las pantallas de bases y corredores no cargan (piden `events.phase`).
 
 ## Ronda en cuatro momentos y ajustes (2026-11-22)
 - **Ronda, una sola cosa a la vez (base):** 1) *En camino*: los dos grupos con su reloj, de dónde vienen y «Apurar» (uno o los dos) y, debajo, «Ya llegaron ambos grupos»; sin pasos ni tablero. 2) *Llegaron*: solo las tres etapas por calificar. 3) *Calificados*: solo el botón «Ya los dejé ir» de la tarjeta de rotación, que se habilita cuando llega el aviso del coordinador. 4) Al dejarlos ir arranca el siguiente cruce con su reloj. Se quitaron el banner «grupos en demora» y la tarjeta «Próxima ronda» (el reloj las reemplaza). Nota: el reloj cuenta desde que terminó el cruce anterior (igual que la alerta de demora), no desde el aviso de rotación.

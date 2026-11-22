@@ -5,7 +5,7 @@ Foto del proyecto al **2026-11-22**, para retomar el trabajo en una conversació
 ## Dónde está todo
 - Repositorio: `https://github.com/zdan13l/CarreApp` (rama `main`; Vercel despliega solo en ~15 s). Carpeta local: `C:\Users\zdan1\Downloads\Carrera2710`.
 - Wiki: `https://github.com/zdan13l/CarreApp.wiki.git` (rama `master`). Se publica copiando `docs/wiki/*.md` a un clon de la wiki y haciendo push.
-- Base de datos: Supabase; **las migraciones `0001` a `0031` están aplicadas** (la `0028`, la `0029`, la `0030` y la `0031` el 2026-11-22; la `0023` el 2026-11-19; la `0024` el 2026-11-19/20; la `0025` y la `0026` el 2026-11-20 y la `0027` el 2026-11-21). El usuario las aplica a mano en el SQL Editor; ver el registro.
+- Base de datos: Supabase; **las migraciones `0001` a `0032` están aplicadas** (la `0028`, la `0029`, la `0030`, la `0031` y la `0032` el 2026-11-22; la `0023` el 2026-11-19; la `0024` el 2026-11-19/20; la `0025` y la `0026` el 2026-11-20 y la `0027` el 2026-11-21). El usuario las aplica a mano en el SQL Editor; ver el registro.
 
 ## Qué hace la app (resumen)
 Roles: **coordinador** (PC), **inductor de base** y **corredor** (iPhone). Cada Carrera es una edición con grupos, bases, usuarios, cruces (cronograma) y puntajes. Solo una Carrera activa a la vez.
@@ -25,7 +25,6 @@ Una Carrera activa a la vez; solo se elimina una Carrera desactivada; cada perso
 `npm test` (~414 pruebas, ~12 s): base de datos en memoria con todas las migraciones, simulacro de una Carrera completa con el archivo de prueba, contrato app↔esquema, diseño, notificaciones, pantallas. `npm run check` = tipos + lint + api + pruebas + build. El agente `carreapp-tester` (`.claude/agents/`) las ejecuta e inventa casos; su informe está en [Informe de pruebas](Informe-de-pruebas).
 
 ## Pendientes
--6. **Aplicar a mano la migración `0032_event_phases.sql`** (estados de la Carrera: Habilitada / Iniciada / Terminada, bloqueo de las bases y reloj desde la rotación). **Hasta aplicarla, las pantallas de bases y corredores no cargan.** Las Carreras activas quedan Iniciadas.
 -4. **La Carrera real es el 22 de enero de 2027.** Hasta entonces seguimos con la Carrera 2710 de prueba (18 grupos, 17 bases y 54 cruces ficticios, con corredores y bases repartidos de prueba). Antes del día real: grupos, bases y cruces verdaderos, y el reparto real de corredores y bases.
 -3. **Del coordinador (pendiente):** escribir las palabras de los coordinadores y de cada comité (*Inductores → Palabras para los pasaportes*), poner el apodo y el símbolo de cada persona, definir las generaciones que faltan y el logo de Minichips (sin imagen todavía). Entregar las contraseñas de `credenciales-2710.xlsx` y borrarlo.
 -2. **Hecho (2026-11-21):** migraciones `0025`, `0026` y `0027` aplicadas; `apply-extras.ts` corrido (comités extra y generación Textiles). Los quince sellos de las bases (solo la tinta, en `public/sellos/ink/`) quedan como están; no se espera una Carrera de 15 bases o más, así que no se repiten. La clave `SUPABASE_SERVICE_ROLE_KEY` sigue en `.env.local` por si se corren más scripts: quitarla al terminar.
