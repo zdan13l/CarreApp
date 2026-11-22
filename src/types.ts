@@ -41,7 +41,11 @@ export function infoOf(d: InfoEmbed | undefined): string | null {
 export interface BaseQuestion {
   position: number
   question: string
+  answer?: string | null // migration 0030
 }
+
+export const MIN_QUESTIONS = 5 // a base needs at least this many questions, each with its answer, to activate the Carrera
+export const MAX_QUESTIONS = 10
 
 export interface BaseRow {
   id: string
@@ -82,7 +86,7 @@ export const STATUS_LABEL: Record<MatchStatus, string> = {
 }
 
 export type ScoreItem = 'barra' | 'pregunta' | 'minijuego'
-export const SCORE_ITEMS: ScoreItem[] = ['barra', 'pregunta', 'minijuego']
+export const SCORE_ITEMS: ScoreItem[] = ['minijuego', 'pregunta', 'barra'] // the order they are played and scored in
 export const ITEM_LABEL: Record<ScoreItem, string> = {
   barra: 'Barra',
   pregunta: 'Pregunta',

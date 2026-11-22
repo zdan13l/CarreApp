@@ -6,7 +6,7 @@ import Stamp from '../../components/Stamp'
 import { airportCode } from '../../lib/flight'
 import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
-import { infoOf, type BaseRow, type Profile } from '../../types'
+import { infoOf, MAX_QUESTIONS, MIN_QUESTIONS, type BaseRow, type Profile } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
 import { confirmDialog } from '../../lib/dialog'
 
@@ -22,15 +22,26 @@ export default function Bases() {
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
-    const [b, p] = await Promise.all([
-      supabase
-        .from('bases')
-        .select('id, name, location_photo_path, lat, lng, sort_order, base_details(info), base_questions(position, question), base_staff(user_id)')
-        .eq('event_id', eventId)
-        .order('sort_order')
-        .order('name'),
+    const sb = supabase
+    const readBases = (withAnswers: boolean) =>
+      withAnswers
+        ? sb
+            .from('bases')
+            .select('id, name, location_photo_path, lat, lng, sort_order, base_details(info), base_questions(position, question, answer), base_staff(user_id)')
+            .eq('event_id', eventId)
+            .order('sort_order')
+            .order('name')
+        : sb
+            .from('bases')
+            .select('id, name, location_photo_path, lat, lng, sort_order, base_details(info), base_questions(position, question), base_staff(user_id)')
+            .eq('event_id', eventId)
+            .order('sort_order')
+            .order('name')
+    const [first, p] = await Promise.all([
+      readBases(true),
       supabase.from('profiles').select('id, username, full_name, role').eq('role', 'base').eq('event_id', eventId).order('full_name'),
     ])
+    const b = first.error && /answer|column|schema cache/i.test(first.error.message) ? await readBases(false) : first // migration 0030 is not applied yet
     setBases(b.data ?? [])
     setStaff(p.data ?? [])
   }, [eventId])
@@ -100,10 +111,11 @@ export function BaseCard({
   taken: Set<string>
   onChange: () => Promise<void>
 }) {
-  const initialQuestions = [1, 2, 3].map((n) => base.base_questions.find((q) => q.position === n)?.question ?? '')
+  const savedQuestions = [...base.base_questions].sort((x, y) => x.position - y.position).map((q) => ({ question: q.question, answer: q.answer ?? '' }))
+  const initialQuestions = [...savedQuestions, ...Array.from({ length: Math.max(0, MIN_QUESTIONS - savedQuestions.length) }, () => ({ question: '', answer: '' }))]
   const [name, setName] = useState(base.name)
   const [info, setInfo] = useState(infoOf(base.base_details) ?? '')
-  const [questions, setQuestions] = useState<string[]>(initialQuestions)
+  const [questions, setQuestions] = useState<{ question: string; answer: string }[]>(initialQuestions)
   const [pick, setPick] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -133,12 +145,16 @@ export function BaseCard({
       if (err) throw new Error('No se pudo guardar (¿ya existe otra base con ese nombre?).')
       const details = await sb.from('base_details').upsert({ base_id: base.id, info: info.trim() || null })
       if (details.error) throw new Error('No se pudo guardar la información de la base.')
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < MAX_QUESTIONS; i++) {
         const position = i + 1
-        const text = questions[i].trim()
-        const res = text
-          ? await sb.from('base_questions').upsert({ base_id: base.id, position, question: text }, { onConflict: 'base_id,position' })
+        const text = questions[i]?.question.trim() ?? ''
+        const answer = questions[i]?.answer.trim() || null
+        let res = text
+          ? await sb.from('base_questions').upsert({ base_id: base.id, position, question: text, answer }, { onConflict: 'base_id,position' })
           : await sb.from('base_questions').delete().eq('base_id', base.id).eq('position', position)
+        if (res.error && text && /answer|column|schema cache/i.test(res.error.message)) {
+          res = await sb.from('base_questions').upsert({ base_id: base.id, position, question: text }, { onConflict: 'base_id,position' }) // migration 0030 is not applied yet
+        }
         if (res.error) throw new Error('No se pudieron guardar las preguntas.')
       }
     }, true)
@@ -200,17 +216,33 @@ export function BaseCard({
           <textarea value={info} onChange={(e) => setInfo(e.target.value)} rows={4} maxLength={1500} />
         </label>
         <fieldset>
-          <legend>3 posibles preguntas</legend>
+          <legend>Posibles preguntas (mínimo {MIN_QUESTIONS}, cada una con su respuesta)</legend>
           {questions.map((q, i) => (
-            <input
-              key={i}
-              value={q}
-              placeholder={`Pregunta ${i + 1}`}
-              maxLength={300}
-              aria-label={`Pregunta ${i + 1}`}
-              onChange={(e) => setQuestions(questions.map((x, j) => (j === i ? e.target.value : x)))}
-            />
+            <div key={i} className="question-pair">
+              <input
+                value={q.question}
+                placeholder={`Pregunta ${i + 1}`}
+                maxLength={300}
+                aria-label={`Pregunta ${i + 1}`}
+                onChange={(e) => setQuestions(questions.map((x, j) => (j === i ? { ...x, question: e.target.value } : x)))}
+              />
+              <input
+                value={q.answer}
+                placeholder={`Respuesta a la pregunta ${i + 1}`}
+                maxLength={600}
+                aria-label={`Respuesta a la pregunta ${i + 1}`}
+                onChange={(e) => setQuestions(questions.map((x, j) => (j === i ? { ...x, answer: e.target.value } : x)))}
+              />
+            </div>
           ))}
+          {questions.length < MAX_QUESTIONS && (
+            <button className="ghost" type="button" onClick={() => setQuestions([...questions, { question: '', answer: '' }])}>
+              Agregar una pregunta
+            </button>
+          )}
+          {questions.filter((q) => q.question.trim() && q.answer.trim()).length < MIN_QUESTIONS && (
+            <p className="muted">Faltan {MIN_QUESTIONS - questions.filter((q) => q.question.trim() && q.answer.trim()).length} preguntas con su respuesta para poder activar la Carrera.</p>
+          )}
         </fieldset>
         <button disabled={busy || !name.trim()} onClick={() => void save()}>Guardar base</button>
         {saved && <p className="ok-text">Guardado.</p>}

@@ -24,7 +24,8 @@ import AdminNav, { AdminTopbar } from './admin/AdminNav'
 import { PrepSteps } from './admin/Carrera'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
-import { BaseGuide, BaseTicket, BaseWhere, ClosedDesk, MatchCard, NextRound, type BaseMatch, type Team } from './BaseHome'
+import BaseSealCard from '../components/BaseSealCard'
+import { BaseGuide, BaseTicket, BaseWhere, ClosedDesk, MatchCard, NextRound, RotationCard, type BaseMatch, type Team } from './BaseHome'
 import { stampLook } from '../lib/stamp'
 import { ArchiveCard, type Archive } from './admin/Historial'
 import { SEAL_ORDER, sealForSeed } from '../lib/seals'
@@ -383,6 +384,16 @@ export default function Preview() {
     )
   }
 
+  if (screen === 'base-rotacion') {
+    return (
+      <AppShell title="Mi base" user={user}>
+        <RotationCard state="waiting" names={['Fénix', 'Titanes']} onConfirm={noop} />
+        <RotationCard state="ready" names={['Fénix', 'Titanes']} onConfirm={noop} />
+        <RotationCard state="done" names={['Fénix', 'Titanes']} onConfirm={noop} />
+      </AppShell>
+    )
+  }
+
   if (screen === 'sellos-15') {
     // one seed for each of the fifteen mythology seals, so every one can be reviewed
     const seeds = SEAL_ORDER.map((key) => {
@@ -505,9 +516,10 @@ export default function Preview() {
         <div className="tab-view fwd">
         {screen === 'base-info' ? (
           <>
+            <BaseSealCard id="x1" name="Atrio" />
             <BaseGuide
               info="Aquí se explica la historia de la Universidad."
-              questions={[{ position: 1, question: '¿En qué año se fundó la Javeriana?' }, { position: 2, question: '¿Quién es el patrono de la Universidad?' }, { position: 3, question: '¿Cuántas facultades hay?' }]}
+              questions={[{ position: 1, question: '¿En qué año se fundó la Javeriana?', answer: 'En 1623.' }, { position: 2, question: '¿Quién es el patrono de la Universidad?', answer: 'San Francisco Javier.' }, { position: 3, question: '¿Cuántas facultades hay?', answer: 'Depende del año: revisa la lista oficial.' }, { position: 4, question: '¿Cómo se llama el lema de la Universidad?', answer: 'Veritas et Vita.' }, { position: 5, question: '¿Dónde queda la Biblioteca?', answer: 'En el edificio Alfonso Borrero.' }]}
             />
             <BaseWhere base={{ id: 'x1', name: 'Atrio', location_photo_path: '/campus-800.jpg', lat: 4.6286, lng: -74.0647 }} onChanged={noopAsync} />
           </>

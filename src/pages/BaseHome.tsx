@@ -1,4 +1,4 @@
-import { Ban, BellRing, BookOpen, Check, CircleHelp, ClipboardCheck, Flag, MapPin, Send, Trophy, Users, UsersRound } from 'lucide-react'
+import { Ban, BellRing, BookOpen, Check, CircleHelp, ClipboardCheck, Flag, MapPin, Send, Trophy, Users, UsersRound, Shuffle } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import AppShell from '../components/AppShell'
 import { AlertBanner, AlertBell } from '../components/Alerts'
@@ -10,6 +10,8 @@ import Stamp from '../components/Stamp'
 import PhotoField from '../components/PhotoField'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import LoadFailed from '../components/LoadFailed'
+import BaseSealCard from '../components/BaseSealCard'
+import TeamDialog from '../components/TeamDialog'
 import TeamNames from '../components/TeamNames'
 import { useAuth } from '../lib/auth'
 import { useManualAlerts, useNow } from '../lib/alerts'
@@ -31,7 +33,7 @@ import {
   type MatchStatus,
   type ScoreItem,
 } from '../types'
-import { confirmDialog, promptDialog } from '../lib/dialog'
+import { confirmDialog } from '../lib/dialog'
 
 interface MyBase {
   id: string
@@ -81,6 +83,11 @@ export default function BaseHome() {
   const [teams, setTeams] = useState<Map<string, Team>>(new Map())
   const [eventMatches, setEventMatches] = useState<TimedMatch[]>([]) // every match, to know when teams left their previous base
   const [loading, setLoading] = useState(true)
+  const [viewTeam, setViewTeam] = useState<string | null>(null) // the group whose photo is open in big
+  const [rotations, setRotations] = useState<{ id: string; round_number: number }[]>([]) // rounds the coordinator said can rotate (0029)
+  const [rotated, setRotated] = useState<Set<string>>(new Set()) // the rotations this base already confirmed
+  const [rotating, setRotating] = useState(false)
+  const [rotationError, setRotationError] = useState<string | null>(null)
   const [loadFailed, setLoadFailed] = useState(false) // the last request failed (network), which is not the same as having no Carrera
 
   const userId = profile?.id
@@ -88,14 +95,27 @@ export default function BaseHome() {
   const load = useCallback(async () => {
     if (!supabase || !userId) return
     // The base this inductor staffs in the ACTIVE Carrera.
-    const { data: b, error: baseErr } = await supabase
-      .from('bases')
-      .select(
-        'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question), base_staff!inner(user_id), events!inner(is_active, max_travel_minutes)',
-      )
-      .eq('base_staff.user_id', userId)
-      .eq('events.is_active', true)
-      .maybeSingle()
+    const sb = supabase
+    const readBase = (withAnswers: boolean) =>
+      withAnswers
+        ? sb
+            .from('bases')
+            .select(
+              'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question, answer), base_staff!inner(user_id), events!inner(is_active, max_travel_minutes)',
+            )
+            .eq('base_staff.user_id', userId)
+            .eq('events.is_active', true)
+            .maybeSingle()
+        : sb
+            .from('bases')
+            .select(
+              'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question), base_staff!inner(user_id), events!inner(is_active, max_travel_minutes)',
+            )
+            .eq('base_staff.user_id', userId)
+            .eq('events.is_active', true)
+            .maybeSingle()
+    let { data: b, error: baseErr } = await readBase(true)
+    if (baseErr && /answer|column|schema cache/i.test(baseErr.message)) ({ data: b, error: baseErr } = await readBase(false)) // migration 0030 is not applied yet
     if (baseErr) {
       setLoadFailed(true) // a network error is not "no active Carrera": say so (or keep what is on screen) until the next refresh
       return
@@ -119,6 +139,12 @@ export default function BaseHome() {
     setEventMatches((all.data ?? []) as TimedMatch[])
     setMatches((m.data ?? []) as BaseMatch[])
     setTeams(new Map((t.data ?? []).map((x) => [x.id, x])))
+    const rot = await supabase.from('round_rotations').select('id, round_number').eq('event_id', b.event_id)
+    if (!rot.error) {
+      setRotations((rot.data ?? []) as { id: string; round_number: number }[])
+      const mine = await supabase.from('rotation_acks').select('rotation_id').eq('base_id', b.id)
+      if (!mine.error) setRotated(new Set((mine.data ?? []).map((x) => x.rotation_id as string)))
+    }
   }, [userId])
 
   useEffect(() => {
@@ -126,11 +152,15 @@ export default function BaseHome() {
   }, [load])
 
   // Live refresh when scores change (another inductor of the same base, or a correction).
-  useRealtimeReload(['match_scores', 'matches', 'bases', 'events'], load, 1500)
+  useRealtimeReload(['match_scores', 'matches', 'bases', 'events', 'round_rotations', 'rotation_acks'], load, 1500)
 
   const current = useMemo(() => matches.find((m) => m.status !== 'finished'), [matches])
   const next = current ? matches.find((m) => m.round_number > current.round_number && m.status !== 'finished') : undefined
   const finished = matches.filter((m) => m.status === 'finished')
+  // After scoring a match the groups rotate to their next base: it waits for the coordinator's word, then the base confirms it let them go.
+  const lastFinished = finished[finished.length - 1]
+  const rotation = lastFinished ? rotations.find((r) => r.round_number === lastFinished.round_number) : undefined
+  const showRotation = Boolean(lastFinished && current && current.arrived_at === null)
   const codes = useMemo(() => flightCodes([...teams.values()]), [teams]) // the "flight" of each group, as the runners see it
 
   const events = base?.events
@@ -143,11 +173,23 @@ export default function BaseHome() {
   const [hurried, setHurried] = useState<Set<string>>(new Set()) // matches whose groups were already alerted from the delay banner
   const [hurryError, setHurryError] = useState<string | null>(null)
 
+  async function confirmRotation() {
+    if (!supabase || !base || !rotation || !lastFinished) return
+    const names = [teams.get(lastFinished.team_a)?.name, teams.get(lastFinished.team_b)?.name].filter((n): n is string => Boolean(n))
+    if (!(await confirmDialog({ title: '¿Ya dejaste ir a los dos grupos?', details: names, confirmLabel: 'Sí, ya se fueron', icon: 'check' }))) return
+    setRotating(true)
+    setRotationError(null)
+    const { error: err } = await supabase.from('rotation_acks').insert({ rotation_id: rotation.id, base_id: base.id })
+    if (err && !/duplicate|unique/i.test(err.message)) setRotationError(friendlyError(err.message, 'No se pudo confirmar. Revisa tu conexión e inténtalo de nuevo.'))
+    await load()
+    setRotating(false)
+  }
+
   // The delay banner can alert the late groups itself: the late match may be the NEXT round, which has no card with that button.
   async function hurryLate(matchId: string) {
     if (!base) return
     setHurryError(null)
-    const result = await hurryGroups(base.event_id, matchId)
+    const result = await hurryGroups(base.event_id, matchId, late.filter((l) => l.matchId === matchId).map((l) => teams.get(l.teamId)?.name ?? '').filter(Boolean))
     if (result.error) setHurryError(result.error)
     else if (result.sent) setHurried((prev) => new Set(prev).add(matchId))
   }
@@ -200,6 +242,15 @@ export default function BaseHome() {
               <>
                 <BaseTicket name={base.name} photoPath={base.location_photo_path} sealed={finished.length} />
                 {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
+                {showRotation && lastFinished && (
+                  <RotationCard
+                    state={rotation && rotated.has(rotation.id) ? 'done' : rotation ? 'ready' : 'waiting'}
+                    names={[teams.get(lastFinished.team_a)?.name, teams.get(lastFinished.team_b)?.name].filter((n): n is string => Boolean(n))}
+                    busy={rotating}
+                    error={rotationError}
+                    onConfirm={() => void confirmRotation()}
+                  />
+                )}
                 {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} eventId={base.event_id} base={base} codes={codes} />}
                 {next && <NextRound match={next} teams={teams} />}
                 {current === undefined && matches.length > 0 && <ClosedDesk name={base.name} sealed={finished.length} />}
@@ -216,7 +267,7 @@ export default function BaseHome() {
                     <b className="num">{teams.size}</b>
                   </h2>
                   <div className="card">
-                    <TeamNames teams={[...teams.values()]} />
+                    <TeamNames teams={[...teams.values()]} onSelect={setViewTeam} />
                   </div>
                 </section>
                 <section className="top-others" aria-label="Cruces de tu base">
@@ -249,6 +300,8 @@ export default function BaseHome() {
 
             {tab === 'base' && <MyBaseTab base={base} onChanged={load} />}
           </div>
+
+          {viewTeam && teams.get(viewTeam) && <TeamDialog name={teams.get(viewTeam)!.name} photoPath={teams.get(viewTeam)!.photo_path} usernames={[]} onClose={() => setViewTeam(null)} />}
 
           <BottomNav
             tabs={TABS}
@@ -347,6 +400,7 @@ export function ClosedDesk({ name, sealed }: { name: string; sealed: number }) {
 function MyBaseTab({ base, onChanged }: { base: MyBase; onChanged: () => Promise<void> }) {
   return (
     <>
+      <BaseSealCard id={base.id} name={base.name} />
       <BaseGuide info={infoOf(base.base_details)} questions={base.base_questions} />
       <BaseWhere base={base} onChanged={onChanged} />
     </>
@@ -383,13 +437,6 @@ export function BaseWhere({ base, onChanged }: { base: { id: string; name: strin
         Dónde queda
       </h2>
       <div className="card">
-        <div className="base-stamp">
-          <Stamp seed={base.id} name={base.name} photoPath={base.location_photo_path} round={0} state="stamped" size={104} straight />
-          <p>
-            <strong>Este es el sello de tu base</strong>
-            Cada grupo lo recibe en su pasaporte cuando confirmas su llegada. Se imprime con tu foto: mientras mejor se vea el lugar, mejor el sello.
-          </p>
-        </div>
         <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
         {error && <p className="error">{error}</p>}
         {hasLocation && !editing ? (
@@ -447,7 +494,12 @@ export function BaseGuide({ info, questions: raw }: { info: string | null; quest
             <p className="muted">Sin preguntas.</p>
           ) : (
             <ol className="questions">
-              {questions.map((q) => <li key={q.position}>{q.question}</li>)}
+              {questions.map((q) => (
+                <li key={q.position}>
+                  {q.question}
+                  {q.answer?.trim() && <p className="q-answer"><b>Respuesta:</b> {q.answer.trim()}</p>}
+                </li>
+              ))}
             </ol>
           )}
         </div>
@@ -491,12 +543,36 @@ type Pick = string // team id
 const NOT_ACTIVE = 'La Carrera no está activa para tu usuario, así que no puedes registrar nada ahora. Avísale al coordinador.'
 export const friendlyError = (message: string, fallback: string) => (/row-level security|permission denied|no está asignado/i.test(message) ? NOT_ACTIVE : fallback)
 
-// Asks for the message and alerts the two groups of a match (they get a notification and their phone rings).
-export async function hurryGroups(eventId: string, matchId: string): Promise<{ sent: boolean; error?: string }> {
-  const message = await promptDialog({ title: 'Apurar a los grupos', message: 'Les llega como notificación y les suena el teléfono.', label: 'Mensaje', defaultValue: 'Apúrense: la base los está esperando.', confirmLabel: 'Enviar aviso', icon: 'bell' })
-  if (!message) return { sent: false } // cancelled
-  const error = await sendMatchAlert(eventId, matchId, message)
+const HURRY_MESSAGE = 'Apúrense: la base los está esperando.'
+
+// Asks to confirm and alerts the two groups of a match with a fixed message.
+export async function hurryGroups(eventId: string, matchId: string, names: string[] = []): Promise<{ sent: boolean; error?: string }> {
+  const ok = await confirmDialog({ title: '¿Apurar a los grupos?', details: names, confirmLabel: 'Enviar aviso', icon: 'bell' })
+  if (!ok) return { sent: false } // cancelled
+  const error = await sendMatchAlert(eventId, matchId, HURRY_MESSAGE)
   return error ? { sent: false, error } : { sent: true }
+}
+
+// "Equipos en rotación": once a match is scored, the groups wait for the coordinator to say every base can rotate; then the base confirms it let them go.
+export function RotationCard({ state, names, busy, error, onConfirm }: { state: 'waiting' | 'ready' | 'done'; names: string[]; busy?: boolean; error?: string | null; onConfirm: () => void }) {
+  return (
+    <section className={`card rotation-card ${state}`} aria-label="Equipos en rotación">
+      <h2>
+        <Shuffle size={18} aria-hidden="true" /> Equipos en rotación
+      </h2>
+      {names.length > 0 && <p className="muted">{names.join(' y ')}</p>}
+      {state === 'waiting' && <p className="rotation-waiting">Esperando el aviso del coordinador.</p>}
+      {state === 'ready' && <p><strong>Ya pueden rotar.</strong></p>}
+      {state === 'done' && <p className="ok-text"><Check size={16} aria-hidden="true" /> Confirmado: los grupos ya salieron.</p>}
+      {error && <p className="error">{error}</p>}
+      {state !== 'done' && (
+        <button type="button" className="btn-block" disabled={state === 'waiting' || busy} onClick={onConfirm}>
+          <Shuffle size={19} aria-hidden="true" />
+          {busy ? 'Confirmando…' : 'Ya los dejé ir'}
+        </button>
+      )}
+    </section>
+  )
 }
 
 // The three steps of the counter: both groups arrive, the three stages are scored, the visa is stamped.
@@ -569,7 +645,7 @@ export function MatchCard({
     if (!eventId) return
     setError(null)
     setNotice(null)
-    const result = await hurryGroups(eventId, match.id)
+    const result = await hurryGroups(eventId, match.id, [a?.name ?? '', b?.name ?? ''].filter(Boolean))
     if (result.error) setError(result.error)
     else if (result.sent) setNotice('Aviso enviado a los dos grupos.')
   }
@@ -627,7 +703,6 @@ export function MatchCard({
 
       {!arrived && (
         <>
-          <p className="muted">Cuando estén los dos grupos en tu base, confírmalo. Así el coordinador sabe que ya pueden jugar.</p>
           {error && <p className="error">{error}</p>}
           <button className="btn-block" disabled={busy} onClick={() => void confirmArrival()}>
             <UsersRound size={20} aria-hidden="true" />

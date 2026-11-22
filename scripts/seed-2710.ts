@@ -30,10 +30,19 @@ const GENERATIONS: Record<string, { label: string; term: string }> = {
 
 const GROUP_NAMES = ['Fénix', 'Minotauros', 'Valquirias', 'Quimeras', 'Hidras', 'Cíclopes', 'Centauros', 'Grifos', 'Sirenas', 'Titanes', 'Pegasos', 'Dragones', 'Kraken', 'Anubis', 'Quetzales', 'Nahuales', 'Fenrires', 'Gorgonas', 'Trolls', 'Basiliscos', 'Sátiros', 'Ninfas', 'Golems', 'Banshees']
 const BASE_NAMES = ['Olimpo', 'Valhalla', 'Atlántida', 'Tebas', 'Troya', 'Esparta', 'Delfos', 'Ítaca', 'Midgard', 'Bifrost', 'Teotihuacán', 'Tenochtitlán', 'Menfis', 'Giza', 'Luxor', 'Xian', 'Shangri-La', 'Asgard', 'Hades', 'Camelot', 'Eleusis', 'Micenas', 'Cnosos', 'Abidos']
-const QUESTIONS = [
-  ['¿Quién robó el fuego para dárselo a los humanos?', '¿Cómo se llama el martillo de Thor?', '¿Qué dios egipcio pesa el corazón de los muertos?'],
-  ['¿Qué monstruo de mil cabezas combatió Hércules?', '¿Cuál es el árbol que sostiene los nueve mundos nórdicos?', '¿Qué dios azteca es la serpiente emplumada?'],
-  ['¿Quién es la diosa griega de la sabiduría?', '¿Cómo se llama el barco de los nórdicos?', '¿Qué animal sagrado representa a Bastet?'],
+const QUESTIONS: [string, string][] = [
+  ['¿Quién robó el fuego para dárselo a los humanos?', 'Prometeo.'],
+  ['¿Cómo se llama el martillo de Thor?', 'Mjölnir.'],
+  ['¿Qué dios egipcio pesa el corazón de los muertos?', 'Anubis.'],
+  ['¿Qué monstruo de mil cabezas combatió Hércules?', 'La Hidra de Lerna.'],
+  ['¿Cuál es el árbol que sostiene los nueve mundos nórdicos?', 'Yggdrasil.'],
+  ['¿Qué dios azteca es la serpiente emplumada?', 'Quetzalcóatl.'],
+  ['¿Quién es la diosa griega de la sabiduría?', 'Atenea.'],
+  ['¿Cómo se llama el barco de los nórdicos?', 'Drakkar.'],
+  ['¿Qué animal sagrado representa a Bastet?', 'El gato.'],
+  ['¿Cómo se llama el caballo alado de la mitología griega?', 'Pegaso.'],
+  ['¿Qué dios griego gobierna los mares?', 'Poseidón.'],
+  ['¿Qué animal es Baihu, guardián del oeste chino?', 'Un tigre blanco.'],
 ]
 
 const slug = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '')
@@ -225,7 +234,7 @@ async function main() {
   ).sort((a, b) => a.sort_order - b.sort_order)
   must(await db.from('base_details').insert(bases.map((b) => ({ base_id: b.id, info: `Base ficticia de ${b.name}: cada grupo juega las tres etapas (barra, pregunta y minijuego) y suma un punto por etapa.` }))), 'info de bases')
   must(
-    await db.from('base_questions').insert(bases.flatMap((b, i) => QUESTIONS[i % 3].map((question, k) => ({ base_id: b.id, position: k + 1, question })))),
+    await db.from('base_questions').insert(bases.flatMap((b, i) => Array.from({ length: 5 }, (_, k) => QUESTIONS[(i * 5 + k) % QUESTIONS.length]).map(([question, answer], k) => ({ base_id: b.id, position: k + 1, question, answer })))),
     'preguntas de bases',
   )
 

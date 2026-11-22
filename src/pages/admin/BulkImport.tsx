@@ -186,7 +186,7 @@ export default function BulkImport() {
           if (err) out.problems.push(`Base "${b.name}": no se pudo guardar la información.`)
         }
         for (const [i, q] of b.questions.entries()) {
-          const { error: err } = await sb.from('base_questions').upsert({ base_id: id, position: i + 1, question: q }, { onConflict: 'base_id,position' })
+          const { error: err } = await sb.from('base_questions').upsert({ base_id: id, position: i + 1, question: q, answer: b.answers[i] || null }, { onConflict: 'base_id,position' })
           if (err) out.problems.push(`Base "${b.name}": no se pudo guardar la pregunta ${i + 1}.`)
         }
       }
@@ -346,7 +346,7 @@ export default function BulkImport() {
           {file.bases.length > 0 && (
             <Section title="Bases" count={file.bases.length} errors={file.bases.filter((r) => r.errors.length).length}>
               {file.bases.map((r) => (
-                <Row key={r.line} errors={r.errors} cells={[r.name || '—', `${r.questions.length}/3 preguntas${r.info ? ' · con información' : ''}${r.lat !== null ? ' · en el mapa' : ''}`]} />
+                <Row key={r.line} errors={r.errors} cells={[r.name || '—', `${r.questions.length} preguntas (mínimo 5)${r.info ? ' · con información' : ''}${r.lat !== null ? ' · en el mapa' : ''}`]} />
               ))}
             </Section>
           )}

@@ -4,7 +4,7 @@
 //
 //   Carrera   : Dato | Valor                      (nombre de la Carrera, tiempo máximo general)
 //   Grupos    : Nombre del grupo
-//   Bases     : Nombre de la base | Información | Pregunta 1 | Pregunta 2 | Pregunta 3 | Latitud | Longitud
+//   Bases     : Nombre de la base | Información | Pregunta 1 | Pregunta 2 | Pregunta 3 | … (hasta 10, con Respuesta 1, Respuesta 2… opcionales) | Latitud | Longitud
 //   Personas  : Nombre completo | Rol | Grupo o base | Usuario | GPS | Contraseña
 //   Cruces    : Ronda | Base | Grupo A | Grupo B
 //   Tiempos   : Desde | Hasta | Minutos
@@ -42,7 +42,8 @@ export interface GrupoIn extends RowBase {
 export interface BaseIn extends RowBase {
   name: string
   info: string
-  questions: string[] // up to 3, blanks removed
+  questions: string[] // up to 10, blanks removed (a base needs at least 5, with their answer, to activate the Carrera)
+  answers: string[] // the answer of each question, in the same order (empty when the file has no answer column)
   lat: number | null
   lng: number | null
 }
@@ -172,7 +173,8 @@ function readBases(table: string[][]): BaseIn[] {
   const col = {
     name: index(h, ['nombre de la base', 'nombre de base', 'base', 'nombre']),
     info: index(h, ['informacion', 'informacion que se da', 'informacion de la base']),
-    q: [1, 2, 3].map((n) => index(h, [`pregunta ${n}`, `pregunta${n}`, `p${n}`])),
+    q: Array.from({ length: 10 }, (_, k) => k + 1).map((n) => index(h, [`pregunta ${n}`, `pregunta${n}`, `p${n}`])),
+    a: Array.from({ length: 10 }, (_, k) => k + 1).map((n) => index(h, [`respuesta ${n}`, `respuesta${n}`, `r${n}`])),
     lat: index(h, ['latitud', 'lat']),
     lng: index(h, ['longitud', 'lng', 'lon']),
   }
@@ -182,6 +184,7 @@ function readBases(table: string[][]): BaseIn[] {
       name: spaces(cellAt(r, col.name)),
       info: cellAt(r, col.info),
       questions: col.q.map((c) => spaces(cellAt(r, c))).filter(Boolean),
+      answers: col.q.map((c, k) => [spaces(cellAt(r, c)), spaces(cellAt(r, col.a[k]))] as const).filter(([q]) => q).map(([, a]) => a),
       lat: null,
       lng: null,
       errors: [],

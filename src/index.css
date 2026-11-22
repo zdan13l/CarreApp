@@ -1981,7 +1981,7 @@ button.stop-share.ghost { width: auto; min-width: 16rem; max-width: 100%; justif
 .title-tag { box-shadow: none; }
 .team-photo { border-color: var(--border-strong); }
 .account-sheet::before { display: none; }
-.account-photo { background: var(--border-strong); box-shadow: 0 14px 26px -14px rgba(3, 29, 68, .6); }
+.account-photo { background: var(--foil); box-shadow: 0 14px 26px -14px rgba(3, 29, 68, .6); } /* the golden circle around the photo of the person */
 
 /* el fondo de las pestañas, más quieto en modo oscuro */
 :root:not([data-theme='light']) body:has(.tab-view), :root:not([data-theme='light']) html:has(.tab-view) {
@@ -2255,3 +2255,16 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 .history-detail summary { cursor: pointer; font-weight: 600; }
 .history-round h3 { margin: .8rem 0 .2rem; font-size: .9rem; }
 .history-round ul { margin: 0; padding-left: 1.1rem; font-size: .85rem; }
+.base-seal-card { display: flex; align-items: center; gap: 1rem; }
+.base-seal-card .alias-name { margin: .1rem 0 .3rem; }
+.seal-sheet { gap: .5rem; text-align: center; }
+.seal-sheet .seal-story { margin: .4rem 0 0; font-size: 1rem; line-height: 1.45; }
+.rotation-card { display: grid; gap: .6rem; }
+.rotation-card h2 { display: flex; align-items: center; gap: .5rem; margin: 0; font-size: 1.05rem; }
+.rotation-progress { display: grid; gap: .4rem; }
+.rotation-bar { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.rotation-bar > i { display: block; height: 100%; background: var(--foil); border-radius: 999px; }
+.rotation-waiting { margin: 0; font-size: .85rem; color: var(--text-muted); }
+.question-pair { display: grid; gap: .3rem; margin-bottom: .6rem; }
+.q-answer { margin: .25rem 0 0; font-size: .9rem; color: var(--text-muted); }
+.q-answer b { color: var(--text); }

@@ -69,27 +69,28 @@ export type SealKey =
 export interface MythSeal extends InkSource {
   key: SealKey
   name: string
+  story: string // what it is, for the inductor who staffs the base: its mythology and what it refers to
   culture: string // the key of the culture in the Mitologías theme
   frame: FrameKind
   wings?: boolean // Pegasus: the wings are drawn over the picture, which has none
 }
 
 export const MYTH_SEALS: MythSeal[] = [
-  { key: 'horus', name: 'El ojo de Horus', culture: 'egipcia', frame: 'wide', file: 'ink/horus.png' },
-  { key: 'anubis', name: 'Anubis', culture: 'egipcia', frame: 'oval', file: 'ink/anubis.png' },
-  { key: 'khepri', name: 'Khepri, el escarabajo alado', culture: 'egipcia', frame: 'octagon', file: 'ink/khepri.png' },
-  { key: 'mjolnir', name: 'Mjölnir, el martillo de Thor', culture: 'nordica', frame: 'circle', file: 'ink/mjolnir.png' },
-  { key: 'loki', name: 'Loki, el casco de cuernos', culture: 'nordica', frame: 'shield', file: 'ink/loki.png' },
-  { key: 'cuervos', name: 'Hugin y Munin, los cuervos de Odín', culture: 'nordica', frame: 'arch', file: 'ink/cuervos.png' },
-  { key: 'zeus', name: 'Zeus, el rayo en alto', culture: 'griega', frame: 'hexagon', file: 'ink/zeus.png' },
-  { key: 'pegaso', name: 'Pegaso, el salto con alas', culture: 'griega', frame: 'circle', file: 'ink/pegaso.png', wings: true },
-  { key: 'poseidon', name: 'Poseidón, rey de los mares', culture: 'griega', frame: 'medal', file: 'ink/poseidon.png' }, // the letters of the ring of the original are a solid ring
-  { key: 'jaguar', name: 'El jaguar', culture: 'mexicana', frame: 'tablet', file: 'ink/jaguar.png' },
-  { key: 'aguila', name: 'El águila de alas abiertas', culture: 'mexicana', frame: 'pentagon', file: 'ink/aguila.png' },
-  { key: 'mictlan', name: 'Mictlán, el rostro con la lengua', culture: 'mexicana', frame: 'scallop', file: 'ink/mictlan.png' },
-  { key: 'dragon', name: 'El dragón y la perla', culture: 'china', frame: 'octagon', file: 'ink/dragon.png' },
-  { key: 'wukong', name: 'Sun Wukong, el Rey Mono', culture: 'china', frame: 'oval', file: 'ink/wukong.png' },
-  { key: 'tigre', name: 'El tigre blanco, Baihu', culture: 'china', frame: 'circle', file: 'ink/tigre.png' },
+  { key: 'horus', name: 'El ojo de Horus', story: 'El ojo de Horus, el dios halcón del cielo egipcio, protege y sana: es el ojo que todo lo ve y cuida a quien lo lleva.', culture: 'egipcia', frame: 'wide', file: 'ink/horus.png' },
+  { key: 'anubis', name: 'Anubis', story: 'Anubis, el dios con cabeza de chacal, guía a las almas por el inframundo y vigila el pesaje de sus corazones.', culture: 'egipcia', frame: 'oval', file: 'ink/anubis.png' },
+  { key: 'khepri', name: 'Khepri, el escarabajo alado', story: 'Khepri, el escarabajo alado, empuja el sol cada mañana por el cielo: símbolo de renacer y de empezar de nuevo.', culture: 'egipcia', frame: 'octagon', file: 'ink/khepri.png' },
+  { key: 'mjolnir', name: 'Mjölnir, el martillo de Thor', story: 'Mjölnir es el martillo de Thor, el dios del trueno: defiende a dioses y humanos de los gigantes y bendice lo que toca.', culture: 'nordica', frame: 'circle', file: 'ink/mjolnir.png' },
+  { key: 'loki', name: 'Loki, el casco de cuernos', story: 'Loki, el embaucador nórdico: dios del fuego y las travesuras, capaz de cambiar de forma. Lleva su casco de cuernos.', culture: 'nordica', frame: 'shield', file: 'ink/loki.png' },
+  { key: 'cuervos', name: 'Hugin y Munin, los cuervos de Odín', story: 'Hugin (el pensamiento) y Munin (la memoria) son los cuervos de Odín: vuelan por el mundo y le cuentan todo lo que ven.', culture: 'nordica', frame: 'arch', file: 'ink/cuervos.png' },
+  { key: 'zeus', name: 'Zeus, el rayo en alto', story: 'Zeus, rey de los dioses del Olimpo, gobierna el cielo y lanza el rayo con el que impone la justicia.', culture: 'griega', frame: 'hexagon', file: 'ink/zeus.png' },
+  { key: 'pegaso', name: 'Pegaso, el salto con alas', story: 'Pegaso es el caballo alado que nació de Medusa: voló hasta el Olimpo y llevó los rayos de Zeus.', culture: 'griega', frame: 'circle', file: 'ink/pegaso.png', wings: true },
+  { key: 'poseidon', name: 'Poseidón, rey de los mares', story: 'Poseidón, dios de los mares, agita las olas con su tridente y hace temblar la tierra cuando se enfurece.', culture: 'griega', frame: 'medal', file: 'ink/poseidon.png' }, // the letters of the ring of the original are a solid ring
+  { key: 'jaguar', name: 'El jaguar', story: 'El jaguar era el guardián de la noche y del inframundo para los pueblos de México: símbolo de la fuerza y de los guerreros.', culture: 'mexicana', frame: 'tablet', file: 'ink/jaguar.png' },
+  { key: 'aguila', name: 'El águila de alas abiertas', story: 'El águila es el ave del sol. Según la leyenda mexica, un águila sobre un nopal mostró dónde fundar Tenochtitlán.', culture: 'mexicana', frame: 'pentagon', file: 'ink/aguila.png' },
+  { key: 'mictlan', name: 'Mictlán, el rostro con la lengua', story: 'Mictlán es el inframundo mexica: las almas lo cruzaban en nueve niveles hasta llegar a su señor, Mictlantecuhtli.', culture: 'mexicana', frame: 'scallop', file: 'ink/mictlan.png' },
+  { key: 'dragon', name: 'El dragón y la perla', story: 'El dragón chino trae la lluvia y la buena suerte, y persigue la perla, que representa la sabiduría.', culture: 'china', frame: 'octagon', file: 'ink/dragon.png' },
+  { key: 'wukong', name: 'Sun Wukong, el Rey Mono', story: 'Sun Wukong, el Rey Mono de «Viaje al Oeste»: ingenioso, travieso e imparable, con su bastón mágico.', culture: 'china', frame: 'oval', file: 'ink/wukong.png' },
+  { key: 'tigre', name: 'El tigre blanco, Baihu', story: 'El tigre blanco, Baihu, es uno de los cuatro guardianes del cielo chino: protege el oeste y simboliza el valor.', culture: 'china', frame: 'circle', file: 'ink/tigre.png' },
 ]
 
 /** The order bases take the seals in: the cultures alternate, so five bases already get one of each. */

@@ -5,6 +5,7 @@ import DelaysPanel, { sendMatchAlert } from '../../components/DelaysPanel'
 import FlightBoard from '../../components/FlightBoard'
 import OpsLog, { buildOpEvents } from '../../components/OpsLog'
 import Kpi from '../../components/Kpi'
+import RotationPanel from '../../components/RotationPanel'
 import Ranking from '../../components/Ranking'
 import { useNow } from '../../lib/alerts'
 import { airportCode, flightCodes, flightOf } from '../../lib/flight'
@@ -138,7 +139,7 @@ export default function EnVivo() {
     if (!supabase || !event) return
     const ok = await confirmDialog({
       title: `¿Finalizar "${event.name}"?`,
-      message: 'Se REINICIA todo su avance: puntajes, llegadas, avisos, ubicaciones y registro de cambios. Se conservan grupos, bases, usuarios y el cronograma. Los teléfonos dejan de verla. Antes se descargan los resultados (clasificación y detalle por cruce) en un archivo.',
+      message: 'Se REINICIA todo su avance: puntajes, llegadas, avisos, ubicaciones y registro de cambios. Se conservan grupos, bases, usuarios y el cronograma. Los teléfonos dejan de verla. Antes se guardan en el Historial y se descargan en un archivo los resultados (clasificación y detalle por cruce).',
       confirmLabel: 'Descargar y finalizar',
       tone: 'danger',
       icon: 'warning',
@@ -207,6 +208,7 @@ export default function EnVivo() {
       )}
 
       {matches.length > 0 && <FlightBoard teams={teams} matches={matches} baseName={baseName} codes={codes} lateIds={lateIds} />}
+      {active && matches.length > 0 && <RotationPanel eventId={event.id} round={round} matches={matches} baseName={baseName} />}
 
       <div className="live-grid">
         <div>
