@@ -30,7 +30,8 @@ import { stampLook } from '../lib/stamp'
 import { ArchiveCard, type Archive } from './admin/Historial'
 import { SEAL_ORDER, sealForSeed } from '../lib/seals'
 import { AfterCard, CurrentRound, FinishedCard, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
-import { AlertBanner, AlertBell } from '../components/Alerts'
+import { AlertBanner } from '../components/Alerts'
+import type { LegInfo } from '../lib/delays'
 import LoadFailed from '../components/LoadFailed'
 import TeamDialog from '../components/TeamDialog'
 import NoActiveCarrera from '../components/NoActiveCarrera'
@@ -77,6 +78,12 @@ const towerCodes = flightCodes(towerTeams)
 const towerNames = new Map(towerTeams.map((t) => [t.id, t.name]))
 const towerOps = buildOpEvents({ matches: towerMatches, alerts: [{ id: 'n1', match_id: 'a4', message: 'Apúrense: la base los está esperando.', created_at: '2026-01-20T15:41:00Z' }], baseName: towerBases, teamName: towerNames, codes: towerCodes })
 
+// sample legs for the arrival screen: one group still has time, the other is over its limit
+const previewLegs: Record<string, LegInfo> = {
+  t0: { kind: 'walking', fromBaseId: 'bx', finishedAt: Date.now() - 6 * 60_000, allowedMin: 10 },
+  t3: { kind: 'walking', fromBaseId: 'by', finishedAt: Date.now() - 12 * 60_000, allowedMin: 10 },
+}
+const previewBaseNames = new Map([['bx', 'Atrio'], ['by', 'Biblioteca']])
 const baseMatchPending: BaseMatch = { id: 'b1', round_number: 3, team_a: 't0', team_b: 't3', status: 'pending', arrived_at: null, match_scores: [] }
 const baseMatchPlaying: BaseMatch = {
   id: 'b2', round_number: 2, team_a: 't0', team_b: 't2', status: 'in_progress', arrived_at: '2026-01-20T10:30:00Z',
@@ -315,7 +322,7 @@ export default function Preview() {
   // a group is late for the NEXT round: the banner carries its own button to hurry the groups
   if (screen === 'base-demora') {
     return (
-      <AppShell title="Mi base" showTitle={false} user={inspector} topActions={<AlertBell />}>
+      <AppShell title="Mi base" showTitle={false} user={inspector} alerts>
         <div className="base-view" style={baseInk}>
           <AlertBanner
             title="Ronda 3: grupos en demora"
@@ -436,7 +443,7 @@ export default function Preview() {
 
   if (screen === 'runner-fin') {
     return (
-      <AppShell title="Mi grupo" user={user} topActions={<AlertBell />}>
+      <AppShell title="Mi grupo" user={user} alerts>
         <div className="tab-view fwd">
           <FinishedCard team="Dioses Griegos" matches={routeMatches.filter((m) => m.round_number !== 3)} onPassport={noop} />
         </div>
@@ -452,7 +459,7 @@ export default function Preview() {
         title="Mi grupo"
         showTitle={tab === 'ronda'}
         user={user}
-        topActions={<AlertBell />}
+        alerts
       >
         <div className="tab-view fwd">
         {tab === 'ronda' && (
@@ -481,7 +488,7 @@ export default function Preview() {
 
   if (screen === 'base-resultados') {
     return (
-      <AppShell title="Resultados" showTitle={false} user={inspector} topActions={<AlertBell />}>
+      <AppShell title="Resultados" showTitle={false} user={inspector} alerts>
        <div className="base-view" style={baseInk}>
         <div className="tab-view fwd">
         <BaseTicket name="Atrio" photoPath="/campus-800.jpg" sealed={2} />
@@ -511,7 +518,7 @@ export default function Preview() {
   if (screen === 'base' || screen === 'base-llegada' || screen === 'base-fin' || screen === 'base-info') {
     const onRound = screen !== 'base-info'
     return (
-      <AppShell title={onRound ? 'Mi base' : 'Mi base'} showTitle={onRound} user={inspector} topActions={<AlertBell />}>
+      <AppShell title={onRound ? 'Mi base' : 'Mi base'} showTitle={onRound} user={inspector} alerts>
        <div className="base-view" style={baseInk}>
         <div className="tab-view fwd">
         {screen === 'base-info' ? (
@@ -527,7 +534,7 @@ export default function Preview() {
           <>
             <BaseTicket name="Atrio" photoPath="/campus-800.jpg" sealed={screen === 'base-fin' ? 5 : 1} />
             {screen === 'base' && <MatchCard match={baseMatchPlaying} teams={teams} onSent={noopAsync} eventId="e1" base={previewBase} codes={baseCodes} />}
-            {screen === 'base-llegada' && <MatchCard match={baseMatchPending} teams={teams} onSent={noopAsync} eventId="e1" base={previewBase} codes={baseCodes} />}
+            {screen === 'base-llegada' && <MatchCard match={baseMatchPending} teams={teams} onSent={noopAsync} eventId="e1" base={previewBase} codes={baseCodes} legs={previewLegs} baseNames={previewBaseNames} />}
             {screen === 'base' && <NextRound match={baseMatchPending} teams={teams} />}
             {screen === 'base-fin' && <ClosedDesk name="Atrio" sealed={5} />}
           </>

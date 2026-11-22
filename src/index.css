@@ -827,8 +827,6 @@ a.btn-like { color: var(--text); text-decoration: none; }
 .mk.late .mk-pin { border-color: var(--danger); box-shadow: 0 0 0 5px color-mix(in srgb, var(--danger) 35%, transparent); animation: pulse 1.4s ease-in-out infinite; }
 
 /* ---------- Ajustes de alertas del corredor y guía de la base ---------- */
-.bell { position: relative; }
-.bell .dot { position: absolute; top: 8px; right: 9px; width: 9px; height: 9px; border-radius: 50%; background: var(--warn); border: 2px solid var(--bg); }
 .guide summary { color: var(--text); font-size: 1.05rem; }
 .guide h3:first-of-type { margin-top: .5rem; }
 .next p { margin: .5rem 0 0; }
@@ -971,7 +969,6 @@ a.kpi:hover { transform: translateY(-2px); border-color: var(--border-strong); }
 }
 .live-grid > div > .section-title:first-child { margin-top: 0; }
 
-.bell svg { width: 24px; height: 24px; }
 
 .login-hero { --gold: var(--on-hero-gold); --sky: var(--on-hero-sky); }
 
@@ -1062,8 +1059,6 @@ button.icon-btn { padding: 0; }
 @media (prefers-reduced-motion: reduce) { .dialog, .dialog-backdrop { animation: none; } }
 
 /* Campana de ajustes: se llena de oro y cambia a "sonando" mientras está abierta */
-.bell[aria-expanded='true'] { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
-.bell[aria-expanded='true'] .dot { border-color: var(--gold); }
 
 /* Quién ganó cada ítem, bajo cada cruce terminado de la base */
 .won-items { list-style: none; display: grid; gap: .15rem; margin: .35rem 0 0; padding: 0; font-size: .85rem; color: var(--text-muted); }
@@ -1652,10 +1647,6 @@ html:has(.login-screen), body:has(.login-screen) { overflow: hidden; overscroll-
 
 /* campana: el panel de ajustes se abre sobre la pantalla, bajo la barra */
 .sheet-backdrop { position: fixed; inset: 0; z-index: 70; background: color-mix(in srgb, var(--pass-navy) 60%, transparent); animation: fade .2s ease-out both; }
-.alerts-sheet { position: fixed; z-index: 71; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 76px); padding: 1rem 1.1rem 1.15rem; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 18px; box-shadow: 0 24px 48px -12px color-mix(in srgb, var(--pass-navy) 60%, transparent); animation: rise .25s cubic-bezier(.2, .8, .2, 1) both; }
-.alerts-sheet header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
-.alerts-sheet h2 { margin: 0; }
-.alerts-sheet .muted { margin: .4rem 0 0; }
 
 /* las pestañas se deslizan (hacia donde vas) */
 .tab-view { animation: tab-fwd .34s cubic-bezier(.2, .8, .2, 1) both; }
@@ -1738,24 +1729,17 @@ html:has(.tab-view), body:has(.tab-view) { background: #fff url(/login-pattern.s
 .bn-tab span { position: relative; z-index: 1; }
 
 /* ---- Botones de la barra superior: campana y cuenta, en el mismo azul marino que el pase y las pestañas ---- */
-.topbar .account-btn, .topbar button.bell.ghost {
+.topbar .account-btn {
   color: #fff; background: var(--pass-navy); border: 1px solid rgba(255, 255, 255, .16); box-shadow: 0 6px 14px -6px rgba(3, 29, 68, .55);
 }
-.topbar .account-btn:hover:not(:disabled), .topbar button.bell.ghost:hover:not(:disabled) { background: var(--pass-navy); border-color: rgba(255, 255, 255, .16); }
-.topbar .account-btn:focus-visible, .topbar button.bell.ghost:focus-visible { outline: 2px solid var(--pass-gold); outline-offset: 2px; }
+.topbar .account-btn:hover:not(:disabled) { background: var(--pass-navy); border-color: rgba(255, 255, 255, .16); }
+.topbar .account-btn:focus-visible { outline: 2px solid var(--pass-gold); outline-offset: 2px; }
 .topbar .account-btn { min-height: 46px; padding: 3px 14px 3px 3px; }
 .topbar .account-btn .avatar { box-shadow: 0 0 0 2px var(--pass-gold); }
-.topbar .account-btn { max-width: 11rem; }
+.topbar .account-btn { max-width: 15rem; } /* no bell any more: the name has the room */
 .topbar .account-text small { display: none; }
-.topbar .account-text strong { max-width: 7.6rem; font-size: .875rem; }
-.topbar button.bell.ghost { width: 46px; min-width: 46px; min-height: 46px; border-radius: 16px; }
-.topbar button.bell.ghost svg { width: 22px; height: 22px; }
-/* la campana siempre es del mismo color: el estado se lee en el icono y en la lucecita (verde con sonido, dorada sin él) */
-.topbar .bell .dot { top: 7px; right: 7px; width: 10px; height: 10px; background: var(--pass-gold); border: 2px solid var(--pass-navy); }
-.topbar .bell.is-on .dot { background: var(--on-hero-ok); }
-.topbar button.bell.ghost[aria-expanded='true'] { color: var(--pass-navy); background: var(--foil); border-color: transparent; }
-.topbar button.bell.ghost[aria-expanded='true'] .dot { border-color: var(--pass-gold); }
-@media (hover: none) { .topbar .account-btn:hover:not(:disabled), .topbar button.bell.ghost:hover:not(:disabled) { background: var(--pass-navy); } }
+.topbar .account-text strong { max-width: 10.6rem; font-size: .875rem; }
+@media (hover: none) { .topbar .account-btn:hover:not(:disabled) { background: var(--pass-navy); } }
 
 /* ---- Top: la tarjeta blanca del título, como la pestaña de una carpeta ---- */
 .top-others { margin-top: 1.1rem; }
@@ -1789,7 +1773,7 @@ html:has(.tab-view), body:has(.tab-view) { background: #fff url(/login-pattern.s
 .topbar { margin-top: .25rem; padding: .55rem .6rem .55rem .85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 12px 26px -16px rgba(3, 29, 68, .55); }
 .topbar::after { left: 18px; right: 18px; bottom: -1px; }
 .page-title { margin-top: 1.1rem; }
-.topbar .account-text strong { max-width: 6.4rem; }
+.topbar .account-text strong { max-width: 10.6rem; }
 
 /* hoja de la cuenta: foto grande, modo claro / oscuro y salir */
 .sheet-backdrop.centered { display: grid; place-items: center; padding: 1rem; overflow-y: auto; }
@@ -1880,7 +1864,6 @@ button.map-recenter.ghost:hover:not(:disabled) { background: var(--pass-navy-2);
 /* el botón dorado general pinta un brillo encima: aquí la lámina manda */
 button.finish-btn { gap: .5rem; width: 100%; min-height: 52px; margin-top: 1rem; color: var(--pass-navy); background-color: var(--pass-gold) !important; background-image: var(--foil) !important; border: 0; font-weight: 800; }
 @media (prefers-reduced-motion: reduce) { .finish, .finish-stamps > span, .finish-trophy { animation: none; } }
-.topbar button.bell.ghost { width: 44px; min-width: 44px; min-height: 44px; border-radius: 15px; }
 .topbar .account-btn { min-height: 44px; }
 .cover-inner::before { opacity: .28; }
 .leaf-body { -webkit-mask-image: linear-gradient(#000 calc(100% - 22px), transparent); mask-image: linear-gradient(#000 calc(100% - 22px), transparent); padding-bottom: 1rem; }
@@ -1957,7 +1940,7 @@ button.stop-share.ghost { width: auto; min-width: 16rem; max-width: 100%; justif
 
 /* sin la línea dorada bajo la cabecera ni el anillo dorado del avatar */
 .topbar::after { display: none; }
-.topbar .account-btn .avatar { box-shadow: 0 0 0 2px rgba(255, 255, 255, .4); }
+.topbar .account-btn .avatar { box-shadow: 0 0 0 2px var(--pass-gold); }
 .tc::before { display: none; }
 
 /* pestañas: la activa es una pastilla clara, solo el icono lleva el dorado */
@@ -2268,3 +2251,38 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 .question-pair { display: grid; gap: .3rem; margin-bottom: .6rem; }
 .q-answer { margin: .25rem 0 0; font-size: .9rem; color: var(--text-muted); }
 .q-answer b { color: var(--text); }
+
+/* The alert switches live in the account sheet: the dot on the account button says the sound is off. */
+.account-btn { position: relative; }
+.account-btn .dot { position: absolute; top: 2px; left: 32px; width: 11px; height: 11px; border-radius: 50%; background: var(--pass-gold); border: 2px solid var(--pass-navy); }
+.account-actions .sound-toggle { margin-top: 0; }
+.account-actions .push-note { margin: 0; text-align: center; font-size: .8rem; }
+
+/* The base's location editor: use my place on top, then Cancel and Save side by side, all full-size touch targets. */
+.location-actions { display: grid; gap: .6rem; margin-top: .9rem; }
+.location-actions button { width: 100%; min-height: 3rem; justify-content: center; font-weight: 700; }
+.location-actions .locate-btn { display: inline-flex; align-items: center; gap: .5rem; border-color: var(--border-strong); color: var(--text); }
+.location-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.location-pair.single { grid-template-columns: 1fr; }
+.location-saved .ok-text { justify-content: center; }
+
+.seal-name-tap { cursor: pointer; border-radius: var(--radius-sm); }
+.seal-name-tap:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+/* A group row in Resultados is a tap target, not a gold button: it never lights up while the page scrolls under a finger
+   (a touch leaves :hover stuck and flashes :active). Only a real pointer gets a faint hover. */
+button.team-row, button.team-row:hover:not(:disabled), button.team-row:active:not(:disabled) { background: transparent; background-image: none; transform: none; box-shadow: none; }
+@media (hover: hover) and (pointer: fine) { button.team-row:hover:not(:disabled) { background: var(--surface-3); } }
+
+/* Groups walking to the base: who, where from, the clock, and one "Apurar" per group (one of them may already be here). */
+.walking { display: grid; gap: .55rem; margin-top: .85rem; }
+.walk-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: .6rem; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
+.walk-who { min-width: 0; display: grid; gap: .1rem; }
+.walk-who strong { overflow-wrap: anywhere; line-height: 1.15; }
+.walk-who small { color: var(--text-muted); font-size: .78rem; line-height: 1.25; }
+.walk-clock { display: grid; justify-items: center; line-height: 1; font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--base-ink, var(--text)); }
+.walk-clock small { margin-top: .2rem; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
+.walk-clock.over { color: var(--warn); }
+.walk-hurry { min-height: 44px; padding: 0 .8rem; display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
+@media (max-width: 400px) { .walk-row { grid-template-columns: 1fr auto; } .walk-hurry { grid-column: 1 / -1; justify-content: center; } }
+.walking .hurry { margin-top: .15rem; }
+.location-pair button { white-space: nowrap; padding-inline: .5rem; font-size: .92rem; }

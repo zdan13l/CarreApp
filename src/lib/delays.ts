@@ -50,3 +50,37 @@ export function lateTeams(
 }
 
 export const DEFAULT_ALERT_MESSAGE = 'Llevan mucho tiempo en el traslado. ¡Apúrense hacia la base!'
+
+// What a base needs to know about ONE group walking to it: where it comes from and how long it may take. No clock inside (the screen
+// brings its own `now`), so it can be computed once and counted down every second.
+export type LegInfo =
+  | { kind: 'walking'; fromBaseId: string; finishedAt: number; allowedMin: number } // finished its previous match and walks here
+  | { kind: 'stay' } // plays again at the base where it already is: nothing to wait for
+  | { kind: 'waiting'; fromBaseId: string } // the previous match is not finished yet: the clock has not started
+  | { kind: 'none' } // first round, or it rested the round before: there is no deadline
+
+export function legInfo(matches: TimedMatch[], matchId: string, teamId: string, maxMinutes: number, travel: Map<string, number> = new Map()): LegInfo {
+  const m = matches.find((x) => x.id === matchId)
+  if (!m) return { kind: 'none' }
+  const prev = matches
+    .filter((x) => x.round_number < m.round_number && (x.team_a === teamId || x.team_b === teamId))
+    .sort((x, y) => y.round_number - x.round_number)[0]
+  if (!prev || prev.round_number !== m.round_number - 1) return { kind: 'none' }
+  if (prev.base_id === m.base_id) return { kind: 'stay' }
+  if (prev.status !== 'finished' || !prev.finished_at) return { kind: 'waiting', fromBaseId: prev.base_id }
+  return {
+    kind: 'walking',
+    fromBaseId: prev.base_id,
+    finishedAt: new Date(prev.finished_at).getTime(),
+    allowedMin: travel.get(legKey(prev.base_id, m.base_id)) ?? maxMinutes,
+  }
+}
+
+// Seconds left of the allowed time (negative once it is over).
+export const legRemainingSec = (info: Extract<LegInfo, { kind: 'walking' }>, now: number) => Math.round((info.finishedAt + info.allowedMin * 60_000 - now) / 1000)
+
+// 4:05 style clock for a number of seconds.
+export function clockText(sec: number): string {
+  const s = Math.abs(sec)
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}

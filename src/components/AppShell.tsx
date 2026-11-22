@@ -13,12 +13,14 @@ export default function AppShell({
   children,
   user,
   topActions,
+  alerts = false,
 }: {
   title: string
   showTitle?: boolean // false: the title stays for screen readers only (the screen already says where you are)
   children: ReactNode
   user?: { full_name: string; username: string; photo_path?: string | null } // overrides the signed-in user (design preview)
-  topActions?: ReactNode // extra buttons in the top bar, before "Cerrar sesión"
+  topActions?: ReactNode // extra buttons in the top bar, before the account button
+  alerts?: boolean // the sound and notification switches live in the account sheet (runners and bases)
 }) {
   const { profile, signOut } = useAuth()
   const who = user ?? profile
@@ -28,7 +30,7 @@ export default function AppShell({
       <header className="topbar">
         <Logo size={44} detail />
         {topActions}
-        <AccountMenu short roleLabel={ROLE[profile?.role ?? '']} user={who ?? undefined} onSignOut={async () => {
+        <AccountMenu short alerts={alerts} roleLabel={ROLE[profile?.role ?? '']} user={who ?? undefined} onSignOut={async () => {
           if (await confirmDialog({ title: '¿Cerrar sesión?', message: 'Este teléfono dejará de recibir los avisos de la Carrera.', confirmLabel: 'Cerrar sesión', icon: 'logout' })) void signOut()
         }} />
       </header>

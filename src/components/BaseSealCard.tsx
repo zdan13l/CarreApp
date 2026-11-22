@@ -18,7 +18,20 @@ export default function BaseSealCard({ id, name }: { id: string; name: string })
         <button type="button" className="seal-btn" aria-haspopup="dialog" aria-label={`Ver el sello de ${name} en grande`} onClick={() => setOpen(true)}>
           <Stamp seed={id} name={name} round={0} state="stamped" size={118} straight />
         </button>
-        <div>
+        <div
+          className="seal-name-tap"
+          role="button"
+          tabIndex={0}
+          aria-haspopup="dialog"
+          aria-label={`Ver el sello de ${name} en grande`}
+          onClick={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setOpen(true)
+            }
+          }}
+        >
           <p className="alias-label mono">Mi sello</p>
           <p className="alias-name">{seal.name}</p>
         </div>

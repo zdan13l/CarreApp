@@ -7,9 +7,10 @@ import { formatDistance } from '../lib/mapbox'
 import { supabase } from '../lib/supabase'
 import { promptDialog } from '../lib/dialog'
 
-export async function sendMatchAlert(eventId: string, matchId: string, message: string, target: 'groups' | 'base' = 'groups'): Promise<string | null> {
+// `teamId`: only that group of the match gets it (0031); without it both do.
+export async function sendMatchAlert(eventId: string, matchId: string, message: string, target: 'groups' | 'base' = 'groups', teamId?: string): Promise<string | null> {
   if (!supabase) return 'Supabase no está configurado.'
-  const { error } = await supabase.from('alerts').insert({ event_id: eventId, match_id: matchId, message: message.trim(), ...(target === 'base' ? { target } : {}) })
+  const { error } = await supabase.from('alerts').insert({ event_id: eventId, match_id: matchId, message: message.trim(), ...(target === 'base' ? { target } : {}), ...(teamId ? { team_id: teamId } : {}) })
   return error ? 'No se pudo enviar el aviso.' : null
 }
 

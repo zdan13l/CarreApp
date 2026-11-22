@@ -1,7 +1,6 @@
 import { BellOff, BellRing, Volume2, VolumeX, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { disableSound, enableSound, useAudioRunning, useSoundEnabled } from '../lib/alerts'
-import { useScrollLock } from '../lib/scrollLock'
 import { disablePush, enablePush, pushState, type PushState } from '../lib/push'
 
 // Big attention banner for delays and coordinator messages.
@@ -124,51 +123,6 @@ export function AlertSettings() {
     <>
       <SoundToggle />
       <PushToggle />
-    </>
-  )
-}
-
-// The bell of the top bar: its icon says whether the sound is on (ringing bell) or off (crossed bell with a dot), and it opens the
-// alert settings as a sheet under the bar, on top of everything, closed with a tap outside, the X or Escape.
-export function AlertBell() {
-  const [open, setOpen] = useState(false)
-  const on = useSoundEnabled()
-  useScrollLock(open)
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open])
-  return (
-    <>
-      <button
-        type="button"
-        className={`ghost icon-btn bell${on ? ' is-on' : ''}`}
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Ajustes de alertas"
-        aria-expanded={open}
-        title="Ajustes de alertas"
-      >
-        {on ? <BellRing size={20} /> : <BellOff size={20} />}
-        {!on && <span className="dot" aria-hidden="true" />}
-      </button>
-      {open && (
-        <>
-          <div className="sheet-backdrop" role="presentation" onClick={() => setOpen(false)} />
-          <section className="alerts-sheet" role="dialog" aria-label="Alertas">
-            <header>
-              <h2>Alertas</h2>
-              <button type="button" className="ghost icon-btn" onClick={() => setOpen(false)} aria-label="Cerrar" title="Cerrar">
-                <X size={18} />
-              </button>
-            </header>
-            <AlertSettings />
-          </section>
-        </>
-      )}
     </>
   )
 }

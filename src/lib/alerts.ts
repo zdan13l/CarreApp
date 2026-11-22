@@ -167,6 +167,7 @@ export interface ManualAlert {
   message: string
   created_at: string
   target?: 'groups' | 'base' // 0019; rows from before it are for the groups
+  team_id?: string | null // 0031: set when the alert is for ONE of the two groups of the match
 }
 
 // Alerts the person already closed stay closed after a reload (kept on the phone, per account): without this every reload
@@ -193,12 +194,15 @@ const FRESH_MS = 90 * 1000 // and sound repeatedly (every 30 s) during their fir
 // Manual alerts sent by the coordinator for the given matches. They arrive live, and the list is
 // also refreshed every 10 s and whenever the app comes back to the foreground (a locked phone
 // drops the live connection), so an alert is never missed.
-export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 'groups') {
+export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 'groups', teamId?: string) {
   const [alerts, setAlerts] = useState<ManualAlert[]>([])
   const [dismissed, setDismissed] = useState<Set<string>>(loadDismissed)
   const now = useNow(5000)
   const idsKey = matchIds.join(',')
   const idsRef = useRef(new Set(matchIds))
+  const forMe = (a: ManualAlert) => !a.team_id || !teamId || a.team_id === teamId // an alert for the other group of the match is not mine
+  const forMeRef = useRef(forMe)
+  forMeRef.current = forMe
 
   useEffect(() => {
     idsRef.current = new Set(matchIds)
@@ -218,7 +222,7 @@ export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 
         .in('match_id', matchIds)
         .gte('created_at', since)
         .order('created_at', { ascending: false })
-      if (!cancelled && data) setAlerts((data as ManualAlert[]).filter((a) => (a.target ?? 'groups') === target))
+      if (!cancelled && data) setAlerts((data as ManualAlert[]).filter((a) => (a.target ?? 'groups') === target && forMe(a)))
     }
     void refresh()
     const poll = setInterval(() => void refresh(), 10_000)
@@ -231,7 +235,7 @@ export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 
       .channel(`alerts-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, (payload) => {
         const row = payload.new as ManualAlert
-        if (!idsRef.current.has(row.match_id) || (row.target ?? 'groups') !== target) return
+        if (!idsRef.current.has(row.match_id) || (row.target ?? 'groups') !== target || !forMeRef.current(row)) return
         setAlerts((prev) => (prev.some((a) => a.id === row.id) ? prev : [row, ...prev]))
       })
       .subscribe()

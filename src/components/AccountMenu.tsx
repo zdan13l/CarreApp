@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTheme } from '../lib/theme'
 import { useScrollLock } from '../lib/scrollLock'
+import { useSoundEnabled } from '../lib/alerts'
 import Avatar from './Avatar'
+import { AlertSettings } from './Alerts'
 
 // The person: their picture (or initials) with their name and @user beside it. On the coordinator's panel it opens a small menu; on the
 // phone (`short`) it opens a sheet with the picture big, the light / dark switch and "Cerrar sesión".
@@ -14,6 +16,7 @@ export default function AccountMenu({
   roleLabel,
   showTheme = true,
   short = false,
+  alerts = false,
 }: {
   user?: { full_name: string; username: string; photo_path?: string | null }
   onSignOut: () => void
@@ -21,10 +24,12 @@ export default function AccountMenu({
   roleLabel?: string
   showTheme?: boolean // the coordinator's panel is always dark: no switch there
   short?: boolean // phone top bar: the button shows the @user and opens a sheet
+  alerts?: boolean // the sheet also holds the sound and notification switches (runners and bases)
 }) {
   const [open, setOpen] = useState(false)
   const [theme, setTheme] = useTheme()
   const ref = useRef<HTMLDivElement>(null)
+  const soundOn = useSoundEnabled()
   useScrollLock(open && short)
 
   useEffect(() => {
@@ -59,6 +64,7 @@ export default function AccountMenu({
           <strong>{short ? `@${user?.username ?? ''}` : name}</strong>
           {!short && <small>@{user?.username}</small>}
         </span>
+        {short && alerts && !soundOn && <span className="dot" aria-hidden="true" />}
       </button>
       {open && short &&
         createPortal(
@@ -80,6 +86,7 @@ export default function AccountMenu({
                     {next === 'light' ? 'Modo claro' : 'Modo oscuro'}
                   </button>
                 )}
+                {alerts && <AlertSettings />}
                 <button
                   type="button"
                   className="ghost account-action danger"

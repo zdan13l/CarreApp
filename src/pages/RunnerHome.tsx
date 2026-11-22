@@ -11,7 +11,7 @@ import TeamNames from '../components/TeamNames'
 import TeamDialog from '../components/TeamDialog'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import LoadFailed from '../components/LoadFailed'
-import { AlertBanner, AlertBell } from '../components/Alerts'
+import { AlertBanner } from '../components/Alerts'
 import { useAuth } from '../lib/auth'
 import { useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
 import { lateTeams } from '../lib/delays'
@@ -146,7 +146,7 @@ export default function RunnerHome() {
   const now = useNow()
   const travel = useTravelTimes(team?.event_id)
   const myLate = team ? lateTeams(matches, maxMinutes, now, travel).filter((l) => l.teamId === team.id) : []
-  const manual = useManualAlerts(mine.map((m) => m.id))
+  const manual = useManualAlerts(mine.map((m) => m.id), 'groups', team?.id)
   useRepeatingAlert(myLate.length > 0) // every 30 s while the delay lasts
   const closeMoment = useCallback(() => setMoment(null), [])
   const flight = team ? flightCodes(teams.map((t) => ({ id: t.team_id, name: t.name }))).get(team.id) ?? 'JV 200' : ''
@@ -169,7 +169,7 @@ export default function RunnerHome() {
     <AppShell
       title={tab === 'ronda' ? 'Mi grupo' : TABS.concat(LOCATION_TAB).find((t) => t.id === tab)?.label ?? 'Mi grupo'}
       showTitle={tab === 'ronda'}
-      topActions={team && <AlertBell />}
+      alerts={Boolean(team)}
     >
       {loading ? (
         <p className="loading">Cargando…</p>

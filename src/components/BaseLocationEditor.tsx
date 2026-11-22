@@ -12,6 +12,7 @@ export default function BaseLocationEditor({
   lat,
   lng,
   onSaved,
+  onCancel,
   compact = false,
 }: {
   baseId: string
@@ -19,6 +20,7 @@ export default function BaseLocationEditor({
   lat: number | null
   lng: number | null
   onSaved: () => Promise<void>
+  onCancel?: () => void // when the caller can leave without saving (the base changing its place)
   compact?: boolean // the caller already shows a heading
 }) {
   const saved: LngLat | null = lat !== null && lng !== null ? [lng, lat] : null
@@ -79,13 +81,18 @@ export default function BaseLocationEditor({
           setDraft([lngPick, latPick])
         }}
       />
-      <p className="muted">
-        {draft ? 'Toca el mapa para mover el punto.' : 'Toca el mapa para marcar dónde está la base.'}
-      </p>
-      <div className="row">
-        <button className="ghost" type="button" disabled={busy} onClick={useMyPosition}><LocateFixed size={18} aria-hidden="true" />
-          Usar mi ubicación</button>
-        <button type="button" disabled={busy || !changed} onClick={() => void save()}>Guardar ubicación</button>
+      {!draft && <p className="muted">Toca el mapa para marcar dónde está la base.</p>}
+      <div className="location-actions">
+        <button className="ghost locate-btn" type="button" disabled={busy} onClick={useMyPosition}>
+          <LocateFixed size={19} aria-hidden="true" />
+          Usar mi ubicación
+        </button>
+        <div className={`location-pair${onCancel ? '' : ' single'}`}>
+          {onCancel && (
+            <button className="ghost" type="button" disabled={busy} onClick={onCancel}>Cancelar</button>
+          )}
+          <button type="button" disabled={busy || !changed} onClick={() => void save()}>Guardar ubicación</button>
+        </div>
       </div>
       {message && <p className="ok-text">{message}</p>}
       {error && <p className="error">{error}</p>}
