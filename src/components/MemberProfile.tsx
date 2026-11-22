@@ -81,7 +81,7 @@ export default function MemberProfile({ person, actions }: { person: PassportPer
 
       <section className="card">
         <h2><KeyRound size={20} aria-hidden="true" /> Contraseña</h2>
-        <p className="muted">Si la olvidas, el coordinador te genera una nueva.</p>
+        <p className="muted">Si la olvidas, el coordi te genera una nueva.</p>
         <form className="form" onSubmit={onPassword}>
           <label>
             Contraseña actual

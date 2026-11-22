@@ -8,8 +8,8 @@ import { USERNAME_PATTERN } from './username'
 
 export type PassportRole = 'runner' | 'base' | 'coordinator'
 export const PASSPORT_ROLES: PassportRole[] = ['runner', 'base', 'coordinator']
-export const PASSPORT_ROLE_LABEL: Record<PassportRole, string> = { runner: 'Corredor', base: 'Base', coordinator: 'Coordinador' }
-export const PASSPORT_ROLE_LONG: Record<PassportRole, string> = { runner: 'Corredor', base: 'Inductor de base', coordinator: 'Coordinador de Carrera' }
+export const PASSPORT_ROLE_LABEL: Record<PassportRole, string> = { runner: 'Corredor', base: 'Base', coordinator: 'Coordi' }
+export const PASSPORT_ROLE_LONG: Record<PassportRole, string> = { runner: 'Corredor', base: 'Inductor de base', coordinator: 'Coordi de Carrera' }
 
 export interface TermRow {
   id: string
@@ -205,7 +205,7 @@ export function parsePeople(tables: string[][][], ctx: PeopleContext): PersonIn[
     if (!career) errors.push('Falta la carrera.')
     const roleText = iRole >= 0 ? (r[iRole] ?? '') : ''
     const parsedRole = parseRole(roleText)
-    if (roleText.trim() && !parsedRole) errors.push('El rol no se entiende (corredor, base o coordinador).')
+    if (roleText.trim() && !parsedRole) errors.push('El rol no se entiende (corredor, base o coordi).')
     const committee = parseCommittee(cell(r, iCommittee))
     if (committee === undefined) errors.push(`El comité no se entiende (${COMMITTEES.map((c) => c.name).join(', ')}).`)
     const generation = cell(r, iGeneration)

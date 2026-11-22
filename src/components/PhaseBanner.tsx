@@ -13,8 +13,8 @@ export default function PhaseBanner({ phase, onTutorial, compact = false }: { ph
         <strong>{enabled ? 'La Carrera aún no empieza' : 'La Carrera terminó'}</strong>
         {!compact && <p>
           {enabled
-            ? 'Puedes mirar cada pantalla. Los botones se activan cuando el coordinador inicie la Carrera.'
-            : 'El coordinador está validando los resultados. Los botones están bloqueados.'}
+            ? 'Puedes mirar cada pantalla. Los botones se activan cuando el coordi inicie la Carrera.'
+            : 'El coordi está validando los resultados. Los botones están bloqueados.'}
         </p>}
         {enabled && onTutorial && (
           <button type="button" className="ghost phase-tutorial" onClick={onTutorial}>

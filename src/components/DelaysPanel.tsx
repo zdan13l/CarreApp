@@ -11,6 +11,7 @@ import { promptDialog } from '../lib/dialog'
 export async function sendMatchAlert(eventId: string, matchId: string, message: string, target: 'groups' | 'base' = 'groups', teamId?: string): Promise<string | null> {
   if (!supabase) return 'Supabase no está configurado.'
   const { error } = await supabase.from('alerts').insert({ event_id: eventId, match_id: matchId, message: message.trim(), ...(target === 'base' ? { target } : {}), ...(teamId ? { team_id: teamId } : {}) })
+  if (error && /Espera unos segundos/.test(error.message)) return 'Espera unos segundos antes de enviar otro aviso.'
   return error ? 'No se pudo enviar el aviso.' : null
 }
 

@@ -37,7 +37,7 @@ export function AdminTopbar({ user, onSignOut }: { user?: { full_name: string; u
   return (
     <header className="topbar admin-topbar">
       <Logo size={30} />
-      <AccountMenu user={user} onSignOut={onSignOut} roleLabel="Coordinador" showTheme={false} />
+      <AccountMenu user={user} onSignOut={onSignOut} roleLabel="Coordi" showTheme={false} />
     </header>
   )
 }
@@ -127,7 +127,7 @@ export default function AdminNav({
       )}
 
       <div className="admin-user">
-        <AccountMenu user={user} onSignOut={onSignOut} placement="up" roleLabel="Coordinador" showTheme={false} />
+        <AccountMenu user={user} onSignOut={onSignOut} placement="up" roleLabel="Coordi" showTheme={false} />
       </div>
     </aside>
   )

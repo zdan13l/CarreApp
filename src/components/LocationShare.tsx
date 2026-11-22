@@ -78,7 +78,7 @@ export default function LocationShare({
             <button
               className="ghost stop-share"
               onClick={async () => {
-                if (await confirmDialog({ title: '¿Dejar de compartir tu ubicación?', message: 'El coordinador dejará de ver dónde va tu grupo.', confirmLabel: 'Dejar de compartir', icon: 'warning' })) setEnabled(false)
+                if (await confirmDialog({ title: '¿Dejar de compartir tu ubicación?', message: 'El coordi dejará de ver dónde va tu grupo.', confirmLabel: 'Dejar de compartir', icon: 'warning' })) setEnabled(false)
               }}
             >
               Dejar de compartir mi ubicación

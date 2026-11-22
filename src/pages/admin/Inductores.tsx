@@ -615,7 +615,7 @@ export default function Inductores() {
               <form key={`${term.id}-${welcome.length}-${Object.keys(committeeWords).length}`} className="form words-form" onSubmit={(e) => { e.preventDefault(); onSaveWords(e.currentTarget) }}>
                 <p className="muted">Salen en la página de la inducción y en la de cada comité de todos los pasaportes de «{term.name}». Máximo 700 letras cada una.</p>
                 <label>
-                  Palabras de los coordinadores a sus inductores
+                  Palabras de los coordis a sus inductores
                   <textarea name="welcome" rows={4} maxLength={700} defaultValue={welcome} />
                 </label>
                 {COMMITTEES.map((c) => (

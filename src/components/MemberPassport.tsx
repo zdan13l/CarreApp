@@ -246,7 +246,7 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
             </div>
           </header>
           <div className="leaf-body">
-            <Words title="Palabras de tus coordinadores" text={record.term.welcome?.trim() || null} empty="Tus coordinadores te dejarán aquí unas palabras." />
+            <Words title="Palabras de tus coordis" text={record.term.welcome?.trim() || null} empty="Tus coordis te dejarán aquí unas palabras." />
             <div className="induction-culture">
               <button type="button" className="seal-btn" aria-haspopup="dialog" aria-label="Ver el sello de tu cultura" onClick={() => show('La cultura que te tocó', seal(250, 0), culture.name, culture.myth)}>
                 {seal(112, -4)}
@@ -279,12 +279,12 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
               <p className="doc-kicker">Tu comité · {record.term.name}</p>
               <h2 className="leaf-title">{committee ? committee.name : 'Sin comité todavía'}</h2>
             </div>
-            {lead && <span className="flap-mini gold">Coordinador</span>}
+            {lead && <span className="flap-mini gold">Coordi</span>}
           </header>
           <div className="leaf-body">
             <div className="committee-seal-row">
               {committee ? (
-                <button type="button" className="seal-btn" aria-haspopup="dialog" aria-label="Ver el sello de tu comité" onClick={() => show(`Comité ${committee.name}`, seal(250, 0), lead ? 'Coordinador' : 'Miembro', committee.myth)}>
+                <button type="button" className="seal-btn" aria-haspopup="dialog" aria-label="Ver el sello de tu comité" onClick={() => show(`Comité ${committee.name}`, seal(250, 0), lead ? 'Coordi' : 'Miembro', committee.myth)}>
                   {seal(150, -4)}
                 </button>
               ) : (

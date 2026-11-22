@@ -39,7 +39,7 @@ export default function MemberPage({
         {role && role !== 'coordinator' && (
           <p className="member-note muted">
             <Info size={16} aria-hidden="true" />
-            Este es tu pasaporte personal. Para entrar a la Carrera usas el usuario de tu grupo o de tu base, que te da el coordinador.
+            Este es tu pasaporte personal. Para entrar a la Carrera usas el usuario de tu grupo o de tu base, que te da el coordi.
           </p>
         )}
       </div>

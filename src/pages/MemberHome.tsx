@@ -147,7 +147,7 @@ export default function MemberHome() {
       ) : (
         <div className="card">
           <h2>Sin pasaporte</h2>
-          <p>Tu usuario existe pero todavía no tiene un pasaporte en ningún semestre. Avísale al coordinador.</p>
+          <p>Tu usuario existe pero todavía no tiene un pasaporte en ningún semestre. Avísale al coordi.</p>
         </div>
       )}
     </AppShell>

@@ -275,7 +275,7 @@ export default function Preview() {
             <CommitteeSeal key={c.key} committee={c.key} size={170} tilt={-3} />
           ))}
         </div>
-        <h2>Coordinadores (dorado)</h2>
+        <h2>Coordis (dorado)</h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
           {COMMITTEES.map((c) => (
             <CommitteeSeal key={c.key} committee={c.key} lead size={170} tilt={3} />
@@ -334,7 +334,7 @@ export default function Preview() {
           <p className="muted">Toca cada botón para ver cómo se ve.</p>
           <div className="row">
             <button onClick={() => void promptDialog({ title: 'Avisar a la base', message: 'Les llega como notificación y les suena el teléfono.', label: 'Mensaje', defaultValue: 'Apúrense con el juego: el siguiente cruce está esperando.', confirmLabel: 'Enviar aviso', icon: 'bell' })}>Mensaje</button>
-            <button className="ghost" onClick={() => void confirmDialog({ title: '¿Enviar los resultados?', message: 'Una vez enviados solo el coordinador puede corregirlos.', details: ['Barra: Dioses Griegos', 'Pregunta: Samuráis', 'Minijuego: Dioses Griegos'], confirmLabel: 'Enviar resultados', icon: 'send' })}>Resultados</button>
+            <button className="ghost" onClick={() => void confirmDialog({ title: '¿Enviar los resultados?', message: 'Una vez enviados solo el coordi puede corregirlos.', details: ['Barra: Dioses Griegos', 'Pregunta: Samuráis', 'Minijuego: Dioses Griegos'], confirmLabel: 'Enviar resultados', icon: 'send' })}>Resultados</button>
             <button className="ghost danger" onClick={() => void confirmDialog({ title: '¿Eliminar la base "Atrio"?', message: 'Se borran también sus cruces y los puntos registrados.', confirmLabel: 'Eliminar base', tone: 'danger', icon: 'trash' })}>Eliminar</button>
             <button className="ghost" onClick={() => void confirmDialog({ title: '¿Cerrar sesión?', message: 'Este teléfono dejará de recibir los avisos de la Carrera.', confirmLabel: 'Cerrar sesión', icon: 'logout' })}>Salir</button>
           </div>
@@ -854,7 +854,7 @@ export default function Preview() {
         </section>
         <section className="card">
           <h2>Ubicación del grupo</h2>
-          <p className="muted">Eres el usuario designado para el GPS del grupo: tu ubicación se comparte con el coordinador. Deja la app abierta con la pantalla encendida mientras caminan.</p>
+          <p className="muted">Eres el usuario designado para el GPS del grupo: tu ubicación se comparte con el coordi. Deja la app abierta con la pantalla encendida mientras caminan.</p>
           <button className="btn-block"><LocateFixed size={20} aria-hidden="true" /> Compartir mi ubicación</button>
         </section>
         <BottomNav tabs={runnerTabs} active="ubicacion" onChange={noop} />

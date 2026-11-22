@@ -4,6 +4,8 @@ export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefi
 export const isMapboxConfigured = Boolean(MAPBOX_TOKEN)
 
 // Pontificia Universidad Javeriana (Bogotá): default view of the campus.
+// The Javeriana: calle 39 to calle 45 (south to north), carrera 7 to the Circunvalar (west to east): [[west, south], [east, north]].
+export const CAMPUS_BOUNDS: [[number, number], [number, number]] = [[-74.0668, 4.6232], [-74.0598, 4.6322]]
 export const CAMPUS_CENTER: [number, number] = [-74.0647, 4.6286]
 
 export type LngLat = [number, number]

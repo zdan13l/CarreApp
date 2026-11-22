@@ -16,7 +16,8 @@ import PhaseBanner from '../components/PhaseBanner'
 import Tutorial from '../components/Tutorial'
 import { runnerTutorial } from '../lib/tutorials'
 import { useAuth } from '../lib/auth'
-import { useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
+import { disableSound, useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
+import { disablePush } from '../lib/push'
 import { lateTeams } from '../lib/delays'
 import { useTravelTimes } from '../lib/travel'
 import { useRotationTimes } from '../lib/rotations'
@@ -156,6 +157,12 @@ export default function RunnerHome() {
   const ev = Array.isArray(events) ? events[0] : events
   const maxMinutes = ev?.max_travel_minutes ?? 10
   const phase: EventPhase = ev?.phase ?? 'started'
+  // when the Carrera is over the sound and the notifications of this phone are turned off (nothing odd rings afterwards)
+  useEffect(() => {
+    if (phase !== 'finished') return
+    disableSound()
+    void disablePush().catch(() => {})
+  }, [phase])
   const now = useNow()
   const travel = useTravelTimes(team?.event_id)
   const rotations = useRotationTimes(team?.event_id)
@@ -200,7 +207,7 @@ export default function RunnerHome() {
         <>
           <PhaseBanner phase={phase} onTutorial={() => setTour({ from: tab })} />
           {manual.alerts.map((a) => (
-            <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => manual.dismiss(a.id)}>
+            <AlertBanner key={a.id} title="Aviso del coordi" onDismiss={() => manual.dismiss(a.id)}>
               {a.message}
             </AlertBanner>
           ))}
@@ -217,7 +224,7 @@ export default function RunnerHome() {
             <>
               {/* Only in Visado: who we are and the group's own points (nobody sees who leads) */}
               <StatusBar name={team.name} photoPath={team.photo_path} points={myPoints} />
-              {mine.length === 0 && <p className="warn">El coordinador aún no ha programado tus cruces.</p>}
+              {mine.length === 0 && <p className="warn">El coordi aún no ha programado tus cruces.</p>}
               {next && <CurrentRound match={next} myId={team.id} teams={teamById} totalRounds={totalRounds} />}
               {!next && mine.length > 0 && (
                 <FinishedCard

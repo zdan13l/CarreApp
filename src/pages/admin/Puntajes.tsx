@@ -157,7 +157,7 @@ export default function Puntajes() {
         </div>
       </header>
       <p className="muted">
-        Las bases envían los puntos. Aquí el coordinador puede corregirlos, borrarlos o <strong>invalidar</strong> un ítem que no se alcance a jugar (nadie suma y la base no lo puede puntuar). Todo queda en el registro.
+        Las bases envían los puntos. Aquí el coordi puede corregirlos, borrarlos o <strong>invalidar</strong> un ítem que no se alcance a jugar (nadie suma y la base no lo puede puntuar). Todo queda en el registro.
       </p>
       {error && <p className="error">{error}</p>}
 

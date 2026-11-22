@@ -70,7 +70,7 @@ export default function Login() {
                 autoCapitalize="none"
                 autoCorrect="off"
                 autoComplete="username"
-                placeholder="Dado por el coordinador"
+                placeholder="Dado por el coordi"
                 required
               />
             </label>

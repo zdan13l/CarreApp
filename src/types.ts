@@ -65,7 +65,7 @@ export interface BaseRow {
 }
 
 export const ROLE_LABEL: Record<UserRole, string> = {
-  admin: 'Coordinador',
+  admin: 'Coordi',
   base: 'Inductor de base',
   runner: 'Corredor',
   member: 'Inductor',

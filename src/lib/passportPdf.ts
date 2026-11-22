@@ -278,8 +278,8 @@ function induction(ctx: PageContext, record: MemberRecord, no: number, total: nu
     ${text(136, 82, `INDUCCIÓN ${record.term.name}`.toUpperCase(), { size: 12, mono: true, spacing: 3, fill: FAINT })}
     ${lines(136, 116, wrap(`Temática ${theme.name}`, 20).slice(0, 2), 34, { size: 34, weight: 800, fill: l.ink, stretch: true })}
     <path d="M56 148H544" stroke="${LINE}" stroke-dasharray="3 4"/>
-    ${text(56, 182, 'PALABRAS DE TUS COORDINADORES', { size: 10, mono: true, spacing: 2.4, fill: FAINT })}
-    ${welcome ? lines(56, 210, wrap(welcome, 62).slice(0, 9), 20, { size: 14, fill: INK }) : text(56, 210, 'Tus coordinadores te dejarán aquí unas palabras.', { size: 14, italic: true, fill: FAINT })}
+    ${text(56, 182, 'PALABRAS DE TUS COORDIS', { size: 10, mono: true, spacing: 2.4, fill: FAINT })}
+    ${welcome ? lines(56, 210, wrap(welcome, 62).slice(0, 9), 20, { size: 14, fill: INK }) : text(56, 210, 'Tus coordis te dejarán aquí unas palabras.', { size: 14, italic: true, fill: FAINT })}
     ${piece(createElement(CultureSeal, { culture: culture.key, theme: record.term.theme, top: `Cultura ${culture.name}`, bottom: `Te tocó · ${record.term.name}`, size: 170, tilt: 0 }), 56, 400, 170, 170, -4, l.ink, PAPER)}
     ${text(250, 440, 'TE TOCÓ', { size: 10, mono: true, spacing: 2.4, fill: FAINT })}${text(250, 482, culture.name, { size: 36, weight: 800, fill: l.ink, stretch: true })}${lines(250, 508, wrap(`${culture.myth}.`, 30), 17, { size: 13, fill: MUTED })}
     ${grid}`
@@ -296,7 +296,7 @@ function committeePage(ctx: PageContext, record: MemberRecord, which: { key: str
   const body = `
     ${text(56, 82, `TU COMITÉ · ${record.term.name}`.toUpperCase(), { size: 12, mono: true, spacing: 3, fill: FAINT })}
     ${text(56, 124, committee ? committee.name : 'Sin comité todavía', { size: 40, weight: 800, fill: l.ink, stretch: true })}
-    ${which.lead ? `<rect x="400" y="96" width="144" height="26" rx="6" fill="#f4d575"/>${text(472, 114, 'COORDINADOR', { size: 11, mono: true, spacing: 2, fill: '#1a1200', anchor: 'middle' })}` : ''}
+    ${which.lead ? `<rect x="400" y="96" width="144" height="26" rx="6" fill="#f4d575"/>${text(472, 114, 'COORDI', { size: 11, mono: true, spacing: 2, fill: '#1a1200', anchor: 'middle' })}` : ''}
     <path d="M56 148H544" stroke="${LINE}" stroke-dasharray="3 4"/>
     ${committee ? piece(createElement(CommitteeSeal, { committee: committee.key, lead: which.lead, size: 220 }), 56, 172, 220, 220, -4, undefined, PAPER) : `<circle cx="166" cy="282" r="100" fill="none" stroke="${LINE}" stroke-width="2" stroke-dasharray="6 6"/>${text(166, 288, 'COMITÉ', { size: 15, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' })}`}
     ${committee ? lines(310, 250, wrap(committee.tagline, 18), 34, { size: 30, weight: 800, fill: l.ink, stretch: true }) : ''}

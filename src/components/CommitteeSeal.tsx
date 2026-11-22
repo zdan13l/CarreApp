@@ -134,7 +134,7 @@ export default function CommitteeSeal({
     ps: { stroke: PAPER },
   }
   const Art = ART[c.key]
-  const name = label ?? `Sello del comité ${c.name}${lead ? ', coordinador' : ''}`
+  const name = label ?? `Sello del comité ${c.name}${lead ? ', coordi' : ''}`
   if (c.key === 'bienvenida') return <ShapeSeal kind="shield" art="vest" ink={c.ink} gold={lead} size={size} tilt={tilt} label={name} top="BIENVENIDA" bottom="QUIEN TE RECIBE" />
   if (c.key === 'meraki') return <ShapeSeal kind="oval" art="butterfly" ink={c.ink} gold={lead} size={size} tilt={tilt} label={name} top="MERAKI" lines={['CON EL ALMA,', 'LA PASIÓN Y', 'EL CORAZÓN']} />
   const rays = Array.from({ length: 36 }, (_, i) => {
@@ -174,7 +174,7 @@ export default function CommitteeSeal({
               <textPath href={`#ct${uid}`} startOffset="50%">{c.name.toUpperCase()}</textPath>
             </text>
             <text fontSize="5.2" fontWeight="700" letterSpacing=".5" textAnchor="middle" fill={ink} stroke="none" className="stamp-mono">
-              <textPath href={`#cb${uid}`} startOffset="50%">{(lead ? `COORDINADOR · ${c.name}` : c.tagline).toUpperCase()}</textPath>
+              <textPath href={`#cb${uid}`} startOffset="50%">{(lead ? `COORDI · ${c.name}` : c.tagline).toUpperCase()}</textPath>
             </text>
             <g transform="translate(50 50) scale(.92) translate(-50 -50)">
               {Art && <Art {...paint} />}

@@ -15,7 +15,8 @@ import TeamDialog from '../components/TeamDialog'
 import TeamNames from '../components/TeamNames'
 import { useAuth } from '../lib/auth'
 import { serverNow } from '../lib/clock'
-import { useManualAlerts, useNow } from '../lib/alerts'
+import { disableSound, useManualAlerts, useNow } from '../lib/alerts'
+import { disablePush } from '../lib/push'
 import { clockText, legInfo, legRemainingSec, type LegInfo, type TimedMatch } from '../lib/delays'
 import { airportCode, flightCodes } from '../lib/flight'
 import { stampLook } from '../lib/stamp'
@@ -187,7 +188,13 @@ export default function BaseHome() {
   const maxMinutes = ev?.max_travel_minutes ?? 10
   const phase: EventPhase = ev?.phase ?? 'started'
   const startedAt = ev?.started_at ? new Date(ev.started_at).getTime() : null
-  const locked = phase !== 'started' // the buttons only work while the Carrera is Iniciada (the database says the same)
+  const locked = phase !== 'started'
+  // when the Carrera is over the sound and the notifications of this phone are turned off (nothing odd rings afterwards)
+  useEffect(() => {
+    if (phase !== 'finished') return
+    disableSound()
+    void disablePush().catch(() => {})
+  }, [phase]) // the buttons only work while the Carrera is Iniciada (the database says the same)
   const rotationTimes = useMemo(() => new Map(rotations.map((r) => [r.round_number, new Date(r.created_at).getTime()])), [rotations])
   const travel = useTravelTimes(base?.event_id)
   const fromCoordinator = useManualAlerts(matches.map((m) => m.id), 'base', undefined, phase === 'started') // rings the phone while it is fresh
@@ -229,7 +236,7 @@ export default function BaseHome() {
         <div className="base-view" style={inkStyle(base.id)}>
           <PhaseBanner phase={phase} onTutorial={tab === 'ronda' ? () => setTour({ from: tab }) : undefined} compact={tab !== 'ronda'} />
           {fromCoordinator.alerts.map((a) => (
-            <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => fromCoordinator.dismiss(a.id)}>
+            <AlertBanner key={a.id} title="Aviso del coordi" onDismiss={() => fromCoordinator.dismiss(a.id)}>
               {a.message}
             </AlertBanner>
           ))}
@@ -237,7 +244,7 @@ export default function BaseHome() {
             {tab === 'ronda' && (
               <>
                 <BaseTicket name={base.name} photoPath={base.location_photo_path} sealed={finished.length} />
-                {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
+                {matches.length === 0 && <p className="warn">El coordi aún no ha programado cruces para tu base.</p>}
                 {rotationPending && lastFinished ? (
                   <RotationCard
                     state={rotation ? 'ready' : 'waiting'}
@@ -557,10 +564,10 @@ export function TeamFace({ team, code, state }: { team?: Team; code?: string; st
 type Pick = string // team id
 
 // The database refuses a base that acts while its Carrera is not active (row-level security): say it in plain words.
-const NOT_ACTIVE = 'La Carrera no está iniciada para tu usuario (aún no empieza, ya terminó o no está activa), así que no puedes registrar nada ahora. Avísale al coordinador.'
+const NOT_ACTIVE = 'La Carrera no está iniciada para tu usuario (aún no empieza, ya terminó o no está activa), así que no puedes registrar nada ahora. Avísale al coordi.'
 export const friendlyError = (message: string, fallback: string) => (/row-level security|permission denied|no está asignado/i.test(message) ? NOT_ACTIVE : fallback)
 
-const HURRY_REST_S = 15 // seconds a base waits between two hurry alerts
+const HURRY_REST_S = 16 // seconds a base waits between two hurry alerts (the database allows one every 15 s, 0033)
 const HURRY_MESSAGE = 'Apúrense: la base los está esperando.'
 
 // Asks to confirm and alerts the groups of a match with a fixed message: both, or only `teamId` (the other may already be here).
@@ -663,10 +670,10 @@ export function RotationCard({ state, names, busy, locked, error, onConfirm }: {
   return (
     <section className={`card rotation-card ${state}`} aria-label="Equipos en rotación">
       <h2>
-        <Shuffle size={18} aria-hidden="true" /> Equipos en rotación
+        Equipos en rotación
       </h2>
       {names.length > 0 && <p className="muted">{names.join(' y ')}</p>}
-      {state === 'waiting' && <p className="rotation-waiting">Esperando el aviso del coordinador.</p>}
+      {state === 'waiting' && <p className="rotation-waiting">Esperando el aviso del coordi.</p>}
       {state === 'ready' && <p><strong>Ya pueden rotar.</strong></p>}
       {state === 'done' && <p className="ok-text"><Check size={16} aria-hidden="true" /> Confirmado: los grupos ya salieron.</p>}
       {error && <p className="error">{error}</p>}
@@ -790,7 +797,7 @@ export function MatchCard({
   async function send() {
     if (!supabase || toSend.length === 0) return
     const summary = toSend.map((i) => `${ITEM_LABEL[i]}: ${label(picks[i])}`)
-    if (!(await confirmDialog({ title: '¿Enviar los resultados?', message: 'Una vez enviados solo el coordinador puede corregirlos.', details: summary, confirmLabel: 'Enviar resultados', icon: 'send' }))) return
+    if (!(await confirmDialog({ title: '¿Enviar los resultados?', message: 'Una vez enviados solo el coordi puede corregirlos.', details: summary, confirmLabel: 'Enviar resultados', icon: 'send' }))) return
     setBusy(true)
     setError(null)
     const { error: err } = await supabase.from('match_scores').insert(
@@ -865,7 +872,7 @@ export function MatchCard({
               {row ? (
                 row.voided ? (
                   <p className="result voided">
-                    <Ban size={18} aria-hidden="true" /> Invalidado por el coordinador
+                    <Ban size={18} aria-hidden="true" /> Invalidado por el coordi
                   </p>
                 ) : (
                   <p className="result">

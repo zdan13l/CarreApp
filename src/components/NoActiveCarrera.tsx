@@ -8,10 +8,10 @@ export default function NoActiveCarrera({ role }: { role: 'runner' | 'base' }) {
       <h2>No hay ninguna Carrera activa para tu usuario</h2>
       <p className="muted">
         {role === 'base'
-          ? 'Cuando el coordinador active la Carrera y te asigne a una base, aquí verás tus cruces. Esta pantalla se actualiza sola.'
-          : 'Cuando el coordinador active la Carrera y te asigne a un grupo, aquí verás tu ronda. Esta pantalla se actualiza sola.'}
+          ? 'Cuando el coordi active la Carrera y te asigne a una base, aquí verás tus cruces. Esta pantalla se actualiza sola.'
+          : 'Cuando el coordi active la Carrera y te asigne a un grupo, aquí verás tu ronda. Esta pantalla se actualiza sola.'}
       </p>
-      <p className="muted">¿Crees que es un error? Avísale al coordinador.</p>
+      <p className="muted">¿Crees que es un error? Avísale al coordi.</p>
     </section>
   )
 }

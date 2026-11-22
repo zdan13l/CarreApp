@@ -2,7 +2,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Box, LocateFixed, Map as MapIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { CAMPUS_CENTER, MAPBOX_TOKEN, type LngLat } from '../lib/mapbox'
+import { CAMPUS_BOUNDS, CAMPUS_CENTER, MAPBOX_TOKEN, type LngLat } from '../lib/mapbox'
 import { useTheme } from '../lib/theme'
 
 export interface MapMarker {
@@ -234,18 +234,12 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
     map.easeTo({ pitch: next ? 0 : 62, bearing: next ? 0 : -18, duration: 700 })
   }
 
-  // Back to the campus: the view of the beginning, framing the bases (or the campus centre when there are none).
+  // Back to the campus.
   const centre = () => {
     const map = mapRef.current
     if (!map) return
-    const bases = markersRef.current.filter((m) => m.kind === 'base')
-    if (bases.length > 1) {
-      const bounds = new mapboxgl.LngLatBounds()
-      bases.forEach((m) => bounds.extend([m.lng, m.lat]))
-      map.fitBounds(bounds, { padding: 60, maxZoom: 17.5, pitch: flat ? 0 : 62, bearing: flat ? 0 : -18, duration: 900 })
-    } else {
-      map.easeTo({ center: CAMPUS_CENTER, zoom: 16.2, pitch: flat ? 0 : 62, bearing: flat ? 0 : -18, duration: 900 })
-    }
+    // the whole campus: calle 39 to calle 45, carrera 7 to the Circunvalar
+    map.fitBounds(CAMPUS_BOUNDS, { padding: 24, maxZoom: 17.5, pitch: flat ? 0 : 62, bearing: flat ? 0 : -18, duration: 900 })
   }
 
   return (
@@ -253,9 +247,8 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
       <div ref={container} className="map" style={{ height }} />
       {recenter && (
         <div className="map-tools">
-          <button type="button" className="ghost map-recenter" onClick={toggleView} aria-pressed={flat} aria-label={flat ? 'Ver el mapa en 3D' : 'Ver el mapa desde arriba'}>
-            {flat ? <Box size={18} aria-hidden="true" /> : <MapIcon size={18} aria-hidden="true" />}
-            {flat ? 'Vista 3D' : 'Desde arriba'}
+          <button type="button" className="ghost map-recenter icon" onClick={toggleView} aria-pressed={flat} aria-label={flat ? 'Ver el mapa en 3D' : 'Ver el mapa desde arriba'}>
+            {flat ? <Box size={20} aria-hidden="true" /> : <MapIcon size={20} aria-hidden="true" />}
           </button>
           <button type="button" className="ghost map-recenter icon" onClick={centre} aria-label="Centrar el mapa en la Javeriana" title="Centrar en la Javeriana">
             <LocateFixed size={20} aria-hidden="true" />

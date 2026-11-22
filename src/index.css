@@ -71,7 +71,7 @@
   --foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;
   --plate-a: #0a1f4a; --plate-b: #031538; --plate-line: rgba(242, 207, 122, .28); --plate-disc: rgba(2, 12, 36, .55); /* the career plates are always navy and gold */
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
-  /* Torre de control (coordinador): siempre oscura, con colores de instrumento */
+  /* Torre de control (coordi): siempre oscura, con colores de instrumento */
   --tw-bg: #060b13;
   --tw-surface: #0b131e;
   --tw-surface-2: #111c2a;
@@ -142,7 +142,7 @@
   --foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;
   --plate-a: #0a1f4a; --plate-b: #031538; --plate-line: rgba(242, 207, 122, .28); --plate-disc: rgba(2, 12, 36, .55); /* the career plates are always navy and gold */
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
-  /* Torre de control (coordinador): siempre oscura, con colores de instrumento */
+  /* Torre de control (coordi): siempre oscura, con colores de instrumento */
   --tw-bg: #060b13;
   --tw-surface: #0b131e;
   --tw-surface-2: #111c2a;
@@ -452,7 +452,7 @@ details[open] summary::after { transform: rotate(180deg); }
 .login .tagline { color: var(--text-muted); margin: .75rem 0 0; }
 .login .card { text-align: left; margin-top: 2rem; }
 
-/* ---------- Panel del coordinador (menú lateral en PC, pestañas abajo en celular) ---------- */
+/* ---------- Panel del coordi (menú lateral en PC, pestañas abajo en celular) ---------- */
 .admin { min-height: 100dvh; }
 .admin-main { width: 100%; max-width: 1040px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 16px calc(var(--nav-h) + 32px); }
 .admin-main > h1 { margin-bottom: .25rem; }
@@ -846,7 +846,7 @@ a.btn-like { color: var(--text); text-decoration: none; }
 /* =====================================================================
    Capa de diseño 2 · "Marcador nocturno"
    Celular (corredor y base): cabecera limpia con avatar, marcador azul profundo, pestañas de vidrio.
-   PC (coordinador): menú lateral, indicadores arriba y la ronda como tabla.
+   PC (coordi): menú lateral, indicadores arriba y la ronda como tabla.
    ===================================================================== */
 
 /* Cabecera del celular: logo, acciones y un solo avatar con el menú de la cuenta */
@@ -1008,7 +1008,7 @@ button.icon-btn { padding: 0; }
 .team-names li.mine { border-color: var(--gold); }
 .team-names .team-name { font-weight: 600; }
 
-/* Podio: marcos oro, plata y bronce en el ranking del coordinador */
+/* Podio: marcos oro, plata y bronce en el ranking del coordi */
 .top-teams li.medal-1 { border-color: var(--medal-1); box-shadow: 0 0 0 1px var(--medal-1), 0 8px 22px -14px var(--medal-1); }
 .top-teams li.medal-2 { border-color: var(--medal-2); box-shadow: 0 0 0 1px var(--medal-2); }
 .top-teams li.medal-3 { border-color: var(--medal-3); box-shadow: 0 0 0 1px var(--medal-3); }
@@ -1222,7 +1222,7 @@ button.slot-btn:hover .stamp { transform: rotate(0deg) scale(1.04); }
 .bn-tab { transition: color .2s; }
 .bn-tab:active:not(:disabled) { transform: scale(.94); }
 
-/* ---------- Coordinador: la oficina de control ---------- */
+/* ---------- Coordi: la oficina de control ---------- */
 @media (min-width: 900px) {
   .admin-brand {
     position: relative; overflow: hidden; isolation: isolate; margin: 0 0 .25rem; padding: 1.1rem 1rem 1rem; color: var(--on-hero); border-bottom: 0; border-radius: var(--radius);
@@ -1406,8 +1406,8 @@ button.slot-btn:hover .stamp { transform: rotate(0deg) scale(1.04); }
 .flight-chip { padding: .1rem .5rem; color: var(--on-hero-gold); border: 1px solid var(--hero-line); border-radius: 5px; font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
 
 /* =====================================================================
-   Capa de diseño 5 · "Torre de control" (coordinador)
-   El panel del coordinador es un centro de operaciones: siempre oscuro (sin importar el modo de la app), rejilla de
+   Capa de diseño 5 · "Torre de control" (coordi)
+   El panel del coordi es un centro de operaciones: siempre oscuro (sin importar el modo de la app), rejilla de
    cartografía, tipografía técnica en los datos y colores de instrumento (verde radar, ámbar, cian, rojo).
    Mismas variables de color de siempre, con otros valores dentro de `.tower`: así todos los componentes se adaptan.
    ===================================================================== */
@@ -2051,9 +2051,9 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 @media (prefers-reduced-motion: reduce) { .cw, .cw * { animation: none !important; } }
 
 /* =====================================================================
-   Pasaporte personal del inductor (MemberPassport) y lista de Inductores del coordinador
+   Pasaporte personal del inductor (MemberPassport) y lista de Inductores del coordi
    Cada carrera recibe una cultura de la temática del semestre: su tinta (--culture-ink), el borde de las páginas y su emblema.
-   Tres versiones: corredor (papel), base (mostrador azul) y coordinador (torre, siempre oscura).
+   Tres versiones: corredor (papel), base (mostrador azul) y coordi (torre, siempre oscura).
    ===================================================================== */
 .emblem { color: var(--culture-ink, var(--ink-1)); --emblem-paper: var(--surface); }
 .emblem .f, .ornament .f { fill: currentColor; stroke: none; }
@@ -2184,7 +2184,7 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 .member .cover-corner.br { right: 22px; bottom: 22px; border-width: 0 2px 2px 0; }
 
 
-/* Inductores (coordinador) */
+/* Inductores (coordi) */
 .person { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
 .person-main { display: grid; gap: .2rem; min-width: 0; }
 .person-main small { overflow-wrap: anywhere; }
@@ -2273,7 +2273,7 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 button.team-row, button.team-row:hover:not(:disabled), button.team-row:active:not(:disabled) { background: transparent; background-image: none; transform: none; box-shadow: none; }
 /* The yellow light of a pressed row: a mouse hover, or a finger that stays put for a moment (TeamNames sets data-pressed after ~100 ms
    and drops it the instant the finger moves or the browser takes the touch to scroll). A scroll never lights a row. */
-button.team-row[data-pressed='true'] { background: color-mix(in srgb, var(--gold) 30%, transparent); }
+button.team-row[data-pressed='true'], button.team-row[data-pressed='true']:hover:not(:disabled), button.team-row[data-pressed='true']:active:not(:disabled) { background: color-mix(in srgb, var(--gold) 30%, transparent); }
 @media (hover: hover) and (pointer: fine) { button.team-row:hover:not(:disabled) { background: color-mix(in srgb, var(--gold) 30%, transparent); } }
 button.team-row { transition: background-color .12s ease-out; }
 
@@ -2333,7 +2333,7 @@ button.sheet-x.ghost:hover:not(:disabled) { background: color-mix(in srgb, var(-
 .phase-steps li.now .phase-dot { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
 
 /* Hurry buttons: yellow while pressed; resting for a few seconds after an alert (still tappable: it explains why it waits). */
-.walk-hurry:active:not(:disabled), .walking .hurry:active:not(:disabled) { background: var(--gold); border-color: var(--gold); color: var(--on-gold); transform: scale(.98); }
+.walk-hurry:active:not(:disabled) { background: var(--gold); border-color: var(--gold); color: var(--on-gold); transform: scale(.98); }
 .walking button.cooling { opacity: .55; cursor: not-allowed; }
 .walking button.cooling:active { background: transparent; color: inherit; transform: none; }
 
@@ -2371,3 +2371,9 @@ button.sheet-x.ghost:hover:not(:disabled) { background: color-mix(in srgb, var(-
 
 /* Map: the centre button is just an icon. */
 button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justify-content: center; }
+
+/* Cruces de tu base: everything inside the card is centred. */
+.cruce-team { justify-content: center; }
+.cruce-team.win::after { margin-left: .5rem; }
+.cruce .won-items li { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.cruce .won-items span { padding-left: .06em; }

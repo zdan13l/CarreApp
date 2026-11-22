@@ -178,7 +178,7 @@ export default function Usuarios() {
             <select value={role} onChange={(e) => setRole(e.target.value as UserRole)}>
               <option value="runner">Corredor</option>
               <option value="base">Inductor de base</option>
-              <option value="admin">Coordinador (admin)</option>
+              <option value="admin">Coordi (admin)</option>
             </select>
           </label>
           <label>
@@ -202,7 +202,7 @@ export default function Usuarios() {
             <option value="all">Todos</option>
             <option value="runner">Corredores</option>
             <option value="base">Inductores de base</option>
-            <option value="admin">Coordinador</option>
+            <option value="admin">Coordi</option>
           </select>
         </div>
         <ul className="list">

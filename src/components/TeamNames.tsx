@@ -37,7 +37,7 @@ export default function TeamNames({ teams, highlightId, onSelect }: { teams: { i
               data-pressed={pressed === t.id}
               onClick={() => {
                 flash(t.id)
-                onSelect(t.id)
+                window.setTimeout(() => onSelect(t.id), 220) // let the yellow show before the card opens
               }}
               onPointerDown={(e) => {
                 origin.current = { x: e.clientX, y: e.clientY }

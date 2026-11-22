@@ -13,7 +13,7 @@ export default function RequireRole({ role, children }: { role: UserRole; childr
       <main className="page">
         <div className="card">
           <h2>Sin perfil</h2>
-          <p>Tu usuario existe pero no tiene un perfil asignado. Avísale al coordinador.</p>
+          <p>Tu usuario existe pero no tiene un perfil asignado. Avísale al coordi.</p>
           <button onClick={signOut}>Cerrar sesión</button>
         </div>
       </main>
