@@ -3,6 +3,7 @@ import LazyMap, { type MapMarker } from '../../components/LazyMap'
 import { lateTeams, type TimedMatch } from '../../lib/delays'
 import { isLocationFresh, timeAgo } from '../../lib/geo'
 import { useTravelTimes } from '../../lib/travel'
+import { useRotationTimes } from '../../lib/rotations'
 import { useRealtimeReload } from '../../lib/realtime'
 import { photoUrl } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
@@ -43,6 +44,7 @@ export default function Mapa() {
 
   const eventId = event?.id
   const travel = useTravelTimes(eventId)
+  const rotations = useRotationTimes(eventId)
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
@@ -89,8 +91,8 @@ export default function Mapa() {
 
   // Groups that are walking longer than allowed (the full list with the "Avisar" button is in "En vivo").
   const lateIds = useMemo(
-    () => new Set(lateTeams(matches, event?.max_travel_minutes ?? 10, now, travel).map((l) => l.teamId)),
-    [matches, event?.max_travel_minutes, now, travel],
+    () => new Set(lateTeams(matches, event?.max_travel_minutes ?? 10, now, travel, rotations).map((l) => l.teamId)),
+    [matches, event?.max_travel_minutes, now, travel, rotations],
   )
 
   const codes = useMemo(() => flightCodes(teams), [teams])

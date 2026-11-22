@@ -14,10 +14,13 @@ import { useRealtimeReload } from '../../lib/realtime'
 import { currentRound, formatTime } from '../../lib/schedule'
 import { supabase } from '../../lib/supabase'
 import { useTravelTimes } from '../../lib/travel'
+import { useRotationTimes } from '../../lib/rotations'
 import { STATUS_LABEL, type MatchScore, type MatchStatus, type StandingRow } from '../../types'
 import { useAdmin } from './AdminContext'
-import { confirmDialog, promptDialog } from '../../lib/dialog'
+import { promptDialog } from '../../lib/dialog'
 import { exportResults } from '../../lib/results'
+import PhaseControl from './PhaseControl'
+import { PHASE_LABEL } from '../../lib/phase'
 
 interface Named {
   id: string
@@ -66,6 +69,7 @@ export default function EnVivo() {
   const eventId = event?.id
   const active = event?.is_active ?? false
   const travel = useTravelTimes(eventId)
+  const rotations = useRotationTimes(eventId)
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
@@ -135,25 +139,7 @@ export default function EnVivo() {
   }
 
   // Ends the Carrera: it is switched off and its progress is reset (the database does it), keeping what was prepared.
-  async function finish() {
-    if (!supabase || !event) return
-    const ok = await confirmDialog({
-      title: `¿Finalizar "${event.name}"?`,
-      message: 'Se REINICIA todo su avance: puntajes, llegadas, avisos, ubicaciones y registro de cambios. Se conservan grupos, bases, usuarios y el cronograma. Los teléfonos dejan de verla. Antes se guardan en el Historial y se descargan en un archivo los resultados (clasificación y detalle por cruce).',
-      confirmLabel: 'Descargar y finalizar',
-      tone: 'danger',
-      icon: 'warning',
-    })
-    if (!ok) return
-    // The progress is about to be erased: save the final results first. If they cannot be read, ask again.
-    const saved = await exportResults(event.id, event.name)
-    if (!saved && !(await confirmDialog({ title: 'No se pudieron descargar los resultados', message: 'Si sigues, el avance se borra sin copia. ¿Continuar de todos modos?', confirmLabel: 'Continuar sin copia', tone: 'danger', icon: 'warning' }))) return
-    const { error: err } = await supabase.from('events').update({ is_active: false }).eq('id', event.id)
-    if (err) setError('No se pudo finalizar la Carrera.')
-    else await reload()
-  }
-
-  const lateList = active ? lateTeams(matches, event.max_travel_minutes, now, travel) : []
+  const lateList = event.phase === 'started' ? lateTeams(matches, event.max_travel_minutes, now, travel, rotations) : []
   const late = lateList.length
   const lateIds = new Set(lateList.map((l) => l.teamId))
   const codes = flightCodes(teams)
@@ -174,17 +160,18 @@ export default function EnVivo() {
           <h1>Control de vuelos</h1>
         </div>
         <div className="head-meta">
-          <span className={`badge ${active ? 'ok live' : ''}`}>{active ? 'Activa' : 'Borrador'}</span>
+          <span className={`badge ${event.phase === 'started' ? 'ok live' : ''}`}>{active ? PHASE_LABEL[event.phase] : 'Borrador'}</span>
           {matches.length > 0 && <span>Ronda {round} de {totalRounds}</span>}
           {matches.length > 0 && <button className="ghost" onClick={() => void exportResults(event.id, event.name)}>Descargar resultados</button>}
-          {active && <button className="ghost danger" onClick={() => void finish()}>Finalizar Carrera</button>}
         </div>
       </header>
+
+      {active && <PhaseControl key={`p-${event.id}`} event={event} onChanged={reload} />}
 
       {!active && (
         <div className="warn">
           <strong>Esta Carrera está en borrador.</strong>{' '}
-          {pending > 0 ? `Faltan ${pending} cosas para poder activarla.` : 'Ya está completa: puedes activarla.'}{' '}
+          {pending > 0 ? `Faltan ${pending} cosas para poder habilitarla.` : 'Ya está completa: puedes habilitarla.'}{' '}
           <button className="ghost" onClick={() => setMode('setup')}>Ir a Preparación</button>
         </div>
       )}
@@ -274,6 +261,7 @@ export default function EnVivo() {
               baseCoords={new Map(bases.filter((b) => b.lat !== null && b.lng !== null).map((b) => [b.id, [b.lng!, b.lat!] as [number, number]]))}
               teamCoords={new Map(positions.map((p) => [p.team_id, [p.lng, p.lat] as [number, number]]))}
               travel={travel}
+              rotations={rotations}
             />
           )}
 

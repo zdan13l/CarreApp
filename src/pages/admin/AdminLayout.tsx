@@ -22,7 +22,7 @@ export default function AdminLayout() {
     if (!supabase) return
     const { data } = await supabase
       .from('events')
-      .select('id, name, is_active, max_travel_minutes')
+      .select('id, name, is_active, phase, started_at, max_travel_minutes')
       .order('created_at', { ascending: false })
     setEvents(data ?? [])
   }, [])

@@ -35,6 +35,16 @@ import {
   type ScoreItem,
 } from '../types'
 import { confirmDialog } from '../lib/dialog'
+import PhaseBanner from '../components/PhaseBanner'
+import Tutorial from '../components/Tutorial'
+import { baseTutorial } from '../lib/tutorials'
+import type { EventPhase } from '../types'
+
+interface BaseEvent {
+  max_travel_minutes: number
+  phase: EventPhase
+  started_at: string | null
+}
 
 interface MyBase {
   id: string
@@ -45,7 +55,7 @@ interface MyBase {
   base_details: InfoEmbed
   event_id: string
   base_questions: BaseQuestion[]
-  events: { max_travel_minutes: number } | { max_travel_minutes: number }[]
+  events: BaseEvent | BaseEvent[]
 }
 
 export interface BaseMatch {
@@ -86,9 +96,10 @@ export default function BaseHome() {
   const [baseNames, setBaseNames] = useState<Map<string, string>>(new Map()) // where each group comes from
   const [loading, setLoading] = useState(true)
   const [viewTeam, setViewTeam] = useState<string | null>(null) // the group whose photo is open in big
-  const [rotations, setRotations] = useState<{ id: string; round_number: number }[]>([]) // rounds the coordinator said can rotate (0029)
+  const [rotations, setRotations] = useState<{ id: string; round_number: number; created_at: string }[]>([]) // rounds the coordinator said can rotate (0029)
   const [rotated, setRotated] = useState<Set<string>>(new Set()) // the rotations this base already confirmed
   const [rotating, setRotating] = useState(false)
+  const [tour, setTour] = useState<{ from: Tab } | null>(null) // the tutorial is open (and the tab to come back to)
   const [rotationError, setRotationError] = useState<string | null>(null)
   const [loadFailed, setLoadFailed] = useState(false) // the last request failed (network), which is not the same as having no Carrera
 
@@ -103,7 +114,7 @@ export default function BaseHome() {
         ? sb
             .from('bases')
             .select(
-              'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question, answer), base_staff!inner(user_id), events!inner(is_active, max_travel_minutes)',
+              'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question, answer), base_staff!inner(user_id), events!inner(is_active, max_travel_minutes, phase, started_at)',
             )
             .eq('base_staff.user_id', userId)
             .eq('events.is_active', true)
@@ -111,7 +122,7 @@ export default function BaseHome() {
         : sb
             .from('bases')
             .select(
-              'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question), base_staff!inner(user_id), events!inner(is_active, max_travel_minutes)',
+              'id, name, location_photo_path, lat, lng, event_id, base_details(info), base_questions(position, question), base_staff!inner(user_id), events!inner(is_active, max_travel_minutes, phase, started_at)',
             )
             .eq('base_staff.user_id', userId)
             .eq('events.is_active', true)
@@ -143,9 +154,9 @@ export default function BaseHome() {
     if (!bs.error) setBaseNames(new Map((bs.data ?? []).map((x) => [x.id as string, x.name as string])))
     setMatches((m.data ?? []) as BaseMatch[])
     setTeams(new Map((t.data ?? []).map((x) => [x.id, x])))
-    const rot = await supabase.from('round_rotations').select('id, round_number').eq('event_id', b.event_id)
+    const rot = await supabase.from('round_rotations').select('id, round_number, created_at').eq('event_id', b.event_id)
     if (!rot.error) {
-      setRotations((rot.data ?? []) as { id: string; round_number: number }[])
+      setRotations((rot.data ?? []) as { id: string; round_number: number; created_at: string }[])
       const mine = await supabase.from('rotation_acks').select('rotation_id').eq('base_id', b.id)
       if (!mine.error) setRotated(new Set((mine.data ?? []).map((x) => x.rotation_id as string)))
     }
@@ -170,15 +181,25 @@ export default function BaseHome() {
   const codes = useMemo(() => flightCodes([...teams.values()]), [teams]) // the "flight" of each group, as the runners see it
 
   const events = base?.events
-  const maxMinutes = (Array.isArray(events) ? events[0]?.max_travel_minutes : events?.max_travel_minutes) ?? 10
+  const ev = Array.isArray(events) ? events[0] : events
+  const maxMinutes = ev?.max_travel_minutes ?? 10
+  const phase: EventPhase = ev?.phase ?? 'started'
+  const startedAt = ev?.started_at ? new Date(ev.started_at).getTime() : null
+  const locked = phase !== 'started' // the buttons only work while the Carrera is Iniciada (the database says the same)
+  const rotationTimes = useMemo(() => new Map(rotations.map((r) => [r.round_number, new Date(r.created_at).getTime()])), [rotations])
   const travel = useTravelTimes(base?.event_id)
   const fromCoordinator = useManualAlerts(matches.map((m) => m.id), 'base') // rings the phone while it is fresh
 
   // Where each group of the match comes from and how long it still has to get here (its own leg time, or the Carrera's maximum).
   const legsOf = (m: BaseMatch): Record<string, LegInfo> => ({
-    [m.team_a]: legInfo(eventMatches, m.id, m.team_a, maxMinutes, travel),
-    [m.team_b]: legInfo(eventMatches, m.id, m.team_b, maxMinutes, travel),
+    [m.team_a]: legInfo(eventMatches, m.id, m.team_a, maxMinutes, travel, rotationTimes, phase === 'started' ? startedAt : null),
+    [m.team_b]: legInfo(eventMatches, m.id, m.team_b, maxMinutes, travel, rotationTimes, phase === 'started' ? startedAt : null),
   })
+
+  const goTab = (t: Tab) => {
+    setDir(TABS.findIndex((x) => x.id === t) >= TABS.findIndex((x) => x.id === tab) ? 'fwd' : 'back')
+    setTab(t)
+  }
 
   async function confirmRotation() {
     if (!supabase || !base || !rotation || !lastFinished) return
@@ -204,6 +225,7 @@ export default function BaseHome() {
         loadFailed ? <LoadFailed onRetry={() => void load()} /> : <NoActiveCarrera role="base" />
       ) : (
         <div className="base-view" style={inkStyle(base.id)}>
+          <PhaseBanner phase={phase} onTutorial={() => setTour({ from: tab })} />
           {fromCoordinator.alerts.map((a) => (
             <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => fromCoordinator.dismiss(a.id)}>
               {a.message}
@@ -219,11 +241,12 @@ export default function BaseHome() {
                     state={rotation ? 'ready' : 'waiting'}
                     names={[teams.get(lastFinished.team_a)?.name, teams.get(lastFinished.team_b)?.name].filter((n): n is string => Boolean(n))}
                     busy={rotating}
+                    locked={locked}
                     error={rotationError}
                     onConfirm={() => void confirmRotation()}
                   />
                 ) : (
-                  current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} eventId={base.event_id} base={base} codes={codes} legs={legsOf(current)} baseNames={baseNames} />
+                  current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} eventId={base.event_id} base={base} codes={codes} legs={legsOf(current)} baseNames={baseNames} locked={locked} />
                 )}
                 {current === undefined && matches.length > 0 && <ClosedDesk name={base.name} sealed={finished.length} />}
               </>
@@ -279,11 +302,18 @@ export default function BaseHome() {
             tabs={TABS}
             active={tab}
             transition={false}
-            onChange={(t) => {
-              setDir(TABS.findIndex((x) => x.id === t) >= TABS.findIndex((x) => x.id === tab) ? 'fwd' : 'back')
-              setTab(t)
-            }}
+            onChange={goTab}
           />
+          {tour && (
+            <Tutorial
+              steps={baseTutorial()}
+              onTab={(t) => goTab(t as Tab)}
+              onClose={() => {
+                goTab(tour.from)
+                setTour(null)
+              }}
+            />
+          )}
         </div>
       )}
     </AppShell>
@@ -507,7 +537,7 @@ export function TeamFace({ team, code, state }: { team?: Team; code?: string; st
 type Pick = string // team id
 
 // The database refuses a base that acts while its Carrera is not active (row-level security): say it in plain words.
-const NOT_ACTIVE = 'La Carrera no está activa para tu usuario, así que no puedes registrar nada ahora. Avísale al coordinador.'
+const NOT_ACTIVE = 'La Carrera no está iniciada para tu usuario (aún no empieza, ya terminó o no está activa), así que no puedes registrar nada ahora. Avísale al coordinador.'
 export const friendlyError = (message: string, fallback: string) => (/row-level security|permission denied|no está asignado/i.test(message) ? NOT_ACTIVE : fallback)
 
 const HURRY_MESSAGE = 'Apúrense: la base los está esperando.'
@@ -542,6 +572,7 @@ function WalkingGroups({
   codes,
   busy,
   canHurry,
+  started,
   onHurry,
 }: {
   match: BaseMatch
@@ -551,6 +582,7 @@ function WalkingGroups({
   codes?: Map<string, string>
   busy: boolean
   canHurry: boolean
+  started: boolean // the Carrera is Iniciada: before that the clock waits
   onHurry: (teamId?: string) => void
 }) {
   const now = useNow(1000)
@@ -559,7 +591,7 @@ function WalkingGroups({
       {[match.team_a, match.team_b].map((id) => {
         const info: LegInfo = legs[id] ?? { kind: 'none' }
         const name = teams.get(id)?.name ?? '?'
-        const from = 'fromBaseId' in info ? baseNames?.get(info.fromBaseId) : undefined
+        const from = 'fromBaseId' in info && info.fromBaseId ? baseNames?.get(info.fromBaseId) : undefined
         const left = info.kind === 'walking' ? legRemainingSec(info, now) : null
         const blocked = info.kind === 'stay' || info.kind === 'waiting'
         return (
@@ -570,8 +602,8 @@ function WalkingGroups({
               <small>
                 {info.kind === 'stay' && 'Ya está en tu base'}
                 {info.kind === 'waiting' && `Aún juega su cruce anterior${from ? ` en ${from}` : ''}`}
-                {info.kind === 'walking' && `Viene de ${from ?? 'otra base'} · máximo ${info.allowedMin} min`}
-                {info.kind === 'none' && 'Sin tiempo de traslado definido'}
+                {info.kind === 'walking' && `Viene de ${info.fromBaseId === null ? 'la salida' : (from ?? 'otra base')} · máximo ${info.allowedMin} min`}
+                {info.kind === 'none' && (started ? 'Sin tiempo de traslado definido' : 'El reloj arranca cuando inicie la Carrera')}
               </small>
             </div>
             {left !== null && (
@@ -600,7 +632,7 @@ function WalkingGroups({
 }
 
 // "Equipos en rotación": once a match is scored, the groups wait for the coordinator to say every base can rotate; then the base confirms it let them go.
-export function RotationCard({ state, names, busy, error, onConfirm }: { state: 'waiting' | 'ready' | 'done'; names: string[]; busy?: boolean; error?: string | null; onConfirm: () => void }) {
+export function RotationCard({ state, names, busy, locked, error, onConfirm }: { state: 'waiting' | 'ready' | 'done'; names: string[]; busy?: boolean; locked?: boolean; error?: string | null; onConfirm: () => void }) {
   return (
     <section className={`card rotation-card ${state}`} aria-label="Equipos en rotación">
       <h2>
@@ -612,7 +644,7 @@ export function RotationCard({ state, names, busy, error, onConfirm }: { state: 
       {state === 'done' && <p className="ok-text"><Check size={16} aria-hidden="true" /> Confirmado: los grupos ya salieron.</p>}
       {error && <p className="error">{error}</p>}
       {state !== 'done' && (
-        <button type="button" className="btn-block" disabled={state === 'waiting' || busy} onClick={onConfirm}>
+        <button type="button" className="btn-block" disabled={state === 'waiting' || busy || locked} onClick={onConfirm}>
           <Shuffle size={19} aria-hidden="true" />
           {busy ? 'Confirmando…' : 'Ya los dejé ir'}
         </button>
@@ -653,6 +685,7 @@ export function MatchCard({
   codes,
   legs,
   baseNames,
+  locked = false,
 }: {
   match: BaseMatch
   teams: Map<string, Team>
@@ -662,6 +695,7 @@ export function MatchCard({
   codes?: Map<string, string> // flight code of each group
   legs?: Record<string, LegInfo> // how each group walks to this base (origin and clock); without it the card offers one button for both
   baseNames?: Map<string, string>
+  locked?: boolean // the Carrera is not Iniciada: the card shows everything but its buttons are off
 }) {
   const [picks, setPicks] = useState<Partial<Record<ScoreItem, Pick>>>({})
   const [busy, setBusy] = useState(false)
@@ -759,10 +793,10 @@ export function MatchCard({
 
       {!arrived ? (
         <>
-          <WalkingGroups match={match} teams={teams} legs={legs ?? {}} baseNames={baseNames} codes={codes} busy={busy} canHurry={Boolean(eventId)} onHurry={(id) => void hurry(id)} />
+          <WalkingGroups match={match} teams={teams} legs={legs ?? {}} baseNames={baseNames} codes={codes} busy={busy || locked} started={!locked} canHurry={Boolean(eventId)} onHurry={(id) => void hurry(id)} />
           {notice && <p className="ok-text">{notice}</p>}
           {error && <p className="error">{error}</p>}
-          <button className="btn-block" disabled={busy} onClick={() => void confirmArrival()}>
+          <button className="btn-block" disabled={busy || locked} onClick={() => void confirmArrival()}>
             <UsersRound size={20} aria-hidden="true" />
             {busy ? 'Confirmando…' : 'Ya llegaron ambos grupos'}
           </button>
@@ -807,7 +841,7 @@ export function MatchCard({
                         type="button"
                         className={`choice${on ? ' on' : ''}`}
                         aria-pressed={on}
-                        disabled={busy}
+                        disabled={busy || locked}
                         onClick={() => setPicks({ ...picks, [item]: on ? undefined : id })}
                       >
                         <Crest name={teams.get(id)?.name} photoPath={teams.get(id)?.photo_path} size="sm" />
@@ -828,7 +862,7 @@ export function MatchCard({
 
       {arrived && error && <p className="error">{error}</p>}
       {arrived && pendingItems.length > 0 && (
-        <button className="btn-block" disabled={busy || toSend.length === 0} onClick={() => void send()}>
+        <button className="btn-block" disabled={busy || locked || toSend.length === 0} onClick={() => void send()}>
           <Send size={19} aria-hidden="true" />
           {busy ? 'Enviando…' : toSend.length ? `Enviar ${toSend.length} ${toSend.length === 1 ? 'ítem' : 'ítems'}` : 'Elige un ganador'}
         </button>

@@ -1,7 +1,7 @@
 import { BellRing, CircleCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useNow } from '../lib/alerts'
-import { DEFAULT_ALERT_MESSAGE, lateTeams, type TimedMatch } from '../lib/delays'
+import { DEFAULT_ALERT_MESSAGE, lateTeams, type RotationTimes, type TimedMatch } from '../lib/delays'
 import { distanceMeters } from '../lib/geo'
 import { formatDistance } from '../lib/mapbox'
 import { supabase } from '../lib/supabase'
@@ -25,6 +25,7 @@ export default function DelaysPanel({
   baseCoords,
   teamCoords,
   travel,
+  rotations,
 }: {
   eventId: string
   matches: TimedMatch[]
@@ -34,9 +35,10 @@ export default function DelaysPanel({
   baseCoords?: Map<string, [number, number]>
   teamCoords?: Map<string, [number, number]>
   travel?: Map<string, number>
+  rotations?: RotationTimes // when each round's rotation was announced: the walk counts from there
 }) {
   const now = useNow()
-  const late = lateTeams(matches, maxMinutes, now, travel)
+  const late = lateTeams(matches, maxMinutes, now, travel, rotations)
   const matchIds = [...new Set(late.map((l) => l.matchId))]
   const [sent, setSent] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | null>(null)

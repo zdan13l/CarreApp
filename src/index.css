@@ -2292,3 +2292,42 @@ button.team-row { transition: background-color .12s ease-out; }
 .walk-who strong .pax-code { white-space: nowrap; }
 .walking .hurry { margin-top: .15rem; }
 .location-pair button { white-space: nowrap; padding-inline: .5rem; font-size: .92rem; }
+
+/* The X of every pop-up (account sheet, team sheet, seal sheet, tutorial) is red. */
+button.sheet-x.ghost, button.sheet-x.ghost:hover:not(:disabled) { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+button.sheet-x.ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 14%, transparent); border-color: var(--danger); }
+
+/* Carrera Habilitada / Terminada: why the buttons are off. */
+.phase-banner { display: flex; align-items: flex-start; gap: .8rem; margin-bottom: .9rem; padding: .95rem 1rem; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--surface-2); }
+.phase-banner > svg { flex: none; margin-top: .1rem; color: var(--gold-ink, var(--text-muted)); }
+.phase-banner strong { display: block; }
+.phase-banner p { margin: .2rem 0 0; color: var(--text-muted); font-size: .9rem; }
+.phase-banner.finished > svg { color: var(--danger); }
+.phase-tutorial { margin-top: .7rem; display: inline-flex; align-items: center; gap: .45rem; min-height: 44px; }
+
+/* Tutorial: the lit element, the dimmed rest and the card. */
+.tour { position: fixed; inset: 0; z-index: 100; touch-action: none; }
+.tour-dim { position: absolute; inset: 0; background: color-mix(in srgb, var(--pass-navy) 78%, transparent); }
+.tour-hole { position: fixed; border-radius: 16px; box-shadow: 0 0 0 100vmax color-mix(in srgb, var(--pass-navy) 78%, transparent); outline: 2px solid var(--pass-gold); outline-offset: 0; transition: top .22s ease-out, left .22s ease-out, width .22s ease-out, height .22s ease-out; pointer-events: none; }
+.tour-card { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); max-width: 28rem; margin: 0 auto; padding: 1.15rem 1.15rem 1rem; background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); border-radius: 20px; box-shadow: 0 24px 48px -12px rgba(3, 29, 68, .55); animation: rise .25s cubic-bezier(.2, .8, .2, 1) both; }
+.tour-card.on-top { bottom: auto; top: calc(12px + env(safe-area-inset-top)); }
+.tour-card.centred { bottom: auto; top: 50%; transform: translateY(-50%); animation: none; }
+.tour-card h2 { margin: .1rem 2.4rem .3rem 0; font-size: 1.3rem; }
+.tour-count { margin: 0; color: var(--text-faint); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
+.tour-body { margin: 0; color: var(--text-muted); line-height: 1.45; }
+.tour-dots { display: flex; gap: .35rem; margin: .9rem 0 .8rem; }
+.tour-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong); }
+.tour-dots span.seen { background: var(--gold); }
+.tour-dots span.on { width: 22px; border-radius: 6px; background: var(--pass-navy); }
+.tour-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.tour-actions button { min-height: 46px; width: 100%; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .tour-hole { transition: none; } .tour-card { animation: none; } }
+.walk-wait { color: var(--text-muted); }
+
+/* Admin: the four states of the Carrera as a stepper. */
+.phase-steps { display: flex; flex-wrap: wrap; gap: .5rem .9rem; margin: .5rem 0 .7rem; padding: 0; list-style: none; }
+.phase-steps li { display: inline-flex; align-items: center; gap: .45rem; color: var(--text-faint); font-weight: 700; }
+.phase-steps .phase-dot { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 2px solid currentColor; font-size: .75rem; }
+.phase-steps li.done { color: var(--ok); }
+.phase-steps li.now { color: var(--text); }
+.phase-steps li.now .phase-dot { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }

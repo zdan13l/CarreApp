@@ -12,10 +12,15 @@ import TeamDialog from '../components/TeamDialog'
 import NoActiveCarrera from '../components/NoActiveCarrera'
 import LoadFailed from '../components/LoadFailed'
 import { AlertBanner } from '../components/Alerts'
+import PhaseBanner from '../components/PhaseBanner'
+import Tutorial from '../components/Tutorial'
+import { runnerTutorial } from '../lib/tutorials'
 import { useAuth } from '../lib/auth'
 import { useManualAlerts, useNow, useRepeatingAlert } from '../lib/alerts'
 import { lateTeams } from '../lib/delays'
 import { useTravelTimes } from '../lib/travel'
+import { useRotationTimes } from '../lib/rotations'
+import type { EventPhase } from '../types'
 import { useRealtimeReload } from '../lib/realtime'
 import { photoUrl } from '../lib/storage'
 import { airportCode, flightCodes, stageStates } from '../lib/flight'
@@ -41,7 +46,12 @@ interface MyTeam {
   photo_path: string | null
   event_id: string
   team_runners: { is_gps_tracker: boolean }[] // only this runner's own row
-  events: { max_travel_minutes: number } | { max_travel_minutes: number }[]
+  events: RunnerEvent | RunnerEvent[]
+}
+interface RunnerEvent {
+  max_travel_minutes: number
+  phase: EventPhase
+  started_at: string | null
 }
 
 // Only name and photo of the base: its information and questions are private to the base.
@@ -72,6 +82,7 @@ export default function RunnerHome() {
   const { profile } = useAuth()
   const [tab, setTab] = useState<Tab>('ronda')
   const [dir, setDir] = useState<'fwd' | 'back'>('fwd') // which way the page slides when the tab changes
+  const [tour, setTour] = useState<{ from: Tab } | null>(null) // the tutorial is open (and the tab to come back to)
   const [locationOpened, setLocationOpened] = useState(false) // keep the map (and GPS sharing) alive once opened
   const [team, setTeam] = useState<MyTeam | null>(null)
   const [matches, setMatches] = useState<RouteMatch[]>([])
@@ -91,7 +102,7 @@ export default function RunnerHome() {
     // The team this runner belongs to in the ACTIVE Carrera.
     const { data: t, error: teamErr } = await supabase
       .from('teams')
-      .select('id, name, photo_path, event_id, team_runners!inner(user_id, is_gps_tracker), events!inner(is_active, max_travel_minutes)')
+      .select('id, name, photo_path, event_id, team_runners!inner(user_id, is_gps_tracker), events!inner(is_active, max_travel_minutes, phase, started_at)')
       .eq('team_runners.user_id', userId)
       .eq('events.is_active', true)
       .maybeSingle()
@@ -142,10 +153,13 @@ export default function RunnerHome() {
   const myPoints = mine.reduce((n, m) => n + m.match_scores.filter((x) => x.winner_team_id === team?.id).length, 0)
   const isTracker = Boolean(team?.team_runners.some((r) => r.is_gps_tracker))
   const events = team?.events
-  const maxMinutes = (Array.isArray(events) ? events[0]?.max_travel_minutes : events?.max_travel_minutes) ?? 10
+  const ev = Array.isArray(events) ? events[0] : events
+  const maxMinutes = ev?.max_travel_minutes ?? 10
+  const phase: EventPhase = ev?.phase ?? 'started'
   const now = useNow()
   const travel = useTravelTimes(team?.event_id)
-  const myLate = team ? lateTeams(matches, maxMinutes, now, travel).filter((l) => l.teamId === team.id) : []
+  const rotations = useRotationTimes(team?.event_id)
+  const myLate = team && phase === 'started' ? lateTeams(matches, maxMinutes, now, travel, rotations).filter((l) => l.teamId === team.id) : []
   const manual = useManualAlerts(mine.map((m) => m.id), 'groups', team?.id)
   useRepeatingAlert(myLate.length > 0) // every 30 s while the delay lasts
   const closeMoment = useCallback(() => setMoment(null), [])
@@ -165,6 +179,13 @@ export default function RunnerHome() {
     if (fresh.length > 0) setMoment(fresh[fresh.length - 1])
   }, [team, matches])
 
+  const goTab = (t: Tab) => {
+    if (t === 'ubicacion') setLocationOpened(true)
+    const order = (isTracker ? [TABS[0], LOCATION_TAB, TABS[1], TABS[2]] : TABS).map((x) => x.id)
+    setDir(order.indexOf(t) >= order.indexOf(tab) ? 'fwd' : 'back')
+    setTab(t)
+  }
+
   return (
     <AppShell
       title={tab === 'ronda' ? 'Mi grupo' : TABS.concat(LOCATION_TAB).find((t) => t.id === tab)?.label ?? 'Mi grupo'}
@@ -177,6 +198,7 @@ export default function RunnerHome() {
         loadFailed ? <LoadFailed onRetry={() => void load()} /> : <NoActiveCarrera role="runner" />
       ) : (
         <>
+          <PhaseBanner phase={phase} onTutorial={() => setTour({ from: tab })} />
           {manual.alerts.map((a) => (
             <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => manual.dismiss(a.id)}>
               {a.message}
@@ -241,13 +263,18 @@ export default function RunnerHome() {
             tabs={isTracker ? [TABS[0], LOCATION_TAB, TABS[1], TABS[2]] : TABS}
             active={tab}
             transition={false}
-            onChange={(t) => {
-              if (t === 'ubicacion') setLocationOpened(true)
-              const order = (isTracker ? [TABS[0], LOCATION_TAB, TABS[1], TABS[2]] : TABS).map((x) => x.id)
-              setDir(order.indexOf(t) >= order.indexOf(tab) ? 'fwd' : 'back')
-              setTab(t)
-            }}
+            onChange={goTab}
           />
+          {tour && (
+            <Tutorial
+              steps={runnerTutorial(isTracker)}
+              onTab={(t) => goTab(t as Tab)}
+              onClose={() => {
+                goTab(tour.from)
+                setTour(null)
+              }}
+            />
+          )}
           {viewTeam && teamById.get(viewTeam) && (
             <TeamDialog
               name={teamById.get(viewTeam)!.name}

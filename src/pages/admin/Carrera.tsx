@@ -7,8 +7,8 @@ import { deleteUser } from '../../lib/usersApi'
 import { errMsg, useAdmin } from './AdminContext'
 import BulkImport from './BulkImport'
 import TravelTimes from './TravelTimes'
-import { confirmDialog } from '../../lib/dialog'
-import { exportResults } from '../../lib/results'
+import PhaseControl from './PhaseControl'
+import { PHASE_LABEL } from '../../lib/phase'
 
 export interface Counts {
   teams: number
@@ -84,33 +84,6 @@ export default function Carrera() {
     })
   }
 
-  async function activate() {
-    if (!supabase || !event) return
-    const previous = events.find((x) => x.is_active && x.id !== event.id)
-    const msg = previous
-      ? `Se desactivará "${previous.name}" y todos los teléfonos pasarán a la nueva Carrera.`
-      : 'Los corredores y las bases la verán de inmediato.'
-    if (!(await confirmDialog({ title: `¿Activar "${event.name}"?`, message: msg, confirmLabel: 'Activar Carrera', icon: 'check' }))) return
-    void run(async () => {
-      if (previous) await supabase!.from('events').update({ is_active: false }).eq('id', previous.id)
-      const { error: err } = await supabase!.from('events').update({ is_active: true }).eq('id', event.id)
-      if (err) {
-        if (previous) await supabase!.from('events').update({ is_active: true }).eq('id', previous.id)
-        throw new Error('No se pudo activar: revisa los pendientes de la lista.')
-      }
-    })
-  }
-
-  async function deactivate() {
-    if (!supabase || !event) return
-    if (!(await confirmDialog({ title: `¿Desactivar "${event.name}"?`, message: 'Los corredores y las bases dejarán de verla de inmediato y se REINICIA todo su avance: puntajes, llegadas, avisos, ubicaciones y registro de cambios. Se conservan grupos, bases, usuarios y el cronograma. Antes se descargan los resultados en un archivo.', confirmLabel: 'Descargar y desactivar', tone: 'danger', icon: 'warning' }))) return
-    void run(async () => {
-      if (!(await exportResults(event.id, event.name)) && !(await confirmDialog({ title: 'No se pudieron descargar los resultados', message: 'Si sigues, el avance se borra sin copia. ¿Continuar de todos modos?', confirmLabel: 'Continuar sin copia', tone: 'danger', icon: 'warning' }))) return
-      const { error: err } = await supabase!.from('events').update({ is_active: false }).eq('id', event.id)
-      if (err) throw new Error('No se pudo desactivar la Carrera.')
-    })
-  }
-
   return (
     <>
       <header className="page-head">
@@ -133,13 +106,13 @@ export default function Carrera() {
               Carrera que estás editando
               <select value={event.id} onChange={(e) => selectEvent(e.target.value)}>
                 {events.map((x) => (
-                  <option key={x.id} value={x.id}>{x.name}{x.is_active ? ' (activa)' : ''}</option>
+                  <option key={x.id} value={x.id}>{x.name}{x.is_active ? ` (${PHASE_LABEL[x.phase].toLowerCase()})` : ''}</option>
                 ))}
               </select>
             </label>
           )}
           <p>
-            Estado: <span className={`badge ${event.is_active ? 'ok' : 'idle'}`}>{event.is_active ? 'Activa' : 'Borrador'}</span>
+            Estado: <span className={`badge ${event.is_active ? 'ok' : 'idle'}`}>{event.is_active ? PHASE_LABEL[event.phase] : 'Borrador'}</span>
           </p>
           <p className="muted">{counts.teams} grupos · {counts.bases} bases</p>
 
@@ -147,7 +120,7 @@ export default function Carrera() {
             <p className="ok-box">Todo completo: fotos, un usuario por grupo, información y 3 preguntas por base.</p>
           ) : (
             <div className="fail-box">
-              <strong>{event.is_active ? 'Pendientes de la Carrera activa:' : 'Falta para poder activar la Carrera:'}</strong>
+              <strong>{event.is_active ? 'Pendientes de la Carrera activa:' : 'Falta para poder habilitar la Carrera:'}</strong>
               <ul>{problems.map((p) => <li key={p}>{p}</li>)}</ul>
             </div>
           )}
@@ -160,15 +133,9 @@ export default function Carrera() {
           )}
 
           {error && <p className="error">{error}</p>}
-          <div className="row">
-            {event.is_active ? (
-              <button className="ghost" disabled={busy} onClick={deactivate}>Desactivar Carrera</button>
-            ) : (
-              <button disabled={busy || problems.length > 0} onClick={activate}>Activar Carrera</button>
-            )}
-          </div>
         </section>
       )}
+      {event && <PhaseControl key={`p-${event.id}`} event={event} canEnable={problems.length === 0} onChanged={async () => { await reload(); await check() }} />}
 
       <BulkImport />
       </div>

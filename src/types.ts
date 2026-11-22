@@ -10,10 +10,15 @@ export interface Profile {
   photo_path?: string | null
 }
 
+// A Carrera is Deshabilitada (draft or history) -> Habilitada (ready, buttons off, tutorial) -> Iniciada (the time runs) -> Terminada (locked, to validate).
+export type EventPhase = 'disabled' | 'enabled' | 'started' | 'finished'
+
 export interface EventRow {
   id: string
   name: string
   is_active: boolean
+  phase: EventPhase
+  started_at: string | null
   max_travel_minutes: number
 }
 

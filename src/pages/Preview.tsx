@@ -32,6 +32,10 @@ import { SEAL_ORDER, sealForSeed } from '../lib/seals'
 import { AfterCard, CurrentRound, FinishedCard, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
 import { AlertBanner } from '../components/Alerts'
 import type { LegInfo } from '../lib/delays'
+import PhaseBanner from '../components/PhaseBanner'
+import PhaseControl from './admin/PhaseControl'
+import Tutorial from '../components/Tutorial'
+import { baseTutorial } from '../lib/tutorials'
 import LoadFailed from '../components/LoadFailed'
 import TeamDialog from '../components/TeamDialog'
 import NoActiveCarrera from '../components/NoActiveCarrera'
@@ -80,8 +84,8 @@ const towerOps = buildOpEvents({ matches: towerMatches, alerts: [{ id: 'n1', mat
 
 // sample legs for the arrival screen: one group still has time, the other is over its limit
 const previewLegs: Record<string, LegInfo> = {
-  t0: { kind: 'walking', fromBaseId: 'bx', finishedAt: Date.now() - 6 * 60_000, allowedMin: 10 },
-  t3: { kind: 'walking', fromBaseId: 'by', finishedAt: Date.now() - 12 * 60_000, allowedMin: 10 },
+  t0: { kind: 'walking', fromBaseId: 'bx', since: Date.now() - 6 * 60_000, allowedMin: 10 },
+  t3: { kind: 'walking', fromBaseId: 'by', since: Date.now() - 12 * 60_000, allowedMin: 10 },
 }
 const previewBaseNames = new Map([['bx', 'Atrio'], ['by', 'Biblioteca']])
 const baseMatchPending: BaseMatch = { id: 'b1', round_number: 3, team_a: 't0', team_b: 't3', status: 'pending', arrived_at: null, match_scores: [] }
@@ -220,6 +224,27 @@ function PdfPreview({ data }: { data: MemberPassportData }) {
         ))}
       </div>
     </main>
+  )
+}
+
+function HabilitadaPreview({ user }: { user: { full_name: string; username: string; photo_path?: string | null } }) {
+  const [tour, setTour] = useState(false)
+  const [tab, setTab] = useState<'ronda' | 'resultados' | 'base'>('ronda')
+  const tabs = [
+    { id: 'ronda' as const, label: 'Ronda', icon: <Flag size={22} aria-hidden="true" /> },
+    { id: 'resultados' as const, label: 'Resultados', icon: <Trophy size={22} aria-hidden="true" /> },
+    { id: 'base' as const, label: 'Mi base', icon: <MapPin size={22} aria-hidden="true" /> },
+  ]
+  return (
+    <AppShell title="Mi base" user={user} alerts>
+      <div className="base-view">
+        <PhaseBanner phase="enabled" onTutorial={() => setTour(true)} />
+        <BaseTicket name="Atrio" photoPath="/campus-800.jpg" sealed={0} />
+        <MatchCard match={baseMatchPending} teams={teams} onSent={noopAsync} eventId="e1" base={previewBase} codes={baseCodes} legs={{}} locked />
+        <BottomNav tabs={tabs} active={tab} transition={false} onChange={setTab} />
+        {tour && <Tutorial steps={baseTutorial()} onTab={(t) => setTab(t as typeof tab)} onClose={() => setTour(false)} />}
+      </div>
+    </AppShell>
   )
 }
 
@@ -513,6 +538,22 @@ export default function Preview() {
       </AppShell>
     )
   }
+
+  // the coordinator's control in each of the four states
+  if (screen === 'admin-estado') {
+    return (
+      <div className="admin tower">
+        <main className="admin-main">
+          {(['disabled', 'enabled', 'started', 'finished'] as const).map((phase) => (
+            <PhaseControl key={phase} event={{ id: 'e1', name: 'Carrera 2710', is_active: phase !== 'disabled', phase, started_at: null, max_travel_minutes: 10 }} onChanged={noopAsync} />
+          ))}
+        </main>
+      </div>
+    )
+  }
+
+  // Carrera Habilitada: the base sees its screen with the buttons off, and can open the tutorial
+  if (screen === 'base-habilitada') return <HabilitadaPreview user={inspector} />
 
   // ronda (jugando) / base-llegada (esperando a los grupos) / base-fin (ventanilla cerrada) / base-info (Mi base)
   if (screen === 'base' || screen === 'base-llegada' || screen === 'base-fin' || screen === 'base-info') {
