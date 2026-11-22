@@ -2245,3 +2245,13 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 .chip-toggle { min-height: 0; padding: .2rem .6rem; font-size: .75rem; font-weight: 600; border-radius: 999px; background: transparent; color: var(--text-muted); border: 1px dashed var(--border-strong); }
 .chip-toggle.on { color: var(--text); border-style: solid; background: var(--surface-2); }
 .chip-toggle.lead { color: var(--on-gold); border-color: transparent; background: linear-gradient(110deg, var(--foil-a), var(--foil-b) 40%, var(--foil-c) 60%, var(--foil-d)); }
+.history-card { display: grid; gap: .8rem; }
+.history-head { display: flex; align-items: flex-start; gap: .6rem; }
+.history-head h2 { margin: 0; }
+.history-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.history-table th, .history-table td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--border); }
+.history-table th { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.history-table th:last-child, .history-table .num { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.history-detail summary { cursor: pointer; font-weight: 600; }
+.history-round h3 { margin: .8rem 0 .2rem; font-size: .9rem; }
+.history-round ul { margin: 0; padding-left: 1.1rem; font-size: .85rem; }

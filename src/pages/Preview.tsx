@@ -26,6 +26,7 @@ import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
 import { BaseGuide, BaseTicket, BaseWhere, ClosedDesk, MatchCard, NextRound, type BaseMatch, type Team } from './BaseHome'
 import { stampLook } from '../lib/stamp'
+import { ArchiveCard, type Archive } from './admin/Historial'
 import { SEAL_ORDER, sealForSeed } from '../lib/seals'
 import { AfterCard, CurrentRound, FinishedCard, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
 import { AlertBanner, AlertBell } from '../components/Alerts'
@@ -364,6 +365,20 @@ export default function Preview() {
         <StatusBar name="Dioses Griegos" photoPath={null} points={3} />
         <CurrentRound match={routeMatches[1]} myId="t0" teams={teamById} totalRounds={5} />
         <StampMoment seed="x2" name="Biblioteca Alfonso Borrero" photoPath="/campus-800.jpg" round={2} time="12:04" onClose={noop} />
+      </AppShell>
+    )
+  }
+
+  if (screen === 'historial') {
+    const items = ['barra', 'pregunta', 'minijuego']
+    const archive: Archive = {
+      id: 'h1', event_name: 'Carrera 2710', term_name: '2710', archived_at: '2027-01-22T20:30:00Z', matches_played: 4,
+      standings: [{ team: 'Fénix', points: 9 }, { team: 'Quimeras', points: 8 }, { team: 'Titanes', points: 6 }, { team: 'Sirenas', points: 5 }],
+      results: [1, 2].flatMap((round) => items.map((item, i) => ({ round, base: round === 1 ? 'Atrio' : 'Biblioteca', team_a: 'Fénix', team_b: round === 1 ? 'Titanes' : 'Quimeras', item, winner: i === 2 ? 'Titanes' : 'Fénix', voided: round === 2 && i === 1 }))),
+    }
+    return (
+      <AppShell title="Historial" user={user}>
+        <ArchiveCard a={archive} onRemove={noop} />
       </AppShell>
     )
   }

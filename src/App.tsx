@@ -11,6 +11,7 @@ import EnVivo from './pages/admin/EnVivo'
 import Grupos from './pages/admin/Grupos'
 import Mapa from './pages/admin/Mapa'
 import Puntajes from './pages/admin/Puntajes'
+import Historial from './pages/admin/Historial'
 import Inductores from './pages/admin/Inductores'
 import Usuarios from './pages/admin/Usuarios'
 import BaseHome from './pages/BaseHome'
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="mapa" element={<Mapa />} />
             <Route path="usuarios" element={<Usuarios />} />
             <Route path="inductores" element={<Inductores />} />
+            <Route path="historial" element={<Historial />} />
           </Route>
           <Route path="/base" element={<RequireRole role="base"><BaseHome /></RequireRole>} />
           <Route path="/corredor" element={<RequireRole role="runner"><RunnerHome /></RequireRole>} />

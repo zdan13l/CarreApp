@@ -10,7 +10,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 // Every table of the project, in an order that makes a restore easy (the ones others point to come first).
 export const TABLES = [
-  'terms', 'term_committees', 'events', 'profiles', 'passports', 'teams', 'bases', 'base_details', 'base_questions', 'base_staff', 'base_travel_times',
+  'terms', 'term_committees', 'events', 'event_archives', 'profiles', 'passports', 'teams', 'bases', 'base_details', 'base_questions', 'base_staff', 'base_travel_times',
   'team_runners', 'matches', 'match_scores', 'score_audit', 'alerts', 'team_locations', 'passport_records', 'passport_stamps',
 ] as const
 
