@@ -2,6 +2,11 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Revisión de la vista de las bases (2026-11-22)
+- **Pantalla que se «bugueaba» al calificar:** varias recargas seguidas (una por cada puntaje) podían responder en desorden y pintar un estado viejo, o actualizar partes de la pantalla en momentos distintos. Ahora solo la última carga toca la pantalla y todo (cruces, equipos, rotaciones y confirmaciones) se aplica de una vez.
+- Los tres pasos **Llegada / Etapas / Sello** se ven también mientras los grupos vienen en camino (Llegada «Falta», Etapas «0 de 3», Sello «Luego»).
+- Auditoría a 375 px de todas las pantallas de la base: sin desborde horizontal, sin botones menores de 40 px y sin textos menores de 12 px (salvo el arte del sello).
+
 ## Retoques de texto y pantalla (2026-11-22)
 - «carrera» va en minúscula en los textos de la app cuando no inicia la oración. Aviso de estado: solo «La carrera aún no empieza» / «La carrera terminó». Rol en la cuenta: «Inductor base».
 - Cruces de tu base: solo las cajas de etapa van centradas. Tutorial: los puntitos de progreso van centrados. El diálogo de apurar a ambos lista un grupo por línea («GRUPO, falta 3:20»).
