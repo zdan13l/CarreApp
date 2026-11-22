@@ -2,7 +2,7 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
-## Historial de puntajes (2026-11-22, migración 0028, pendiente de aplicar)
+## Historial de puntajes (2026-11-22, migración 0028, aplicada)
 Como las Carreras no se eliminan, al desactivar una se guarda antes del reinicio su tabla final y cada punto de cada cruce (`event_archives`, con los nombres escritos). Pantalla nueva *Historial* en Preparación: la tabla final y, plegado, cada punto ronda por ronda; el coordinador puede borrar una copia.
 
 ## Las Carreras se desactivan, no se eliminan (2026-11-22)
