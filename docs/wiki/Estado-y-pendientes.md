@@ -1,11 +1,11 @@
 # Estado y pendientes (traspaso entre sesiones)
 
-Foto del proyecto al **2026-11-19**, para retomar el trabajo en una conversación nueva sin perder contexto. La fuente de verdad del detalle sigue siendo la [Bitácora](Bitacora), el [Registro SQL](Registro-SQL) y `CLAUDE.md` (en el repositorio).
+Foto del proyecto al **2026-11-22**, para retomar el trabajo en una conversación nueva sin perder contexto. La fuente de verdad del detalle sigue siendo la [Bitácora](Bitacora), el [Registro SQL](Registro-SQL) y `CLAUDE.md` (en el repositorio).
 
 ## Dónde está todo
 - Repositorio: `https://github.com/zdan13l/CarreApp` (rama `main`; Vercel despliega solo en ~15 s). Carpeta local: `C:\Users\zdan1\Downloads\Carrera2710`.
 - Wiki: `https://github.com/zdan13l/CarreApp.wiki.git` (rama `master`). Se publica copiando `docs/wiki/*.md` a un clon de la wiki y haciendo push.
-- Base de datos: Supabase; **las migraciones `0001` a `0022` están aplicadas** la `0023` (pasaporte personal) también, el 2026-11-19; la `0024` (identidad) también; **la `0025` (palabras por inducción y foto de la base) está pendiente de aplicar a mano** (la `0021` y la `0022` el 2026-11-19) (el usuario las aplica a mano en el SQL Editor; ver el registro).
+- Base de datos: Supabase; **las migraciones `0001` a `0027` están aplicadas** (la `0023` el 2026-11-19; la `0024` el 2026-11-19/20; la `0025` y la `0026` el 2026-11-20 y la `0027` el 2026-11-21). El usuario las aplica a mano en el SQL Editor; ver el registro.
 
 ## Qué hace la app (resumen)
 Roles: **coordinador** (PC), **inductor de base** y **corredor** (iPhone). Cada Carrera es una edición con grupos, bases, usuarios, cruces (cronograma) y puntajes. Solo una Carrera activa a la vez.
@@ -25,9 +25,10 @@ Una Carrera activa a la vez; solo se elimina una Carrera desactivada; cada perso
 `npm test` (~414 pruebas, ~12 s): base de datos en memoria con todas las migraciones, simulacro de una Carrera completa con el archivo de prueba, contrato app↔esquema, diseño, notificaciones, pantallas. `npm run check` = tipos + lint + api + pruebas + build. El agente `carreapp-tester` (`.claude/agents/`) las ejecuta e inventa casos; su informe está en [Informe de pruebas](Informe-de-pruebas).
 
 ## Pendientes
--2. La `0027` ya está aplicada (2026-11-21): **correr `scripts/apply-extras.ts`** para dar a cada persona sus comités extra y la generación de Textiles. Definir el logo de Minichips y las generaciones que faltan.
--1. **Aplicar a mano `0025_passport_pages.sql`** (hasta entonces el pasaporte abre sin las palabras de la inducción y de los comités y *Inductores* lo avisa), **escribir esas palabras** (*Inductores → Palabras para los pasaportes*), **poner el apodo y el símbolo de cada persona**, **definir las generaciones** (se ponen por persona en *Inductores*, o en el Excel) y **probar el flujo con el Excel real** (`Inductores_nombres_carreras.xlsx`, 60 personas, 8 carreras): crear semestre `2026-2` · Mitologías, subir el Excel, bajar las credenciales, entrar con un @ en un teléfono, cambiar papeles y enlazar los grupos de dos. Subir las fotos.
--2. **Elegir los sellos de la temática** (galerías en `docs/logo/sellos/`: `sellos-mitologias-2.html` es la ronda 2). Después: guardar el sello de cada base, el paquete por temática y las pruebas. El pasaporte personal ya usa el emblema de cada cultura, pero los sellos de las bases siguen siendo los de siempre.
+-4. **La Carrera real es el 22 de enero de 2027.** Hasta entonces seguimos con la Carrera 2710 de prueba (18 grupos, 17 bases y 54 cruces ficticios, con corredores y bases repartidos de prueba). Antes del día real: grupos, bases y cruces verdaderos, y el reparto real de corredores y bases.
+-3. **Del coordinador (pendiente):** escribir las palabras de los coordinadores y de cada comité (*Inductores → Palabras para los pasaportes*), poner el apodo y el símbolo de cada persona, definir las generaciones que faltan y el logo de Minichips (sin imagen todavía). Entregar las contraseñas de `credenciales-2710.xlsx` y borrarlo.
+-2. **Hecho (2026-11-21):** migraciones `0025`, `0026` y `0027` aplicadas; `apply-extras.ts` corrido (comités extra y generación Textiles). Los quince sellos de las bases (solo la tinta, en `public/sellos/ink/`) quedan como están; no se espera una Carrera de 15 bases o más, así que no se repiten. La clave `SUPABASE_SERVICE_ROLE_KEY` sigue en `.env.local` por si se corren más scripts: quitarla al terminar.
+-1. **Probar en un iPhone real** los sellos nuevos (usan máscaras y filtros: velocidad y que se vean bien) y la descarga del PDF del pasaporte.
 0. ~~Aplicar a mano las migraciones `0021_team_contacts.sql` y `0022_score_needs_arrival.sql`~~ **Hecho (2026-11-19):** la ficha del equipo en *Top* muestra el @ de su corredor y una base solo puede calificar si ya confirmó la llegada.
 1. **Simulacro con teléfonos reales** (lo único que la automatización no cubre), siguiendo [Prueba en vivo](Prueba-en-vivo): sonido y notificaciones en iPhone con la pantalla bloqueada (probar 3 o 4 avisos seguidos sin quitar ninguno), GPS del usuario designado, avisos del coordinador a la base, unos 60 teléfonos a la vez con la red del campus, Mapbox con teselas reales, el diseño nuevo y los márgenes seguros del iPhone, subir una foto de usuario real.
 2. ~~Actualizar la Carrera de prueba~~ **Hecho (2026-11-18):** ahora trae un usuario por grupo (9 usuarios).
