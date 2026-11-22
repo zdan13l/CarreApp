@@ -76,3 +76,5 @@ La hoja de la cuenta (avatar de la barra) tiene los ajustes de **sonido y notifi
 4. ¿Cabe en el celular? Si no, plegable o aparte.
 
 **Base · pestaña Ronda, un momento a la vez:** (1) grupos en camino: cada uno con la base de donde viene, el tiempo máximo del tramo y un reloj que cuenta hacia atrás, «Apurar» por grupo y para los dos (0031), y «Ya llegaron ambos grupos»; (2) llegaron: solo las tres etapas por calificar; (3) calificados: solo «Ya los dejé ir» (tarjeta «Equipos en rotación», habilitada cuando llega el aviso del coordinador); (4) al dejarlos ir, el siguiente cruce con su reloj.
+
+**Estados de la Carrera (0032):** el coordinador la maneja con `PhaseControl` (Preparación → Carrera y arriba de En vivo): Deshabilitada → Habilitada → Iniciada → Terminada. En *Habilitada* las bases y los corredores ven un aviso, los botones desactivados y el botón **Ver tutorial**; en *Iniciada* todo funciona y corre el reloj; en *Terminada* se bloquea otra vez; *Deshabilitar* pasa al Historial y *Reiniciar* (solo desde Terminada) deja la Carrera Habilitada para otra prueba.

@@ -25,7 +25,10 @@ erDiagram
   events {
     uuid id PK
     text name
-    bool is_active "solo una activa"
+    bool is_active "solo una activa: es phase distinto de disabled"
+    text phase "disabled, enabled, started o finished (0032)"
+    timestamptz started_at "al iniciar (0032)"
+    timestamptz finished_at "al terminar (0032)"
   }
   profiles {
     uuid id PK "= auth.users.id"
@@ -165,6 +168,8 @@ erDiagram
 | Todo cambio de puntaje queda **auditado** | Trigger `after_score_change` → `score_audit` |
 | El estado del cruce se actualiza solo (1–2 ítems = en juego, 3 = terminado) | Trigger `after_score_change` |
 | Solo una Carrera activa a la vez | Índice único parcial en `events(is_active)` |
+| Estados de la Carrera y pasos válidos | `events.phase` + trigger `events_a_sync_phase` + `event_action()` (0032) |
+| Una base solo actúa con la Carrera Iniciada | `staff_can_act()` en las políticas y funciones de escritura (0032) |
 | Solo un corredor transmite GPS por grupo | Índice único parcial en `team_runners(team_id)` |
 | Un comité puede tener **varios coordinadores** (Caos tiene dos), todos con sello dorado | Sin índice único desde 0026 (antes lo había, 0024) |
 | Nadie edita su propio pasaporte (todo lo pone el coordinador; el @ y la contraseña los cambia el servidor) | Sin política de escritura para la persona y disparador `passports_guard` (0025) |

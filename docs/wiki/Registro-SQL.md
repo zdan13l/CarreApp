@@ -44,6 +44,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0029 | [`0029_round_rotations.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0029_round_rotations.sql) | 2026-11-22 | Rotación de las bases: el coordinador avisa «ya pueden rotar» por ronda y cada base confirma que dejó ir a sus grupos |
 | 0030 | [`0030_question_answers.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0030_question_answers.sql) | 2026-11-22 | Cada base tiene mínimo 5 preguntas, cada una con su respuesta (hasta 10) |
 | 0031 | [`0031_targeted_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0031_targeted_alerts.sql) | 2026-11-22 | El aviso «apúrense» puede ir a un solo grupo del cruce (`alerts.team_id`) |
+| 0032 | [`0032_event_phases.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0032_event_phases.sql) | _pendiente_ | Los cuatro estados de la Carrera (`events.phase`), `event_action()`, las bases solo actúan con la Carrera Iniciada y el reloj de demora cuenta desde el aviso de rotación |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -519,6 +520,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/targeted-alerts-0031.test.ts` (sin grupo llega a los dos, con grupo solo a ese, el grupo debe jugar el cruce, cada corredor lee lo suyo, el límite cuenta por destinatario).
 
 **Cómo revertir** `alter table public.alerts drop column team_id;` y volver a crear `alerts_read`, `alerts_push` y `alerts_rate_limit` como en la 0019, y `drop function public.alerts_team_check() cascade; drop function public.is_runner_of_team(uuid);`.
+
+## 0032 — Los estados de la Carrera y el reloj desde la rotación
+
+**Qué cambia** `events.phase` (`disabled`, `enabled`, `started`, `finished`), `started_at` y `finished_at`. `is_active` sigue existiendo y siempre es «la fase no es `disabled`» (el trigger `events_a_sync_phase` los mantiene iguales y solo deja hacer los pasos válidos; poner `is_active = true` equivale a Iniciada, así que lo anterior sigue funcionando). `event_action(event, acción)` es la única puerta del coordinador: `enable` (valida la lista de pendientes y que no haya otra Carrera activa), `start`, `finish`, `disable` (desde Habilitada o Terminada: guarda el historial y reinicia el avance como siempre) y `reset` (solo desde Terminada: borra el avance SIN historial y deja la Carrera Habilitada). Los tres triggers que reaccionan a desactivar (`events_reset_on_deactivate`, `events_archive_stamps`, `events_archive_scores`) ahora escuchan también `phase`. Una base solo actúa (`staff_can_act`: confirmar llegada, calificar, avisar, confirmar la rotación) con la Carrera Iniciada; leer sigue igual y el coordinador corrige en cualquier estado. `check_delays()` solo corre con la Carrera Iniciada y cuenta desde el aviso de rotación de la ronda anterior (o desde que terminó el cruce, si no hubo aviso o es más tarde).
+
+**Por qué** El coordinador quiere abrir la Carrera a las bases antes del día (Habilitada: ven todo con los botones desactivados y un tutorial), iniciar el reloj en el momento exacto, bloquear al terminar para validar, y poder repetir pruebas (Reiniciar). El reloj debe empezar cuando los grupos pueden salir, no cuando terminó su cruce. Las Carreras activas al aplicarla quedan Iniciadas. **Hasta aplicarla, la app nueva no carga las pantallas de bases y corredores** (piden `events.phase`).
+
+**Verificación** `tests/db/event-phases-0032.test.ts` (transiciones y quién las hace, bloqueo de las bases por estado, reiniciar sin historial, deshabilitar con historial, reloj desde la rotación).
+
+**Cómo revertir** Recrear `scores_base_insert`, `alerts_base_insert` (0019), `confirm_arrival` (0007), `acks_insert` (0029) y `check_delays` (0016) con `is_staff_of_match` / `e.is_active`; recrear los tres triggers con `after update of is_active`; `drop function public.event_action(uuid, text), public.staff_can_act(uuid); drop trigger events_a_sync_phase on public.events; alter table public.events drop column phase, drop column started_at, drop column finished_at;`.
 
 ## Plantilla para nuevos registros
 
