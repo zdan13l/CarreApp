@@ -37,7 +37,7 @@ describe('the base screen', () => {
   })
   it('shows a calm explanation when the Carrera is not active, and plain words if the database refuses an action', () => {
     expect(base).toMatch(/<NoActiveCarrera role="base" \/>/)
-    expect(base).toMatch(/La Carrera no está activa para tu usuario/)
+    expect(base).toMatch(/La Carrera no está iniciada para tu usuario/)
   })
   it('receives the alerts of the coordinator (sound and notification settings included)', () => {
     expect(base).toMatch(/useManualAlerts\(matches\.map\(\(m\) => m\.id\), 'base'\)/)

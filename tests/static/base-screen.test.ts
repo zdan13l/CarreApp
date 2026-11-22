@@ -88,7 +88,7 @@ describe('the base screen', () => {
   it('hurrying: a clock per walking group with its origin, one button per group and one for both (0031)', () => {
     expect(base).toMatch(/<WalkingGroups/)
     expect(base).toMatch(/legInfo\(eventMatches, m\.id, m\.team_a/)
-    expect(base).toMatch(/Viene de \$\{from \?\? 'otra base'\} · máximo \$\{info\.allowedMin\} min/)
+    expect(base).toMatch(/Viene de \$\{info\.fromBaseId === null \? 'la salida' : \(from \?\? 'otra base'\)\} · máximo \$\{info\.allowedMin\} min/)
     expect(base).toMatch(/Todavía les queda tiempo de traslado/) // hurrying before the time is up warns first
     expect(read('src/components/DelaysPanel.tsx')).toMatch(/team_id: teamId/)
     expect(read('src/lib/alerts.ts')).toMatch(/a\.team_id === teamId/) // the runner of the other group does not get it
@@ -115,5 +115,29 @@ describe('the base screen', () => {
     expect(names).toMatch(/onPointerMove/) // the finger moved
     expect(names).toMatch(/PRESS_DELAY_MS/)
     expect(read('src/index.css')).toMatch(/button\.team-row\[data-pressed='true'\] \{ background: color-mix\(in srgb, var\(--gold\)/)
+  })
+
+  it('Habilitada: bases and runners see a banner and a tutorial, and the buttons are off (0032)', () => {
+    for (const f of ['src/pages/BaseHome.tsx', 'src/pages/RunnerHome.tsx']) {
+      const src = read(f)
+      expect(src, f).toMatch(/<PhaseBanner phase=\{phase\} onTutorial=/)
+      expect(src, f).toMatch(/<Tutorial/)
+      expect(src, f).toMatch(/events!inner\(is_active, max_travel_minutes, phase, started_at\)/)
+    }
+    expect(base).toMatch(/const locked = phase !== 'started'/)
+    for (const off of ['busy || locked', 'locked={locked}']) expect(base).toContain(off)
+    const tours = read('src/lib/tutorials.ts')
+    expect(tours).toMatch(/baseTutorial/)
+    expect(tours).toMatch(/runnerTutorial/)
+    expect(read('src/components/PhaseBanner.tsx')).toMatch(/Ver tutorial/)
+  })
+
+  it('the first round counts from the start of the Carrera and later rounds from the rotation notice', () => {
+    expect(base).toMatch(/legInfo\(eventMatches, m\.id, m\.team_a, maxMinutes, travel, rotationTimes,/)
+    expect(read('src/lib/delays.ts')).toMatch(/rotations\.get\(prev\.round_number\)/)
+  })
+
+  it('the X of every pop-up is red', () => {
+    expect(read('src/index.css')).toMatch(/button\.sheet-x\.ghost, button\.sheet-x\.ghost:hover:not\(:disabled\) \{ color: var\(--danger\)/)
   })
 })

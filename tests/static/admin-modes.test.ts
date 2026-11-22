@@ -29,15 +29,16 @@ describe('creating the Carrera and ending it', () => {
     expect(car).toMatch(/Pasos para crear la Carrera/)
     for (const to of ['/admin/grupos', '/admin/bases', '/admin/usuarios', '/admin/cruces']) expect(car).toContain(to)
   })
-  it('En carrera can end the Carrera, and both ways of switching it off warn that the progress is reset', () => {
-    const ev = read('src/pages/admin/EnVivo.tsx')
-    expect(ev).toMatch(/Finalizar Carrera/)
-    expect(ev).toMatch(/Se REINICIA todo su avance/)
+  it('the Carrera has four states with one control (Preparación and En carrera), and disabling still warns that the progress is reset', () => {
+    const ctl = read('src/pages/admin/PhaseControl.tsx')
+    for (const label of ['Habilitar Carrera', 'Iniciar Carrera', 'Terminar Carrera', 'Reiniciar', 'Deshabilitar']) expect(ctl).toContain(label)
+    expect(ctl).toMatch(/rpc\('event_action'/)
+    expect(ctl).toMatch(/se REINICIA todo su avance/)
     // the final results are saved to a file before anything is erased
-    expect(ev).toMatch(/exportResults/)
-    expect(read('src/pages/admin/Carrera.tsx')).toMatch(/exportResults/)
+    expect(ctl).toMatch(/exportResults/)
+    expect(read('src/pages/admin/EnVivo.tsx')).toMatch(/<PhaseControl/)
+    expect(read('src/pages/admin/Carrera.tsx')).toMatch(/<PhaseControl/)
     expect(read('src/pages/admin/Puntajes.tsx')).toMatch(/Descargar resultados/)
-    expect(read('src/pages/admin/Carrera.tsx')).toMatch(/se REINICIA todo su avance/)
   })
 })
 

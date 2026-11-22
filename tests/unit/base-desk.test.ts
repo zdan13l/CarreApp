@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { ClosedDesk, MatchCard, NextRound, WonItems, type BaseMatch, type Team } from '../../src/pages/BaseHome'
 import { AlertBanner } from '../../src/components/Alerts'
-import { clockText, lateTeams, legInfo, legRemainingSec, type LegInfo, type TimedMatch } from '../../src/lib/delays'
+import { clockText, lateTeams, legInfo, legRemainingSec, type LegInfo, type RotationTimes, type TimedMatch } from '../../src/lib/delays'
 
 const teams = new Map<string, Team>([
   ['a', { id: 'a', name: 'Dioses Griegos', photo_path: null }],
@@ -165,7 +165,7 @@ describe('walking groups: where they come from and the clock (hurrying one or bo
 
   it('the card shows each group with where it comes from, its clock and its own "Apurar", plus one for both', () => {
     const legs: Record<string, LegInfo> = {
-      a: { kind: 'walking', fromBaseId: 'bx', finishedAt: Date.now() - 2 * 60000, allowedMin: 10 },
+      a: { kind: 'walking', fromBaseId: 'bx', since: Date.now() - 2 * 60000, allowedMin: 10 },
       b: { kind: 'stay' },
     }
     const html = renderToStaticMarkup(h(MatchCard, { match: match(), teams, onSent: noop, eventId: 'e1', base, codes, legs, baseNames: new Map([['bx', 'Biblioteca']]) }))
@@ -176,5 +176,32 @@ describe('walking groups: where they come from and the clock (hurrying one or bo
     expect(html).toContain('aria-label="Apurar a Samuráis"')
     expect(html).toMatch(/disabled=""[^>]*aria-label="Apurar a Samuráis"|aria-label="Apurar a Samuráis"[^>]*disabled=""/) // already here: nothing to hurry
     expect(html).toContain('Apurar a los grupos')
+  })
+})
+
+describe('the clock counts from the rotation notice (0032)', () => {
+  const NOW = Date.parse('2027-01-20T15:00:00Z')
+  const ago = (m: number) => NOW - m * 60000
+  const tm = (id: string, round: number, baseId: string, a: string, b: string, o: Partial<TimedMatch> = {}): TimedMatch => ({
+    id, round_number: round, base_id: baseId, team_a: a, team_b: b, status: 'pending', arrived_at: null, finished_at: null, ...o,
+  })
+  const all = [tm('p', 1, 'other', 'a', 'x', { status: 'finished', finished_at: new Date(ago(15)).toISOString() }), tm('m', 2, 'atrio', 'a', 'b')]
+
+  it('without a notice it counts from the end of the match; with a recent one the group is not late and has the full time left', () => {
+    expect(lateTeams(all, 10, NOW).map((l) => l.teamId)).toEqual(['a'])
+    const notice: RotationTimes = new Map([[1, ago(2)]])
+    expect(lateTeams(all, 10, NOW, new Map(), notice)).toEqual([])
+    const info = legInfo(all, 'm', 'a', 10, new Map(), notice) as Extract<LegInfo, { kind: 'walking' }>
+    expect(legRemainingSec(info, NOW)).toBe(8 * 60)
+  })
+
+  it('a notice from BEFORE the match ended changes nothing', () => {
+    expect(lateTeams(all, 10, NOW, new Map(), new Map([[1, ago(40)]])).map((l) => l.teamId)).toEqual(['a'])
+  })
+
+  it('a group with no previous match walks from the start of the Carrera; before it starts there is no clock', () => {
+    const first = [tm('m', 1, 'atrio', 'a', 'b')]
+    expect(legInfo(first, 'm', 'a', 10).kind).toBe('none')
+    expect(legInfo(first, 'm', 'a', 10, new Map(), new Map(), ago(3))).toMatchObject({ kind: 'walking', fromBaseId: null, allowedMin: 10 })
   })
 })
