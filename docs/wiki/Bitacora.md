@@ -2,6 +2,12 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Ajustes de la base: tutorial, apurar y cruces (2026-11-22)
+- **Ver tutorial** solo en la pestaña *Ronda* (en las demás queda un aviso corto de que la Carrera no ha empezado). El tutorial ahora señala la tarjeta o el botón de cada paso.
+- **Apurar:** al presionar se pone amarillo; tras enviar un aviso los botones descansan 15 s (siguen tocables: si se pulsan sale «Espera un momento… espera N segundos»).
+- **Próximos equipos** (`NextRound`) vuelve y no se quita en ningún momento de *Ronda*.
+- **Cruces de tu base:** ahora son tarjetas con marcador, equipo ganador y quién ganó cada etapa (`CrucesList`).
+
 ## Estados de la Carrera, tutorial y reloj desde la rotación (2026-11-22, migración 0032, aplicada)
 - **Cuatro estados** (`events.phase`): *Deshabilitada* (borrador o historial), *Habilitada* (lista, sin actividad), *Iniciada* (corre el tiempo y las bases actúan) y *Terminada* (bloqueada, para validar). Un solo control, `PhaseControl`, en *Preparación → Carrera* y arriba de *En vivo*, con el estado en pasos y los botones que tocan: Habilitar, Iniciar, Terminar, Reiniciar, Deshabilitar. Todo pasa por `event_action()` en la base de datos.
 - **Habilitada:** bases y corredores ven sus pantallas con un aviso («La Carrera aún no empieza») y todos los botones desactivados; la base de datos lo exige (una base no puede confirmar llegada, calificar, avisar ni confirmar rotación hasta que se inicie). Botón **Ver tutorial** (solo bases y corredores): un recorrido por las pantallas y opciones (`Tutorial`, pasos en `lib/tutorials.ts`) que cambia de pestaña solo y señala los elementos.
