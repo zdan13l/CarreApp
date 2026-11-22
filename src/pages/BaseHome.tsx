@@ -265,10 +265,10 @@ export default function BaseHome() {
             {tab === 'resultados' && (
               <>
                 <BaseTicket name={base.name} photoPath={base.location_photo_path} sealed={finished.length} />
-                <section className="top-others" aria-label="Equipos de la Carrera">
+                <section className="top-others" aria-label="Equipos de la carrera">
                   <h2 className="title-tag">
                     <Users size={18} aria-hidden="true" />
-                    Equipos de la Carrera
+                    Equipos de la carrera
                     <b className="num">{teams.size}</b>
                   </h2>
                   <div className="card">
@@ -637,7 +637,7 @@ function WalkingGroups({
                 {info.kind === 'stay' && 'Ya está en tu base'}
                 {info.kind === 'waiting' && `Aún juega su cruce anterior${from ? ` en ${from}` : ''}`}
                 {info.kind === 'walking' && `Viene de ${info.fromBaseId === null ? 'la salida' : (from ?? 'otra base')} · máximo ${info.allowedMin} min`}
-                {info.kind === 'none' && (started ? 'Sin tiempo de traslado definido' : 'El reloj arranca cuando inicie la Carrera')}
+                {info.kind === 'none' && (started ? 'Sin tiempo de traslado definido' : 'El reloj arranca cuando inicie la carrera')}
               </small>
             </div>
             {left !== null && (
@@ -776,16 +776,19 @@ export function MatchCard({
     setNotice(null)
     const chosen = teamId ? [teamId] : [match.team_a, match.team_b]
     // a group that still has travel time left: say so before the alert goes (the base may send it anyway)
-    const still = legs
+    // one line per group: "NAME, falta 3:20" (or that its time is over)
+    const lines = legs
       ? chosen.flatMap((id) => {
           const info = legs[id]
-          const left = info?.kind === 'walking' ? legRemainingSec(info, serverNow()) : 0
-          return left > 0 ? [`${label(id)}: faltan ${clockText(left)}`] : []
+          if (info?.kind !== 'walking') return []
+          const left = legRemainingSec(info, serverNow())
+          return [{ left, text: left > 0 ? `${label(id)}, falta ${clockText(left)}` : `${label(id)}, ya pasó su tiempo` }]
         })
       : []
+    const stillWalking = lines.some((l) => l.left > 0)
     const result = await hurryGroups(eventId, match.id, chosen.map(label).filter(Boolean), {
       teamId,
-      warning: still.length > 0 ? `Todavía les queda tiempo de traslado. ${still.join(' · ')}.` : undefined,
+      warning: stillWalking ? `Todavía les queda tiempo de traslado:\n${lines.map((l) => l.text).join('\n')}` : undefined,
     })
     if (result.error) setError(result.error)
     else if (result.sent) {

@@ -44,7 +44,7 @@ export default function FlightBoard({
         <span className="chip">{rows.length} vuelos</span>
       </header>
       {rows.length === 0 ? (
-        <p className="muted">Todavía no hay grupos en esta Carrera.</p>
+        <p className="muted">Todavía no hay grupos en esta carrera.</p>
       ) : (
         <ul className="flights">
           <li className="flight head" aria-hidden="true">

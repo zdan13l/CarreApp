@@ -256,7 +256,7 @@ function readCarrera(table: string[][]): CarreraIn {
       }
     }
   }
-  if (!out.name) out.errors.push('Falta el nombre de la Carrera.')
+  if (!out.name) out.errors.push('Falta el nombre de la carrera.')
   return out
 }
 
@@ -300,7 +300,7 @@ export function completeRows(rows: BulkRow[], existingUsernames: Set<string>): B
   const explicitSeen = new Set<string>()
   for (const r of out) {
     if (!r.username || !USERNAME_PATTERN.test(r.username)) continue
-    if (existingUsernames.has(r.username)) r.errors.push(`El usuario "${r.username}" ya existe (los usuarios son únicos en todas las Carreras: usa otro, por ejemplo con el año).`)
+    if (existingUsernames.has(r.username)) r.errors.push(`El usuario "${r.username}" ya existe (los usuarios son únicos en todas las carreras: usa otro, por ejemplo con el año).`)
     else if (explicitSeen.has(r.username)) r.errors.push(`El usuario "${r.username}" está repetido en el archivo.`)
     explicitSeen.add(r.username)
     taken.add(r.username)

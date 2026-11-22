@@ -28,7 +28,7 @@ export default function PhaseControl({
     setBusy(true)
     setError(null)
     const { error: err } = await supabase.rpc('event_action', { p_event: event.id, p_action: action })
-    if (err) setError(err.message || 'No se pudo cambiar el estado de la Carrera.')
+    if (err) setError(err.message || 'No se pudo cambiar el estado de la carrera.')
     await onChanged()
     setBusy(false)
   }
@@ -54,8 +54,8 @@ export default function PhaseControl({
 
   const at = PHASE_ORDER.indexOf(phase)
   return (
-    <section className="card phase-control" aria-label="Estado de la Carrera">
-      <p className="eyebrow">Estado de la Carrera</p>
+    <section className="card phase-control" aria-label="Estado de la carrera">
+      <p className="eyebrow">Estado de la carrera</p>
       <ol className="phase-steps">
         {PHASE_ORDER.map((p, i) => (
           <li key={p} className={i < at ? 'done' : i === at ? 'now' : 'todo'} aria-current={i === at ? 'step' : undefined}>

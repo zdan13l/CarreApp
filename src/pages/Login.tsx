@@ -38,7 +38,7 @@ export default function Login() {
         <Logo variant="gold" />
       </span>
       <div className="login-copy">
-        <h1 className="login-kicker">Gestión en vivo de Carrera</h1>
+        <h1 className="login-kicker">Gestión en vivo de carrera</h1>
       </div>
       <div className="ticket-wrap">
         <form className="ticket" onSubmit={onSubmit}>

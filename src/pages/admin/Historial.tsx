@@ -125,14 +125,14 @@ export default function Historial() {
   return (
     <div className="stack">
       <h1 className="page-title">Historial</h1>
-      <p className="muted">Cada vez que una Carrera se desactiva se guarda aquí su tabla final y todos sus puntos, antes de reiniciarla. Las Carreras no se eliminan: se quedan desactivadas.</p>
+      <p className="muted">Cada vez que una carrera se desactiva se guarda aquí su tabla final y todos sus puntos, antes de reiniciarla. Las Carreras no se eliminan: se quedan desactivadas.</p>
       {missing && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0028_event_archives.sql</span> para guardar el historial de puntajes.</p>}
       {error && <p className="error" role="alert">{error}</p>}
       {loading ? (
         <p className="muted">Cargando…</p>
       ) : archives.length === 0 && !missing ? (
         <section className="card">
-          <p className="muted">Todavía no hay historial: aparece cuando se desactiva una Carrera que ya tuvo puntos.</p>
+          <p className="muted">Todavía no hay historial: aparece cuando se desactiva una carrera que ya tuvo puntos.</p>
         </section>
       ) : (
         archives.map((a) => <ArchiveCard key={a.id} a={a} onRemove={() => void remove(a)} />)

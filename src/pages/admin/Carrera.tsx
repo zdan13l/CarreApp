@@ -78,7 +78,7 @@ export default function Carrera() {
     if (!name || !supabase) return
     void run(async () => {
       const { data, error: err } = await supabase!.from('events').insert({ name }).select('id').single()
-      if (err) throw new Error(err.message.includes('duplicate') ? 'Ya existe esa Carrera.' : 'No se pudo crear la Carrera.')
+      if (err) throw new Error(err.message.includes('duplicate') ? 'Ya existe esa carrera.' : 'No se pudo crear la carrera.')
       selectEvent(data.id)
       setNewName('')
     })
@@ -120,7 +120,7 @@ export default function Carrera() {
             <p className="ok-box">Todo completo: fotos, un usuario por grupo, información y 3 preguntas por base.</p>
           ) : (
             <div className="fail-box">
-              <strong>{event.is_active ? 'Pendientes de la Carrera activa:' : 'Falta para poder habilitar la Carrera:'}</strong>
+              <strong>{event.is_active ? 'Pendientes de la carrera activa:' : 'Falta para poder habilitar la carrera:'}</strong>
               <ul>{problems.map((p) => <li key={p}>{p}</li>)}</ul>
             </div>
           )}
@@ -148,7 +148,7 @@ export default function Carrera() {
       {event && <DeleteEvent key={`d-${event.id}`} eventId={event.id} name={event.name} active={event.is_active} onDone={async (msg) => { setNotice(msg); await reload() }} />}
 
       <section className="card">
-        <h2>{event ? 'Nueva edición de la Carrera' : 'Crea tu primera Carrera'}</h2>
+        <h2>{event ? 'Nueva edición de la carrera' : 'Crea tu primera Carrera'}</h2>
         <form className="form" onSubmit={createEvent}>
           <label>
             Nombre (por ejemplo "Carrera 2027-2")
@@ -229,7 +229,7 @@ function DeleteEvent({ eventId, name, active, onDone }: { eventId: string; name:
         supabase.from('bases').select('location_photo_path').eq('event_id', eventId),
       ])
       const { error: err } = await supabase.from('events').delete().eq('id', eventId)
-      if (err) throw new Error(/Desactiva/.test(err.message) ? 'Desactiva la Carrera antes de eliminarla.' : 'No se pudo eliminar la Carrera.')
+      if (err) throw new Error(/Desactiva/.test(err.message) ? 'Desactiva la carrera antes de eliminarla.' : 'No se pudo eliminar la carrera.')
       let failed = 0
       for (const p of people.data ?? []) {
         try {
@@ -258,7 +258,7 @@ function DeleteEvent({ eventId, name, active, onDone }: { eventId: string; name:
 
   return (
     <section className="card danger-zone">
-      <h2>Eliminar esta Carrera</h2>
+      <h2>Eliminar esta carrera</h2>
       {active ? (
         <p className="muted">Está activa: desactívala primero para poder eliminarla.</p>
       ) : (
@@ -268,7 +268,7 @@ function DeleteEvent({ eventId, name, active, onDone }: { eventId: string; name:
             usuarios (corredores e inductores). No se puede deshacer.
           </p>
           <label>
-            Para confirmar, escribe el nombre de la Carrera
+            Para confirmar, escribe el nombre de la carrera
             <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={name} autoComplete="off" />
           </label>
           {error && <p className="error">{error}</p>}
@@ -293,7 +293,7 @@ export function PrepSteps({ counts, problems, active }: { counts: Counts; proble
   const ready = problems.length === 0
   return (
     <section className="card prep-steps">
-      <h2>Pasos para crear la Carrera</h2>
+      <h2>Pasos para crear la carrera</h2>
       <p className="muted">Sigue el orden. Cuando todo esté completo, actívala aquí abajo y el panel pasa a <strong>En carrera</strong>.</p>
       <ol>
         {steps.map((st, i) => (

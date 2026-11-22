@@ -53,7 +53,7 @@ export default function NetworkCheck() {
     <main className="page">
       <Logo size={40} />
       <h1 className="page-title">Prueba de red y dispositivo</h1>
-      <p className="muted">Comprueba que tu teléfono llega a los servicios de la Carrera.</p>
+      <p className="muted">Comprueba que tu teléfono llega a los servicios de la carrera.</p>
 
       <section className="card">
         <h2>Conectividad</h2>

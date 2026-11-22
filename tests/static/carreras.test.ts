@@ -57,8 +57,8 @@ describe('Carrera switching reaches every screen without a reload', () => {
     expect(read('src/components/LoadFailed.tsx')).toMatch(/No pudimos cargar/)
   })
   it('a taken username explains that usernames are shared by all Carreras', () => {
-    expect(read('api/users.ts')).toMatch(/únicos en todas las Carreras/)
-    expect(read('src/lib/bulk.ts')).toMatch(/únicos en todas las Carreras/)
+    expect(read('api/users.ts')).toMatch(/únicos en todas las carreras/)
+    expect(read('src/lib/bulk.ts')).toMatch(/únicos en todas las carreras/)
   })
 })
 

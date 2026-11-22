@@ -388,7 +388,7 @@ export default function Inductores() {
     if (!term || !pickEvent || !supabase) return
     void run(async () => {
       const { error: err } = await supabase!.from('events').update({ term_id: term.id }).eq('id', pickEvent)
-      if (err) throw new Error('No se pudo poner la Carrera en este semestre.')
+      if (err) throw new Error('No se pudo poner la carrera en este semestre.')
       setPickEvent('')
     })
   }
@@ -592,7 +592,7 @@ export default function Inductores() {
         )}
         {term && (
           <>
-            <p className="muted">Carreras de este semestre: {termEvents.length ? termEvents.join(', ') : 'ninguna todavía'}. Los grupos y las bases de esas Carreras son los que se pueden enlazar abajo; las Carreras que se creen desde ahora quedan en el semestre vigente.</p>
+            <p className="muted">Carreras de este semestre: {termEvents.length ? termEvents.join(', ') : 'ninguna todavía'}. Los grupos y las bases de esas Carreras son los que se pueden enlazar abajo; las carreras que se creen desde ahora quedan en el semestre vigente.</p>
             {freeEvents.length > 0 && (
               <div className="row">
                 <select value={pickEvent} onChange={(e) => setPickEvent(e.target.value)} aria-label="Carrera sin semestre">

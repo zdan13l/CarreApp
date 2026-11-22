@@ -99,7 +99,7 @@ export default function AdminNav({
       </div>
 
       <nav className="nav-desktop" aria-label="Secciones del panel">
-        <p className="nav-label">{mode === 'live' ? 'En carrera' : 'Crear la Carrera'}</p>
+        <p className="nav-label">{mode === 'live' ? 'En carrera' : 'Crear la carrera'}</p>
         {(mode === 'live' ? LIVE_TABS : SETUP_TABS).map((t) => link(t))}
       </nav>
 
@@ -120,7 +120,7 @@ export default function AdminNav({
         <>
           <div className="sheet-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />
           <div className="setup-sheet" id="setup-sheet">
-            <p className="nav-label">Preparación de la Carrera</p>
+            <p className="nav-label">Preparación de la carrera</p>
             {SETUP_TABS.map((t) => link(t, () => setOpen(false)))}
           </div>
         </>

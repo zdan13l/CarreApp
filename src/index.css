@@ -2373,7 +2373,7 @@ button.sheet-x.ghost:hover:not(:disabled) { background: color-mix(in srgb, var(-
 button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justify-content: center; }
 
 /* Cruces de tu base: everything inside the card is centred. */
-.cruce-team { justify-content: center; }
-.cruce-team.win::after { margin-left: .5rem; }
 .cruce .won-items li { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .cruce .won-items span { padding-left: .06em; }
+
+.tour-dots { justify-content: center; }

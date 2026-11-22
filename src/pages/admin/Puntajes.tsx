@@ -106,7 +106,7 @@ export default function Puntajes() {
     return teams.map((t) => ({ team_id: t.id, name: t.name, photo_path: t.photo_path ?? null, points: pts.get(t.id) ?? 0 }))
   }, [matches, teams])
 
-  if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
+  if (!event) return <p className="warn">Primero crea una carrera en la pestaña "Carrera".</p>
 
   const totalRounds = Math.max(1, ...matches.map((m) => m.round_number))
   const shownRound = Math.min(selected ?? currentRound(matches), totalRounds)

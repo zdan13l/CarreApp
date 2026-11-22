@@ -120,7 +120,7 @@ export default function Mapa() {
     return list
   }, [bases, teams, locationByTeam, now, lateIds, codes])
 
-  if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
+  if (!event) return <p className="warn">Primero crea una carrera en la pestaña "Carrera".</p>
 
   const withoutLocation = bases.filter((b) => b.lat === null || b.lng === null)
 

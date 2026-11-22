@@ -17,7 +17,7 @@ export const baseTutorial = (): TutorialStep[] => [
   { tab: 'ronda', target: '.match > button.btn-block', title: '2. Confirma la llegada', body: 'Cuando estén los dos grupos, toca «Ya llegaron ambos grupos». Sin eso no se puede calificar.' },
   { tab: 'ronda', title: '3. Califica las etapas', body: 'Minijuego, pregunta y barra, en ese orden. Eliges el ganador de cada uno de los items, vale un punto.' },
   { tab: 'ronda', title: '4. Déjalos ir', body: 'Al final queda solo «Ya los dejé ir». Se activa cuando el coordi avisa la rotación; luego llegan los siguientes grupos.' },
-  { tab: 'resultados', target: '.bottom-nav', title: 'Resultados', body: 'Los equipos de la Carrera y lo que calificaste en cada cruce.' },
+  { tab: 'resultados', target: '.bottom-nav', title: 'Resultados', body: 'Los equipos de la carrera y lo que calificaste en cada cruce.' },
   { tab: 'base', target: '.bottom-nav', title: 'Mi base', body: 'Tu guía con las preguntas y respuestas, y la foto y ubicación de tu base.' },
   ...accountSteps('base'),
 ]

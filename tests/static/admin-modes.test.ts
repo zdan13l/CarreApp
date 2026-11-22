@@ -26,7 +26,7 @@ describe('creating the Carrera and ending it', () => {
   it('Preparación opens with the ordered steps to create the Carrera', () => {
     const car = read('src/pages/admin/Carrera.tsx')
     expect(car).toMatch(/export function PrepSteps/)
-    expect(car).toMatch(/Pasos para crear la Carrera/)
+    expect(car).toMatch(/Pasos para crear la carrera/)
     for (const to of ['/admin/grupos', '/admin/bases', '/admin/usuarios', '/admin/cruces']) expect(car).toContain(to)
   })
   it('the Carrera has four states with one control (Preparación and En carrera), and disabling still warns that the progress is reset', () => {

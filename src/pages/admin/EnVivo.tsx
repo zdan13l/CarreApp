@@ -111,7 +111,7 @@ export default function EnVivo() {
   const teamName = useMemo(() => new Map(teams.map((t) => [t.id, t.name])), [teams])
   const baseName = useMemo(() => new Map(bases.map((b) => [b.id, b.name])), [bases])
 
-  if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
+  if (!event) return <p className="warn">Primero crea una carrera en la pestaña "Carrera".</p>
 
   const round = currentRound(matches)
   const totalRounds = matches.reduce((max, m) => Math.max(max, m.round_number), 0)

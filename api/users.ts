@@ -35,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .select('role')
     .eq('id', callerId)
     .maybeSingle()
-  if (callerProfile?.role !== 'admin') return fail(res, 403, 'Solo el coordinador puede hacer esto.')
+  if (callerProfile?.role !== 'admin') return fail(res, 403, 'Solo el coordi puede hacer esto.')
 
   const body = (typeof req.body === 'object' && req.body) || {}
 
@@ -61,7 +61,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
     if (createError || !created.user) {
       const taken = /already|registered|exists/i.test(createError?.message ?? '')
-      return fail(res, taken ? 409 : 500, taken ? 'Ese usuario ya existe (los nombres de usuario son únicos en todas las Carreras: prueba con otro, por ejemplo con el año).' : 'No se pudo crear el usuario.')
+      return fail(res, taken ? 409 : 500, taken ? 'Ese usuario ya existe (los nombres de usuario son únicos en todas las carreras: prueba con otro, por ejemplo con el año).' : 'No se pudo crear el usuario.')
     }
 
     // A personal passport has no profile: it can never reach the live operation (the database gives it no rows there).

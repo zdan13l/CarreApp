@@ -336,7 +336,7 @@ export default function Preview() {
             <button onClick={() => void promptDialog({ title: 'Avisar a la base', message: 'Les llega como notificación y les suena el teléfono.', label: 'Mensaje', defaultValue: 'Apúrense con el juego: el siguiente cruce está esperando.', confirmLabel: 'Enviar aviso', icon: 'bell' })}>Mensaje</button>
             <button className="ghost" onClick={() => void confirmDialog({ title: '¿Enviar los resultados?', message: 'Una vez enviados solo el coordi puede corregirlos.', details: ['Barra: Dioses Griegos', 'Pregunta: Samuráis', 'Minijuego: Dioses Griegos'], confirmLabel: 'Enviar resultados', icon: 'send' })}>Resultados</button>
             <button className="ghost danger" onClick={() => void confirmDialog({ title: '¿Eliminar la base "Atrio"?', message: 'Se borran también sus cruces y los puntos registrados.', confirmLabel: 'Eliminar base', tone: 'danger', icon: 'trash' })}>Eliminar</button>
-            <button className="ghost" onClick={() => void confirmDialog({ title: '¿Cerrar sesión?', message: 'Este teléfono dejará de recibir los avisos de la Carrera.', confirmLabel: 'Cerrar sesión', icon: 'logout' })}>Salir</button>
+            <button className="ghost" onClick={() => void confirmDialog({ title: '¿Cerrar sesión?', message: 'Este teléfono dejará de recibir los avisos de la carrera.', confirmLabel: 'Cerrar sesión', icon: 'logout' })}>Salir</button>
           </div>
         </section>
       </AppShell>
@@ -526,7 +526,7 @@ export default function Preview() {
         <div className="tab-view fwd">
         <BaseTicket name="Atrio" photoPath="/campus-800.jpg" sealed={2} />
         <section className="top-others">
-         <h2 className="title-tag"><Users size={18} aria-hidden="true" />Equipos de la Carrera<b className="num">{teams.size}</b></h2>
+         <h2 className="title-tag"><Users size={18} aria-hidden="true" />Equipos de la carrera<b className="num">{teams.size}</b></h2>
          <div className="card"><TeamNames teams={[...teams.values()]} onSelect={() => {}} /></div>
         </section>
         <section className="top-others">
@@ -703,7 +703,7 @@ export default function Preview() {
                   </p>
                   <p className="muted">4 grupos · 2 bases</p>
                   <div className="fail-box">
-                    <strong>Pendientes de la Carrera activa:</strong>
+                    <strong>Pendientes de la carrera activa:</strong>
                     <ul>
                       <li>El grupo "Samuráis" no tiene ningún corredor (usuario) asignado.</li>
                       <li>La base "Atrio" tiene 2 de 3 preguntas.</li>
@@ -720,8 +720,8 @@ export default function Preview() {
                   </div>
                 </section>
                 <section className="card">
-                  <h2>Cargar la Carrera desde un archivo</h2>
-                  <p className="muted">Crea la Carrera, los grupos, las bases, los usuarios y los cruces de una vez con una plantilla.</p>
+                  <h2>Cargar la carrera desde un archivo</h2>
+                  <p className="muted">Crea la carrera, los grupos, las bases, los usuarios y los cruces de una vez con una plantilla.</p>
                   <div className="row"><a className="btn-like" href="#">Plantilla Word</a><a className="btn-like" href="#">Plantilla Excel</a><a className="btn-like" href="#">Carrera de prueba</a></div>
                 </section>
                   </div>
@@ -733,14 +733,14 @@ export default function Preview() {
                   <div className="row"><label className="inline-field grow">Tiempo máximo general (minutos)<input defaultValue="10" /></label><button>Guardar</button></div>
                 </section>
                 <section className="card">
-                  <h2>Nueva edición de la Carrera</h2>
+                  <h2>Nueva edición de la carrera</h2>
                   <label>Nombre (por ejemplo "Carrera 2027-2")<input defaultValue="" /></label>
                   <div className="row"><button>Crear Carrera</button></div>
                 </section>
                 <section className="card danger-zone">
-                  <h2>Eliminar esta Carrera</h2>
+                  <h2>Eliminar esta carrera</h2>
                   <p className="muted">Borra "Carrera 2027-1" con TODO lo suyo: grupos, bases, cruces, puntajes, registro de cambios, avisos, ubicaciones, tiempos, fotos y sus usuarios (corredores e inductores). No se puede deshacer.</p>
-                  <label>Para confirmar, escribe el nombre de la Carrera<input placeholder="Carrera 2027-1" /></label>
+                  <label>Para confirmar, escribe el nombre de la carrera<input placeholder="Carrera 2027-1" /></label>
                   <div className="row"><button className="ghost danger" disabled>Eliminar Carrera</button></div>
                 </section>
                   </div>

@@ -111,7 +111,7 @@ export default function BulkImport() {
       } else if (event) {
         t = { id: event.id, name: event.name }
       }
-      if (!t) throw new Error('Primero crea una Carrera (pestaña "Carrera"), o incluye la sección "Carrera" en el archivo.')
+      if (!t) throw new Error('Primero crea una carrera (pestaña "Carrera"), o incluye la sección "Carrera" en el archivo.')
       const ld = await loadExisting(t.id)
       setTarget(t)
       setLoaded(ld)
@@ -135,7 +135,7 @@ export default function BulkImport() {
       let eventId = target.id ?? ''
       if (!eventId) {
         const { data, error: err } = await sb.from('events').insert({ name: target.name }).select('id').single()
-        if (err) throw new Error(err.message.includes('duplicate') ? 'Ya existe una Carrera con ese nombre.' : 'No se pudo crear la Carrera.')
+        if (err) throw new Error(err.message.includes('duplicate') ? 'Ya existe una carrera con ese nombre.' : 'No se pudo crear la carrera.')
         eventId = data.id
         out.done.push(`Carrera "${target.name}" creada (queda en borrador hasta que la actives).`)
       }
@@ -279,9 +279,9 @@ export default function BulkImport() {
 
   return (
     <section className="card">
-      <h2>Cargar la Carrera desde un archivo</h2>
+      <h2>Cargar la carrera desde un archivo</h2>
       <p className="muted">
-        Con una plantilla de Word o Excel puedes cargar todo lo necesario para empezar: la Carrera, los grupos, las bases
+        Con una plantilla de Word o Excel puedes cargar todo lo necesario para empezar: la carrera, los grupos, las bases
         (información, preguntas y ubicación), las personas con su usuario, los cruces y los tiempos entre bases. Todas las
         secciones son opcionales: incluye solo las que necesites. Las fotos se suben después en la app. Antes de crear
         nada ves una vista previa con los errores.
@@ -324,7 +324,7 @@ export default function BulkImport() {
       {file && !report && target && (
         <>
           <p>
-            Se cargará en la Carrera <strong>{target.name}</strong>
+            Se cargará en la carrera <strong>{target.name}</strong>
             {target.id === null && ' (nueva)'}.
           </p>
           {file.notes.map((n) => <p key={n} className="warn">{n}</p>)}

@@ -69,7 +69,7 @@ export default function Usuarios() {
       return
     }
     if (role !== 'admin' && !eventId) {
-      setError('Primero crea o elige una Carrera: los corredores e inductores pertenecen a una.')
+      setError('Primero crea o elige una carrera: los corredores e inductores pertenecen a una.')
       return
     }
     void run(async () => {
@@ -122,14 +122,14 @@ export default function Usuarios() {
     if (!supabase || !eventId) return
     void run(async () => {
       const { error: err } = await supabase!.from('profiles').update({ event_id: eventId }).eq('id', u.id)
-      if (err) throw new Error('No se pudo asignar el usuario a esta Carrera.')
+      if (err) throw new Error('No se pudo asignar el usuario a esta carrera.')
     })
   }
 
   return (
     <>
       <h1>Usuarios</h1>
-      <p className="muted">{mine.length} usuarios en {event?.name ?? 'esta Carrera'} (los corredores e inductores son propios de cada Carrera). Las contraseñas no se pueden consultar después: cópialas al crearlas.</p>
+      <p className="muted">{mine.length} usuarios en {event?.name ?? 'esta carrera'} (los corredores e inductores son propios de cada carrera). Las contraseñas no se pueden consultar después: cópialas al crearlas.</p>
 
       {creds && (
         <section className="card creds">
@@ -245,7 +245,7 @@ export default function Usuarios() {
       {orphans.length > 0 && (
         <section className="card">
           <h2>Sin Carrera asignada</h2>
-          <p className="muted">Usuarios creados antes de que cada Carrera tuviera los suyos. Asígnalos a {event?.name ?? 'esta Carrera'} o elimínalos.</p>
+          <p className="muted">Usuarios creados antes de que cada carrera tuviera los suyos. Asígnalos a {event?.name ?? 'esta carrera'} o elimínalos.</p>
           <ul className="list">
             {orphans.map((o) => (
               <li key={o.id}>

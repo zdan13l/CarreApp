@@ -55,7 +55,7 @@ export default function Cruces() {
   const baseName = useMemo(() => new Map(bases.map((b) => [b.id, b.name])), [bases])
   const analysis = useMemo(() => analyzeSchedule(matches, teams, bases), [matches, teams, bases])
 
-  if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
+  if (!event) return <p className="warn">Primero crea una carrera en la pestaña "Carrera".</p>
 
   const maxRound = matches.reduce((max, m) => Math.max(max, m.round_number), 0)
   const roundCount = Math.max(maxRound, extraRounds, 1)

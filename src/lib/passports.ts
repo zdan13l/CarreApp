@@ -9,7 +9,7 @@ import { USERNAME_PATTERN } from './username'
 export type PassportRole = 'runner' | 'base' | 'coordinator'
 export const PASSPORT_ROLES: PassportRole[] = ['runner', 'base', 'coordinator']
 export const PASSPORT_ROLE_LABEL: Record<PassportRole, string> = { runner: 'Corredor', base: 'Base', coordinator: 'Coordi' }
-export const PASSPORT_ROLE_LONG: Record<PassportRole, string> = { runner: 'Corredor', base: 'Inductor de base', coordinator: 'Coordi de Carrera' }
+export const PASSPORT_ROLE_LONG: Record<PassportRole, string> = { runner: 'Corredor', base: 'Inductor de base', coordinator: 'Coordi de carrera' }
 
 export interface TermRow {
   id: string

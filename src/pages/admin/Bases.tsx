@@ -50,7 +50,7 @@ export default function Bases() {
     void load()
   }, [load])
 
-  if (!event) return <p className="warn">Primero crea una Carrera en la pestaña "Carrera".</p>
+  if (!event) return <p className="warn">Primero crea una carrera en la pestaña "Carrera".</p>
 
   async function addBase(e: FormEvent) {
     e.preventDefault()
@@ -241,7 +241,7 @@ export function BaseCard({
             </button>
           )}
           {questions.filter((q) => q.question.trim() && q.answer.trim()).length < MIN_QUESTIONS && (
-            <p className="muted">Faltan {MIN_QUESTIONS - questions.filter((q) => q.question.trim() && q.answer.trim()).length} preguntas con su respuesta para poder activar la Carrera.</p>
+            <p className="muted">Faltan {MIN_QUESTIONS - questions.filter((q) => q.question.trim() && q.answer.trim()).length} preguntas con su respuesta para poder activar la carrera.</p>
           )}
         </fieldset>
         <button disabled={busy || !name.trim()} onClick={() => void save()}>Guardar base</button>

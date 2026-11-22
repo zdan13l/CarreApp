@@ -9,7 +9,7 @@ describe('login', () => {
   const login = read('src/pages/Login.tsx')
   it('uses the agreed copy', () => {
     expect(login).toContain('placeholder="Dado por el coordi"')
-    expect(login).toContain('Gestión en vivo de Carrera')
+    expect(login).toContain('Gestión en vivo de carrera')
     expect(login).toMatch(/<p className="login-foot">Semana de inducción<\/p>/)
     // the name of the University appears only in the official logo (its alt text), never as copy
     expect(login.replace(/alt="Pontificia Universidad Javeriana"/g, '')).not.toMatch(/Pontificia|Javeriana/)
