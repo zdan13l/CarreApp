@@ -178,6 +178,8 @@ export default function BaseHome() {
   const showRotation = Boolean(lastFinished && lastFinished.match_scores.length >= SCORE_ITEMS.length && current && current.arrived_at === null)
   // the groups are let go once: until then the rotation button is the ONLY thing on the Ronda tab; right after, the next match starts with its clock
   const rotationPending = showRotation && !(rotation && rotated.has(rotation.id))
+  // who plays here next: while the groups are being let go it is the match about to start, otherwise the one after the current
+  const upcoming = rotationPending ? current : current ? matches.find((m) => m.round_number > current.round_number && m.status !== 'finished') : undefined
   const codes = useMemo(() => flightCodes([...teams.values()]), [teams]) // the "flight" of each group, as the runners see it
 
   const events = base?.events
@@ -225,7 +227,7 @@ export default function BaseHome() {
         loadFailed ? <LoadFailed onRetry={() => void load()} /> : <NoActiveCarrera role="base" />
       ) : (
         <div className="base-view" style={inkStyle(base.id)}>
-          <PhaseBanner phase={phase} onTutorial={() => setTour({ from: tab })} />
+          <PhaseBanner phase={phase} onTutorial={tab === 'ronda' ? () => setTour({ from: tab }) : undefined} compact={tab !== 'ronda'} />
           {fromCoordinator.alerts.map((a) => (
             <AlertBanner key={a.id} title="Aviso del coordinador" onDismiss={() => fromCoordinator.dismiss(a.id)}>
               {a.message}
@@ -248,6 +250,7 @@ export default function BaseHome() {
                 ) : (
                   current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} eventId={base.event_id} base={base} codes={codes} legs={legsOf(current)} baseNames={baseNames} locked={locked} />
                 )}
+                {upcoming && <NextRound match={upcoming} teams={teams} />}
                 {current === undefined && matches.length > 0 && <ClosedDesk name={base.name} sealed={finished.length} />}
               </>
             )}
@@ -273,21 +276,7 @@ export default function BaseHome() {
                   </h2>
                   <div className="card">
                     {finished.length === 0 && <p className="muted">Todavía no has terminado ningún cruce.</p>}
-                    <ul className="list">
-                      {finished.map((m) => (
-                        <li key={m.id} className="with-items">
-                          <span className="round-tag">R{m.round_number}</span>
-                          <span className="grow">
-                            {teams.get(m.team_a)?.name} <span className="muted">vs</span> {teams.get(m.team_b)?.name}
-                          </span>
-                          <strong className="num">
-                            {m.match_scores.filter((x) => x.winner_team_id === m.team_a).length}–
-                            {m.match_scores.filter((x) => x.winner_team_id === m.team_b).length}
-                          </strong>
-                          <WonItems match={m} teams={teams} />
-                        </li>
-                      ))}
-                    </ul>
+                    <CrucesList finished={finished} teams={teams} />
                   </div>
                 </section>
               </>
@@ -506,6 +495,35 @@ export function BaseGuide({ info, questions: raw }: { info: string | null; quest
 }
 
 // Who won each item of a finished match (what this base scored): "Barra: Dioses Griegos".
+// "Cruces de tu base": one card per finished match with the score, who won and who won each stage.
+export function CrucesList({ finished, teams }: { finished: BaseMatch[]; teams: Map<string, Team> }) {
+  return (
+    <ul className="cruces">
+      {finished.map((m) => {
+        const pa = m.match_scores.filter((x) => x.winner_team_id === m.team_a).length
+        const pb = m.match_scores.filter((x) => x.winner_team_id === m.team_b).length
+        return (
+          <li key={m.id} className="cruce">
+            <div className="cruce-head">
+              <span className="round-tag">R{m.round_number}</span>
+              <span className="cruce-score num" aria-label={`Marcador ${pa} a ${pb}`}>{pa}–{pb}</span>
+            </div>
+            <div className="cruce-teams">
+              {[[m.team_a, pa, pb], [m.team_b, pb, pa]].map(([id, mine, other]) => (
+                <span key={id as string} className={`cruce-team${(mine as number) > (other as number) ? ' win' : ''}`}>
+                  <Crest name={teams.get(id as string)?.name} photoPath={teams.get(id as string)?.photo_path} size="sm" />
+                  <strong>{teams.get(id as string)?.name}</strong>
+                </span>
+              ))}
+            </div>
+            <WonItems match={m} teams={teams} />
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
 export function WonItems({ match, teams }: { match: BaseMatch; teams: Map<string, Team> }) {
   return (
     <ul className="won-items">
@@ -540,6 +558,7 @@ type Pick = string // team id
 const NOT_ACTIVE = 'La Carrera no está iniciada para tu usuario (aún no empieza, ya terminó o no está activa), así que no puedes registrar nada ahora. Avísale al coordinador.'
 export const friendlyError = (message: string, fallback: string) => (/row-level security|permission denied|no está asignado/i.test(message) ? NOT_ACTIVE : fallback)
 
+const HURRY_REST_S = 15 // seconds a base waits between two hurry alerts
 const HURRY_MESSAGE = 'Apúrense: la base los está esperando.'
 
 // Asks to confirm and alerts the groups of a match with a fixed message: both, or only `teamId` (the other may already be here).
@@ -573,6 +592,8 @@ function WalkingGroups({
   busy,
   canHurry,
   started,
+  coolUntil,
+  onCooling,
   onHurry,
 }: {
   match: BaseMatch
@@ -583,9 +604,13 @@ function WalkingGroups({
   busy: boolean
   canHurry: boolean
   started: boolean // the Carrera is Iniciada: before that the clock waits
+  coolUntil: number // after a hurry alert the buttons rest until this moment
+  onCooling: (secondsLeft: number) => void
   onHurry: (teamId?: string) => void
 }) {
   const now = useNow(1000)
+  const coolLeft = Math.max(0, Math.ceil((coolUntil - now) / 1000))
+  const press = (teamId?: string) => (coolLeft > 0 ? onCooling(coolLeft) : onHurry(teamId))
   return (
     <div className="walking" aria-label="Grupos en camino">
       {[match.team_a, match.team_b].map((id) => {
@@ -613,18 +638,18 @@ function WalkingGroups({
               </span>
             )}
             {canHurry && (
-              <button type="button" className="ghost walk-hurry" disabled={busy || blocked} onClick={() => onHurry(id)} aria-label={`Apurar a ${name}`}>
+              <button type="button" className={`ghost walk-hurry${coolLeft > 0 ? ' cooling' : ''}`} disabled={busy || blocked} aria-disabled={coolLeft > 0 || undefined} onClick={() => press(id)} aria-label={`Apurar a ${name}`}>
                 <BellRing size={17} aria-hidden="true" />
-                Apurar
+                {coolLeft > 0 ? `${coolLeft} s` : 'Apurar'}
               </button>
             )}
           </div>
         )
       })}
       {canHurry && (
-        <button className="ghost btn-block hurry" disabled={busy} onClick={() => onHurry()}>
+        <button className={`ghost btn-block hurry${coolLeft > 0 ? ' cooling' : ''}`} disabled={busy} aria-disabled={coolLeft > 0 || undefined} onClick={() => press()}>
           <BellRing size={19} aria-hidden="true" />
-          Apurar a los grupos
+          {coolLeft > 0 ? `Espera ${coolLeft} s para apurar de nuevo` : 'Apurar a los grupos'}
         </button>
       )}
     </div>
@@ -701,6 +726,7 @@ export function MatchCard({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [coolUntil, setCoolUntil] = useState(0) // a hurry alert was just sent: the hurry buttons rest for HURRY_REST_S seconds
 
   const a = teams.get(match.team_a)
   const b = teams.get(match.team_b)
@@ -725,6 +751,16 @@ export function MatchCard({
   }
 
   // The base can hurry the groups: they get the message (and a notification) on their phones.
+  async function tooSoon(secs: number) {
+    await confirmDialog({
+      title: 'Espera un momento',
+      message: `No puedes apurar todavía: espera ${secs} ${secs === 1 ? 'segundo' : 'segundos'}.`,
+      confirmLabel: 'Entendido',
+      cancelLabel: 'Cerrar',
+      icon: 'warning',
+    })
+  }
+
   async function hurry(teamId?: string) {
     if (!eventId) return
     setError(null)
@@ -743,7 +779,10 @@ export function MatchCard({
       warning: still.length > 0 ? `Todavía les queda tiempo de traslado. ${still.join(' · ')}.` : undefined,
     })
     if (result.error) setError(result.error)
-    else if (result.sent) setNotice(teamId ? `Aviso enviado a ${label(teamId)}.` : 'Aviso enviado a los dos grupos.')
+    else if (result.sent) {
+      setCoolUntil(serverNow() + HURRY_REST_S * 1000)
+      setNotice(teamId ? `Aviso enviado a ${label(teamId)}.` : 'Aviso enviado a los dos grupos.')
+    }
   }
 
   async function send() {
@@ -793,7 +832,7 @@ export function MatchCard({
 
       {!arrived ? (
         <>
-          <WalkingGroups match={match} teams={teams} legs={legs ?? {}} baseNames={baseNames} codes={codes} busy={busy || locked} started={!locked} canHurry={Boolean(eventId)} onHurry={(id) => void hurry(id)} />
+          <WalkingGroups match={match} teams={teams} legs={legs ?? {}} baseNames={baseNames} codes={codes} busy={busy || locked} started={!locked} coolUntil={coolUntil} onCooling={(n) => void tooSoon(n)} canHurry={Boolean(eventId)} onHurry={(id) => void hurry(id)} />
           {notice && <p className="ok-text">{notice}</p>}
           {error && <p className="error">{error}</p>}
           <button className="btn-block" disabled={busy || locked} onClick={() => void confirmArrival()}>

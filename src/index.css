@@ -2331,3 +2331,27 @@ button.sheet-x.ghost:hover:not(:disabled) { background: color-mix(in srgb, var(-
 .phase-steps li.done { color: var(--ok); }
 .phase-steps li.now { color: var(--text); }
 .phase-steps li.now .phase-dot { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+
+/* Hurry buttons: yellow while pressed; resting for a few seconds after an alert (still tappable: it explains why it waits). */
+.walk-hurry:active:not(:disabled), .walking .hurry:active:not(:disabled) { background: var(--gold); border-color: var(--gold); color: var(--on-gold); transform: scale(.98); }
+.walking button.cooling { opacity: .55; cursor: not-allowed; }
+.walking button.cooling:active { background: transparent; color: inherit; transform: none; }
+
+/* Compact lock notice (tabs other than Ronda). */
+.phase-banner.compact { align-items: center; padding: .6rem .85rem; }
+
+/* Cruces de tu base */
+.cruces { list-style: none; display: grid; gap: .75rem; margin: 0; padding: 0; }
+.cruce { display: grid; gap: .6rem; padding: .8rem .9rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); }
+.cruce-head { display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+.cruce-score { font-size: 1.5rem; font-weight: 800; letter-spacing: .02em; color: var(--text); }
+.cruce-teams { display: grid; gap: .45rem; }
+.cruce-team { display: flex; align-items: center; gap: .6rem; min-width: 0; color: var(--text-muted); }
+.cruce-team strong { font-weight: 600; overflow-wrap: anywhere; }
+.cruce-team.win { color: var(--text); }
+.cruce-team.win strong { font-weight: 800; }
+.cruce-team.win::after { content: 'Ganó'; margin-left: auto; padding: .1rem .5rem; border-radius: 99px; background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); font-size: .75rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.cruce .won-items { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; margin: 0; }
+.cruce .won-items li { display: grid; gap: .15rem; padding: .45rem .5rem; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); text-align: left; }
+.cruce .won-items span { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); }
+.cruce .won-items b { font-size: .8rem; text-align: left; overflow-wrap: anywhere; line-height: 1.2; }

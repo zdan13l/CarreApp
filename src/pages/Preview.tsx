@@ -25,7 +25,7 @@ import { PrepSteps } from './admin/Carrera'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
 import BaseSealCard from '../components/BaseSealCard'
-import { BaseGuide, BaseTicket, BaseWhere, ClosedDesk, MatchCard, NextRound, RotationCard, type BaseMatch, type Team } from './BaseHome'
+import { CrucesList, BaseGuide, BaseTicket, BaseWhere, ClosedDesk, MatchCard, NextRound, RotationCard, type BaseMatch, type Team } from './BaseHome'
 import { stampLook } from '../lib/stamp'
 import { ArchiveCard, type Archive } from './admin/Historial'
 import { SEAL_ORDER, sealForSeed } from '../lib/seals'
@@ -88,6 +88,14 @@ const previewLegs: Record<string, LegInfo> = {
   t3: { kind: 'walking', fromBaseId: 'by', since: Date.now() - 12 * 60_000, allowedMin: 10 },
 }
 const previewBaseNames = new Map([['bx', 'Atrio'], ['by', 'Biblioteca']])
+const baseMatchFinished1: BaseMatch = {
+  id: 'f1', round_number: 1, team_a: 't0', team_b: 't2', status: 'finished', arrived_at: '2026-01-20T10:00:00Z',
+  match_scores: [{ item: 'barra', winner_team_id: 't0', voided: false }, { item: 'pregunta', winner_team_id: 't2', voided: false }, { item: 'minijuego', winner_team_id: 't0', voided: false }],
+}
+const baseMatchFinished2: BaseMatch = {
+  id: 'f2', round_number: 2, team_a: 't1', team_b: 't3', status: 'finished', arrived_at: '2026-01-20T10:30:00Z',
+  match_scores: [{ item: 'barra', winner_team_id: 't3', voided: false }, { item: 'pregunta', winner_team_id: null, voided: true }, { item: 'minijuego', winner_team_id: 't1', voided: false }],
+}
 const baseMatchPending: BaseMatch = { id: 'b1', round_number: 3, team_a: 't0', team_b: 't3', status: 'pending', arrived_at: null, match_scores: [] }
 const baseMatchPlaying: BaseMatch = {
   id: 'b2', round_number: 2, team_a: 't0', team_b: 't2', status: 'in_progress', arrived_at: '2026-01-20T10:30:00Z',
@@ -524,12 +532,7 @@ export default function Preview() {
         <section className="top-others">
          <h2 className="title-tag"><ClipboardCheck size={18} aria-hidden="true" />Cruces de tu base<b className="num">2</b></h2>
          <div className="card">
-          <ul className="list">
-            <li className="with-items"><span className="round-tag">R1</span><span className="grow">Dioses Griegos <span className="muted">vs</span> Samuráis</span><strong className="num">2–1</strong>
-              <ul className="won-items"><li><span>Barra</span><b>Dioses Griegos</b></li><li><span>Pregunta</span><b>Samuráis</b></li><li><span>Minijuego</span><b>Dioses Griegos</b></li></ul></li>
-            <li className="with-items"><span className="round-tag">R2</span><span className="grow">Dioses Nórdicos <span className="muted">vs</span> Guerreros Aztecas</span><strong className="num">1–2</strong>
-              <ul className="won-items"><li><span>Barra</span><b>Guerreros Aztecas</b></li><li><span>Pregunta</span><b>Invalidado</b></li><li><span>Minijuego</span><b>Dioses Nórdicos</b></li></ul></li>
-          </ul>
+          <CrucesList finished={[baseMatchFinished1, baseMatchFinished2]} teams={teams} />
          </div>
         </section>
         </div>

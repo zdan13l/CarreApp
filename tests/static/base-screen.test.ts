@@ -102,7 +102,8 @@ describe('the base screen', () => {
     // 3) all scored: the rotation card is the whole tab (no match card, no next round); 4) once the groups are let go the next match shows its clock
     expect(base).toMatch(/rotationPending && lastFinished \? \(\s*<RotationCard/)
     expect(base).toMatch(/const rotationPending = showRotation && !\(rotation && rotated\.has\(rotation\.id\)\)/)
-    expect(base).not.toMatch(/<NextRound/)
+    // the card with who plays here next is always there (it never goes away)
+    expect(base).toMatch(/\{upcoming && <NextRound match=\{upcoming\}/)
   })
 
   it('"Cancelar" of the location editor is red', () => {
@@ -139,5 +140,13 @@ describe('the base screen', () => {
 
   it('the X of every pop-up is red', () => {
     expect(read('src/index.css')).toMatch(/button\.sheet-x\.ghost, button\.sheet-x\.ghost:hover:not\(:disabled\) \{ color: var\(--danger\)/)
+  })
+
+  it('Ver tutorial only on Ronda; the hurry buttons rest 15 s and explain why; Cruces are cards', () => {
+    expect(base).toMatch(/onTutorial=\{tab === 'ronda' \? \(\) => setTour/)
+    expect(base).toMatch(/const HURRY_REST_S = 15/)
+    expect(base).toMatch(/No puedes apurar todavía: espera/)
+    expect(base).toMatch(/className="cruces"/)
+    expect(read('src/index.css')).toMatch(/\.walk-hurry:active:not\(:disabled\)[^{]*\{ background: var\(--gold\)/)
   })
 })
