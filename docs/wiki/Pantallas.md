@@ -37,7 +37,7 @@ Una **barra de estado siempre visible** (el grupo, "En vivo" y **los puntos de s
 | **Pasaporte** | La portada se ve cada vez que se abre la pestaña y se abre al tocarla. Todas las páginas miden lo mismo y se pasan deslizando (sin botones). Página de identidad (equipo, vuelo, mapa del recorrido, progreso del viaje, itinerario) y páginas de sellos (cuatro destinos cada una): completado, disponible o en puerta, pendiente y descanso. Tocar un sello completado abre sus tres etapas. Un sello se gana al calificarse las tres etapas. Solo usa datos que el corredor ya leía de sus cruces. |
 | **Top** | El **mismo ticket de pasajero** de Visado (nombre, en vivo y puntos) y, bajo una tarjeta blanca con el título, **los demás equipos** solo con foto y nombre (sin puntos y en orden alfabético). La tarjeta de pasajero solo está en Visado y en Top. |
 
-Los ajustes de **sonido y notificaciones** están en la campana de la barra superior (campana tachada con un punto si el sonido está apagado; el panel se abre sobre la pantalla). Sin Carrera activa para su usuario se ve una explicación tranquila ("No hay ninguna Carrera activa para tu usuario").
+Los ajustes de **sonido y notificaciones** están en la hoja de la cuenta (tocar el avatar de la barra), entre «Modo oscuro» y «Cerrar sesión»; un punto dorado en el avatar avisa que el sonido está apagado. Sin Carrera activa para su usuario se ve una explicación tranquila ("No hay ninguna Carrera activa para tu usuario").
 
 ## Pasaporte personal (`/pasaporte`)
 Lo que ve un inductor al entrar con su @ personal (sin acceso a la operación; el grupo o la base entra con su propio usuario). Es **el pasaporte de toda su vida en la inducción**, igual para todos: una cubierta que se abre al tocarla y estas páginas.
@@ -58,14 +58,14 @@ La foto del campus arriba (con la de noche en modo oscuro), un velo oscuro en la
 
 **Identidad:** el inductor es el **oficial de migración** de la Carrera y la pantalla es su ventanilla. Comparte el lenguaje del corredor (pase azul marino, pestañas de carpeta, barra flotante, fondo con el patrón, transición entre pestañas, campana y cuenta de la barra superior) y suma lo suyo: la **tinta del sello de cada base** (sale del id de la base, igual que el sello) es el acento de la pantalla: borde del mostrador, números de etapa y de ronda. Así cada base se reconoce a simple vista.
 
-La campana de la barra superior abre los ajustes de **sonido y notificaciones**, para que el teléfono suene cuando el coordinador avise a la base. Si la Carrera no está activa para su usuario, la pantalla lo explica y, si intenta calificar, el mensaje dice que la Carrera no está activa.
+La hoja de la cuenta (avatar de la barra) tiene los ajustes de **sonido y notificaciones**, para que el teléfono suene cuando el coordinador avise a la base. Si la Carrera no está activa para su usuario, la pantalla lo explica y, si intenta calificar, el mensaje dice que la Carrera no está activa.
 
 ## Qué se movió en la revisión y por qué
 - **Resumen → En vivo + Carrera.** "Resumen" mezclaba el estado en vivo con ajustes, carga de archivos y creación de ediciones. Lo que se prepara una vez pasó a *Carrera*; lo que se mira cada minuto quedó en *En vivo*.
 - **Demoras:** estaban repetidas en Cruces y en Mapa; ahora hay una sola lista (En vivo) y el Mapa solo marca a los grupos en demora.
 - **Cruces** quedó solo para armar el cronograma; el estado en vivo de cada cruce está en *En vivo*.
 - **Bases:** un mapa por tarjeta agotaba los contextos WebGL del navegador con muchas bases; ahora el mapa se abre bajo demanda.
-- **Corredor:** los interruptores de sonido y notificaciones salieron de *Ronda* (campana en la barra) y los resultados de rondas pasadas salieron de *Ronda* hacia *Ruta* (cada ronda terminada se abre).
+- **Corredor:** los interruptores de sonido y notificaciones salieron de *Ronda* (hoja de la cuenta) y los resultados de rondas pasadas salieron de *Ronda* hacia *Ruta* (cada ronda terminada se abre).
 - **Base:** la información y las preguntas pasaron de *Mi base* a la **Guía** dentro de *Ronda*; *Top* y *Terminados* se unieron en **Resultados**.
 - **Puntajes:** el registro de cambios es plegable.
 
@@ -74,3 +74,5 @@ La campana de la barra superior abre los ajustes de **sonido y notificaciones**,
 2. ¿Con qué **frecuencia**? Lo que se toca una vez (ajustes) no debe ocupar espacio de lo que se mira siempre.
 3. ¿Ya existe en otro lado? Duplicar información obliga a mantener dos copias: mejor un solo lugar y un enlace.
 4. ¿Cabe en el celular? Si no, plegable o aparte.
+
+**Base · cruce sin llegada:** cada grupo del cruce se muestra con la base de donde viene, el tiempo máximo de ese tramo y un reloj que cuenta hacia atrás; un «Apurar» por grupo y otro para los dos (0031). La tarjeta «Equipos en rotación» solo aparece con las 3 etapas calificadas.

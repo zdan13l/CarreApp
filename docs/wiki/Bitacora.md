@@ -2,11 +2,19 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
-## Preguntas con respuesta y ajustes de Mi base (2026-11-22, migración 0030, pendiente de aplicar)
+## Barra sin campana, cronómetro de traslado y avisos a un grupo (2026-11-22, migración 0031, aplicada)
+- **Sin campana:** los interruptores de sonido y notificaciones pasaron a la hoja de la cuenta, entre «Modo oscuro» y «Cerrar sesión» (runner y base; `AppShell alerts` → `AccountMenu alerts`). Un punto dorado en el avatar avisa que el sonido está apagado. El nombre en la barra ya tiene más espacio. El aro dorado del avatar pequeño volvía a quedar blanco por una regla repetida más abajo: arreglado.
+- **Rotación:** la tarjeta «Equipos en rotación» solo aparece cuando el último cruce terminado tiene sus 3 etapas calificadas.
+- **Cronómetro de traslado (base):** con el cruce sin llegada confirmada, la tarjeta muestra cada grupo con «Viene de <base> · máximo N min» (el tiempo de ese tramo de *Cruces* o el máximo de la Carrera), un reloj que cuenta hacia atrás y pasa a «+m:ss de más» al cumplirse el tiempo, y un «Apurar» por grupo más «Apurar a los grupos» (los dos). Un grupo que juega otra vez en la misma base o que aún juega su cruce anterior no se puede apurar. Si queda tiempo, el diálogo avisa «Todavía les queda tiempo…» y deja apurar de todos modos. El banner de demora apura solo al grupo atrasado cuando es uno solo (`legInfo` en `lib/delays.ts`).
+- **Avisos a un grupo (0031):** `alerts.team_id`; el aviso y la notificación llegan solo a los corredores de ese grupo y el corredor del otro ni lo lee. 
+- **Mi base:** «Ubicación guardada» queda debajo de «Cambiar ubicación»; se quitaron «¿La base se movió?…» y «Toca el mapa para mover el punto»; los botones quedan «Usar mi ubicación» arriba y «Cancelar» / «Guardar ubicación» lado a lado; el nombre del sello también abre el sello grande.
+- **Resultados:** las filas de equipos ya no se iluminan de amarillo al desplazar (era el estilo `:hover` / `:active` de los botones dorados pegado por el tacto); solo un puntero real tiene un hover suave.
+
+## Preguntas con respuesta y ajustes de Mi base (2026-11-22, migración 0030, aplicada)
 - **Mínimo 5 preguntas con su respuesta:** en *Bases* cada base muestra 5 filas (pregunta y respuesta) y se pueden agregar hasta 10; para activar una Carrera cada base debe tener 5 completas (`event_problems`). En *Mi base* el inductor ve la respuesta debajo de cada pregunta. La carga masiva acepta hasta 10 columnas «Pregunta N» y «Respuesta N».
 - **Sello de la base:** se quitaron los textos «Toca el sello…» y «Este es el sello que recibe cada grupo…». El nombre que lleva el sello es el de la base real (en las vistas previas es una base de ejemplo llamada Atrio).
 
-## Cambios de la pantalla de base (2026-11-22, migración 0029, pendiente de aplicar)
+## Cambios de la pantalla de base (2026-11-22, migración 0029, aplicada)
 - **Orden de las etapas:** ahora se califica primero el minijuego, luego la pregunta y por último la barra (`SCORE_ITEMS`). Cambia en todas las pantallas que las listan (base, corredor, matriz de Pasaportes, Excel de resultados).
 - **Avisos:** apurar a los grupos ya no pide un mensaje: solo confirmar o cancelar (aviso fijo «Apúrense: la base los está esperando»), y se quitó el texto de «les llega como notificación…». Se quitó también el texto de «cuando estén los dos grupos en tu base, confírmalo…». Todos los diálogos de la base usan `confirmDialog` (pregunta, detalles, verbo y ícono).
 - **Equipos en rotación (0029):** al calificar un cruce, la base ve la tarjeta «Equipos en rotación»: espera el aviso del coordinador y entonces confirma «Ya los dejé ir». El coordinador tiene en *En vivo* la tarjeta «Rotación · ronda N»: avisa a todas las bases (suena su teléfono) y ve cuántas ya confirmaron y cuáles faltan.

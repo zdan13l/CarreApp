@@ -41,8 +41,9 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0026 | [`0026_committee_coordinators.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0026_committee_coordinators.sql) | 2026-11-20 | Un comité puede tener más de un coordinador (Caos tiene dos) |
 | 0027 | [`0027_more_committees.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0027_more_committees.sql) | 2026-11-21 | Una persona puede estar en más de un comité (los comités extra y cuáles coordina) |
 | 0028 | [`0028_event_archives.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0028_event_archives.sql) | 2026-11-22 | Historial de puntajes: al desactivar una Carrera se guarda su tabla final y cada punto antes del reinicio |
-| 0029 | [`0029_round_rotations.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0029_round_rotations.sql) | _pendiente_ | Rotación de las bases: el coordinador avisa «ya pueden rotar» por ronda y cada base confirma que dejó ir a sus grupos |
-| 0030 | [`0030_question_answers.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0030_question_answers.sql) | _pendiente_ | Cada base tiene mínimo 5 preguntas, cada una con su respuesta (hasta 10) |
+| 0029 | [`0029_round_rotations.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0029_round_rotations.sql) | 2026-11-22 | Rotación de las bases: el coordinador avisa «ya pueden rotar» por ronda y cada base confirma que dejó ir a sus grupos |
+| 0030 | [`0030_question_answers.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0030_question_answers.sql) | 2026-11-22 | Cada base tiene mínimo 5 preguntas, cada una con su respuesta (hasta 10) |
+| 0031 | [`0031_targeted_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0031_targeted_alerts.sql) | 2026-11-22 | El aviso «apúrense» puede ir a un solo grupo del cruce (`alerts.team_id`) |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -508,6 +509,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/question-answers-0030.test.ts` (una Carrera completa no tiene problemas, con menos de 5 o sin respuestas no se activa y dice cuántas tiene, hasta 10 preguntas) y las pruebas de la base y de la Carrera de prueba, que ahora crean 5 preguntas con respuesta.
 
 **Cómo revertir** `alter table public.base_questions drop column answer;`, volver a poner `check (position between 1 and 3)` (falla si hay preguntas 4 a 10) y recrear `event_problems` como en la 0019.
+
+## 0031 — Avisos a un solo grupo
+
+**Qué cambia** `alerts.team_id` (opcional): si está, el aviso «apúrense» es solo para los corredores de ese grupo; sin él va a los dos grupos del cruce, como antes. El grupo tiene que jugar ese cruce (`alerts_team_check`), un corredor solo lee los avisos de su cruce que son para los dos grupos o para el suyo (`alerts_read`, con el ayudante `is_runner_of_team`), `alerts_push` notifica solo a los corredores del grupo elegido y el límite de 20 s entre avisos de una base cuenta por destinatario (apurar al grupo A y enseguida al B se puede).
+
+**Por qué** A veces uno de los dos grupos ya llegó a la base y el aviso le llega igual. La base ahora elige: a ambos o a un grupo en concreto. Sin esta migración todo sigue funcionando, pero apurar a un solo grupo falla (el aviso a los dos no).
+
+**Verificación** `tests/db/targeted-alerts-0031.test.ts` (sin grupo llega a los dos, con grupo solo a ese, el grupo debe jugar el cruce, cada corredor lee lo suyo, el límite cuenta por destinatario).
+
+**Cómo revertir** `alter table public.alerts drop column team_id;` y volver a crear `alerts_read`, `alerts_push` y `alerts_rate_limit` como en la 0019, y `drop function public.alerts_team_check() cascade; drop function public.is_runner_of_team(uuid);`.
 
 ## Plantilla para nuevos registros
 
