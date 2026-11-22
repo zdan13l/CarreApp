@@ -244,9 +244,9 @@ function HabilitadaPreview({ user }: { user: { full_name: string; username: stri
     { id: 'base' as const, label: 'Mi base', icon: <MapPin size={22} aria-hidden="true" /> },
   ]
   return (
-    <AppShell title="Mi base" user={user} alerts>
+    <AppShell title="Mi base" showTitle={tab === 'ronda'} user={user} alerts>
       <div className="base-view">
-        <PhaseBanner phase="enabled" onTutorial={() => setTour(true)} />
+        <PhaseBanner phase="enabled" onTutorial={tab === 'ronda' ? () => setTour(true) : undefined} compact={tab !== 'ronda'} />
         <BaseTicket name="Atrio" photoPath="/campus-800.jpg" sealed={0} />
         <MatchCard match={baseMatchPending} teams={teams} onSent={noopAsync} eventId="e1" base={previewBase} codes={baseCodes} legs={{}} locked />
         <BottomNav tabs={tabs} active={tab} transition={false} onChange={setTab} />

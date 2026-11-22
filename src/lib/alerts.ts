@@ -194,7 +194,8 @@ const FRESH_MS = 90 * 1000 // and sound repeatedly (every 30 s) during their fir
 // Manual alerts sent by the coordinator for the given matches. They arrive live, and the list is
 // also refreshed every 10 s and whenever the app comes back to the foreground (a locked phone
 // drops the live connection), so an alert is never missed.
-export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 'groups', teamId?: string) {
+// `enabled` false (the Carrera is not Iniciada): nothing is shown and nothing rings.
+export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 'groups', teamId?: string, enabled = true) {
   const [alerts, setAlerts] = useState<ManualAlert[]>([])
   const [dismissed, setDismissed] = useState<Set<string>>(loadDismissed)
   const now = useNow(5000)
@@ -253,21 +254,21 @@ export function useManualAlerts(matchIds: string[], target: 'groups' | 'base' = 
   const visible = alerts.filter((a) => !dismissed.has(a.id) && now - new Date(a.created_at).getTime() < RECENT_MS)
   const freshAlerts = visible.filter((a) => now - new Date(a.created_at).getTime() < FRESH_MS)
   const fresh = freshAlerts.length > 0
-  useRepeatingAlert(fresh)
+  useRepeatingAlert(fresh && enabled)
 
   // A NEW alert rings at once even when an earlier one is still on the screen (the repeating sound only starts when the
   // first fresh alert appears, so without this the second one would stay silent until the next 30 s tick).
   const newestFresh = freshAlerts.reduce<ManualAlert | null>((n, a) => (!n || a.created_at > n.created_at ? a : n), null)?.id ?? null
   const lastRung = useRef<string | null>(null)
   useEffect(() => {
-    if (newestFresh && lastRung.current !== null && lastRung.current !== newestFresh) playAlertSound()
+    if (enabled && newestFresh && lastRung.current !== null && lastRung.current !== newestFresh) playAlertSound()
     lastRung.current = newestFresh ?? lastRung.current
-  }, [newestFresh])
+  }, [newestFresh, enabled])
 
   // Only the NEWEST alert is shown (a newer one replaces the older ones, which are no longer news).
   const newest = visible.reduce<ManualAlert | null>((n, a) => (!n || a.created_at > n.created_at ? a : n), null)
   return {
-    alerts: newest ? [newest] : [],
+    alerts: newest && enabled ? [newest] : [],
     // closing the newest one also closes the older ones: after a reload none of them comes back
     dismiss: (id: string) => {
       const upTo = alerts.find((a) => a.id === id)?.created_at

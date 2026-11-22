@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useScrollLock } from '../lib/scrollLock'
 
 export interface TutorialStep {
   title: string
@@ -19,6 +20,7 @@ interface Box {
 // A guided tour of a screen: one card per step, with the pointed element lit up and the rest dimmed. It only explains: nothing under it
 // can be tapped while it is open. Used by the bases and the runners while the Carrera is Habilitada (buttons off).
 export default function Tutorial({ steps, onTab, onClose }: { steps: TutorialStep[]; onTab?: (tab: string) => void; onClose: () => void }) {
+  useScrollLock(true)
   const [i, setI] = useState(0)
   const [box, setBox] = useState<Box | null>(null)
   const step = steps[i]
@@ -33,7 +35,14 @@ export default function Tutorial({ steps, onTab, onClose }: { steps: TutorialSte
     const el = step?.target ? document.querySelector(step.target) : null
     if (!el) return setBox(null)
     const r = el.getBoundingClientRect()
-    setBox(r.width === 0 && r.height === 0 ? null : { top: r.top - 6, left: r.left - 6, width: r.width + 12, height: r.height + 12 })
+    if (r.width === 0 && r.height === 0) return setBox(null)
+    // the lit frame always fits inside the screen (never cut by its edges)
+    const edge = 8
+    const top = Math.max(edge, r.top - 6)
+    const left = Math.max(edge, r.left - 6)
+    const bottom = Math.min(window.innerHeight - edge, r.bottom + 6)
+    const right = Math.min(window.innerWidth - edge, r.right + 6)
+    setBox({ top, left, width: Math.max(0, right - left), height: Math.max(0, bottom - top) })
   }, [step])
 
   useEffect(() => {

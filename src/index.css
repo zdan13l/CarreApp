@@ -2355,3 +2355,19 @@ button.sheet-x.ghost:hover:not(:disabled) { background: color-mix(in srgb, var(-
 .cruce .won-items li { display: grid; gap: .15rem; padding: .45rem .5rem; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); text-align: left; }
 .cruce .won-items span { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); }
 .cruce .won-items b { font-size: .8rem; text-align: left; overflow-wrap: anywhere; line-height: 1.2; }
+
+/* Tutorial: shorter card (scrolls if a screen is tiny) and the step centred when there is nothing to light up. */
+.tour-card { max-height: min(46vh, 22rem); overflow-y: auto; padding: 1rem 1rem .9rem; }
+.tour-body { font-size: .95rem; line-height: 1.4; }
+.tour-card h2 { font-size: 1.2rem; }
+.tour-card.centred { max-height: min(62vh, 26rem); }
+
+/* The lock notice on the tabs without a page title sits below the top bar with room. */
+.phase-banner.compact { margin-top: 1.1rem; }
+
+/* Cruces de tu base: the three stage boxes are centred. */
+.cruce .won-items li { justify-items: center; text-align: center; }
+.cruce .won-items span, .cruce .won-items b { text-align: center; }
+
+/* Map: the centre button is just an icon. */
+button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justify-content: center; }

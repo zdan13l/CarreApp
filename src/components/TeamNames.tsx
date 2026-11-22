@@ -14,6 +14,12 @@ export default function TeamNames({ teams, highlightId, onSelect }: { teams: { i
   const [pressed, setPressed] = useState<string | null>(null)
   const timer = useRef<number | undefined>(undefined)
   const origin = useRef<{ x: number; y: number } | null>(null)
+  const flash = (id: string) => {
+    // a quick tap never waits for the press delay: the chosen row lights up for a moment while its card opens
+    window.clearTimeout(timer.current)
+    setPressed(id)
+    timer.current = window.setTimeout(() => setPressed(null), 450)
+  }
   const release = () => {
     window.clearTimeout(timer.current)
     origin.current = null
@@ -29,7 +35,10 @@ export default function TeamNames({ teams, highlightId, onSelect }: { teams: { i
               type="button"
               className="team-row"
               data-pressed={pressed === t.id}
-              onClick={() => onSelect(t.id)}
+              onClick={() => {
+                flash(t.id)
+                onSelect(t.id)
+              }}
               onPointerDown={(e) => {
                 origin.current = { x: e.clientX, y: e.clientY }
                 window.clearTimeout(timer.current)
@@ -39,7 +48,6 @@ export default function TeamNames({ teams, highlightId, onSelect }: { teams: { i
                 const o = origin.current
                 if (o && Math.hypot(e.clientX - o.x, e.clientY - o.y) > MOVE_PX) release()
               }}
-              onPointerUp={release}
               onPointerCancel={release}
               onPointerLeave={release}
               aria-haspopup="dialog"

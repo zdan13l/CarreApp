@@ -46,7 +46,7 @@ describe('alerts do not pile up after a reload', () => {
   const al = read('src/lib/alerts.ts')
   it('closed alerts are remembered on the phone and only the newest one is shown', () => {
     expect(al).toMatch(/carreapp\.dismissedAlerts/)
-    expect(al).toMatch(/alerts: newest \? \[newest\] : \[\]/)
+    expect(al).toMatch(/alerts: newest && enabled \? \[newest\] : \[\]/)
     expect(al).toMatch(/closing the newest one also closes the older ones/)
   })
 })

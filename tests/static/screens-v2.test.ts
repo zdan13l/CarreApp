@@ -40,7 +40,7 @@ describe('the base screen', () => {
     expect(base).toMatch(/La Carrera no está iniciada para tu usuario/)
   })
   it('receives the alerts of the coordinator (sound and notification settings included)', () => {
-    expect(base).toMatch(/useManualAlerts\(matches\.map\(\(m\) => m\.id\), 'base'\)/)
+    expect(base).toMatch(/useManualAlerts\(matches\.map\(\(m\) => m\.id\), 'base', undefined, phase === 'started'\)/)
     expect(base).toMatch(/alerts=\{Boolean\(base\)\}/) // the same account sheet as the runners: it holds the sound and notification settings
   })
 })
@@ -50,7 +50,7 @@ describe('base: the visa counter (identity of the inductor)', () => {
   const css = read('src/index.css')
   it('shares the runner language: navy ticket, folder tabs, floating tab bar and the sliding tab view', () => {
     expect(base).toMatch(/export function BaseTicket[\s\S]*className="tc base-ticket"/)
-    expect(base).toMatch(/Ventanilla de visado/)
+    expect(base).toMatch(/Inductor base/)
     expect(base).toMatch(/className="title-tag"/)
     expect(base).toMatch(/className=\{`tab-view \$\{dir\}`\}/)
     expect(base).toMatch(/transition=\{false\}/)

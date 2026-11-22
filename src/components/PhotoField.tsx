@@ -6,11 +6,13 @@ export default function PhotoField({
   path,
   label,
   busy,
+  locked = false,
   onPick,
 }: {
   path: string | null
   label: string
   busy: boolean
+  locked?: boolean // the Carrera is over: the photo cannot be changed
   onPick: (file: File) => void
 }) {
   const url = photoUrl(path)
@@ -26,14 +28,14 @@ export default function PhotoField({
           </>
         )}
       </div>
-      <label className={`btn-like${busy ? ' disabled' : ''}`}>
+      <label className={`btn-like${busy || locked ? ' disabled' : ''}`} aria-disabled={locked || undefined}>
         <Camera size={18} aria-hidden="true" />
         {busy ? 'Subiendo…' : path ? 'Cambiar foto' : 'Subir foto'}
         <input
           type="file"
           accept="image/*"
           hidden
-          disabled={busy}
+          disabled={busy || locked}
           onChange={(e) => {
             const file = e.target.files?.[0]
             e.target.value = ''

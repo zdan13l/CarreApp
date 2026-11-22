@@ -75,6 +75,7 @@ export default function BaseLocationEditor({
       {!compact && <h3>Ubicación en el mapa</h3>}
       <LazyMap
         height="280px"
+        recenter
         markers={draft ? [{ id: 'base', lng: draft[0], lat: draft[1], label: name, kind: 'base' }] : []}
         onPick={(lngPick, latPick) => {
           setMessage(null)

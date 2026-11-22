@@ -1,5 +1,6 @@
 import { AlertTriangle, Bell, CircleHelp, LogOut, Send, Trash2, CheckCircle2, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useScrollLock } from '../lib/scrollLock'
 import { registerDialogHost, type DialogIcon, type DialogRequest } from '../lib/dialog'
 
 const ICONS: Record<DialogIcon, LucideIcon> = {
@@ -27,6 +28,7 @@ export default function DialogHost() {
   }, [])
 
   const current = queue[0]
+  useScrollLock(Boolean(current)) // the page behind a pop-up must not scroll
   const opts = current?.options
   useEffect(() => {
     if (current?.kind === 'prompt') setText(current.options.defaultValue ?? '')

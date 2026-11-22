@@ -160,7 +160,7 @@ export default function RunnerHome() {
   const travel = useTravelTimes(team?.event_id)
   const rotations = useRotationTimes(team?.event_id)
   const myLate = team && phase === 'started' ? lateTeams(matches, maxMinutes, now, travel, rotations).filter((l) => l.teamId === team.id) : []
-  const manual = useManualAlerts(mine.map((m) => m.id), 'groups', team?.id)
+  const manual = useManualAlerts(mine.map((m) => m.id), 'groups', team?.id, phase === 'started')
   useRepeatingAlert(myLate.length > 0) // every 30 s while the delay lasts
   const closeMoment = useCallback(() => setMoment(null), [])
   const flight = team ? flightCodes(teams.map((t) => ({ id: t.team_id, name: t.name }))).get(team.id) ?? 'JV 200' : ''

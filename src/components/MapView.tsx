@@ -257,9 +257,8 @@ export default function MapView({ markers, route, onPick, height = '360px', ligh
             {flat ? <Box size={18} aria-hidden="true" /> : <MapIcon size={18} aria-hidden="true" />}
             {flat ? 'Vista 3D' : 'Desde arriba'}
           </button>
-          <button type="button" className="ghost map-recenter" onClick={centre} aria-label="Centrar el mapa en la Javeriana">
-            <LocateFixed size={18} aria-hidden="true" />
-            Centrar
+          <button type="button" className="ghost map-recenter icon" onClick={centre} aria-label="Centrar el mapa en la Javeriana" title="Centrar en la Javeriana">
+            <LocateFixed size={20} aria-hidden="true" />
           </button>
         </div>
       )}

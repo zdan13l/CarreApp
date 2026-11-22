@@ -190,7 +190,7 @@ export default function BaseHome() {
   const locked = phase !== 'started' // the buttons only work while the Carrera is Iniciada (the database says the same)
   const rotationTimes = useMemo(() => new Map(rotations.map((r) => [r.round_number, new Date(r.created_at).getTime()])), [rotations])
   const travel = useTravelTimes(base?.event_id)
-  const fromCoordinator = useManualAlerts(matches.map((m) => m.id), 'base') // rings the phone while it is fresh
+  const fromCoordinator = useManualAlerts(matches.map((m) => m.id), 'base', undefined, phase === 'started') // rings the phone while it is fresh
 
   // Where each group of the match comes from and how long it still has to get here (its own leg time, or the Carrera's maximum).
   const legsOf = (m: BaseMatch): Record<string, LegInfo> => ({
@@ -282,7 +282,7 @@ export default function BaseHome() {
               </>
             )}
 
-            {tab === 'base' && <MyBaseTab base={base} onChanged={load} />}
+            {tab === 'base' && <MyBaseTab base={base} onChanged={load} locked={phase === 'finished'} />}
           </div>
 
           {viewTeam && teams.get(viewTeam) && <TeamDialog name={teams.get(viewTeam)!.name} photoPath={teams.get(viewTeam)!.photo_path} usernames={[]} onClose={() => setViewTeam(null)} />}
@@ -317,7 +317,7 @@ export function BaseTicket({ name, photoPath, sealed }: { name: string; photoPat
     <div className="tc-wrap">
       <section className="tc base-ticket" role="status" aria-label={`Ventanilla ${name}`}>
         <div className="tc-main">
-          <p className="tc-kicker">Ventanilla de visado</p>
+          <p className="tc-kicker">Inductor base</p>
           <div className="tc-row">
             {url ? (
               <img className="tc-photo" src={url} alt={`Dónde queda ${name}`} decoding="async" />
@@ -388,17 +388,19 @@ export function ClosedDesk({ name, sealed }: { name: string; sealed: number }) {
 // "Mi base": the informative space of the inductor. What is explained and the possible questions (to have at hand while
 // running the match), then where the base is: the photo and the saved location. The map only opens when the inductor
 // wants to change the location (or when none is saved yet).
-function MyBaseTab({ base, onChanged }: { base: MyBase; onChanged: () => Promise<void> }) {
+function MyBaseTab({ base, onChanged, locked }: { base: MyBase; onChanged: () => Promise<void>; locked: boolean }) {
   return (
     <>
       <BaseSealCard id={base.id} name={base.name} />
       <BaseGuide info={infoOf(base.base_details)} questions={base.base_questions} />
-      <BaseWhere base={base} onChanged={onChanged} />
+      <BaseWhere base={base} onChanged={onChanged} locked={locked} />
     </>
   )
 }
 
-export function BaseWhere({ base, onChanged }: { base: { id: string; name: string; location_photo_path: string | null; lat: number | null; lng: number | null }; onChanged: () => Promise<void> }) {
+export function BaseWhere({ base, onChanged, locked = false }: {
+  locked?: boolean // the Carrera is over: photo and place stay as they are
+ base: { id: string; name: string; location_photo_path: string | null; lat: number | null; lng: number | null }; onChanged: () => Promise<void> }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
@@ -428,11 +430,11 @@ export function BaseWhere({ base, onChanged }: { base: { id: string; name: strin
         Dónde queda
       </h2>
       <div className="card">
-        <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} onPick={(f) => void changePhoto(f)} />
+        <PhotoField path={base.location_photo_path} label={`Dónde queda ${base.name}`} busy={busy} locked={locked} onPick={(f) => void changePhoto(f)} />
         {error && <p className="error">{error}</p>}
         {hasLocation && !editing ? (
           <div className="location-saved">
-            <button className="ghost" type="button" onClick={() => setEditing(true)}>Cambiar ubicación</button>
+            <button className="ghost" type="button" disabled={locked} onClick={() => setEditing(true)}>Cambiar ubicación</button>
             <p className="ok-text"><MapPin size={16} aria-hidden="true" /> Ubicación guardada en el mapa.</p>
           </div>
         ) : (
