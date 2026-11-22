@@ -41,7 +41,7 @@ describe('the base screen', () => {
   })
   it('receives the alerts of the coordinator (sound and notification settings included)', () => {
     expect(base).toMatch(/useManualAlerts\(matches\.map\(\(m\) => m\.id\), 'base'\)/)
-    expect(base).toMatch(/<AlertBell \/>/) // the same bell as the runners: it opens the sound and notification settings
+    expect(base).toMatch(/alerts=\{Boolean\(base\)\}/) // the same account sheet as the runners: it holds the sound and notification settings
   })
 })
 
@@ -149,19 +149,19 @@ describe('the stamp moment, the passport and the top-bar buttons', () => {
     expect(p).not.toMatch(/Passport ·|· Passport/)
     expect(p).toMatch(/cover-sub">Carrera 2710</)
   })
-  it('the bell keeps one colour (the state is the icon and the light), and the phone bar shows the first name', () => {
+  it('the phone bar has no bell (the account sheet holds the alert switches) and its avatar keeps the gold ring', () => {
     const css = read3('src/index.css')
-    expect(css).not.toMatch(/\.bell\.is-on \{ color/)
-    expect(css).toMatch(/\.topbar button\.bell\.ghost \{/)
+    expect(css).not.toMatch(/\.bell\b/)
+    expect(css.match(/\.topbar \.account-btn \.avatar \{ box-shadow: ([^;]+);/g)?.every((r) => /pass-gold/.test(r))).toBe(true)
     expect(read3('src/components/AppShell.tsx')).toMatch(/<AccountMenu short/)
   })
 })
 
 describe('runner round 3: dialogs, map, passport and finish card', () => {
   const read4 = (f: string) => fs.readFileSync(rootPath(f), 'utf8')
-  it('dialogs lock the page behind them (stamp moment, stamp zoom, account sheet, alerts sheet)', () => {
+  it('dialogs lock the page behind them (stamp moment, stamp zoom, account sheet)', () => {
     expect(read4('src/lib/scrollLock.ts')).toMatch(/overflow = 'hidden'/)
-    for (const f of ['src/components/StampMoment.tsx', 'src/components/Passport.tsx', 'src/components/AccountMenu.tsx', 'src/components/Alerts.tsx']) {
+    for (const f of ['src/components/StampMoment.tsx', 'src/components/Passport.tsx', 'src/components/AccountMenu.tsx']) {
       expect(read4(f), f).toMatch(/useScrollLock\(/)
     }
   })

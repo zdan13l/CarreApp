@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { ClosedDesk, MatchCard, NextRound, WonItems, type BaseMatch, type Team } from '../../src/pages/BaseHome'
 import { AlertBanner } from '../../src/components/Alerts'
-import { lateTeams, type TimedMatch } from '../../src/lib/delays'
+import { clockText, lateTeams, legInfo, legRemainingSec, type LegInfo, type TimedMatch } from '../../src/lib/delays'
 
 const teams = new Map<string, Team>([
   ['a', { id: 'a', name: 'Dioses Griegos', photo_path: null }],
@@ -127,5 +127,52 @@ describe('late groups seen from a base (BaseHome shows the banner, MatchCard own
     const banner = renderToStaticMarkup(h(AlertBanner, { title: 'Ronda 2: grupos en demora', action: h('button', null, 'Apurar a los grupos') }, 'Dioses Griegos llevan 15 min'))
     expect(banner).toContain('Apurar a los grupos') // ...so the banner must offer it
     expect(banner).toContain('banner-actions')
+  })
+})
+
+describe('walking groups: where they come from and the clock (hurrying one or both)', () => {
+  const NOW = Date.parse('2027-01-20T15:00:00Z')
+  const ago = (m: number) => new Date(NOW - m * 60000).toISOString()
+  const tm = (id: string, round: number, baseId: string, a: string, b: string, o: Partial<TimedMatch> = {}): TimedMatch => ({
+    id, round_number: round, base_id: baseId, team_a: a, team_b: b, status: 'pending', arrived_at: null, finished_at: null, ...o,
+  })
+
+  it('legInfo: the previous base and the time of that leg (its own, or the Carrera maximum)', () => {
+    const all = [tm('p', 1, 'other', 'a', 'x', { status: 'finished', finished_at: ago(4) }), tm('m', 2, 'atrio', 'a', 'b')]
+    const own = legInfo(all, 'm', 'a', 10, new Map([['other>atrio', 7]]))
+    expect(own).toMatchObject({ kind: 'walking', fromBaseId: 'other', allowedMin: 7 })
+    expect(legInfo(all, 'm', 'a', 10)).toMatchObject({ allowedMin: 10 })
+    expect(legRemainingSec(own as Extract<LegInfo, { kind: 'walking' }>, NOW)).toBe(3 * 60) // 7 minutes allowed, 4 gone
+  })
+
+  it('legInfo: no clock when it plays here again, when its last match is still going, or on the first round', () => {
+    const all = [
+      tm('p', 1, 'atrio', 'a', 'x', { status: 'finished', finished_at: ago(4) }),
+      tm('q', 1, 'other', 'b', 'y', { status: 'in_progress' }),
+      tm('m', 2, 'atrio', 'a', 'b'),
+    ]
+    expect(legInfo(all, 'm', 'a', 10).kind).toBe('stay')
+    expect(legInfo(all, 'm', 'b', 10).kind).toBe('waiting')
+    expect(legInfo(all, 'p', 'a', 10).kind).toBe('none')
+  })
+
+  it('the clock text is minutes and seconds, also when over the time', () => {
+    expect(clockText(65)).toBe('1:05')
+    expect(clockText(-125)).toBe('2:05')
+  })
+
+  it('the card shows each group with where it comes from, its clock and its own "Apurar", plus one for both', () => {
+    const legs: Record<string, LegInfo> = {
+      a: { kind: 'walking', fromBaseId: 'bx', finishedAt: Date.now() - 2 * 60000, allowedMin: 10 },
+      b: { kind: 'stay' },
+    }
+    const html = renderToStaticMarkup(h(MatchCard, { match: match(), teams, onSent: noop, eventId: 'e1', base, codes, legs, baseNames: new Map([['bx', 'Biblioteca']]) }))
+    expect(html).toContain('Viene de Biblioteca · máximo 10 min')
+    expect(html).toContain('Ya está en tu base')
+    expect(html).toContain('role="timer"')
+    expect(html).toContain('aria-label="Apurar a Dioses Griegos"')
+    expect(html).toContain('aria-label="Apurar a Samuráis"')
+    expect(html).toMatch(/disabled=""[^>]*aria-label="Apurar a Samuráis"|aria-label="Apurar a Samuráis"[^>]*disabled=""/) // already here: nothing to hurry
+    expect(html).toContain('Apurar a los grupos')
   })
 })

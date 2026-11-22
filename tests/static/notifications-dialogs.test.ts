@@ -39,12 +39,15 @@ describe('pop-ups', () => {
 })
 
 describe('the settings bell and the base history', () => {
-  it('the bell changes shape and colour while its settings are open', () => {
-    // the runner's bell (Alerts.tsx): ringing with sound on, crossed with it off
-    expect(read('src/components/Alerts.tsx')).toMatch(/on \? <BellRing size=\{20\} \/> : <BellOff size=\{20\} \/>/)
-    expect(read('src/pages/RunnerHome.tsx')).toMatch(/<AlertBell \/>/)
-    expect(read('src/pages/BaseHome.tsx')).toMatch(/<AlertBell \/>/) // the base uses the same bell
-    expect(read('src/index.css')).toMatch(/\.bell\[aria-expanded='true'\] \{ background: var\(--gold\)/)
+  it('the sound and notification switches live in the account sheet, between the theme and "Cerrar sesión" (no bell in the top bar)', () => {
+    const menu = read('src/components/AccountMenu.tsx')
+    expect(menu).toMatch(/\{alerts && <AlertSettings \/>\}/)
+    expect(menu.indexOf('Modo claro')).toBeLessThan(menu.indexOf('<AlertSettings />'))
+    expect(menu.indexOf('<AlertSettings />')).toBeLessThan(menu.indexOf('account-action danger'))
+    expect(read('src/components/Alerts.tsx')).not.toMatch(/AlertBell/)
+    expect(read('src/pages/RunnerHome.tsx')).toMatch(/alerts=\{Boolean\(team\)\}/)
+    expect(read('src/pages/BaseHome.tsx')).toMatch(/alerts=\{Boolean\(base\)\}/) // the base uses the same sheet
+    expect(read('src/components/AppShell.tsx')).toMatch(/alerts=\{alerts\}/)
   })
   it('"Cruces de tu base" says who won each item', () => {
     expect(read('src/pages/BaseHome.tsx')).toMatch(/<WonItems match=\{m\} teams=\{teams\} \/>/)
