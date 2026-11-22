@@ -2,6 +2,11 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Ronda en cuatro momentos y ajustes (2026-11-22)
+- **Ronda, una sola cosa a la vez (base):** 1) *En camino*: los dos grupos con su reloj, de dónde vienen y «Apurar» (uno o los dos) y, debajo, «Ya llegaron ambos grupos»; sin pasos ni tablero. 2) *Llegaron*: solo las tres etapas por calificar. 3) *Calificados*: solo el botón «Ya los dejé ir» de la tarjeta de rotación, que se habilita cuando llega el aviso del coordinador. 4) Al dejarlos ir arranca el siguiente cruce con su reloj. Se quitaron el banner «grupos en demora» y la tarjeta «Próxima ronda» (el reloj las reemplaza). Nota: el reloj cuenta desde que terminó el cruce anterior (igual que la alerta de demora), no desde el aviso de rotación.
+- **Resultados:** la fila del equipo vuelve a iluminarse de amarillo, pero solo mientras se mantiene presionada (el dedo debe quedarse quieto ~100 ms; se apaga al moverse o cuando el navegador toma el toque para hacer scroll) o con el puntero encima en el computador (`TeamNames`, `data-pressed`).
+- **Cancelar** del editor de ubicación ahora es rojo.
+
 ## Barra sin campana, cronómetro de traslado y avisos a un grupo (2026-11-22, migración 0031, aplicada)
 - **Sin campana:** los interruptores de sonido y notificaciones pasaron a la hoja de la cuenta, entre «Modo oscuro» y «Cerrar sesión» (runner y base; `AppShell alerts` → `AccountMenu alerts`). Un punto dorado en el avatar avisa que el sonido está apagado. El nombre en la barra ya tiene más espacio. El aro dorado del avatar pequeño volvía a quedar blanco por una regla repetida más abajo: arreglado.
 - **Rotación:** la tarjeta «Equipos en rotación» solo aparece cuando el último cruce terminado tiene sus 3 etapas calificadas.

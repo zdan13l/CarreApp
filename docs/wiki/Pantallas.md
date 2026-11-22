@@ -75,4 +75,4 @@ La hoja de la cuenta (avatar de la barra) tiene los ajustes de **sonido y notifi
 3. ¿Ya existe en otro lado? Duplicar información obliga a mantener dos copias: mejor un solo lugar y un enlace.
 4. ¿Cabe en el celular? Si no, plegable o aparte.
 
-**Base · cruce sin llegada:** cada grupo del cruce se muestra con la base de donde viene, el tiempo máximo de ese tramo y un reloj que cuenta hacia atrás; un «Apurar» por grupo y otro para los dos (0031). La tarjeta «Equipos en rotación» solo aparece con las 3 etapas calificadas.
+**Base · pestaña Ronda, un momento a la vez:** (1) grupos en camino: cada uno con la base de donde viene, el tiempo máximo del tramo y un reloj que cuenta hacia atrás, «Apurar» por grupo y para los dos (0031), y «Ya llegaron ambos grupos»; (2) llegaron: solo las tres etapas por calificar; (3) calificados: solo «Ya los dejé ir» (tarjeta «Equipos en rotación», habilitada cuando llega el aviso del coordinador); (4) al dejarlos ir, el siguiente cruce con su reloj.
