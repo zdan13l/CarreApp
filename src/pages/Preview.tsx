@@ -494,7 +494,7 @@ export default function Preview() {
         <BaseTicket name="Atrio" photoPath="/campus-800.jpg" sealed={2} />
         <section className="top-others">
          <h2 className="title-tag"><Users size={18} aria-hidden="true" />Equipos de la Carrera<b className="num">{teams.size}</b></h2>
-         <div className="card"><TeamNames teams={[...teams.values()]} /></div>
+         <div className="card"><TeamNames teams={[...teams.values()]} onSelect={() => {}} /></div>
         </section>
         <section className="top-others">
          <h2 className="title-tag"><ClipboardCheck size={18} aria-hidden="true" />Cruces de tu base<b className="num">2</b></h2>

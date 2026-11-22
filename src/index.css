@@ -2271,11 +2271,15 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 /* A group row in Resultados is a tap target, not a gold button: it never lights up while the page scrolls under a finger
    (a touch leaves :hover stuck and flashes :active). Only a real pointer gets a faint hover. */
 button.team-row, button.team-row:hover:not(:disabled), button.team-row:active:not(:disabled) { background: transparent; background-image: none; transform: none; box-shadow: none; }
-@media (hover: hover) and (pointer: fine) { button.team-row:hover:not(:disabled) { background: var(--surface-3); } }
+/* The yellow light of a pressed row: a mouse hover, or a finger that stays put for a moment (TeamNames sets data-pressed after ~100 ms
+   and drops it the instant the finger moves or the browser takes the touch to scroll). A scroll never lights a row. */
+button.team-row[data-pressed='true'] { background: color-mix(in srgb, var(--gold) 30%, transparent); }
+@media (hover: hover) and (pointer: fine) { button.team-row:hover:not(:disabled) { background: color-mix(in srgb, var(--gold) 30%, transparent); } }
+button.team-row { transition: background-color .12s ease-out; }
 
 /* Groups walking to the base: who, where from, the clock, and one "Apurar" per group (one of them may already be here). */
 .walking { display: grid; gap: .55rem; margin-top: .85rem; }
-.walk-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: .6rem; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
+.walk-row { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: .6rem; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
 .walk-who { min-width: 0; display: grid; gap: .1rem; }
 .walk-who strong { overflow-wrap: anywhere; line-height: 1.15; }
 .walk-who small { color: var(--text-muted); font-size: .78rem; line-height: 1.25; }
@@ -2283,6 +2287,8 @@ button.team-row, button.team-row:hover:not(:disabled), button.team-row:active:no
 .walk-clock small { margin-top: .2rem; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
 .walk-clock.over { color: var(--warn); }
 .walk-hurry { min-height: 44px; padding: 0 .8rem; display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
-@media (max-width: 400px) { .walk-row { grid-template-columns: 1fr auto; } .walk-hurry { grid-column: 1 / -1; justify-content: center; } }
+@media (max-width: 420px) { .walk-row { grid-template-columns: auto 1fr auto; } .walk-hurry { grid-column: 1 / -1; justify-content: center; } }
+.walk-who strong { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem .5rem; }
+.walk-who strong .pax-code { white-space: nowrap; }
 .walking .hurry { margin-top: .15rem; }
 .location-pair button { white-space: nowrap; padding-inline: .5rem; font-size: .92rem; }

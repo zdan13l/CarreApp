@@ -256,11 +256,12 @@ describe('tester run 6 fixes', () => {
   it('a disabled primary button is a flat, legible piece, not a faded gold one', () => {
     expect(css).toMatch(/button:disabled:not\(\.ghost\)[^{]*\{[^}]*opacity: 1;[^}]*background: var\(--surface-3\) !important/)
   })
-  it('the base delay banner carries its own button to hurry the groups', () => {
+  it('the base hurries the groups from the clock rows (one group or both), not from a delay banner', () => {
     const base = read('src/pages/BaseHome.tsx')
-    expect(base).toMatch(/action=\{[\s\S]*Apurar a los grupos/)
+    expect(base).toMatch(/<WalkingGroups/)
+    expect(base).toMatch(/Apurar a los grupos/)
     expect(base).toMatch(/export async function hurryGroups/)
-    expect(read('src/components/Alerts.tsx')).toMatch(/banner-actions/)
+    expect(base).not.toMatch(/grupos en demora/)
   })
   it('the base only shows the stages once the arrival is confirmed, and explains the database refusal', () => {
     const base = read('src/pages/BaseHome.tsx')

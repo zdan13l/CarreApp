@@ -93,4 +93,27 @@ describe('the base screen', () => {
     expect(read('src/components/DelaysPanel.tsx')).toMatch(/team_id: teamId/)
     expect(read('src/lib/alerts.ts')).toMatch(/a\.team_id === teamId/) // the runner of the other group does not get it
   })
+
+  it('Ronda is one thing at a time: clocks, then scoring, then only the rotation button, then the clocks again', () => {
+    // 1) groups on their way: clock rows + hurry + arrival confirmation (no steps, no versus board)
+    expect(base).toMatch(/\{!arrived \? \(\s*<>\s*<WalkingGroups/)
+    // 2) arrived: only the stages to score
+    expect(base).toMatch(/<DeskFlow arrived=\{arrived\}/)
+    // 3) all scored: the rotation card is the whole tab (no match card, no next round); 4) once the groups are let go the next match shows its clock
+    expect(base).toMatch(/rotationPending && lastFinished \? \(\s*<RotationCard/)
+    expect(base).toMatch(/const rotationPending = showRotation && !\(rotation && rotated\.has\(rotation\.id\)\)/)
+    expect(base).not.toMatch(/<NextRound/)
+  })
+
+  it('"Cancelar" of the location editor is red', () => {
+    expect(read('src/components/BaseLocationEditor.tsx')).toMatch(/className="btn-danger"[^>]*onClick=\{onCancel\}/)
+  })
+
+  it('the yellow light of a team row follows a press, not a scroll', () => {
+    const names = read('src/components/TeamNames.tsx')
+    expect(names).toMatch(/onPointerCancel=\{release\}/) // the browser took the touch to scroll
+    expect(names).toMatch(/onPointerMove/) // the finger moved
+    expect(names).toMatch(/PRESS_DELAY_MS/)
+    expect(read('src/index.css')).toMatch(/button\.team-row\[data-pressed='true'\] \{ background: color-mix\(in srgb, var\(--gold\)/)
+  })
 })

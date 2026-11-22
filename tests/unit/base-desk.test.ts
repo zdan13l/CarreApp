@@ -20,15 +20,17 @@ const card = (m: BaseMatch, withEvent = true) =>
   renderToStaticMarkup(h(MatchCard, { match: m, teams, onSent: noop, eventId: withEvent ? 'e1' : undefined, base, codes }))
 
 describe('MatchCard: states of the counter', () => {
-  it('pending: asks to confirm arrival, offers to hurry the groups, shows no scoring buttons, groups "en camino"', () => {
+  it('pending: only the groups on their way (clock rows), the hurry buttons and the arrival confirmation; no scoring, no steps', () => {
     const html = card(match())
     expect(html).toContain('Ya llegaron ambos grupos')
     expect(html).toContain('Apurar a los grupos')
     expect(html).not.toContain('Elige un ganador')
     expect(html).not.toContain('class="choices"')
-    expect(html).toContain('En camino')
+    expect(html).toContain('Sin tiempo de traslado definido') // no leg data in this sample
     expect(html).toContain('JV 200')
-    expect(html).toContain('Falta') // step 1 of the flow
+    expect(html).toContain('aria-label="Apurar a Dioses Griegos"')
+    expect(html).not.toContain('desk-flow') // the steps and the versus board only show once the groups are here
+    expect(html).not.toContain('class="versus"')
   })
 
   it('in progress with arrival: scoring choices for the three items and a disabled send button', () => {
@@ -70,7 +72,7 @@ describe('MatchCard: states of the counter', () => {
   it('a team missing from the map (deleted group) renders without crashing', () => {
     const html = renderToStaticMarkup(h(MatchCard, { match: match({ team_b: 'ghost' }), teams, onSent: noop, eventId: 'e1', base, codes }))
     expect(html).toContain('Dioses Griegos')
-    expect(html).toContain('—')
+    expect(html).toContain('?') // the missing group has no name to show, but the card still renders
   })
 })
 

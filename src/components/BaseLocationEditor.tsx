@@ -89,7 +89,7 @@ export default function BaseLocationEditor({
         </button>
         <div className={`location-pair${onCancel ? '' : ' single'}`}>
           {onCancel && (
-            <button className="ghost" type="button" disabled={busy} onClick={onCancel}>Cancelar</button>
+            <button className="btn-danger" type="button" disabled={busy} onClick={onCancel}>Cancelar</button>
           )}
           <button type="button" disabled={busy || !changed} onClick={() => void save()}>Guardar ubicación</button>
         </div>

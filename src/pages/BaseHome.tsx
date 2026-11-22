@@ -16,7 +16,7 @@ import TeamNames from '../components/TeamNames'
 import { useAuth } from '../lib/auth'
 import { serverNow } from '../lib/clock'
 import { useManualAlerts, useNow } from '../lib/alerts'
-import { clockText, lateTeams, legInfo, legRemainingSec, type LegInfo, type TimedMatch } from '../lib/delays'
+import { clockText, legInfo, legRemainingSec, type LegInfo, type TimedMatch } from '../lib/delays'
 import { airportCode, flightCodes } from '../lib/flight'
 import { stampLook } from '../lib/stamp'
 import { useTravelTimes } from '../lib/travel'
@@ -159,24 +159,20 @@ export default function BaseHome() {
   useRealtimeReload(['match_scores', 'matches', 'bases', 'events', 'round_rotations', 'rotation_acks'], load, 1500)
 
   const current = useMemo(() => matches.find((m) => m.status !== 'finished'), [matches])
-  const next = current ? matches.find((m) => m.round_number > current.round_number && m.status !== 'finished') : undefined
   const finished = matches.filter((m) => m.status === 'finished')
   // After scoring a match the groups rotate to their next base: it waits for the coordinator's word, then the base confirms it let them go.
   const lastFinished = finished[finished.length - 1]
   const rotation = lastFinished ? rotations.find((r) => r.round_number === lastFinished.round_number) : undefined
   // only once the three stages of that match are scored (a voided one counts: the coordinator decided it was not played)
   const showRotation = Boolean(lastFinished && lastFinished.match_scores.length >= SCORE_ITEMS.length && current && current.arrived_at === null)
+  // the groups are let go once: until then the rotation button is the ONLY thing on the Ronda tab; right after, the next match starts with its clock
+  const rotationPending = showRotation && !(rotation && rotated.has(rotation.id))
   const codes = useMemo(() => flightCodes([...teams.values()]), [teams]) // the "flight" of each group, as the runners see it
 
   const events = base?.events
   const maxMinutes = (Array.isArray(events) ? events[0]?.max_travel_minutes : events?.max_travel_minutes) ?? 10
-  const now = useNow()
-  const myMatchIds = new Set(matches.map((m) => m.id))
   const travel = useTravelTimes(base?.event_id)
-  const late = lateTeams(eventMatches, maxMinutes, now, travel).filter((l) => myMatchIds.has(l.matchId))
   const fromCoordinator = useManualAlerts(matches.map((m) => m.id), 'base') // rings the phone while it is fresh
-  const [hurried, setHurried] = useState<Set<string>>(new Set()) // matches whose groups were already alerted from the delay banner
-  const [hurryError, setHurryError] = useState<string | null>(null)
 
   // Where each group of the match comes from and how long it still has to get here (its own leg time, or the Carrera's maximum).
   const legsOf = (m: BaseMatch): Record<string, LegInfo> => ({
@@ -196,17 +192,6 @@ export default function BaseHome() {
     setRotating(false)
   }
 
-  // The delay banner can alert the late groups itself: the late match may be the NEXT round, which has no card with that button.
-  async function hurryLate(matchId: string) {
-    if (!base) return
-    setHurryError(null)
-    const lateOnes = late.filter((l) => l.matchId === matchId)
-    const only = lateOnes.length === 1 ? lateOnes[0].teamId : undefined // the other group may already be here: do not bother it
-    const result = await hurryGroups(base.event_id, matchId, lateOnes.map((l) => teams.get(l.teamId)?.name ?? '').filter(Boolean), { teamId: only })
-    if (result.error) setHurryError(result.error)
-    else if (result.sent) setHurried((prev) => new Set(prev).add(matchId))
-  }
-
   return (
     <AppShell
       title={tab === 'ronda' ? 'Mi base' : TABS.find((t) => t.id === tab)?.label ?? 'Mi base'}
@@ -224,48 +209,22 @@ export default function BaseHome() {
               {a.message}
             </AlertBanner>
           ))}
-          {[...new Set(late.map((l) => l.matchId))].map((matchId) => {
-            const m = matches.find((x) => x.id === matchId)
-            const names = late
-              .filter((l) => l.matchId === matchId)
-              .map((l) => teams.get(l.teamId)?.name)
-              .join(' y ')
-            const minutes = Math.max(...late.filter((l) => l.matchId === matchId).map((l) => l.elapsedMin))
-            return (
-              <AlertBanner
-                key={matchId}
-                title={`Ronda ${m?.round_number}: grupos en demora`}
-                action={
-                  <>
-                    <button type="button" className="ghost banner-action" disabled={hurried.has(matchId)} onClick={() => void hurryLate(matchId)}>
-                      {hurried.has(matchId) ? <Check size={18} aria-hidden="true" /> : <BellRing size={18} aria-hidden="true" />}
-                      {hurried.has(matchId) ? 'Aviso enviado' : late.filter((l) => l.matchId === matchId).length === 1 ? 'Apurar al grupo' : 'Apurar a los grupos'}
-                    </button>
-                    {hurryError && <span className="banner-error">{hurryError}</span>}
-                  </>
-                }
-              >
-                {names} llevan {minutes} min en el traslado (máximo {Math.min(...late.filter((l) => l.matchId === matchId).map((l) => l.maxMin))} min).
-              </AlertBanner>
-            )
-          })}
-
           <div key={tab} className={`tab-view ${dir}`}>
             {tab === 'ronda' && (
               <>
                 <BaseTicket name={base.name} photoPath={base.location_photo_path} sealed={finished.length} />
                 {matches.length === 0 && <p className="warn">El coordinador aún no ha programado cruces para tu base.</p>}
-                {showRotation && lastFinished && (
+                {rotationPending && lastFinished ? (
                   <RotationCard
-                    state={rotation && rotated.has(rotation.id) ? 'done' : rotation ? 'ready' : 'waiting'}
+                    state={rotation ? 'ready' : 'waiting'}
                     names={[teams.get(lastFinished.team_a)?.name, teams.get(lastFinished.team_b)?.name].filter((n): n is string => Boolean(n))}
                     busy={rotating}
                     error={rotationError}
                     onConfirm={() => void confirmRotation()}
                   />
+                ) : (
+                  current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} eventId={base.event_id} base={base} codes={codes} legs={legsOf(current)} baseNames={baseNames} />
                 )}
-                {current && <MatchCard key={current.id} match={current} teams={teams} onSent={load} eventId={base.event_id} base={base} codes={codes} legs={legsOf(current)} baseNames={baseNames} />}
-                {next && <NextRound match={next} teams={teams} />}
                 {current === undefined && matches.length > 0 && <ClosedDesk name={base.name} sealed={finished.length} />}
               </>
             )}
@@ -580,14 +539,18 @@ function WalkingGroups({
   teams,
   legs,
   baseNames,
+  codes,
   busy,
+  canHurry,
   onHurry,
 }: {
   match: BaseMatch
   teams: Map<string, Team>
   legs: Record<string, LegInfo>
   baseNames?: Map<string, string>
+  codes?: Map<string, string>
   busy: boolean
+  canHurry: boolean
   onHurry: (teamId?: string) => void
 }) {
   const now = useNow(1000)
@@ -601,8 +564,9 @@ function WalkingGroups({
         const blocked = info.kind === 'stay' || info.kind === 'waiting'
         return (
           <div key={id} className="walk-row">
+            <Crest name={teams.get(id)?.name} photoPath={teams.get(id)?.photo_path} size="sm" />
             <div className="walk-who">
-              <strong>{name}</strong>
+              <strong>{name}{codes?.get(id) && <span className="pax-code">{codes.get(id)}</span>}</strong>
               <small>
                 {info.kind === 'stay' && 'Ya está en tu base'}
                 {info.kind === 'waiting' && `Aún juega su cruce anterior${from ? ` en ${from}` : ''}`}
@@ -616,17 +580,21 @@ function WalkingGroups({
                 <small>{left > 0 ? 'faltan' : 'de más'}</small>
               </span>
             )}
-            <button type="button" className="ghost walk-hurry" disabled={busy || blocked} onClick={() => onHurry(id)} aria-label={`Apurar a ${name}`}>
-              <BellRing size={17} aria-hidden="true" />
-              Apurar
-            </button>
+            {canHurry && (
+              <button type="button" className="ghost walk-hurry" disabled={busy || blocked} onClick={() => onHurry(id)} aria-label={`Apurar a ${name}`}>
+                <BellRing size={17} aria-hidden="true" />
+                Apurar
+              </button>
+            )}
           </div>
         )
       })}
-      <button className="ghost btn-block hurry" disabled={busy} onClick={() => onHurry()}>
-        <BellRing size={19} aria-hidden="true" />
-        Apurar a los grupos
-      </button>
+      {canHurry && (
+        <button className="ghost btn-block hurry" disabled={busy} onClick={() => onHurry()}>
+          <BellRing size={19} aria-hidden="true" />
+          Apurar a los grupos
+        </button>
+      )}
     </div>
   )
 }
@@ -777,9 +745,11 @@ export function MatchCard({
           <small>Puerta</small>
           <b className="num">{String(match.round_number).padStart(2, '0')}</b>
         </span>
-        <span className={`badge ${match.status === 'in_progress' ? 'ok live' : match.status === 'finished' ? 'ok' : ''}`}>
-          {STATUS_LABEL[match.status]}
-        </span>
+        {arrived && (
+          <span className={`badge ${match.status === 'in_progress' ? 'ok live' : match.status === 'finished' ? 'ok' : ''}`}>
+            {STATUS_LABEL[match.status]}
+          </span>
+        )}
         {base && (
           <span className="desk-seal" aria-hidden="true">
             <Stamp seed={base.id} name={base.name} photoPath={base.location_photo_path} round={0} state="stamped" size={58} straight />
@@ -787,29 +757,24 @@ export function MatchCard({
         )}
       </div>
 
-      <DeskFlow arrived={arrived} scored={scored.size} total={SCORE_ITEMS.length} />
-
-      <div className="versus">
-        <TeamFace team={a} code={codes?.get(match.team_a)} state={paxState} />
-        <span className="vs num">{points(match.team_a)}–{points(match.team_b)}</span>
-        <TeamFace team={b} code={codes?.get(match.team_b)} state={paxState} />
-      </div>
-
-      {!arrived && (
+      {!arrived ? (
         <>
+          <WalkingGroups match={match} teams={teams} legs={legs ?? {}} baseNames={baseNames} codes={codes} busy={busy} canHurry={Boolean(eventId)} onHurry={(id) => void hurry(id)} />
+          {notice && <p className="ok-text">{notice}</p>}
           {error && <p className="error">{error}</p>}
           <button className="btn-block" disabled={busy} onClick={() => void confirmArrival()}>
             <UsersRound size={20} aria-hidden="true" />
             {busy ? 'Confirmando…' : 'Ya llegaron ambos grupos'}
           </button>
-          {eventId && legs && <WalkingGroups match={match} teams={teams} legs={legs} baseNames={baseNames} busy={busy} onHurry={(id) => void hurry(id)} />}
-          {eventId && !legs && (
-            <button className="ghost btn-block hurry" disabled={busy} onClick={() => void hurry()}>
-              <BellRing size={19} aria-hidden="true" />
-              Apurar a los grupos
-            </button>
-          )}
-          {notice && <p className="ok-text">{notice}</p>}
+        </>
+      ) : (
+        <>
+          <DeskFlow arrived={arrived} scored={scored.size} total={SCORE_ITEMS.length} />
+          <div className="versus">
+            <TeamFace team={a} code={codes?.get(match.team_a)} state={paxState} />
+            <span className="vs num">{points(match.team_a)}–{points(match.team_b)}</span>
+            <TeamFace team={b} code={codes?.get(match.team_b)} state={paxState} />
+          </div>
         </>
       )}
 
