@@ -113,7 +113,7 @@ describe('the pages of the passport', () => {
   it('the cover and the identity page are general: no theme, no committee, no role, no partner', () => {
     const [cover, dni] = pages(data('runner', {}, [], { committee_lead: true }))
     for (const s of [cover, dni]) {
-      for (const word of ['MITOLOG', 'Mitolog', 'Nórdica', 'Caos', 'CAOS', 'Corredor', 'CORREDOR', 'Dioses', 'Sofía', 'COORDINADOR']) expect(s, word).not.toContain(word)
+      for (const word of ['MITOLOG', 'Mitolog', 'Nórdica', 'Caos', 'CAOS', 'Corredor', 'CORREDOR', 'Dioses', 'Sofía', 'COORDI']) expect(s, word).not.toContain(word)
     }
     expect(cover).toContain('INDUCCIÓN JAVERIANA')
     expect(cover).toContain('INGENIERÍA DE SISTEMAS')
@@ -147,8 +147,8 @@ describe('the pages of the passport', () => {
   })
 
   it('a coordinator of a committee gets the golden committee stamp', () => {
-    expect(pages(data('runner', {}, [], { committee_lead: true }))[3]).toContain('COORDINADOR')
-    expect(pages(data())[3]).not.toContain('COORDINADOR')
+    expect(pages(data('runner', {}, [], { committee_lead: true }))[3]).toContain('COORDI')
+    expect(pages(data())[3]).not.toContain('COORDI')
   })
 
   it('a later induction brings its own pages and its theme, even one this version does not know (neutral), and the blank pages stay last', () => {

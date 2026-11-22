@@ -93,7 +93,7 @@ describe('geography helpers', () => {
 describe('shared types and labels', () => {
   it('label every score item, role and match status in Spanish', () => {
     expect(SCORE_ITEMS.map((i) => ITEM_LABEL[i])).toEqual(['Minijuego', 'Pregunta', 'Barra']) // the order they are played and scored in
-    expect(Object.values(ROLE_LABEL)).toEqual(['Coordinador', 'Inductor de base', 'Corredor', 'Inductor'])
+    expect(Object.values(ROLE_LABEL)).toEqual(['Coordi', 'Inductor de base', 'Corredor', 'Inductor'])
     expect(Object.values(STATUS_LABEL)).toEqual(['Pendiente', 'En juego', 'Terminado'])
   })
 

@@ -58,17 +58,17 @@ describe('the stamp of a committee', () => {
     expect(new Set(art).size).toBe(6)
   })
 
-  it('the coordinator of the committee gets the GOLDEN one: gold foil (and, on the round ones, rays and "coordinador" on the ring)', () => {
+  it('the coordinator of the committee gets the GOLDEN one: gold foil (and, on the round ones, rays and "coordi" on the ring)', () => {
     for (const c of COMMITTEES) {
       const gold = html(createElement(CommitteeSeal, { committee: c.key, lead: true }))
       const plain = html(createElement(CommitteeSeal, { committee: c.key }))
       expect(gold).toContain('linearGradient')
       expect(gold).toContain('var(--foil-a)')
       expect(gold).toContain('Sello del comité')
-      expect(gold).toContain('coordinador')
+      expect(gold).toContain('coordi')
       expect(gold.length).toBeGreaterThan(plain.length - 1) // the foil, the rays or the crown
-      expect(plain).not.toContain('COORDINADOR')
-      if (c.key !== 'bienvenida' && c.key !== 'meraki') expect(gold).toContain(`COORDINADOR · ${c.name.toUpperCase()}`)
+      expect(plain).not.toContain('COORDI')
+      if (c.key !== 'bienvenida' && c.key !== 'meraki') expect(gold).toContain(`COORDI · ${c.name.toUpperCase()}`)
     }
   })
 

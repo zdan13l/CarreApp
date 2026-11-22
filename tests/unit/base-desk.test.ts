@@ -59,7 +59,7 @@ describe('MatchCard: states of the counter', () => {
         ] as BaseMatch['match_scores'],
       }),
     )
-    expect(html).toContain('Invalidado por el coordinador')
+    expect(html).toContain('Invalidado por el coordi')
     expect((html.match(/class="choices"/g) ?? []).length).toBe(1)
     expect(html).toContain('2 de 3')
     expect(html).toContain('1–0')

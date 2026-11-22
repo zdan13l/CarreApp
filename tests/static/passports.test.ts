@@ -78,7 +78,7 @@ describe('one passport for the whole life in the induction', () => {
     expect(pass).toMatch(/export const BLANK_PAGES = 3/)
     expect(pass).toMatch(/Inducción \{record\.term\.name\}/)
     expect(pass).toMatch(/Temática \{theme\.name\}/)
-    expect(pass).toMatch(/Palabras de tus coordinadores/)
+    expect(pass).toMatch(/Palabras de tus coordis/)
   })
 
   it('the golden stamp with a photo: the group of a runner, the base of a base inductor', () => {

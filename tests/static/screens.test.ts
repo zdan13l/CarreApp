@@ -8,7 +8,7 @@ const read = (p: string) => fs.readFileSync(rootPath(p), 'utf8')
 describe('login', () => {
   const login = read('src/pages/Login.tsx')
   it('uses the agreed copy', () => {
-    expect(login).toContain('placeholder="Dado por el coordinador"')
+    expect(login).toContain('placeholder="Dado por el coordi"')
     expect(login).toContain('Gestión en vivo de Carrera')
     expect(login).toMatch(/<p className="login-foot">Semana de inducción<\/p>/)
     // the name of the University appears only in the official logo (its alt text), never as copy

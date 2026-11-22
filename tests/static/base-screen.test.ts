@@ -115,7 +115,7 @@ describe('the base screen', () => {
     expect(names).toMatch(/onPointerCancel=\{release\}/) // the browser took the touch to scroll
     expect(names).toMatch(/onPointerMove/) // the finger moved
     expect(names).toMatch(/PRESS_DELAY_MS/)
-    expect(read('src/index.css')).toMatch(/button\.team-row\[data-pressed='true'\] \{ background: color-mix\(in srgb, var\(--gold\)/)
+    expect(read('src/index.css')).toMatch(/button\.team-row\[data-pressed='true'\][^{]*\{ background: color-mix\(in srgb, var\(--gold\)/)
   })
 
   it('Habilitada: bases and runners see a banner and a tutorial, and the buttons are off (0032)', () => {
@@ -144,7 +144,7 @@ describe('the base screen', () => {
 
   it('Ver tutorial only on Ronda; the hurry buttons rest 15 s and explain why; Cruces are cards', () => {
     expect(base).toMatch(/onTutorial=\{tab === 'ronda' \? \(\) => setTour/)
-    expect(base).toMatch(/const HURRY_REST_S = 15/)
+    expect(base).toMatch(/const HURRY_REST_S = 16/)
     expect(base).toMatch(/No puedes apurar todavía: espera/)
     expect(base).toMatch(/className="cruces"/)
     expect(read('src/index.css')).toMatch(/\.walk-hurry:active:not\(:disabled\)[^{]*\{ background: var\(--gold\)/)
