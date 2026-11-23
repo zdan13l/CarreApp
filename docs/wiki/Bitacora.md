@@ -2,6 +2,12 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Inductores, comités, programas y temáticas desde el panel (2026-11-22, migración 0035, aplicada)
+- **Inductores:** ahora se agrega **un inductor nuevo** con un formulario (nombre, carrera, rol, comité, generación, ingreso, apodo): se crea su usuario personal y se muestra la contraseña una sola vez; si la persona ya existía solo se le agrega el semestre. El Excel queda como *Carga masiva* plegable. Botón **Ancestro** (birrete): ya no está en la inducción, su perfil sigue activo 6 meses y luego queda deshabilitado; se puede **reactivar** o **deshabilitar ya** (filtro *Ancestros*).
+- **Comités** (pestaña nueva): cada comité con su sello (dorado si tiene coordi), nombre y frase editables, **cambiar coordi** (por semestre, con aviso si no tiene), quitar/volver a ofrecer y **agregar** comités nuevos (sello genérico con su inicial).
+- **Programas** (pestaña nueva): los grupos de carreras (Tronicas, Sistemas, Industrial, Biomec, Civil) con sus carreras (agregar, mover, quitar), la **cultura** de cada grupo en la temática elegida, y las **temáticas** (siempre existe la *Global*; se agregan temáticas y sus culturas, con su sello de muestra).
+- La app lee estos catálogos al iniciar sesión (`loadCatalog`); antes de aplicar la 0035 sigue con las listas con las que se hizo.
+
 ## Sellos con color propio, límite de 15 bases y pestaña Sellos (2026-11-22, migración 0034, aplicada)
 - **Color:** cada uno de los 15 sellos tiene un color propio, ligado a lo que dibuja (Horus ámbar, Anubis índigo oscuro, Khepri turquesa, Mjolnir acero, Loki esmeralda, los cuervos violeta, Zeus azul real, Pegaso celeste, Poseidón azul marino, jaguar naranja, águila café, Mictlán magenta, dragón rojo, Wukong lima, tigre rosa). Dentro de una mitología y entre mitologías no se repite ningún color (variables `--seal-*`, versión clara y oscura).
 - **Más de 15 bases:** la base de datos lo rechaza con «Hay 15 sellos… primero hay que corregir los sellos» (en *Bases* y en la carga desde archivo).

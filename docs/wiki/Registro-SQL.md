@@ -47,6 +47,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0032 | [`0032_event_phases.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0032_event_phases.sql) | 2026-11-22 | Los cuatro estados de la Carrera (`events.phase`), `event_action()`, las bases solo actúan con la Carrera Iniciada y el reloj de demora cuenta desde el aviso de rotación |
 | 0033 | [`0033_alert_rate_and_title.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0033_alert_rate_and_title.sql) | 2026-11-22 | Límite de 15 s entre avisos de una base y la notificación dice «Aviso del coordi» |
 | 0034 | [`0034_custom_seals.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0034_custom_seals.sql) | 2026-11-22 | Sellos propios (`custom_seals`) y una carrera no puede tener más bases que sellos |
+| 0035 | [`0035_inductor_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0035_inductor_admin.sql) | 2026-11-22 | Ancestros, comités, grupos de carreras y temáticas manejados desde el panel |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -552,6 +553,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/custom-seals-0034.test.ts` (la base 16 se rechaza con la explicación, un sello nuevo hace espacio, no se borra el que hace falta, solo el coordinador sube sellos).
 
 **Cómo revertir** `drop trigger bases_seal_limit on public.bases; drop trigger custom_seals_keep on public.custom_seals; drop function public.bases_seal_limit(), public.custom_seals_keep(), public.seal_capacity(); drop table public.custom_seals;`
+
+## 0035 — El catálogo vivo de la inducción
+
+**Qué cambia** `passports.status` (`active`, `ancestor`, `disabled`), `ancestor_at` y `disable_at`: un inductor que «cuelga el saco» pasa a ancestro, su pasaporte sigue abriendo hasta `disable_at` (por defecto 6 meses) y después queda deshabilitado (`passport_active()` en las políticas de lectura de `passports`, `passport_records` y `passport_stamps`); el coordi lo puede reactivar o deshabilitar ya. `committees` (clave, nombre, frase, tinta, activo): los seis comités de siempre, que ahora se agregan, renombran y desactivan desde el panel. `career_groups` y `careers` (Tronicas, Sistemas, Industrial, Biomec y Civil con sus carreras), `themes` (siempre existe una **global**, que no se puede borrar ni duplicar), `theme_cultures` (las culturas de cada temática) y `group_cultures` (la cultura que le toca a cada grupo de carreras en cada temática; sembrada con mitologías). Todos leen; solo el coordi escribe. El coordi de cada comité en cada semestre sigue siendo la marca `committee_lead` del registro de ese semestre (0026).
+
+**Por qué** Para que CarreApp perdure sin tocar el código: los inductores nuevos, los comités, las carreras y las temáticas cambian con el tiempo.
+
+**Verificación** `tests/db/inductor-admin-0035.test.ts` (ancestro vigente, vencido y deshabilitado, quién edita el catálogo, la temática global, un grupo con carreras no se borra, la cultura debe existir en la temática).
+
+**Cómo revertir** Volver a crear las políticas de lectura de 0023, `alter table public.passports drop column status, drop column ancestor_at, drop column disable_at;` y `drop table public.group_cultures, public.theme_cultures, public.themes, public.careers, public.career_groups, public.committees;` (más `drop function public.passport_active(uuid), public.themes_keep_global() cascade;`).
 
 ## Plantilla para nuevos registros
 
