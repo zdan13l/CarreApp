@@ -19,8 +19,7 @@ import { disableSound, useManualAlerts, useNow } from '../lib/alerts'
 import { disablePush } from '../lib/push'
 import { clockText, legInfo, legRemainingSec, type LegInfo, type TimedMatch } from '../lib/delays'
 import { airportCode, flightCodes } from '../lib/flight'
-import { registerSealRoster } from '../lib/seals'
-import { stampLook } from '../lib/stamp'
+import { registerSealRoster, sealInkVar } from '../lib/seals'
 import { useTravelTimes } from '../lib/travel'
 import { useRealtimeReload } from '../lib/realtime'
 import { photoUrl, uploadPhoto } from '../lib/storage'
@@ -85,7 +84,7 @@ const TABS: NavTab<Tab>[] = [
 ]
 
 // Every base prints its stamp in one ink (drawn from its id, like the stamp itself): that ink is the accent of the whole screen.
-const inkStyle = (baseId: string) => ({ '--base-ink': `var(--ink-${stampLook(baseId).ink})` }) as CSSProperties
+const inkStyle = (baseId: string) => ({ '--base-ink': sealInkVar(baseId) }) as CSSProperties
 
 export default function BaseHome() {
   const { profile } = useAuth()

@@ -7,7 +7,7 @@
 import { createElement, type ReactElement } from 'react'
 import { airportCode } from './flight'
 import { committeeOf, committeesOfRecord } from './committees'
-import { embedSealAssets, generationsOf, sealForSeed, type GenerationSeal } from './seals'
+import { embedSealAssets, generationsOf, sealForSeed, sealInkVar, type GenerationSeal } from './seals'
 import { personNumber, PASSPORT_ROLE_LONG } from './passports'
 import { jpegPdf } from './pdf'
 import { mrzText, stampLook, stampTime } from './stamp'
@@ -85,8 +85,27 @@ export interface PdfAssets {
   font: string // the data URL of the font
 }
 
+// The ink of each seal in the PDF, which cannot read the CSS variables (the same colours as the light theme of the stylesheet, --seal-*).
+const SEAL_COLORS: Record<string, string> = {
+  horus: '#b07a00',
+  anubis: '#444b73',
+  khepri: '#0e8a86',
+  mjolnir: '#5d7894',
+  loki: '#1f8a4c',
+  cuervos: '#5b3d9a',
+  zeus: '#1f3fbf',
+  pegaso: '#1f98c9',
+  poseidon: '#14385e',
+  jaguar: '#d9731a',
+  aguila: '#7a4a22',
+  mictlan: '#b0245a',
+  dragon: '#c4261d',
+  wukong: '#7d9a0c',
+  tigre: '#d8587e',
+}
+
 function css(font: string): string {
-  const inks = INKS.map((c, i) => (i ? `--ink-${i}:${c};` : '')).join('')
+  const inks = INKS.map((c, i) => (i ? `--ink-${i}:${c};` : '')).join('') + Object.entries(SEAL_COLORS).map(([k, c]) => `--seal-${k}:${c};`).join('')
   return `
 @font-face{font-family:'Archivo Variable';src:url(${font}) format('woff2');font-weight:100 900;font-stretch:62% 125%}
 svg{${inks}--seal-paper:${PAPER};--emblem-paper:${PAPER};--stamp-paper:${PAPER};--surface:${PAPER};--foil-a:${FOIL[0]};--foil-b:${FOIL[1]};--foil-c:${FOIL[2]};--foil-d:${FOIL[3]};--plate-a:#0a1f4a;--plate-b:#031538;--plate-line:rgba(242,207,122,.28);--plate-disc:rgba(2,12,36,.55)}
@@ -319,8 +338,8 @@ function visaPageSvg(ctx: PageContext, record: MemberRecord, index: number, slot
     if (slot.kind === 'stamp') {
       const s = slot.stamp
       const lk = stampLook(s.base_key ?? s.base_name ?? '')
-      const stamp = piece(createElement(Stamp, { seed: s.base_key ?? s.base_name ?? '', name: s.base_name ?? '', round: s.round_number, time: stampTime(s.stamped_at), state: 'done', size: 150, straight: true }), x, y, 150, 150, lk.tilt, `var(--ink-${lk.ink})`)
-      return `<g style="--stamp-ink:var(--ink-${lk.ink})">${stamp}</g>${text(x + 75, y + 172, s.base_name ?? '', { size: 14, weight: 800, anchor: 'middle', stretch: true })}${text(x + 75, y + 188, record.role === 'base' ? `RONDA ${s.round_number}` : `${airportCode(s.base_name ?? '')} · R${s.round_number}`, { size: 9.5, mono: true, spacing: 1.6, fill: FAINT, anchor: 'middle' })}`
+      const stamp = piece(createElement(Stamp, { seed: s.base_key ?? s.base_name ?? '', name: s.base_name ?? '', round: s.round_number, time: stampTime(s.stamped_at), state: 'done', size: 150, straight: true }), x, y, 150, 150, lk.tilt, sealInkVar(s.base_key ?? s.base_name ?? ''))
+      return `<g style="--stamp-ink:${sealInkVar(s.base_key ?? s.base_name ?? '')}">${stamp}</g>${text(x + 75, y + 172, s.base_name ?? '', { size: 14, weight: 800, anchor: 'middle', stretch: true })}${text(x + 75, y + 188, record.role === 'base' ? `RONDA ${s.round_number}` : `${airportCode(s.base_name ?? '')} · R${s.round_number}`, { size: 9.5, mono: true, spacing: 1.6, fill: FAINT, anchor: 'middle' })}`
     }
     const top = slot.kind === 'entry' ? 'Visado de entrada' : 'Carrera coordinada'
     const bottom = slot.kind === 'entry' ? `${slot.term} · ${theme.name}` : slot.event

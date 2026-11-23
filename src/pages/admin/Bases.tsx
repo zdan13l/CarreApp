@@ -64,7 +64,7 @@ export default function Bases() {
       .insert({ event_id: eventId, name: name.trim(), sort_order: bases.length })
     setBusy(false)
     if (err) {
-      setError(err.message.includes('duplicate') ? 'Ya existe una base con ese nombre.' : 'No se pudo crear la base.')
+      setError(err.message.includes('duplicate') ? 'Ya existe una base con ese nombre.' : /sellos/.test(err.message) ? err.message : 'No se pudo crear la base.')
       return
     }
     setName('')

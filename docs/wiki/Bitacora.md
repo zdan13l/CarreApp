@@ -2,6 +2,11 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Sellos con color propio, límite de 15 bases y pestaña Sellos (2026-11-22, migración 0034, pendiente)
+- **Color:** cada uno de los 15 sellos tiene un color propio, ligado a lo que dibuja (Horus ámbar, Anubis índigo oscuro, Khepri turquesa, Mjolnir acero, Loki esmeralda, los cuervos violeta, Zeus azul real, Pegaso celeste, Poseidón azul marino, jaguar naranja, águila café, Mictlán magenta, dragón rojo, Wukong lima, tigre rosa). Dentro de una mitología y entre mitologías no se repite ningún color (variables `--seal-*`, versión clara y oscura).
+- **Más de 15 bases:** la base de datos lo rechaza con «Hay 15 sellos… primero hay que corregir los sellos» (en *Bases* y en la carga desde archivo).
+- **Pestaña Sellos** (Preparación): galería de los sellos actuales con su color y mitología, y un formulario para subir más (la imagen se convierte a tinta en el navegador; nombre, mitología, color). Cada sello subido amplía el límite de bases en uno. Aplicar la 0034 para guardarlos.
+
 ## Sellos de las bases sin repetir y con color por mitología (2026-11-22)
 - Antes el color del sello salía del id de la base (el mismo sello podía verse en varios colores) y dos bases podían caer en el mismo sello. Ahora **cada mitología tiene su color** (griega azul, china rojo, mexicana verde, nórdica morado, egipcia ámbar), compartido por sus tres sellos y por ninguna otra mitología, y el sello **nunca cambia de color**.
 - Las bases de la Carrera reciben los sellos **sin repetir** (hasta 15) y alternando mitologías: cada pantalla que carga las bases registra la lista (`registerSealRoster`) y la base número *i* (por id) toma el sello *i*. Un sello viejo de un pasaporte cuya base ya no está se dibuja con el sello que sale de su id.

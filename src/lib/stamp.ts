@@ -1,4 +1,3 @@
-import { sealInk } from './seals'
 // The look of a stamp in the passport. Each base always gets the same shape and ink (derived from its id), so the
 // stamp is recognisable everywhere: the runner's passport, the base's own screen and the coordinator's list.
 export const STAMP_SHAPES = ['circle', 'hexagon', 'octagon', 'square'] as const
@@ -54,14 +53,12 @@ export interface StampLook {
 }
 
 export function stampLook(seed: string): StampLook {
-  // the colour belongs to the seal's mythology (see CULTURE_INK), not to the base id: a seal never changes colour
-  const ink = sealInk(seed)
   const h = hash(seed || 'base')
   const shape = STAMP_SHAPES[h % STAMP_SHAPES.length]
   return {
     shape,
     layout: shape !== 'circle' && Math.floor(h / 3) % 2 === 1 ? 'band' : 'ring', // the band needs the width of a polygon
-    ink,
+    ink: 1, // legacy field; the colour of a base seal is its own (sealInkVar)
     tilt: (Math.floor(h / 61) % 13) - 6,
     seed: (h % 90) + 1,
   }

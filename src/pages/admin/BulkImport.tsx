@@ -170,7 +170,7 @@ export default function BulkImport() {
       for (const name of wantedBases) {
         if (!name || bases.has(nameKey(name))) continue
         const { data, error: err } = await sb.from('bases').insert({ event_id: eventId, name, sort_order: bases.size }).select('id').single()
-        if (err) throw new Error(`No se pudo crear la base "${name}".`)
+        if (err) throw new Error(/sellos/.test(err.message) ? err.message : `No se pudo crear la base "${name}".`)
         bases.set(nameKey(name), data.id)
         createdBases++
       }

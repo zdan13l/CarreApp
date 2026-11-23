@@ -19,12 +19,12 @@ const scallop = (n: number, r: number, bump: number, cx = 50, cy = 40) => {
 // ---------- where the pictures come from ----------
 const SEAL_DIR = '/sellos/'
 const embedded = new Map<string, string>() // file -> data URL, filled before the PDF is drawn (an SVG turned into an image cannot fetch)
-export const assetUrl = (file: string) => embedded.get(file) ?? SEAL_DIR + file
+export const assetUrl = (file: string) => embedded.get(file) ?? (/^https?:/.test(file) ? file : SEAL_DIR + file)
 
 export async function embedSealAssets(files: string[]): Promise<void> {
   for (const file of new Set(files)) {
     if (embedded.has(file)) continue
-    const blob = await (await fetch(SEAL_DIR + file)).blob()
+    const blob = await (await fetch(/^https?:/.test(file) ? file : SEAL_DIR + file)).blob()
     const url = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader()
       reader.onload = () => resolve(String(reader.result))
@@ -67,7 +67,8 @@ export type SealKey =
   | 'horus' | 'anubis' | 'khepri' | 'mjolnir' | 'loki' | 'cuervos' | 'zeus' | 'pegaso' | 'poseidon'
   | 'jaguar' | 'aguila' | 'mictlan' | 'dragon' | 'wukong' | 'tigre'
 export interface MythSeal extends InkSource {
-  key: SealKey
+  key: string // one of SealKey, or the id of a seal the coordinator uploaded
+  color?: string // only the uploaded seals: their own ink (the app's seals take it from --seal-<key>)
   name: string
   story: string // what it is, for the inductor who staffs the base: its mythology and what it refers to
   culture: string // the key of the culture in the Mitologías theme
@@ -108,18 +109,44 @@ function hash(text: string): number {
   return h >>> 0
 }
 
-// The seal of each base of the Carrera: no two bases repeat a seal (while there are 15 or fewer) and the cultures alternate. Every screen that
-// loads the bases tells this list which they are (`registerSealRoster`); the i-th base by id takes the i-th seal of SEAL_ORDER, so it looks the
-// same on every screen. A base that is not in the list (an old stamp in a passport) falls back to a seal drawn from its id.
+// The seal of each base of the Carrera: no two bases repeat a seal (while there are as many seals as bases) and the cultures alternate. Every
+// screen that loads the bases tells this list which they are (`registerSealRoster`); the i-th base by id takes the i-th seal, so it looks the
+// same on every screen. The seals are the 15 of the app plus the ones the coordinator uploaded (`custom_seals`, 0034). A base that is not in the
+// list (an old stamp in a passport) falls back to a seal drawn from its id.
+let customSeals: MythSeal[] = []
 let roster = new Map<string, number>()
+let rosterIds: string[] = []
+const allSeals = (): MythSeal[] => [...SEAL_ORDER.map(sealOf), ...customSeals]
+export const sealCount = () => allSeals().length
 export function registerSealRoster(ids: string[]) {
-  roster = new Map([...new Set(ids)].sort().map((id, i) => [id, i % SEAL_ORDER.length]))
+  rosterIds = ids
+  const n = allSeals().length
+  roster = new Map([...new Set(ids)].sort().map((id, i) => [id, i % n]))
 }
-export const sealForSeed = (seed: string): MythSeal => sealOf(SEAL_ORDER[roster.get(seed) ?? hash(seed || 'base') % SEAL_ORDER.length])
+export const sealForSeed = (seed: string): MythSeal => {
+  const list = allSeals()
+  return list[roster.get(seed) ?? hash(seed || 'base') % SEAL_ORDER.length]
+}
 
-/** The ink of a mythology: one colour each, shared by its three seals and never by another mythology. */
-export const CULTURE_INK: Record<string, 1 | 2 | 3 | 4 | 5> = { griega: 1, china: 2, mexicana: 3, nordica: 4, egipcia: 5 }
-export const sealInk = (seed: string) => CULTURE_INK[sealForSeed(seed).culture] ?? 1
+export interface CustomSealRow { id: string; name: string; culture: string; color: string; path: string; story: string | null }
+export function setCustomSeals(rows: CustomSealRow[], urlOf: (path: string) => string) {
+  customSeals = rows.map((r) => ({
+    key: r.id,
+    name: r.name,
+    story: r.story ?? `Un sello propio de la carrera${r.culture === 'otra' ? '' : `, de la mitología ${r.culture}`}.`,
+    culture: r.culture,
+    frame: 'circle' as const,
+    file: urlOf(r.path),
+    color: r.color,
+  }))
+  registerSealRoster(rosterIds) // the list grew: the bases are dealt the seals again
+}
+export const customSealList = () => customSeals
+
+export const sealInkVar = (seed: string) => {
+  const seal = sealForSeed(seed)
+  return seal.color ?? `var(--seal-${seal.key})`
+}
 
 // ---------- the generations ----------
 export type GenerationKey = 'peluches' | 'barbies' | 'champinones' | 'textiles' | 'minichips'

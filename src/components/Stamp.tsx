@@ -1,6 +1,6 @@
 import { useId, type CSSProperties } from 'react'
 import { airportCode } from '../lib/flight'
-import { FRAMES, sealForSeed } from '../lib/seals'
+import { FRAMES, sealForSeed, sealInkVar } from '../lib/seals'
 import { stampLook } from '../lib/stamp'
 import { MythPicture } from './InkSeals'
 
@@ -48,7 +48,7 @@ export default function Stamp({
   const footer = round > 0 ? `${code}·R${round}${time ? `·${time}` : ''}` : `${code}·SELLO`
   const outline = (seal.frame === 'medal' ? FRAMES.circle : FRAMES[seal.frame]).outer
   const style = {
-    '--stamp-ink': state === 'rest' ? 'var(--text-faint)' : `var(--ink-${look.ink})`,
+    '--stamp-ink': state === 'rest' ? 'var(--text-faint)' : sealInkVar(seed),
     width: size,
     height: size,
     transform: straight ? undefined : `rotate(${look.tilt}deg)`,

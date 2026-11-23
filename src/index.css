@@ -2381,3 +2381,69 @@ button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justi
 /* Review: the three steps breathe a little more on a narrow phone. */
 .desk-flow li { padding: .6rem .6rem; gap: .4rem; }
 .desk-flow .desk-step b { font-size: .95rem; }
+
+/* Seal inks: each of the fifteen seals has a colour of its own, tied to what it shows (no two seals share one). Light = paper, dark = by night; the
+   coordinator's tower is always dark. */
+:root {
+  --seal-horus: #d1b26b;
+  --seal-anubis: #9397ae;
+  --seal-khepri: #73bbb9;
+  --seal-mjolnir: #a1b1c1;
+  --seal-loki: #7dbb97;
+  --seal-cuervos: #a08ec4;
+  --seal-zeus: #7d90da;
+  --seal-pegaso: #7dc3e0;
+  --seal-poseidon: #778ca2;
+  --seal-jaguar: #e9ae7a;
+  --seal-aguila: #b2967f;
+  --seal-mictlan: #d1809f;
+  --seal-dragon: #dd817c;
+  --seal-wukong: #b4c472;
+  --seal-tigre: #e89eb4;
+}
+:root[data-theme='light'] {
+  --seal-horus: #b07a00;
+  --seal-anubis: #444b73;
+  --seal-khepri: #0e8a86;
+  --seal-mjolnir: #5d7894;
+  --seal-loki: #1f8a4c;
+  --seal-cuervos: #5b3d9a;
+  --seal-zeus: #1f3fbf;
+  --seal-pegaso: #1f98c9;
+  --seal-poseidon: #14385e;
+  --seal-jaguar: #d9731a;
+  --seal-aguila: #7a4a22;
+  --seal-mictlan: #b0245a;
+  --seal-dragon: #c4261d;
+  --seal-wukong: #7d9a0c;
+  --seal-tigre: #d8587e;
+}
+:root .admin.tower {
+  --seal-horus: #d1b26b;
+  --seal-anubis: #9397ae;
+  --seal-khepri: #73bbb9;
+  --seal-mjolnir: #a1b1c1;
+  --seal-loki: #7dbb97;
+  --seal-cuervos: #a08ec4;
+  --seal-zeus: #7d90da;
+  --seal-pegaso: #7dc3e0;
+  --seal-poseidon: #778ca2;
+  --seal-jaguar: #e9ae7a;
+  --seal-aguila: #b2967f;
+  --seal-mictlan: #d1809f;
+  --seal-dragon: #dd817c;
+  --seal-wukong: #b4c472;
+  --seal-tigre: #e89eb4;
+}
+
+/* Admin: the seals page. */
+.seal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: 1rem; margin: 1rem 0; }
+.seal-item { position: relative; display: grid; justify-items: center; gap: .5rem; margin: 0; padding: .8rem .6rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); text-align: center; }
+.seal-item figcaption { display: grid; gap: .15rem; justify-items: center; }
+.seal-item small { color: var(--text-muted); }
+.seal-item .swatch { width: 2.2rem; height: .5rem; border-radius: 99px; }
+.seal-item .icon-btn { position: absolute; top: .3rem; right: .3rem; }
+.seal-face { display: block; width: 96px; height: 96px; line-height: 0; }
+.seal-face .stamp-ink { fill: var(--stamp-ink); stroke: var(--stamp-ink); }
+.seal-preview { margin: .8rem 0; }
+.seal-mask { display: block; width: 100%; height: 100%; background: var(--stamp-ink); -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }

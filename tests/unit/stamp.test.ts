@@ -9,10 +9,7 @@ describe('stamps of the passport', () => {
   it('different bases spread over the shapes and inks, and the tilt stays small', () => {
     const looks = Array.from({ length: 60 }, (_, i) => stampLook(`base-${i}`))
     expect(new Set(looks.map((l) => l.shape)).size).toBe(STAMP_SHAPES.length)
-    expect(new Set(looks.map((l) => l.ink)).size).toBe(5)
     for (const l of looks) {
-      expect(l.ink).toBeGreaterThanOrEqual(1)
-      expect(l.ink).toBeLessThanOrEqual(5)
       expect(Math.abs(l.tilt)).toBeLessThanOrEqual(6)
     }
   })

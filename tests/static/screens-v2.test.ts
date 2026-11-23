@@ -57,7 +57,7 @@ describe('base: the visa counter (identity of the inductor)', () => {
     expect(base).toMatch(/showTitle=\{tab === 'ronda'\}/)
   })
   it('each base has its own ink (the one of its stamp) as the accent of the screen', () => {
-    expect(base).toMatch(/stampLook\(baseId\)\.ink/)
+    expect(base).toMatch(/sealInkVar\(baseId\)/)
     expect(base).toMatch(/style=\{inkStyle\(base\.id\)\}/)
     expect(css).toMatch(/\.desk \{[^}]*border-top: 5px solid var\(--base-ink\)/)
   })

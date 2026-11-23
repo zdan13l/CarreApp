@@ -26,14 +26,14 @@ import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
 import BaseSealCard from '../components/BaseSealCard'
 import { CrucesList, BaseGuide, BaseTicket, BaseWhere, ClosedDesk, MatchCard, NextRound, RotationCard, type BaseMatch, type Team } from './BaseHome'
-import { stampLook } from '../lib/stamp'
 import { ArchiveCard, type Archive } from './admin/Historial'
-import { SEAL_ORDER, sealForSeed } from '../lib/seals'
+import { SEAL_ORDER, sealForSeed, sealInkVar } from '../lib/seals'
 import { AfterCard, CurrentRound, FinishedCard, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
 import { AlertBanner } from '../components/Alerts'
 import type { LegInfo } from '../lib/delays'
 import PhaseBanner from '../components/PhaseBanner'
 import PhaseControl from './admin/PhaseControl'
+import Sellos from './admin/Sellos'
 import Tutorial from '../components/Tutorial'
 import { baseTutorial } from '../lib/tutorials'
 import LoadFailed from '../components/LoadFailed'
@@ -133,7 +133,7 @@ const noopAsync = async () => {}
 // The base screen: the inductor, the stamp ink of the base (as BaseHome sets it) and the flight codes of the groups.
 const inspector = { full_name: 'Vanesa Gómez', username: 'vanesa' }
 const previewBase = { id: 'x1', name: 'Atrio', location_photo_path: '/campus-800.jpg' }
-const baseInk = { '--base-ink': `var(--ink-${stampLook('x1').ink})` } as CSSProperties
+const baseInk = { '--base-ink': sealInkVar('x1') } as CSSProperties
 const baseCodes = flightCodes(towerTeams)
 
 // Top with the team card that opens when a group is tapped (sample @ users).
@@ -541,6 +541,8 @@ export default function Preview() {
       </AppShell>
     )
   }
+
+  if (screen === 'admin-sellos') return <div className="admin tower"><main className="admin-main"><Sellos /></main></div>
 
   // the coordinator's control in each of the four states
   if (screen === 'admin-estado') {
