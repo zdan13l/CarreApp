@@ -30,7 +30,7 @@ import { supabase } from '../../lib/supabase'
 import { COMMITTEES, committeeOf } from '../../lib/committees'
 import { useCatalogVersion } from '../../lib/catalogStore'
 import { SYMBOLS } from '../../lib/symbols'
-import { cultureOf, DEFAULT_THEME, THEMES, themeOf, type CultureKey } from '../../lib/themes'
+import { cultureOf, themeOf, type CultureKey } from '../../lib/themes'
 import { createPassportUser, deleteUser, resetPassword } from '../../lib/usersApi'
 import { errMsg } from './AdminContext'
 
@@ -45,10 +45,6 @@ interface LinkOption {
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
-const defaultTermName = () => {
-  const d = new Date()
-  return `${d.getFullYear()}-${d.getMonth() < 6 ? 1 : 2}`
-}
 const missingTable = (e: { code?: string; message?: string } | null) => Boolean(e && (e.code === '42P01' || e.code === 'PGRST205' || /passports|terms|passport_records/.test(e.message ?? '')))
 
 // ---------- presentational pieces (also used by the design preview) ----------
@@ -273,7 +269,8 @@ interface Report {
 // The coordinator's list of inductors of the semester. They upload the Excel of names and careers, and the app returns another Excel
 // with the @ and the password of everybody; then they set who runs, who staffs a base and who coordinates, and link each runner to
 // the group of two. Each @ opens only the personal passport (see MemberHome).
-export default function Inductores() {
+// `fixedTermId`: inside a carrera, the people of THAT carrera's semester (no semester picker); without it, the global list of people.
+export default function Inductores({ fixedTermId }: { fixedTermId?: string | null } = {}) {
   useCatalogVersion() // the committees and cultures are the ones the coordinator keeps
   const input = useRef<HTMLInputElement>(null)
   const [terms, setTerms] = useState<TermRow[]>([])
@@ -303,8 +300,6 @@ export default function Inductores() {
   const [creds, setCreds] = useState<{ username: string; password: string; label: string } | null>(null)
   const [filter, setFilter] = useState<PassportRole | 'all' | 'none' | 'ancestor'>('all')
   const [search, setSearch] = useState('')
-  const [newName, setNewName] = useState(defaultTermName)
-  const [newTheme, setNewTheme] = useState(DEFAULT_THEME)
   const [careerNames, setCareerNames] = useState<string[]>([])
 
   const term = terms.find((t) => t.id === termId) ?? null
@@ -324,7 +319,7 @@ export default function Inductores() {
     setMissingSql(false)
     const list = (t.data ?? []) as TermRow[]
     setTerms(list)
-    const current = termId && list.some((x) => x.id === termId) ? termId : (list.find((x) => x.is_current) ?? list[0])?.id ?? null
+    const current = fixedTermId && list.some((x) => x.id === fixedTermId) ? fixedTermId : termId && list.some((x) => x.id === termId) ? termId : (list.find((x) => x.is_current) ?? list[0])?.id ?? null
     setTermId(current)
     setWelcome(list.find((x) => x.id === current)?.welcome ?? '')
     const words = current ? await supabase.from('term_committees').select('term_id, committee, message').eq('term_id', current) : { data: [], error: null }
@@ -360,7 +355,7 @@ export default function Inductores() {
     setCareerNames((cn.data ?? []).map((x) => x.name as string))
     setUsernames(new Set([...((p.data ?? []) as unknown as PassportPerson[]).map((x) => x.username), ...(pf.data ?? []).map((x) => x.username)]))
     setLoading(false)
-  }, [termId])
+  }, [termId, fixedTermId])
 
   useEffect(() => {
     void load()
@@ -380,16 +375,6 @@ export default function Inductores() {
   }
 
   // ---------- semester ----------
-  function onNewTerm() {
-    const name = newName.trim()
-    if (!name || !supabase) return
-    void run(async () => {
-      await supabase!.from('terms').update({ is_current: false }).eq('is_current', true)
-      const { data, error: err } = await supabase!.from('terms').insert({ name, theme: newTheme, is_current: true }).select('id').single()
-      if (err) throw new Error(err.message.includes('duplicate') ? 'Ya existe un semestre con ese nombre.' : 'No se pudo crear el semestre.')
-      setTermId(data.id)
-    })
-  }
   // the words of the coordinators and of each committee for THIS induction (they open its pages in every passport)
   function onSaveWords(form: HTMLFormElement) {
     if (!term || !supabase) return
@@ -636,7 +621,7 @@ export default function Inductores() {
 
   return (
     <>
-      <h1>Inductores</h1>
+      <h1>{fixedTermId ? 'Inductores de esta carrera' : 'Inductores'}</h1>
       <p className="muted">
         Sube el Excel de inductores (nombre y carrera): la app crea el @ y la contraseña de cada uno, te devuelve otro Excel con todo, y cada persona entra a su pasaporte personal. Aquí decides quién corre, quién es base y quién coordina, y enlazas cada corredor con su grupo.
       </p>
@@ -662,7 +647,9 @@ export default function Inductores() {
 
       <section className="card">
         <h2>Semestre</h2>
-        {terms.length > 0 ? (
+        {fixedTermId ? (
+          term && <p className="muted"><span className="badge">{plural(inTerm.length, 'inductor', 'inductores')}</span> participan en esta carrera. Su participación es solo de esta edición: no cambia la de otras carreras.</p>
+        ) : terms.length > 0 ? (
           <div className="row">
             <select value={termId ?? ''} onChange={(e) => setTermId(e.target.value)} aria-label="Semestre">
               {terms.map((t) => (
@@ -673,9 +660,9 @@ export default function Inductores() {
             {term && <span className="badge">{plural(inTerm.length, 'inductor', 'inductores')}</span>}
           </div>
         ) : (
-          <p className="muted">Todavía no hay ningún semestre. Crea el primero para cargar a los inductores.</p>
+          <p className="muted">Todavía no hay ninguna carrera con semestre. Crea una en «Todas las carreras».</p>
         )}
-        {term && (
+        {term && !fixedTermId && (
           <>
             <p className="muted">Carreras de este semestre: {termEvents.length ? termEvents.join(', ') : 'ninguna todavía'}. Los grupos y las bases de esas Carreras son los que se pueden enlazar abajo; las carreras que se creen desde ahora quedan en el semestre vigente.</p>
             {freeEvents.length > 0 && (
@@ -714,19 +701,6 @@ export default function Inductores() {
             )}
           </details>
         )}
-        <details className="new-term" open={terms.length === 0}>
-          <summary>Nuevo semestre</summary>
-          <div className="row">
-            <input value={newName} onChange={(e) => setNewName(e.target.value)} maxLength={20} aria-label="Nombre del semestre" placeholder="2026-2" />
-            <select value={newTheme} onChange={(e) => setNewTheme(e.target.value)} aria-label="Temática">
-              {Object.values(THEMES).map((t) => (
-                <option key={t.key} value={t.key}>{t.name}</option>
-              ))}
-            </select>
-            <button disabled={busy || !newName.trim()} onClick={onNewTerm}>Crear semestre</button>
-          </div>
-          <p className="muted">Cada inducción tiene su temática, que reparte una cultura por carrera solo para esa inducción. En «{themeOf(newTheme).name}»: {themeOf(newTheme).cultures.map((c) => c.name).join(', ')}.</p>
-        </details>
       </section>
 
       {term && (

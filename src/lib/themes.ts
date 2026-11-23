@@ -18,6 +18,7 @@ export interface Culture {
 export interface Theme {
   key: string
   name: string
+  termId?: string | null // set: this theme belongs to ONE carrera's semester; unset: it is a template / the global one
   cultures: Culture[]
   /** The culture assigned to a career, or null when the theme has no rule for it (the coordinator chooses). */
   cultureOf: (career: string) => CultureKey | null
@@ -58,7 +59,7 @@ export const THEMES: Record<string, Theme> = { ...BUILT_IN_THEMES }
 export const DEFAULT_THEME = 'mitologias'
 
 export interface ThemeRows {
-  themes: { key: string; name: string; is_global: boolean }[]
+  themes: { key: string; name: string; is_global: boolean; term_id?: string | null }[]
   cultures: { theme_key: string; key: string; name: string; myth: string | null; ink: number; ornament: string; emblem: string; sort_order: number }[]
   groups: { id: string; name: string }[]
   careers: { name: string; group_id: string }[]
@@ -78,6 +79,7 @@ export function setThemes(rows: ThemeRows) {
     next[t.key] = {
       key: t.key,
       name: t.name,
+      termId: t.term_id ?? null,
       cultures,
       cultureOf: (career) => {
         if (t.is_global) return cultures[0].key

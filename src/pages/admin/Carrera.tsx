@@ -1,10 +1,8 @@
 import { CheckCircle2, ChevronRight, Circle } from 'lucide-react'
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { deletePhotos } from '../../lib/storage'
-import { deleteUser } from '../../lib/usersApi'
-import { errMsg, useAdmin } from './AdminContext'
+import { useAdmin } from './AdminContext'
 import BulkImport from './BulkImport'
 import TravelTimes from './TravelTimes'
 import PhaseControl from './PhaseControl'
@@ -18,16 +16,13 @@ export interface Counts {
   warnings: string[]
 }
 
-// Setup of the Carrera: its state and activation checklist, loading it from a file, the delay times
-// and creating a new edition. What happens DURING the race lives in "En vivo".
+// Settings of ONE carrera (the one open in the address): its state and checklist, loading it from a file and the delay times. What happens
+// DURING the race lives in "Resumen y control". Creating a carrera is done in "Todas las carreras"; carreras are never deleted.
 export default function Carrera() {
-  const { events, event, selectEvent, reload } = useAdmin()
+  const { event, reload } = useAdmin()
   const [problems, setProblems] = useState<string[]>([])
   const [counts, setCounts] = useState<Counts>({ teams: 0, bases: 0, users: 0, matches: 0, warnings: [] })
-  const [newName, setNewName] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const [error] = useState<string | null>(null)
 
   const eventId = event?.id
 
@@ -58,59 +53,21 @@ export default function Carrera() {
     void check()
   }, [check])
 
-  async function run(action: () => Promise<void>) {
-    setBusy(true)
-    setError(null)
-    try {
-      await action()
-      await reload()
-      await check()
-    } catch (e) {
-      setError(errMsg(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  function createEvent(e: FormEvent) {
-    e.preventDefault()
-    const name = newName.trim()
-    if (!name || !supabase) return
-    void run(async () => {
-      const { data, error: err } = await supabase!.from('events').insert({ name }).select('id').single()
-      if (err) throw new Error(err.message.includes('duplicate') ? 'Ya existe esa carrera.' : 'No se pudo crear la carrera.')
-      selectEvent(data.id)
-      setNewName('')
-    })
-  }
-
   return (
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Preparación</p>
-          <h1>Carrera</h1>
+          <p className="eyebrow">Esta carrera</p>
+          <h1>Configuración</h1>
         </div>
-        <p className="head-meta">Estado y activación, carga desde un archivo, tiempos de traslado y nuevas ediciones.</p>
+        <p className="head-meta">Estado, lista de pendientes, carga desde un archivo y tiempos de traslado.</p>
       </header>
-      {notice && <p className="ok-box">{notice}</p>}
-
       <div className="live-grid">
       <div>
-      {event && <PrepSteps counts={counts} problems={problems} active={event.is_active} />}
+      {event && <PrepSteps eventId={event.id} counts={counts} problems={problems} active={event.is_active} />}
       {event && (
         <section className="card">
           <h2>{event.name}</h2>
-          {events.length > 1 && (
-            <label className="inline-field">
-              Carrera que estás editando
-              <select value={event.id} onChange={(e) => selectEvent(e.target.value)}>
-                {events.map((x) => (
-                  <option key={x.id} value={x.id}>{x.name}{x.is_active ? ` (${PHASE_LABEL[x.phase].toLowerCase()})` : ''}</option>
-                ))}
-              </select>
-            </label>
-          )}
           <p>
             Estado: <span className={`badge ${event.is_active ? 'ok' : 'idle'}`}>{event.is_active ? PHASE_LABEL[event.phase] : 'Borrador'}</span>
           </p>
@@ -145,18 +102,6 @@ export default function Carrera() {
       {event && <TravelSetting key={event.id} eventId={event.id} minutes={event.max_travel_minutes} onSaved={reload} />}
       {event && <TravelTimes key={`t-${event.id}`} eventId={event.id} defaultMinutes={event.max_travel_minutes} />}
 
-      {event && <DeleteEvent key={`d-${event.id}`} eventId={event.id} name={event.name} active={event.is_active} onDone={async (msg) => { setNotice(msg); await reload() }} />}
-
-      <section className="card">
-        <h2>{event ? 'Nueva edición de la carrera' : 'Crea tu primera Carrera'}</h2>
-        <form className="form" onSubmit={createEvent}>
-          <label>
-            Nombre (por ejemplo "Carrera 2027-2")
-            <input value={newName} onChange={(e) => setNewName(e.target.value)} maxLength={60} />
-          </label>
-          <button type="submit" disabled={busy || !newName.trim()}>Crear Carrera</button>
-        </form>
-      </section>
       </div>
       </div>
     </>
@@ -208,87 +153,14 @@ function TravelSetting({ eventId, minutes, onSaved }: { eventId: string; minutes
   )
 }
 
-// Deletes a Carrera with EVERYTHING that belongs to it, so nothing is left behind: groups, bases, schedule, scores, the
-// score log, alerts, locations, times, the photos in storage and its users (runners and inductors). The database only
-// accepts it when the Carrera is deactivated. It cannot be undone.
-function DeleteEvent({ eventId, name, active, onDone }: { eventId: string; name: string; active: boolean; onDone: (message: string) => Promise<void> }) {
-  const [typed, setTyped] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const matches = typed.trim().toLowerCase() === name.trim().toLowerCase()
-
-  async function remove() {
-    if (!supabase || !matches || active) return
-    setBusy(true)
-    setError(null)
-    try {
-      // Everything that points to the Carrera is listed BEFORE deleting: afterwards nothing links to it any more.
-      const [people, teams, bases] = await Promise.all([
-        supabase.from('profiles').select('id, photo_path').eq('event_id', eventId).neq('role', 'admin'),
-        supabase.from('teams').select('photo_path').eq('event_id', eventId),
-        supabase.from('bases').select('location_photo_path').eq('event_id', eventId),
-      ])
-      const { error: err } = await supabase.from('events').delete().eq('id', eventId)
-      if (err) throw new Error(/Desactiva/.test(err.message) ? 'Desactiva la carrera antes de eliminarla.' : 'No se pudo eliminar la carrera.')
-      let failed = 0
-      for (const p of people.data ?? []) {
-        try {
-          await deleteUser(p.id)
-        } catch {
-          failed++
-        }
-      }
-      await deletePhotos([
-        ...(teams.data ?? []).map((t) => t.photo_path),
-        ...(bases.data ?? []).map((b) => b.location_photo_path),
-        ...(people.data ?? []).map((p) => (p as { photo_path?: string | null }).photo_path),
-      ])
-      setTyped('')
-      await onDone(
-        failed === 0
-          ? `Carrera eliminada con todo lo suyo: ${people.data?.length ?? 0} usuarios y sus fotos.`
-          : `Carrera eliminada. ${failed} usuarios no se pudieron eliminar: quedan en Usuarios, "Sin Carrera asignada".`,
-      )
-    } catch (e) {
-      setError(errMsg(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <section className="card danger-zone">
-      <h2>Eliminar esta carrera</h2>
-      {active ? (
-        <p className="muted">Está activa: desactívala primero para poder eliminarla.</p>
-      ) : (
-        <>
-          <p className="muted">
-            Borra "{name}" con TODO lo suyo: grupos, bases, cruces, puntajes, registro de cambios, avisos, ubicaciones, tiempos, fotos y sus
-            usuarios (corredores e inductores). No se puede deshacer.
-          </p>
-          <label>
-            Para confirmar, escribe el nombre de la carrera
-            <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={name} autoComplete="off" />
-          </label>
-          {error && <p className="error">{error}</p>}
-          <button className="ghost danger" disabled={busy || !matches} onClick={() => void remove()}>
-            {busy ? 'Eliminando…' : 'Eliminar Carrera'}
-          </button>
-        </>
-      )}
-    </section>
-  )
-}
-
 // "Preparación": the steps to create a Carrera, in order, each with its state and a link to the screen where it is done.
-export function PrepSteps({ counts, problems, active }: { counts: Counts; problems: string[]; active: boolean }) {
+export function PrepSteps({ eventId, counts, problems, active }: { eventId: string; counts: Counts; problems: string[]; active: boolean }) {
   const has = (re: RegExp) => problems.some((p) => re.test(p))
   const steps = [
-    { to: '/admin/grupos', title: 'Grupos', sub: `${counts.teams} grupos con su foto`, done: counts.teams >= 2 && !has(/^El grupo ".*" no tiene foto/) },
-    { to: '/admin/bases', title: 'Bases', sub: `${counts.bases} bases con foto, información y 3 preguntas`, done: counts.bases >= 1 && !has(/^La base /) },
-    { to: '/admin/usuarios', title: 'Usuarios', sub: `${counts.users} corredores e inductores, asignados a su grupo o base`, done: counts.users > 0 && !has(/ningún corredor/) },
-    { to: '/admin/cruces', title: 'Cruces', sub: counts.matches > 0 ? `${counts.matches} cruces armados` : 'El cronograma, ronda por ronda', done: counts.matches > 0 },
+    { to: `/admin/carreras/${eventId}/grupos`, title: 'Grupos', sub: `${counts.teams} grupos con su foto`, done: counts.teams >= 2 && !has(/^El grupo ".*" no tiene foto/) },
+    { to: `/admin/carreras/${eventId}/bases`, title: 'Bases', sub: `${counts.bases} bases con foto, información y 3 preguntas`, done: counts.bases >= 1 && !has(/^La base /) },
+    { to: `/admin/carreras/${eventId}/usuarios`, title: 'Usuarios', sub: `${counts.users} corredores e inductores, asignados a su grupo o base`, done: counts.users > 0 && !has(/ningún corredor/) },
+    { to: `/admin/carreras/${eventId}/cruces`, title: 'Cruces', sub: counts.matches > 0 ? `${counts.matches} cruces armados` : 'El cronograma, ronda por ronda', done: counts.matches > 0 },
   ]
   const ready = problems.length === 0
   return (

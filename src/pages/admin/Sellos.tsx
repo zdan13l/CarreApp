@@ -1,21 +1,12 @@
 import { Trash2, Upload } from 'lucide-react'
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { MythPicture } from '../../components/InkSeals'
+import { hslToHex } from '../../lib/color'
 import { confirmDialog } from '../../lib/dialog'
 import { loadCustomSeals, pictureToInk, removeSeal, uploadSeal } from '../../lib/customSeals'
 import { MYTH_SEALS, SEAL_ORDER, sealCount, sealOf, type CustomSealRow, type MythSeal } from '../../lib/seals'
 import { supabase } from '../../lib/supabase'
 import { photoUrl } from '../../lib/storage'
-
-// a first colour for the picker (an <input type=color> needs a hex value)
-function hslToHex(h: number, sat: number, light: number): string {
-  const a = (sat * Math.min(light, 100 - light)) / 10000
-  const f = (n: number) => {
-    const k = (n + h / 30) % 12
-    return Math.round(255 * (light / 100 - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))).toString(16).padStart(2, '0')
-  }
-  return `#${f(0)}${f(8)}${f(4)}`
-}
 
 const CULTURES: Record<string, string> = { egipcia: 'Egipcia', nordica: 'Nórdica', griega: 'Griega', mexicana: 'Mexicana', china: 'China', otra: 'Otra' }
 

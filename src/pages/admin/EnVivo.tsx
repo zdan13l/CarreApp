@@ -174,12 +174,12 @@ export default function EnVivo() {
         <div className="warn">
           <strong>Esta Carrera está en borrador.</strong>{' '}
           {pending > 0 ? `Faltan ${pending} cosas para poder habilitarla.` : 'Ya está completa: puedes habilitarla.'}{' '}
-          <button className="ghost" onClick={() => setMode('setup')}>Ir a Preparación</button>
+          <button className="ghost" onClick={() => setMode('setup')}>Ir a la configuración</button>
         </div>
       )}
       {matches.length === 0 && (
         <div className="warn">
-          Todavía no hay cruces. Arma el cronograma en <Link to="/admin/cruces">Cruces</Link>.
+          Todavía no hay cruces. Arma el cronograma en <Link to={`/admin/carreras/${event.id}/cruces`}>Cruces</Link>.
         </div>
       )}
       {error && <p className="error">{error}</p>}
@@ -192,7 +192,7 @@ export default function EnVivo() {
           <Kpi label="En puerta" value={enPuerta} sub="la base confirmó su llegada" />
           <Kpi label="Aterrizados" value={`${aterrizados}/${teams.length}`} sub="con todos sus sellos" />
           <Kpi tone={late > 0 ? 'hot' : undefined} label="Demoras" value={late} sub={late === 1 ? 'vuelo tarde al traslado' : 'vuelos tarde al traslado'} />
-          <Kpi label="Radar" value={`${sharing.length}/${teams.length}`} sub="vuelos con GPS" to="/admin/mapa" />
+          <Kpi label="Radar" value={`${sharing.length}/${teams.length}`} sub="vuelos con GPS" to={`/admin/carreras/${event.id}/mapa`} />
         </div>
       )}
 
@@ -246,7 +246,7 @@ export default function EnVivo() {
                 })}
               </ul>
               <div className="row">
-                <Link className="btn-like" to="/admin/cruces">Cronograma completo <ChevronRight size={16} aria-hidden="true" /></Link>
+                <Link className="btn-like" to={`/admin/carreras/${event.id}/cruces`}>Cronograma completo <ChevronRight size={16} aria-hidden="true" /></Link>
               </div>
             </section>
           )}
@@ -273,7 +273,7 @@ export default function EnVivo() {
             <h2>Top equipos</h2>
             <Ranking rows={[...standings].sort((a, b) => b.points - a.points || a.name.localeCompare(b.name)).slice(0, 3)} />
             <div className="row">
-              <Link className="btn-like" to="/admin/puntajes">Ranking y puntajes <ChevronRight size={16} aria-hidden="true" /></Link>
+              <Link className="btn-like" to={`/admin/carreras/${event.id}/puntajes`}>Ranking y puntajes <ChevronRight size={16} aria-hidden="true" /></Link>
             </div>
           </section>
         </div>

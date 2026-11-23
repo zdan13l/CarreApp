@@ -88,11 +88,6 @@ describe('the coordinator screens', () => {
     const css = read('src/index.css')
     for (const n of [1, 2, 3]) expect(css).toMatch(new RegExp(`\.top-teams li\.medal-${n}`))
   })
-  it('deleting a Carrera removes everything: users and photos, no optional checkbox', () => {
-    const car = read('src/pages/admin/Carrera.tsx')
-    expect(car).toMatch(/deletePhotos\(/)
-    expect(car).not.toMatch(/withUsers/)
-  })
 })
 
 describe('maps', () => {

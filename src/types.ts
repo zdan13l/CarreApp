@@ -11,7 +11,7 @@ export interface Profile {
 }
 
 // A Carrera is Deshabilitada (draft or history) -> Habilitada (ready, buttons off, tutorial) -> Iniciada (the time runs) -> Terminada (locked, to validate).
-export type EventPhase = 'disabled' | 'enabled' | 'started' | 'finished'
+export type EventPhase = 'disabled' | 'enabled' | 'started' | 'finished' | 'archived'
 
 export interface EventRow {
   id: string
@@ -19,6 +19,10 @@ export interface EventRow {
   is_active: boolean
   phase: EventPhase
   started_at: string | null
+  code: string | null // 2710, 2730, 2810… (the test Carrera has none)
+  term_id?: string | null // its semester: the inductores, the theme and the passports of this carrera hang from it
+  coordinator_id?: string | null // the coordi of this carrera (changes every semester)
+  is_test: boolean // the permanent test Carrera
   max_travel_minutes: number
 }
 

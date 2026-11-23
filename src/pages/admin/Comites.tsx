@@ -3,19 +3,10 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import CommitteeSeal from '../../components/CommitteeSeal'
 import { loadCatalog } from '../../lib/catalog'
 import { useCatalogVersion } from '../../lib/catalogStore'
-import { allCommittees, committeesOfRecord, type Committee } from '../../lib/committees'
+import { allCommittees, type Committee } from '../../lib/committees'
 import { confirmDialog } from '../../lib/dialog'
 import { supabase } from '../../lib/supabase'
 import { errMsg } from './AdminContext'
-
-interface Rec {
-  id: string
-  committee: string | null
-  committee_lead: boolean
-  extra_committees: string[]
-  extra_leads: string[]
-  passports: { full_name: string; username: string } | null
-}
 
 const slug = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '').slice(0, 20)
 
@@ -24,8 +15,6 @@ const slug = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toL
 // semester), so changing it here never touches old passports.
 export default function Comites() {
   useCatalogVersion()
-  const [term, setTerm] = useState<{ id: string; name: string } | null>(null)
-  const [records, setRecords] = useState<Rec[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
@@ -34,15 +23,6 @@ export default function Comites() {
 
   const load = useCallback(async () => {
     if (!supabase) return
-    const { data: t } = await supabase.from('terms').select('id, name').eq('is_current', true).maybeSingle()
-    setTerm(t ?? null)
-    if (t) {
-      const r = await supabase
-        .from('passport_records')
-        .select('id, committee, committee_lead, extra_committees, extra_leads, passports(full_name, username)')
-        .eq('term_id', t.id)
-      setRecords((r.data ?? []) as unknown as Rec[])
-    }
     await loadCatalog()
   }, [])
   useEffect(() => {
@@ -61,8 +41,6 @@ export default function Comites() {
       setBusy(false)
     }
   }
-
-  const coordisOf = (key: string) => records.filter((r) => committeesOfRecord(r).some((c) => c.key === key && c.lead))
 
   function save(c: Committee, name: string, tagline: string) {
     if (!supabase || !name.trim()) return
@@ -95,70 +73,25 @@ export default function Comites() {
     })
   }
 
-  // the new coordi takes the golden stamp of the committee and the old ones give it up
-  function setCoordi(c: Committee, recordId: string) {
-    const next = records.find((r) => r.id === recordId)
-    if (!supabase || !next) return
-    void run(async () => {
-      for (const old of coordisOf(c.key)) {
-        if (old.id === next.id) continue
-        const patch = old.committee === c.key ? { committee_lead: false } : { extra_leads: old.extra_leads.filter((k) => k !== c.key) }
-        const { error: err } = await supabase!.from('passport_records').update(patch).eq('id', old.id)
-        if (err) throw new Error('No se pudo quitar al coordi anterior.')
-      }
-      let patch: Record<string, unknown>
-      if (next.committee === c.key) patch = { committee_lead: true }
-      else if (next.extra_committees.includes(c.key)) patch = { extra_leads: [...new Set([...next.extra_leads, c.key])] }
-      else if (!next.committee) patch = { committee: c.key, committee_lead: true }
-      else patch = { extra_committees: [...next.extra_committees, c.key], extra_leads: [...next.extra_leads, c.key] }
-      const { error: err } = await supabase!.from('passport_records').update(patch).eq('id', next.id)
-      if (err) throw new Error('No se pudo poner al coordi nuevo.')
-    })
-  }
-
   const committees = allCommittees()
   return (
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Preparación</p>
+          <p className="eyebrow">Administración global</p>
           <h1>Comités</h1>
         </div>
-        <p className="head-meta">Cada comité siempre tiene un coordi (sello dorado). Aquí cambias el coordi, el nombre, y agregas o quitas comités.</p>
+        <p className="head-meta">El catálogo global de comités: cámbiales el nombre y la frase, agrega o quita. Qué comités participan en cada carrera y quién los coordina se elige dentro de la carrera (Coordi y comités).</p>
       </header>
       {error && <p className="error">{error}</p>}
-      {!term && <p className="warn">Primero crea el semestre vigente en Inductores: el coordi se elige por semestre.</p>}
 
       <div className="committee-list">
         {committees.map((c) => {
-          const coordis = coordisOf(c.key)
           return (
             <section key={c.key} className={`card committee-card${c.active === false ? ' off' : ''}`}>
-              <CommitteeSeal committee={c.key} lead={coordis.length > 0} size={84} label={`Sello de ${c.name}`} />
+              <CommitteeSeal committee={c.key} size={84} label={`Sello de ${c.name}`} />
               <div className="committee-body">
                 <CommitteeEditor c={c} busy={busy} onSave={save} />
-                {c.active !== false && (
-                  <div className="committee-coordi">
-                    {coordis.length === 0 ? (
-                      <p className="warn">Sin coordi{term ? ` en ${term.name}` : ''}: elige uno.</p>
-                    ) : (
-                      <p>
-                        <strong>Coordi{coordis.length > 1 ? 's' : ''}:</strong> {coordis.map((r) => r.passports?.full_name).join(', ')}
-                      </p>
-                    )}
-                    {term && (
-                      <select value="" disabled={busy} onChange={(e) => e.target.value && setCoordi(c, e.target.value)} aria-label={`Cambiar el coordi de ${c.name}`}>
-                        <option value="">{coordis.length ? 'Cambiar coordi…' : 'Elegir coordi…'}</option>
-                        {[...records]
-                          .sort((a, b) => (a.passports?.full_name ?? '').localeCompare(b.passports?.full_name ?? '', 'es'))
-                          .filter((r) => !coordis.some((x) => x.id === r.id))
-                          .map((r) => (
-                            <option key={r.id} value={r.id}>{r.passports?.full_name} (@{r.passports?.username})</option>
-                          ))}
-                      </select>
-                    )}
-                  </div>
-                )}
                 <button type="button" className="ghost" disabled={busy} onClick={() => void toggle(c)}>
                   {c.active === false ? 'Volver a ofrecer' : 'Quitar comité'}
                 </button>

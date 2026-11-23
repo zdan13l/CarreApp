@@ -99,11 +99,10 @@ describe('resilience of the screens (third QA run)', () => {
   })
 })
 
-describe('deleting a Carrera', () => {
-  it('only a deactivated Carrera can be deleted, after typing its name; users are listed before the cascade', () => {
+describe('a carrera is never deleted from the panel', () => {
+  it('there is no delete flow: carreras are finished (history) and the test carrera is permanent', () => {
     const t = read('src/pages/admin/Carrera.tsx')
-    expect(t).toMatch(/function DeleteEvent/)
-    expect(t).toMatch(/if \(!supabase \|\| !matches \|\| active\) return/)
-    expect(t.indexOf("from('profiles').select('id').eq('event_id', eventId)")).toBeLessThan(t.indexOf("from('events').delete()"))
+    expect(t).not.toMatch(/function DeleteEvent/)
+    expect(read('supabase/migrations/0036_carreras_ciclo.sql')).toMatch(/La carrera de prueba es permanente/)
   })
 })

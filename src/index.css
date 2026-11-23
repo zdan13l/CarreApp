@@ -2476,3 +2476,37 @@ button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justi
 .badge.off { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); }
 .add-person { display: grid; gap: .6rem; }
 .add-person .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .6rem; }
+
+/* Admin: carreras overview and the space of one carrera. */
+.carrera-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; margin: 1rem 0 1.5rem; }
+.carrera-card { display: grid; gap: .45rem; color: inherit; text-decoration: none; transition: border-color .15s ease-out, transform .15s ease-out; }
+.carrera-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.carrera-card h2 { margin: 0; }
+.carrera-card.test { border-style: dashed; }
+.carrera-card .allowed { font-size: .85rem; }
+.carrera-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.carrera-code { font-size: 1.5rem; letter-spacing: .06em; }
+.test-note { display: flex; align-items: center; gap: .4rem; margin: 0; color: var(--warn); font-size: .85rem; }
+.carrera-bar { display: grid; gap: .5rem; margin-bottom: 1.25rem; padding-bottom: .9rem; border-bottom: 1px solid var(--border); }
+.back-link { display: inline-flex; align-items: center; gap: .2rem; color: var(--text-muted); text-decoration: none; font-size: .9rem; width: fit-content; }
+.carrera-id { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; font-size: 1.15rem; }
+.carrera-id .mono { font-size: 1.4rem; letter-spacing: .06em; }
+.carrera-bar .allowed { margin: 0; }
+.carrera-tabs { display: flex; gap: .35rem; overflow-x: auto; padding-bottom: .2rem; scrollbar-width: thin; }
+.ctab { flex: none; padding: .45rem .8rem; border-radius: 99px; border: 1px solid var(--border); color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: .9rem; white-space: nowrap; }
+.ctab.active { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+.nav-sub { margin-top: .6rem; text-transform: none; letter-spacing: 0; color: var(--text); }
+.phase-control .allowed { margin: .2rem 0; }
+.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.badge-card { display: grid; gap: .6rem; align-content: start; }
+.badge-card.off { opacity: .6; }
+.badge-art { display: grid; place-items: center; min-height: 128px; }
+.badge-art img { max-width: 128px; max-height: 128px; object-fit: contain; }
+
+/* Admin: seals of one carrera. */
+.seal-rows { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .6rem; }
+.seal-row { display: flex; align-items: center; gap: .8rem; }
+.seal-row .grow { display: grid; gap: .1rem; min-width: 0; }
+.event-seal { display: inline-block; flex: none; line-height: 0; }
+.seal-editor { display: flex; flex-wrap: wrap; gap: 1.2rem; margin-top: .8rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); }
+.seal-fields { flex: 1 1 14rem; display: grid; gap: .6rem; min-width: 0; }

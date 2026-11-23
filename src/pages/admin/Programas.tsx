@@ -46,7 +46,8 @@ export default function Programas() {
     void load()
   }, [load])
   useEffect(() => {
-    if (!themeKey) setThemeKey(currentTheme)
+    // the themes listed here are the TEMPLATES (the ones a new carrera is copied from); each carrera's own theme is edited inside the carrera
+    if (!themeKey) setThemeKey(Object.values(THEMES).find((t) => !t.termId && t.key !== 'global')?.key ?? currentTheme)
   }, [currentTheme, themeKey])
 
   async function run(action: () => Promise<void>) {
@@ -152,7 +153,7 @@ export default function Programas() {
         <label className="inline-field">
           Temática que estás viendo
           <select value={theme.key} onChange={(e) => setThemeKey(e.target.value)}>
-            {Object.values(THEMES).map((t) => (
+            {Object.values(THEMES).filter((t) => !t.termId).map((t) => (
               <option key={t.key} value={t.key}>{t.name}{t.key === 'global' ? ' (global)' : ''}{t.key === currentTheme ? ' · semestre vigente' : ''}</option>
             ))}
           </select>

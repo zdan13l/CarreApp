@@ -15,6 +15,14 @@ import Historial from './pages/admin/Historial'
 import Sellos from './pages/admin/Sellos'
 import Comites from './pages/admin/Comites'
 import Programas from './pages/admin/Programas'
+import Insignias from './pages/admin/Insignias'
+import CarreraTematica from './pages/admin/CarreraTematica'
+import CarreraSellos from './pages/admin/CarreraSellos'
+import CarreraComites from './pages/admin/CarreraComites'
+import CarreraInductores from './pages/admin/CarreraInductores'
+import Carreras from './pages/admin/Carreras'
+import CarreraShell from './pages/admin/CarreraShell'
+import { useAdmin } from './pages/admin/AdminContext'
 import { useCustomSeals } from './lib/customSeals'
 import { useCatalog } from './lib/catalog'
 import Inductores from './pages/admin/Inductores'
@@ -43,6 +51,12 @@ function SealLoader() {
   return null
 }
 
+// /admin/grupos (and the like) → the same section of the carrera that is open or running
+function LegacyRedirect({ section }: { section: string }) {
+  const { event } = useAdmin()
+  return <Navigate to={event ? `/admin/carreras/${event.id}/${section}` : '/admin'} replace />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -56,19 +70,31 @@ export default function App() {
             <Route path="/preview/:screen" element={<Suspense fallback={null}><Preview /></Suspense>} />
           )}
           <Route path="/admin" element={<RequireRole role="admin"><AdminLayout /></RequireRole>}>
-            <Route index element={<EnVivo />} />
-            <Route path="carrera" element={<Carrera />} />
-            <Route path="grupos" element={<Grupos />} />
-            <Route path="bases" element={<Bases />} />
-            <Route path="cruces" element={<Cruces />} />
-            <Route path="puntajes" element={<Puntajes />} />
-            <Route path="mapa" element={<Mapa />} />
-            <Route path="usuarios" element={<Usuarios />} />
+            <Route index element={<Carreras />} />
+            <Route path="carreras/:eventId" element={<CarreraShell />}>
+              <Route index element={<EnVivo />} />
+              <Route path="configuracion" element={<Carrera />} />
+              <Route path="tematica" element={<CarreraTematica />} />
+              <Route path="sellos" element={<CarreraSellos />} />
+              <Route path="inductores" element={<CarreraInductores />} />
+              <Route path="comites" element={<CarreraComites />} />
+              <Route path="grupos" element={<Grupos />} />
+              <Route path="bases" element={<Bases />} />
+              <Route path="cruces" element={<Cruces />} />
+              <Route path="puntajes" element={<Puntajes />} />
+              <Route path="mapa" element={<Mapa />} />
+              <Route path="usuarios" element={<Usuarios />} />
+            </Route>
             <Route path="inductores" element={<Inductores />} />
-            <Route path="historial" element={<Historial />} />
-            <Route path="sellos" element={<Sellos />} />
-            <Route path="comites" element={<Comites />} />
             <Route path="programas" element={<Programas />} />
+            <Route path="comites" element={<Comites />} />
+            <Route path="insignias" element={<Insignias />} />
+            <Route path="sellos" element={<Sellos />} />
+            <Route path="historial" element={<Historial />} />
+            {/* the old addresses (before the panel was split in global / carrera) still work: they open the same section of the open carrera */}
+            {[['carrera', 'configuracion'], ['grupos', 'grupos'], ['bases', 'bases'], ['cruces', 'cruces'], ['usuarios', 'usuarios'], ['puntajes', 'puntajes'], ['mapa', 'mapa']].map(([from, to]) => (
+              <Route key={from} path={from} element={<LegacyRedirect section={to} />} />
+            ))}
           </Route>
           <Route path="/base" element={<RequireRole role="base"><BaseHome /></RequireRole>} />
           <Route path="/corredor" element={<RequireRole role="runner"><RunnerHome /></RequireRole>} />

@@ -14,7 +14,7 @@ export async function loadCatalog(): Promise<void> {
   const sb = supabase
   const [com, th, cu, gr, ca, gc] = await Promise.all([
     sb.from('committees').select('key, name, tagline, myth, ink, active, sort_order').order('sort_order'),
-    sb.from('themes').select('key, name, is_global'),
+    sb.from('themes').select('key, name, is_global, term_id'),
     sb.from('theme_cultures').select('theme_key, key, name, myth, ink, ornament, emblem, sort_order'),
     sb.from('career_groups').select('id, name, sort_order').order('sort_order'),
     sb.from('careers').select('id, name, group_id'),

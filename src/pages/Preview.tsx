@@ -35,6 +35,14 @@ import PhaseBanner from '../components/PhaseBanner'
 import PhaseControl from './admin/PhaseControl'
 import Sellos from './admin/Sellos'
 import Comites from './admin/Comites'
+import Carreras from './admin/Carreras'
+import Insignias from './admin/Insignias'
+import EventSealView from '../components/EventSealView'
+import { SHAPES } from '../lib/eventSeals'
+import { hslToHex } from '../lib/color'
+import CarreraShell from './admin/CarreraShell'
+import { AdminContext } from './admin/AdminContext'
+import type { EventRow } from '../types'
 import Tutorial from '../components/Tutorial'
 import { baseTutorial } from '../lib/tutorials'
 import LoadFailed from '../components/LoadFailed'
@@ -305,7 +313,7 @@ export default function Preview() {
   if (screen === 'inductores') {
     return (
       <div className="admin tower">
-        <AdminNav eventName="Carrera 2027-1" eventActive mode="setup" running onMode={noop} user={user} onSignOut={noop} />
+        <AdminNav event={{ id: 'e1', name: 'Carrera 2710', code: '2710', phase: 'started' }} user={user} onSignOut={noop} />
         <main className="admin-main">
           <AdminTopbar user={user} onSignOut={noop} />
           <h1>Inductores</h1>
@@ -543,6 +551,30 @@ export default function Preview() {
     )
   }
 
+  if (screen === 'admin-carreras' || screen === 'admin-carrera-shell') {
+    const mk = (id: string, name: string, code: string | null, phase: EventRow['phase'], is_test = false): EventRow => ({ id, name, code, is_test, phase, is_active: phase !== 'disabled' && phase !== 'archived', started_at: null, max_travel_minutes: 10 })
+    const events = [mk('t', 'Carrera de prueba', null, 'enabled', true), mk('a', 'Carrera 2710', '2710', 'disabled'), mk('h', 'Carrera 2610', '2610', 'archived')]
+    const ctx = { events, event: events[1], mode: 'live' as const, running: true, setMode: noop, selectEvent: noop, reload: noopAsync }
+    return (
+      <div className="admin tower">
+        <AdminNav event={events[1]} user={user} onSignOut={noop} />
+        <main className="admin-main">
+          <AdminContext.Provider value={ctx}>{screen === 'admin-carreras' ? <Carreras /> : <CarreraShell />}</AdminContext.Provider>
+        </main>
+      </div>
+    )
+  }
+  if (screen === 'event-seals') {
+    return (
+      <div className="admin tower"><main className="admin-main"><section className="card"><h2>Sellos de una carrera</h2>
+        <div className="seal-grid">
+          {SHAPES.map((shape, i) => <figure key={shape} className="seal-item"><EventSealView shape={shape} color={hslToHex((i * 47 + 20) % 360, 62, 55)} initial={shape} size={88} /><figcaption>{shape}</figcaption></figure>)}
+          <figure className="seal-item"><EventSealView shape="circle" color="currentColor" gold initial="Coordi" size={88} /><figcaption>coordi (dorado)</figcaption></figure>
+        </div>
+      </section></main></div>
+    )
+  }
+  if (screen === 'admin-insignias') return <div className="admin tower"><main className="admin-main"><Insignias /></main></div>
   if (screen === 'admin-comites') return <div className="admin tower"><main className="admin-main"><Comites /></main></div>
   if (screen === 'admin-sellos') return <div className="admin tower"><main className="admin-main"><Sellos /></main></div>
 
@@ -551,8 +583,8 @@ export default function Preview() {
     return (
       <div className="admin tower">
         <main className="admin-main">
-          {(['disabled', 'enabled', 'started', 'finished'] as const).map((phase) => (
-            <PhaseControl key={phase} event={{ id: 'e1', name: 'Carrera 2710', is_active: phase !== 'disabled', phase, started_at: null, max_travel_minutes: 10 }} onChanged={noopAsync} />
+          {(['disabled', 'enabled', 'started', 'finished', 'archived'] as const).map((phase) => (
+            <PhaseControl key={phase} event={{ id: 'e1', name: 'Carrera 2710', is_active: phase !== 'disabled', phase, started_at: null, code: '2710', is_test: false, max_travel_minutes: 10 }} onChanged={noopAsync} />
           ))}
         </main>
       </div>
@@ -597,7 +629,7 @@ export default function Preview() {
   if (screen === 'admin-pasaportes') {
     return (
       <div className="admin tower">
-        <AdminNav eventName="Carrera 2027-1" eventActive mode="live" running onMode={noop} user={user} onSignOut={noop} />
+        <AdminNav event={{ id: 'e1', name: 'Carrera 2710', code: '2710', phase: 'started' }} user={user} onSignOut={noop} />
         <main className="admin-main">
           <AdminTopbar user={user} onSignOut={noop} />
           <header className="page-head">
@@ -615,7 +647,7 @@ export default function Preview() {
   if (screen === 'admin' || screen === 'admin-carrera' || screen === 'admin-forms') {
     return (
       <div className="admin tower">
-        <AdminNav eventName="Carrera 2027-1" eventActive mode={screen === 'admin' ? 'live' : 'setup'} running onMode={noop} user={user} onSignOut={noop} />
+        <AdminNav event={{ id: 'e1', name: 'Carrera 2710', code: '2710', phase: 'started' }} user={user} onSignOut={noop} />
         <main className="admin-main">
           <AdminTopbar user={user} onSignOut={noop} />
           {screen === 'admin' || screen === 'admin-carrera' ? (
@@ -699,7 +731,7 @@ export default function Preview() {
                 </header>
                 <div className="live-grid">
                   <div>
-                <PrepSteps counts={{ teams: 4, bases: 3, users: 11, matches: 6, warnings: [] }} problems={['La base "Atrio" tiene 2 de 3 preguntas.']} active={false} />
+                <PrepSteps eventId="e1" counts={{ teams: 4, bases: 3, users: 11, matches: 6, warnings: [] }} problems={['La base "Atrio" tiene 2 de 3 preguntas.']} active={false} />
                 <section className="card">
                   <h2>Carrera 2027-1</h2>
                   <p>
