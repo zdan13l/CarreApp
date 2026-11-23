@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { bumpCatalog } from './catalogStore'
 import { setCommittees } from './committees'
 import { setThemes, type ThemeRows } from './themes'
+import { loadAllEventSeals } from './eventSealStore'
 import { supabase } from './supabase'
 
 export interface GroupRow { id: string; name: string; sort_order: number }
@@ -30,6 +31,7 @@ export async function loadCatalog(): Promise<void> {
       groupCultures: (gc.data ?? []) as ThemeRows['groupCultures'],
     })
   }
+  await loadAllEventSeals() // the seals of each carrera (passports and screens use the ones of their carrera)
   bumpCatalog()
 }
 

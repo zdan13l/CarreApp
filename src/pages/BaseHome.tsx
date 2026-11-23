@@ -164,7 +164,7 @@ export default function BaseHome() {
     setLoadFailed(false)
     setBase(b as MyBase)
     setEventMatches((all.data ?? []) as TimedMatch[])
-    if (!bs.error) registerSealRoster((bs.data ?? []).map((x) => x.id as string))
+    if (!bs.error) registerSealRoster((bs.data ?? []).map((x) => x.id as string), b.event_id)
     if (!bs.error) setBaseNames(new Map((bs.data ?? []).map((x) => [x.id as string, x.name as string])))
     setMatches((m.data ?? []) as BaseMatch[])
     setTeams(new Map((t.data ?? []).map((x) => [x.id, x])))

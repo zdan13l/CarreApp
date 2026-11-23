@@ -24,6 +24,7 @@ import CareerEmblem, { careerKey } from './CareerEmblem'
 import CareerPlate from './CareerPlate'
 import GenerationSeals from './GenerationSeal'
 import CommitteeSeal from './CommitteeSeal'
+import { eventOfTerm } from '../lib/eventSealStore'
 import CultureEmblem, { CultureOrnament } from './CultureEmblem'
 import Mrz from './Mrz'
 import { CultureSeal, PhotoSeal, SymbolBadge, TextSeal } from './Seals'
@@ -270,7 +271,7 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
       )
     } else if (spec.kind === 'committee') {
       const photo = spec.kind === 'committee' && spec.first ? photoSealOf(record, ctx) : null
-      const seal = (size: number, tilt: number) => (committee ? <CommitteeSeal committee={committee.key} lead={lead} size={size} tilt={tilt} /> : null)
+      const seal = (size: number, tilt: number) => (committee ? <CommitteeSeal committee={committee.key} lead={lead} size={size} tilt={tilt} eventId={eventOfTerm(record.term_id)} /> : null)
       const photoSeal = (size: number) => photo && <PhotoSeal url={photoUrl(photo.path)} top={photo.top} bottom={photo.bottom} size={size} tilt={3} />
       content = (
         <>

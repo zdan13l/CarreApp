@@ -1,4 +1,7 @@
 import { useId, type CSSProperties, type ReactNode } from 'react'
+import EventSealView from './EventSealView'
+import { imageUrl } from '../lib/eventSeals'
+import { sealOverride } from '../lib/eventSealStore'
 import { COMMITTEES, committeeOf, type CommitteeKey } from '../lib/committees'
 import ShapeSeal from './InkSeals'
 
@@ -116,15 +119,19 @@ export default function CommitteeSeal({
   size = 120,
   tilt = 0,
   label,
+  eventId,
 }: {
   committee: CommitteeKey | string
   lead?: boolean // the coordinator of the committee: golden
   size?: number
   tilt?: number
   label?: string // accessible name
+  eventId?: string | null // the carrera whose seal for this committee is used (each carrera has its own); without one the app's drawing
 }) {
   const uid = useId().replace(/:/g, '')
   const c = committeeOf(committee) ?? COMMITTEES[0]
+  const own = sealOverride(eventId, 'committee', c.key)
+  if (own) return <span style={{ display: 'inline-block', transform: `rotate(${tilt}deg)`, lineHeight: 0 }}><EventSealView shape={own.shape} color={own.color} imageUrl={imageUrl(own.image_path)} initial={c.name} gold={lead} size={size} label={label ?? `Sello del comité ${c.name}${lead ? ', coordi' : ''}`} /></span>
   const ink = lead ? `url(#cg${uid})` : 'currentColor'
   const paint: Paint = {
     ink,

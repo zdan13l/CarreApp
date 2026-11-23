@@ -18,6 +18,7 @@ import CareerEmblem, { careerKey } from '../components/CareerEmblem'
 import CareerPlate from '../components/CareerPlate'
 import GenerationSeals from '../components/GenerationSeal'
 import CommitteeSeal from '../components/CommitteeSeal'
+import { eventOfTerm, eventSealFilesOf } from './eventSealStore'
 import CultureEmblem, { CultureOrnament } from '../components/CultureEmblem'
 import {
   committeeWords,
@@ -317,7 +318,7 @@ function committeePage(ctx: PageContext, record: MemberRecord, which: { key: str
     ${text(56, 124, committee ? committee.name : 'Sin comité todavía', { size: 40, weight: 800, fill: l.ink, stretch: true })}
     ${which.lead ? `<rect x="400" y="96" width="144" height="26" rx="6" fill="#f4d575"/>${text(472, 114, 'COORDI', { size: 11, mono: true, spacing: 2, fill: '#1a1200', anchor: 'middle' })}` : ''}
     <path d="M56 148H544" stroke="${LINE}" stroke-dasharray="3 4"/>
-    ${committee ? piece(createElement(CommitteeSeal, { committee: committee.key, lead: which.lead, size: 220 }), 56, 172, 220, 220, -4, undefined, PAPER) : `<circle cx="166" cy="282" r="100" fill="none" stroke="${LINE}" stroke-width="2" stroke-dasharray="6 6"/>${text(166, 288, 'COMITÉ', { size: 15, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' })}`}
+    ${committee ? piece(createElement(CommitteeSeal, { committee: committee.key, lead: which.lead, size: 220, eventId: eventOfTerm(record.term_id) }), 56, 172, 220, 220, -4, undefined, PAPER) : `<circle cx="166" cy="282" r="100" fill="none" stroke="${LINE}" stroke-width="2" stroke-dasharray="6 6"/>${text(166, 288, 'COMITÉ', { size: 15, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' })}`}
     ${committee ? lines(310, 250, wrap(committee.tagline, 18), 34, { size: 30, weight: 800, fill: l.ink, stretch: true }) : ''}
     ${committee ? lines(310, 330, wrap(committee.myth, 34), 17, { size: 13, italic: true, fill: MUTED }) : ''}
     ${text(56, 436, (committee ? `PALABRAS DEL COMITÉ ${committee.name}` : 'PALABRAS DE TU COMITÉ').toUpperCase(), { size: 10, mono: true, spacing: 2.4, fill: FAINT })}
@@ -443,6 +444,7 @@ async function loadPhotos(data: MemberPassportData): Promise<{ photo: string | n
 function sealFilesOf(data: MemberPassportData): string[] {
   const files = data.stamps.filter((s) => s.kind !== 'coordinated').map((s) => sealForSeed(s.base_key ?? s.base_name ?? '').file)
   for (const g of generationsOf(data.person.generation)) if (g.source) files.push(g.source.file)
+  files.push(...eventSealFilesOf(data.records.map((r) => r.term_id))) // the seals this carrera gave to its subthemes and committees
   return files
 }
 

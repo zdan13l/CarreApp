@@ -28,6 +28,8 @@ function SealFace({ seal, color }: { seal: MythSeal; color: string }) {
 export default function Sellos() {
   const [custom, setCustom] = useState<CustomSealRow[]>([])
   const [bases, setBases] = useState<{ event: string; n: number }[]>([])
+  const [events, setEvents] = useState<{ id: string; name: string }[]>([])
+  const [eventId, setEventId] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -44,6 +46,7 @@ export default function Sellos() {
     if (!supabase) return
     const [{ data: b }, { data: e }] = await Promise.all([supabase.from('bases').select('event_id'), supabase.from('events').select('id, name')])
     const names = new Map((e ?? []).map((x) => [x.id as string, x.name as string]))
+    setEvents((e ?? []).map((x) => ({ id: x.id as string, name: x.name as string })))
     const count = new Map<string, number>()
     for (const r of b ?? []) count.set(r.event_id as string, (count.get(r.event_id as string) ?? 0) + 1)
     setBases([...count].map(([id, n]) => ({ event: names.get(id) ?? '—', n })).sort((x, y) => y.n - x.n))
@@ -73,17 +76,17 @@ export default function Sellos() {
     }
   }, [file, invert])
 
-  const capacity = sealCount()
+  const capacity = sealCount(eventId || null)
   const most = bases[0]?.n ?? 0
 
   async function upload() {
-    if (!file || !name.trim()) return
+    if (!file || !name.trim() || !eventId) return
     setBusy(true)
     setError(null)
     setNotice(null)
     try {
       const blob = await pictureToInk(file, invert)
-      const err = await uploadSeal(blob, { name, culture, color, story })
+      const err = await uploadSeal(blob, { name, culture, color, story, event_id: eventId })
       if (err) setError(err)
       else {
         setNotice(`Sello «${name.trim()}» agregado. Ya hay ${capacity + 1} sellos.`)
@@ -114,14 +117,14 @@ export default function Sellos() {
           <p className="eyebrow">Preparación</p>
           <h1>Sellos</h1>
         </div>
-        <p className="head-meta">Cada base lleva un sello distinto. Una carrera no puede tener más bases que sellos: para crear más bases, sube más sellos aquí.</p>
+        <p className="head-meta">Cada sello que subes pertenece a UNA carrera y solo se usa en ella. Una carrera no puede tener más bases que sellos (los 15 de la app, de siempre, más los que subas para ella).</p>
       </header>
       {error && <p className="error">{error}</p>}
       {notice && <p className="ok-box">{notice}</p>}
 
       <section className="card">
         <h2>
-          {capacity} sellos <span className="muted">· hasta {capacity} bases por carrera</span>
+          {capacity} sellos <span className="muted">· {eventId ? `hasta ${capacity} bases en esa carrera` : 'elige una carrera para ver su límite'}</span>
         </h2>
         <p className="muted">
           {bases.length === 0
@@ -149,7 +152,7 @@ export default function Sellos() {
                 <SealFace seal={s} color={r.color} />
                 <figcaption>
                   <strong>{r.name}</strong>
-                  <small>{CULTURES[r.culture] ?? r.culture} · subido</small>
+                  <small>{CULTURES[r.culture] ?? r.culture} · {events.find((x) => x.id === r.event_id)?.name ?? 'sin carrera'}</small>
                   <i className="swatch" style={{ background: r.color }} aria-hidden="true" />
                 </figcaption>
                 <button type="button" className="ghost icon-btn danger" onClick={() => void remove(r)} aria-label={`Borrar el sello ${r.name}`} title="Borrar">
@@ -165,6 +168,13 @@ export default function Sellos() {
       <section className="card">
         <h2>Subir un sello</h2>
         <p className="muted">Sube un dibujo (mejor oscuro sobre fondo claro, o con fondo transparente, hasta 2 MB). La app lo convierte a tinta y lo imprime en el color que elijas.</p>
+        <label className="inline-field">
+          Inducción (carrera) a la que pertenece
+          <select value={eventId} onChange={(e) => setEventId(e.target.value)}>
+            <option value="">Elige…</option>
+            {events.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+          </select>
+        </label>
         <label className="inline-field">
           Imagen
           <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
@@ -200,7 +210,7 @@ export default function Sellos() {
           </span>
         )}
         <div className="row">
-          <button disabled={busy || !file || !name.trim()} onClick={() => void upload()}>
+          <button disabled={busy || !file || !name.trim() || !eventId} onClick={() => void upload()}>
             <Upload size={18} aria-hidden="true" /> {busy ? 'Subiendo…' : 'Subir sello'}
           </button>
         </div>

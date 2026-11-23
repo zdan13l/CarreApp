@@ -88,7 +88,7 @@ export default function EnVivo() {
     ])
     setAlerts(al.data ?? [])
     setTeams(t.data ?? [])
-    registerSealRoster((b.data ?? []).map((x) => x.id))
+    registerSealRoster((b.data ?? []).map((x) => x.id), eventId)
     setBases(b.data ?? [])
     setMatches((m.data ?? []) as LiveMatch[])
     setStandings(((s.data ?? []) as StandingRow[]).map((r) => ({ ...r, points: Number(r.points) })))

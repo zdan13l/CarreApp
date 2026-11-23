@@ -1,4 +1,7 @@
 import { useId, type ReactNode } from 'react'
+import EventSealView from './EventSealView'
+import { imageUrl } from '../lib/eventSeals'
+import { eventOfTheme, sealOverride } from '../lib/eventSealStore'
 import { cultureOf, type CultureKey } from '../lib/themes'
 import { symbolOf } from '../lib/symbols'
 import { CultureIcon } from './CultureEmblem'
@@ -51,6 +54,8 @@ function SealFrame({ top, bottom, size, tilt, className, label, children }: { to
 /** "Te tocó": the culture the career was assigned in the theme of the semester, with the drawing of its place in the middle. */
 export function CultureSeal({ culture, theme, top, bottom, size = 108, tilt = -4 }: { culture: CultureKey; theme: string; top: string; bottom: string; size?: number; tilt?: number }) {
   const c = cultureOf(theme, culture)
+  const own = sealOverride(eventOfTheme(theme), 'subtheme', culture) // the seal this carrera gave to the subtheme
+  if (own) return <span className={`culture-${c.key}`} style={{ display: 'inline-block', transform: `rotate(${tilt}deg)`, lineHeight: 0 }}><EventSealView shape={own.shape} color={own.color} imageUrl={imageUrl(own.image_path)} initial={c.name} size={size} label={`${top}, ${bottom}`} /></span>
   return (
     <SealFrame top={top} bottom={bottom} size={size} tilt={tilt} className={`culture-${c.key}`} label={`${top}, ${bottom}`}>
       <g transform="translate(50 50) scale(.62) translate(-50 -50)" className="seal-emblem">

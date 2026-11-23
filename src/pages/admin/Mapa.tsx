@@ -58,7 +58,7 @@ export default function Mapa() {
         .eq('event_id', eventId),
     ])
     setMatches((m.data ?? []) as TimedMatch[])
-    registerSealRoster((b.data ?? []).map((x) => x.id))
+    registerSealRoster((b.data ?? []).map((x) => x.id), eventId)
     setBases(b.data ?? [])
     setTeams(t.data ?? [])
   }, [eventId])

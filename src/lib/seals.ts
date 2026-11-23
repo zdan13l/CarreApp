@@ -113,22 +113,32 @@ function hash(text: string): number {
 // screen that loads the bases tells this list which they are (`registerSealRoster`); the i-th base by id takes the i-th seal, so it looks the
 // same on every screen. The seals are the 15 of the app plus the ones the coordinator uploaded (`custom_seals`, 0034). A base that is not in the
 // list (an old stamp in a passport) falls back to a seal drawn from its id.
-let customSeals: MythSeal[] = []
+let customSeals: (MythSeal & { eventId: string | null })[] = []
 let roster = new Map<string, number>()
 let rosterIds: string[] = []
-const allSeals = (): MythSeal[] => [...SEAL_ORDER.map(sealOf), ...customSeals]
-export const sealCount = () => allSeals().length
-export function registerSealRoster(ids: string[]) {
+let rosterEvent: string | null = null
+// the seals a carrera can use: the 15 of the app plus the ones uploaded FOR that carrera (a seal belongs to one inducción)
+const allSeals = (eventId: string | null = rosterEvent): MythSeal[] => [...SEAL_ORDER.map(sealOf), ...customSeals.filter((c) => c.eventId === eventId)]
+export const sealCount = (eventId?: string | null) => allSeals(eventId ?? rosterEvent).length
+// the seals the coordi edited for a base of a carrera (shape, colour, picture): by base id
+let baseOverrides = new Map<string, { shape: FrameKind; color: string; file: string | null }>()
+export const setBaseOverrides = (m: Map<string, { shape: FrameKind; color: string; file: string | null }>) => {
+  baseOverrides = m
+}
+export function registerSealRoster(ids: string[], eventId: string | null = null) {
   rosterIds = ids
+  rosterEvent = eventId
   const n = allSeals().length
   roster = new Map([...new Set(ids)].sort().map((id, i) => [id, i % n]))
 }
 export const sealForSeed = (seed: string): MythSeal => {
   const list = allSeals()
-  return list[roster.get(seed) ?? hash(seed || 'base') % SEAL_ORDER.length]
+  const seal = list[roster.get(seed) ?? hash(seed || 'base') % SEAL_ORDER.length]
+  const edited = baseOverrides.get(seed)
+  return edited ? { ...seal, frame: edited.shape, color: edited.color, file: edited.file ?? seal.file } : seal
 }
 
-export interface CustomSealRow { id: string; name: string; culture: string; color: string; path: string; story: string | null }
+export interface CustomSealRow { id: string; name: string; culture: string; color: string; path: string; story: string | null; event_id?: string | null }
 export function setCustomSeals(rows: CustomSealRow[], urlOf: (path: string) => string) {
   customSeals = rows.map((r) => ({
     key: r.id,
@@ -138,10 +148,11 @@ export function setCustomSeals(rows: CustomSealRow[], urlOf: (path: string) => s
     frame: 'circle' as const,
     file: urlOf(r.path),
     color: r.color,
+    eventId: r.event_id ?? null,
   }))
-  registerSealRoster(rosterIds) // the list grew: the bases are dealt the seals again
+  registerSealRoster(rosterIds, rosterEvent) // the list grew: the bases are dealt the seals again
 }
-export const customSealList = () => customSeals
+export const customSealList = (eventId?: string | null) => (eventId === undefined ? customSeals : customSeals.filter((c) => c.eventId === eventId))
 
 export const sealInkVar = (seed: string) => {
   const seal = sealForSeed(seed)

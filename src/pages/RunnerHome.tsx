@@ -130,7 +130,7 @@ export default function RunnerHome() {
     if (m.error || tm.error || bs.error) return // keep what is on screen: an empty list would look like no rounds
     setMatches((m.data ?? []) as unknown as RouteMatch[])
     setTeams((tm.data ?? []).map((x) => ({ team_id: x.id, name: x.name, photo_path: x.photo_path })))
-    registerSealRoster((bs.data ?? []).map((x) => x.id))
+    registerSealRoster((bs.data ?? []).map((x) => x.id), t.event_id)
     setBases(bs.data ?? [])
     if (!ct.error) {
       const byTeam = new Map<string, string[]>()

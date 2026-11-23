@@ -81,7 +81,7 @@ export default function Puntajes() {
       supabase.from('profiles').select('id, full_name'),
     ])
     setTeams(t.data ?? [])
-    registerSealRoster((b.data ?? []).map((x) => x.id))
+    registerSealRoster((b.data ?? []).map((x) => x.id), eventId)
     setBases(b.data ?? [])
     setMatches((m.data ?? []) as MatchWithScores[])
     setAudit((a.data ?? []) as AuditRow[])

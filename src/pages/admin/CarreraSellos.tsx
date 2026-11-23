@@ -1,6 +1,9 @@
 import { Upload } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import CommitteeSeal from '../../components/CommitteeSeal'
 import EventSealView from '../../components/EventSealView'
+import { CultureSeal } from '../../components/Seals'
+import Stamp from '../../components/Stamp'
 import { useCatalogVersion } from '../../lib/catalogStore'
 import { hslToHex } from '../../lib/color'
 import { allCommittees } from '../../lib/committees'
@@ -9,7 +12,7 @@ import { imageUrl, loadEventSeals, removeEventSeal, saveEventSeal, SHAPES, SHAPE
 import { supabase } from '../../lib/supabase'
 import { errMsg, useAdmin } from './AdminContext'
 
-interface Element { kind: SealKind; ref: string; name: string }
+interface Element { kind: SealKind; ref: string; name: string; theme?: string }
 
 // The seals of THIS carrera, in one place: the theme, each subtheme, each group, each committee and the golden seal of the coordi. Pick the shape,
 // the colour and a picture (it is turned into ink), see it before saving. Inside a carrera two elements of the same kind never share a design, and
@@ -29,20 +32,22 @@ export default function CarreraSellos() {
     if (!supabase || !eventId) return
     const probe = await supabase.from('event_seals').select('id', { count: 'exact', head: true }).eq('event_id', eventId)
     if (probe.error) return setMissing(true)
-    const [th, tm, ec, ppl] = await Promise.all([
+    const [th, tm, ec, ppl, bs] = await Promise.all([
       termId ? supabase.from('themes').select('key, name').eq('term_id', termId).maybeSingle() : Promise.resolve({ data: null }),
       supabase.from('teams').select('id, name').eq('event_id', eventId).order('sort_order'),
       supabase.from('event_committees').select('committee_key').eq('event_id', eventId),
       event?.coordinator_id ? supabase.from('passports').select('id, full_name').eq('id', event.coordinator_id).maybeSingle() : Promise.resolve({ data: null }),
+      supabase.from('bases').select('id, name').eq('event_id', eventId).order('sort_order'),
     ])
     const out: Element[] = []
     const theme = th.data as { key: string; name: string } | null
     if (theme) {
       out.push({ kind: 'theme', ref: theme.key, name: theme.name })
       const cu = await supabase.from('theme_cultures').select('key, name').eq('theme_key', theme.key).order('sort_order')
-      for (const c of cu.data ?? []) out.push({ kind: 'subtheme', ref: c.key as string, name: c.name as string })
+      for (const c of cu.data ?? []) out.push({ kind: 'subtheme', ref: c.key as string, name: c.name as string, theme: theme.key })
     }
     for (const t of tm.data ?? []) out.push({ kind: 'team', ref: t.id as string, name: t.name as string })
+    for (const b of bs.data ?? []) out.push({ kind: 'base', ref: b.id as string, name: b.name as string })
     const names = new Map(allCommittees().map((c) => [c.key, c.name]))
     for (const c of ec.data ?? []) out.push({ kind: 'committee', ref: c.committee_key as string, name: names.get(c.committee_key as string) ?? (c.committee_key as string) })
     const coordi = ppl.data as { id: string; full_name: string } | null
@@ -61,11 +66,12 @@ export default function CarreraSellos() {
   const groups: { title: string; kind: SealKind; rule: string }[] = [
     { title: 'Temática', kind: 'theme', rule: 'Cada temática tiene un sello único.' },
     { title: 'Subtemáticas', kind: 'subtheme', rule: 'Cada subtemática tiene su propio sello, distinto al de las demás.' },
+    { title: 'Bases', kind: 'base', rule: 'Cada base de esta carrera tiene su sello. Los de siempre (los 15 de la app) son los de la 2710: edítalos aquí para cambiar su forma, color o imagen solo en esta carrera.' },
     { title: 'Grupos', kind: 'team', rule: 'Cada grupo participante tiene un sello único dentro de esta carrera.' },
     { title: 'Comités', kind: 'committee', rule: 'Cada comité tiene un sello propio para esta carrera, sin repetirse.' },
     { title: 'Coordi', kind: 'coordinator', rule: 'El coordi de la carrera siempre tiene el sello dorado: se pone solo al elegir al coordi (Coordi y comités).' },
   ]
-  const missingCount = elements.filter((e) => e.kind !== 'coordinator' && !sealOf(e)).length
+  const missingCount = elements.filter((e) => (e.kind === 'theme' || e.kind === 'team') && !sealOf(e)).length
 
   return (
     <>
@@ -93,13 +99,21 @@ export default function CarreraSellos() {
                 return (
                   <li key={key}>
                     <div className="seal-row">
-                      <EventSealView shape={seal?.shape ?? 'circle'} color={seal?.color ?? 'currentColor'} imageUrl={imageUrl(seal?.image_path ?? null)} initial={e.name} gold={e.kind === 'coordinator'} size={64} label={`Sello de ${e.name}`} />
+                      {seal || e.kind === 'theme' || e.kind === 'team' || e.kind === 'coordinator' ? (
+                        <EventSealView shape={seal?.shape ?? 'circle'} color={seal?.color ?? 'currentColor'} imageUrl={imageUrl(seal?.image_path ?? null)} initial={e.name} gold={e.kind === 'coordinator'} size={64} label={`Sello de ${e.name}`} />
+                      ) : e.kind === 'subtheme' && e.theme ? (
+                        <CultureSeal culture={e.ref} theme={e.theme} top={e.name.toUpperCase()} bottom="DE SIEMPRE" size={64} tilt={0} />
+                      ) : e.kind === 'committee' ? (
+                        <CommitteeSeal committee={e.ref} size={64} />
+                      ) : (
+                        <Stamp seed={e.ref} name={e.name} round={0} state="stamped" size={64} straight />
+                      )}
                       <div className="grow">
                         <strong>{e.name}</strong>
-                        <small className="muted">{seal ? `${SHAPE_LABEL[seal.shape]}${e.kind === 'coordinator' ? ' · dorado' : ` · ${seal.color}`}` : e.kind === 'coordinator' ? 'Se crea al elegir al coordi' : 'Sin sello'}</small>
+                        <small className="muted">{seal ? `${SHAPE_LABEL[seal.shape]}${e.kind === 'coordinator' ? ' · dorado' : ` · ${seal.color}`}` : e.kind === 'coordinator' ? 'Se crea al elegir al coordi' : e.kind === 'subtheme' || e.kind === 'committee' || e.kind === 'base' ? 'Sello de siempre: se puede editar' : 'Sin sello'}</small>
                       </div>
                       {e.kind !== 'coordinator' && (
-                        <button type="button" className="ghost" disabled={locked} onClick={() => setOpen(open === key ? null : key)}>{seal ? 'Editar sello' : 'Crear sello'}</button>
+                        <button type="button" className="ghost" disabled={locked} onClick={() => setOpen(open === key ? null : key)}>{seal ? 'Editar sello' : e.kind === 'subtheme' || e.kind === 'committee' || e.kind === 'base' ? 'Editar el de siempre' : 'Crear sello'}</button>
                       )}
                     </div>
                     {open === key && e.kind !== 'coordinator' && (

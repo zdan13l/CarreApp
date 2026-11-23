@@ -6,9 +6,10 @@ import { supabase } from './supabase'
 // The seals the coordinator uploaded (migration 0034). The app keeps working without them (or before the migration): it has its own fifteen.
 export async function loadCustomSeals(): Promise<CustomSealRow[]> {
   if (!supabase) return []
-  const { data, error } = await supabase.from('custom_seals').select('id, name, culture, color, path, story').order('created_at')
-  if (error) return []
-  const rows = (data ?? []) as CustomSealRow[]
+  const full = await supabase.from('custom_seals').select('id, name, culture, color, path, story, event_id').order('created_at')
+  const old = full.error ? await supabase.from('custom_seals').select('id, name, culture, color, path, story').order('created_at') : null // before migration 0038
+  if (full.error && old?.error) return []
+  const rows = ((full.error ? old?.data : full.data) ?? []) as CustomSealRow[]
   setCustomSeals(rows, (p) => photoUrl(p) ?? '')
   return rows
 }
@@ -49,12 +50,12 @@ export async function pictureToInk(file: File, invert = false, side = 512): Prom
   return await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('No se pudo convertir la imagen.'))), 'image/png'))
 }
 
-export async function uploadSeal(blob: Blob, row: { name: string; culture: string; color: string; story: string }): Promise<string | null> {
+export async function uploadSeal(blob: Blob, row: { name: string; culture: string; color: string; story: string; event_id: string }): Promise<string | null> {
   if (!supabase) return 'Supabase no está configurado.'
   const path = `seals/${crypto.randomUUID()}.png`
   const up = await supabase.storage.from('photos').upload(path, blob, { contentType: 'image/png', cacheControl: '31536000' })
   if (up.error) return 'No se pudo subir la imagen (máximo 2 MB).'
-  const ins = await supabase.from('custom_seals').insert({ name: row.name.trim(), culture: row.culture, color: row.color, path, story: row.story.trim() || null })
+  const ins = await supabase.from('custom_seals').insert({ name: row.name.trim(), culture: row.culture, color: row.color, path, story: row.story.trim() || null, event_id: row.event_id })
   if (ins.error) {
     await deletePhoto(path)
     return 'No se pudo guardar el sello.'

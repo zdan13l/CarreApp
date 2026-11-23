@@ -43,7 +43,7 @@ export default function Bases() {
       supabase.from('profiles').select('id, username, full_name, role').eq('role', 'base').eq('event_id', eventId).order('full_name'),
     ])
     const b = first.error && /answer|column|schema cache/i.test(first.error.message) ? await readBases(false) : first // migration 0030 is not applied yet
-    registerSealRoster((b.data ?? []).map((x) => x.id))
+    registerSealRoster((b.data ?? []).map((x) => x.id), eventId)
     setBases(b.data ?? [])
     setStaff(p.data ?? [])
   }, [eventId])
