@@ -41,7 +41,7 @@ describe('the four states (0032)', () => {
 
   it('walks enable -> start -> finish -> disable, stamping the times, and only the coordinator moves it', async () => {
     const { c } = await oneMatch()
-    await expect(db.asUser(c.bases[0].staff).sql(`select public.event_action($1, 'enable')`, [c.eventId])).rejects.toThrow(/Solo el coordinador/)
+    await expect(db.asUser(c.bases[0].staff).sql(`select public.event_action($1, 'enable')`, [c.eventId])).rejects.toThrow(/Solo el coordi/)
     await act(c, 'enable')
     expect(await phaseOf(c)).toEqual({ phase: 'enabled', is_active: true })
     await act(c, 'start')
@@ -62,7 +62,7 @@ describe('the four states (0032)', () => {
     await act(c, 'enable')
     await expect(act(c, 'enable')).rejects.toThrow(/ya está habilitada/)
     await act(c, 'start')
-    await expect(act(c, 'disable')).rejects.toThrow(/Termina la Carrera antes/)
+    await expect(act(c, 'disable')).rejects.toThrow(/Termina la carrera antes/)
     await expect(act(c, 'reset')).rejects.toThrow(/termina la Carrera/i)
     await expect(act(c, 'nope')).rejects.toThrow(/desconocida/)
   })
@@ -73,7 +73,7 @@ describe('the four states (0032)', () => {
     const { c } = await oneMatch()
     const other = await seedCarrera(db, { teams: 2, bases: 1 })
     await act(c, 'enable')
-    await expect(act(other, 'enable')).rejects.toThrow(/otra Carrera activa/)
+    await expect(act(other, 'enable')).rejects.toThrow(/otra carrera activa/)
   })
 
   it('disabling still saves the history and resets the progress', async () => {

@@ -712,8 +712,8 @@ describe('4. the final result and privacy', () => {
 })
 
 describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera.tsx (DeleteEvent)', () => {
-  it('only a DEACTIVATED Carrera can be deleted: the database refuses to delete an active one (0019)', async () => {
-    await expect(db.asUser(admin).sql(`delete from public.events where id = $1`, [imp.eventId])).rejects.toThrow(/Desactiva la Carrera antes de eliminarla/)
+  it('a Carrera is never deleted from the app (0036): the coordinator is refused, active or not', async () => {
+    await expect(db.asUser(admin).sql(`delete from public.events where id = $1`, [imp.eventId])).rejects.toThrow(/no se eliminan|Desactiva la Carrera/)
     expect(await db.sql(`select 1 from public.events where id = $1`, [imp.eventId])).toHaveLength(1)
   })
 
@@ -721,7 +721,7 @@ describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera
     await db.pg.exec('begin')
     try {
       await db.asUser(admin).sql(`update public.events set is_active = false where id = $1`, [imp.eventId])
-      await db.asUser(admin).sql(`delete from public.events where id = $1`, [imp.eventId])
+      await db.sql(`delete from public.events where id = $1`, [imp.eventId]) // direct access to the database (the app cannot)
       const people = await db.asUser(admin).sql(`select id from public.profiles where event_id = $1 and role <> 'admin'`, [imp.eventId])
       expect(people).toHaveLength(0)
       const orphans = await db.asUser(admin).sql(`select id from public.profiles where username like 'prueba.%' and event_id is null`)
@@ -753,7 +753,7 @@ describe('5. cleaning up: deactivate and DELETE the Carrera exactly like Carrera
     const sb = db.asUser(admin)
     const people = await sb.sql<{ id: string }>(`select id from public.profiles where event_id = $1 and role <> 'admin'`, [imp.eventId])
     expect(people).toHaveLength(9)
-    expect(await sb.affected(`delete from public.events where id = $1`, [imp.eventId])).toBe(1)
+    expect(await db.sql(`delete from public.events where id = $1 returning id`, [imp.eventId])).toHaveLength(1) // direct access: the app cannot delete Carreras (0036)
     for (const p of people) {
       // api/users.ts DELETE: auth.admin.deleteUser (the profile cascades). The API refuses to delete the caller.
       expect(p.id).not.toBe(admin)
