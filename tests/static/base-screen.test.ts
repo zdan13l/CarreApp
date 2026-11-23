@@ -101,7 +101,9 @@ describe('the base screen', () => {
     expect(base).toMatch(/<DeskFlow arrived=\{arrived\}/)
     // 3) all scored: the rotation card is the whole tab (no match card, no next round); 4) once the groups are let go the next match shows its clock
     expect(base).toMatch(/rotationPending && lastFinished \? \(\s*<RotationCard/)
-    expect(base).toMatch(/const rotationPending = showRotation && !\(rotation && rotated\.has\(rotation\.id\)\)/)
+    expect(base).toMatch(/const rotationPending = showRotation && \(!\(rotation && rotated\.has\(rotation\.id\)\) \|\| /)
+    // the third step (Sello) is stamped when the groups are let go, so the rotation card carries the three steps
+    expect(base).toMatch(/<DeskFlow arrived scored=\{SCORE_ITEMS\.length\} total=\{SCORE_ITEMS\.length\} released=\{state === 'done'\}/)
     // the card with who plays here next is always there (it never goes away)
     expect(base).toMatch(/\{upcoming && <NextRound match=\{upcoming\}/)
   })

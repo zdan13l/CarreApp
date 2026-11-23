@@ -100,6 +100,7 @@ export default function BaseHome() {
   const [rotations, setRotations] = useState<{ id: string; round_number: number; created_at: string }[]>([]) // rounds the coordinator said can rotate (0029)
   const [rotated, setRotated] = useState<Set<string>>(new Set()) // the rotations this base already confirmed
   const [rotating, setRotating] = useState(false)
+  const [justReleased, setJustReleased] = useState<string | null>(null) // the rotation just confirmed: its card stays a moment with the three steps complete
   const [tour, setTour] = useState<{ from: Tab } | null>(null) // the tutorial is open (and the tab to come back to)
   const [rotationError, setRotationError] = useState<string | null>(null)
   const [loadFailed, setLoadFailed] = useState(false) // the last request failed (network), which is not the same as having no Carrera
@@ -187,7 +188,7 @@ export default function BaseHome() {
   // only once the three stages of that match are scored (a voided one counts: the coordinator decided it was not played)
   const showRotation = Boolean(lastFinished && lastFinished.match_scores.length >= SCORE_ITEMS.length && current && current.arrived_at === null)
   // the groups are let go once: until then the rotation button is the ONLY thing on the Ronda tab; right after, the next match starts with its clock
-  const rotationPending = showRotation && !(rotation && rotated.has(rotation.id))
+  const rotationPending = showRotation && (!(rotation && rotated.has(rotation.id)) || (rotation !== undefined && justReleased === rotation.id))
   // who plays here next: while the groups are being let go it is the match about to start, otherwise the one after the current
   const upcoming = rotationPending ? current : current ? matches.find((m) => m.round_number > current.round_number && m.status !== 'finished') : undefined
   const codes = useMemo(() => flightCodes([...teams.values()]), [teams]) // the "flight" of each group, as the runners see it
@@ -228,6 +229,10 @@ export default function BaseHome() {
     const { error: err } = await supabase.from('rotation_acks').insert({ rotation_id: rotation.id, base_id: base.id })
     if (err && !/duplicate|unique/i.test(err.message)) setRotationError(friendlyError(err.message, 'No se pudo confirmar. Revisa tu conexión e inténtalo de nuevo.'))
     await load()
+    if (!err || /duplicate|unique/i.test(err.message)) {
+      setJustReleased(rotation.id)
+      window.setTimeout(() => setJustReleased(null), 2600)
+    }
     setRotating(false)
   }
 
@@ -256,7 +261,7 @@ export default function BaseHome() {
                 {matches.length === 0 && <p className="warn">El coordi aún no ha programado cruces para tu base.</p>}
                 {rotationPending && lastFinished ? (
                   <RotationCard
-                    state={rotation ? 'ready' : 'waiting'}
+                    state={rotation && rotated.has(rotation.id) ? 'done' : rotation ? 'ready' : 'waiting'}
                     names={[teams.get(lastFinished.team_a)?.name, teams.get(lastFinished.team_b)?.name].filter((n): n is string => Boolean(n))}
                     busy={rotating}
                     locked={locked}
@@ -678,6 +683,7 @@ function WalkingGroups({
 export function RotationCard({ state, names, busy, locked, error, onConfirm }: { state: 'waiting' | 'ready' | 'done'; names: string[]; busy?: boolean; locked?: boolean; error?: string | null; onConfirm: () => void }) {
   return (
     <section className={`card rotation-card ${state}`} aria-label="Equipos en rotación">
+      <DeskFlow arrived scored={SCORE_ITEMS.length} total={SCORE_ITEMS.length} released={state === 'done'} />
       <h2>
         Equipos en rotación
       </h2>
@@ -697,12 +703,13 @@ export function RotationCard({ state, names, busy, locked, error, onConfirm }: {
 }
 
 // The three steps of the counter: both groups arrive, the three stages are scored, the visa is stamped.
-function DeskFlow({ arrived, scored, total }: { arrived: boolean; scored: number; total: number }) {
-  const sealed = scored === total
+// The third step, Sello, is stamped when the base LETS THE GROUPS GO (`released`): then the three steps are complete.
+function DeskFlow({ arrived, scored, total, released = false }: { arrived: boolean; scored: number; total: number; released?: boolean }) {
+  const staged = scored === total
   const steps = [
     { label: 'Llegada', state: arrived ? 'done' : 'active', note: arrived ? 'Lista' : 'Falta' },
-    { label: 'Etapas', state: sealed ? 'done' : arrived ? 'active' : 'todo', note: `${scored} de ${total}` },
-    { label: 'Sello', state: sealed ? 'done' : 'todo', note: sealed ? 'Puesto' : 'Luego' },
+    { label: 'Etapas', state: staged ? 'done' : arrived ? 'active' : 'todo', note: `${scored} de ${total}` },
+    { label: 'Sello', state: released ? 'done' : staged ? 'active' : 'todo', note: released ? 'Puesto' : staged ? 'Falta' : 'Luego' },
   ]
   return (
     <ol className="desk-flow" aria-label="Pasos de la ventanilla">
