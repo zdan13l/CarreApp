@@ -2,6 +2,22 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Fase B del panel: lo propio de cada carrera (2026-11-22, migración 0037, pendiente)
+- **Temática propia:** al crear una carrera se **copia** la plantilla de temática elegida (mitologías…) con sus subtemáticas y la subtemática de cada grupo de carreras; solo cambia esa carrera (pestaña *Temática*: renombrar, agregar, quitar subtemáticas y asignar una a cada grupo de carreras). *Grupos de carreras* (global) edita solo las plantillas.
+- **Sellos de la carrera** (pestaña *Sellos*): temática, subtemáticas, grupos, comités y coordi, cada uno con su sello (forma, color e imagen convertida a tinta) y previsualización. Dentro de la carrera, dos elementos del mismo tipo no pueden compartir diseño (también lo exige la base de datos); no se reutilizan entre carreras. El **coordi** de la carrera recibe siempre el **sello dorado**, que se pone y se mueve solo al elegirlo.
+- **Coordi y comités** (pestaña propia): el coordi de la carrera, qué comités participan en esa edición (se asignan los activos al crearla) y quién coordina cada uno (sello dorado), sin heredar nada; *Comités* (global) queda como catálogo (nombre, frase, agregar y quitar).
+- **Inductores de la carrera:** la misma lista de inductores, fija en el semestre de esa carrera (no se puede cambiar de semestre); sus asignaciones son solo de esa edición. Se quitó «Nuevo semestre» (los semestres nacen con cada carrera).
+- Marcada la **0036** como aplicada.
+
+## Rediseño del panel: global, carreras y una carrera (2026-11-22, migración 0036, aplicada) — Fase A
+- **Tres niveles:** *Todas las carreras* (`/admin`: tarjetas con código, estado, conteos y qué se puede hacer, la carrera de prueba, el historial y «Nueva carrera»), **una carrera** (`/admin/carreras/<id>/…`: encabezado con código, estado y lo permitido, y pestañas Resumen y control, Configuración, Grupos, Bases, Cruces, Usuarios, Pasaportes y Radar) y **Administración global** (Inductores, Grupos de carreras, Comités, Insignias, Sellos, Historial). Las direcciones viejas (`/admin/grupos`…) redirigen a la misma sección de la carrera abierta. Se quitó el interruptor Preparación / En carrera.
+- **Código automático:** `create_event()` crea la carrera vacía con el siguiente código (2710 → 2730 → 2810 → 2830 → 2910…) y su semestre; nadie escribe el código ni nada se hereda.
+- **Carrera de prueba permanente:** la que se llamaba «Carrera 2710» (con los datos de prueba) pasa a ser la carrera de prueba (marcada, no se elimina, se puede reiniciar también en curso) y se crea la 2710 real, vacía.
+- **Sin eliminar carreras:** se quitó el borrado del panel; la base de datos también lo impide.
+- **Estados:** Deshabilitada (configuración) → Habilitada → Iniciada → Terminada → **Finalizada** (historial, conservando todos sus datos; se puede reabrir). `PhaseControl` muestra «Ahora se puede…» en cada estado.
+- **Insignias** (global): el logo de cada grupo de carreras (la plantita de Biomec…), con imagen propia, descripción, grupo y disponibilidad; no son sellos.
+- **Fase B (pendiente):** temática y subtemáticas propias de cada carrera con sellos únicos, comités/coordi/inductores asignados por carrera con sello dorado del coordi, y usar la imagen de la insignia en el pasaporte.
+
 ## Inductores, comités, programas y temáticas desde el panel (2026-11-22, migración 0035, aplicada)
 - **Inductores:** ahora se agrega **un inductor nuevo** con un formulario (nombre, carrera, rol, comité, generación, ingreso, apodo): se crea su usuario personal y se muestra la contraseña una sola vez; si la persona ya existía solo se le agrega el semestre. El Excel queda como *Carga masiva* plegable. Botón **Ancestro** (birrete): ya no está en la inducción, su perfil sigue activo 6 meses y luego queda deshabilitado; se puede **reactivar** o **deshabilitar ya** (filtro *Ancestros*).
 - **Comités** (pestaña nueva): cada comité con su sello (dorado si tiene coordi), nombre y frase editables, **cambiar coordi** (por semestre, con aviso si no tiene), quitar/volver a ofrecer y **agregar** comités nuevos (sello genérico con su inicial).

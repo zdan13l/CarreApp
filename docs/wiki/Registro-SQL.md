@@ -48,6 +48,8 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0033 | [`0033_alert_rate_and_title.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0033_alert_rate_and_title.sql) | 2026-11-22 | Límite de 15 s entre avisos de una base y la notificación dice «Aviso del coordi» |
 | 0034 | [`0034_custom_seals.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0034_custom_seals.sql) | 2026-11-22 | Sellos propios (`custom_seals`) y una carrera no puede tener más bases que sellos |
 | 0035 | [`0035_inductor_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0035_inductor_admin.sql) | 2026-11-22 | Ancestros, comités, grupos de carreras y temáticas manejados desde el panel |
+| 0036 | [`0036_carreras_ciclo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0036_carreras_ciclo.sql) | 2026-11-22 | Código de carrera (2710, 2730, 2810…), carrera de prueba permanente, estado Finalizada, sin eliminar carreras e insignias globales |
+| 0037 | [`0037_carrera_propia.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0037_carrera_propia.sql) | _pendiente_ | Temática y subtemáticas propias de cada carrera, comités y coordi por carrera y sellos propios con reglas de unicidad |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -563,6 +565,26 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/inductor-admin-0035.test.ts` (ancestro vigente, vencido y deshabilitado, quién edita el catálogo, la temática global, un grupo con carreras no se borra, la cultura debe existir en la temática).
 
 **Cómo revertir** Volver a crear las políticas de lectura de 0023, `alter table public.passports drop column status, drop column ancestor_at, drop column disable_at;` y `drop table public.group_cultures, public.theme_cultures, public.themes, public.careers, public.career_groups, public.committees;` (más `drop function public.passport_active(uuid), public.themes_keep_global() cascade;`).
+
+## 0036 — Carreras con código, carrera de prueba y Finalizada
+
+**Qué cambia** `events.code` (2710, 2730, 2810, 2830, 2910…: año de dos cifras + 10 primer semestre o 30 segundo; `next_event_code()` y `create_event()` los generan, el coordi no escribe el código) y `events.is_test` (UNA carrera de prueba, índice único, que no se puede eliminar ni dejar de serlo). Nuevo estado `archived` (**Finalizada**): `event_action(..., 'archive')` desde Terminada cierra la carrera y la manda al historial **conservando todos sus datos** (no reinicia el avance; sí guarda la copia legible de 0028); `'reopen'` la devuelve a Terminada. Deshabilitar sigue siendo volver a la configuración (copia + reinicio) y no se puede desde Finalizada; la carrera de prueba se puede reiniciar también desde Habilitada o Iniciada. Las carreras **no se eliminan** desde la app (trigger `events_protect_test`: solo con acceso directo a la base de datos, y nunca la de prueba). `create_event()` crea la carrera vacía con su propio semestre (término con el mismo código). La carrera que se llamaba «Carrera 2710» (con los datos de prueba) pasa a ser la **carrera de prueba** y se crea la **2710 real**, vacía. `badges`: las **insignias** (el logo de cada grupo de carreras) como catálogo global: nombre, descripción, grupo de carreras, imagen, disponible sí/no (se siembran las cinco de los grupos).
+
+**Por qué** Cada edición semestral es una instancia independiente con su identificador consecutivo, siempre hay una carrera de prueba para probar sin riesgo, y cerrar una carrera no debe perder nada.
+
+**Verificación** `tests/db/carreras-ciclo-0036.test.ts` (una sola carrera de prueba y la 2710 real vacía, la secuencia 2730→2810→2830→2910, la carrera nueva no hereda nada, solo el coordi crea, la de prueba no se elimina, Finalizada conserva puntajes y llegadas, reabrir, deshabilitar sigue reiniciando, reiniciar solo desde Terminada).
+
+**Cómo revertir** Quitar el estado archived de las carreras (`update public.events set phase = 'finished' where phase = 'archived'`), recrear `events_sync_phase`, `events_reset_on_deactivate` y `event_action` como en 0032, `drop trigger events_protect_test on public.events; drop function public.events_protect_test(), public.next_event_code(), public.create_event(); drop table public.badges;` y `alter table public.events drop column code, drop column is_test;` (la carrera de prueba queda como una carrera normal).
+
+## 0037 — Lo propio de cada carrera (Fase B)
+
+**Qué cambia** `themes.term_id` y `template_of`: la temática de una carrera es una **copia** de una plantilla (`copy_theme_for_term`), con sus subtemáticas (`theme_cultures`) y la subtemática de cada grupo de carreras (`group_cultures`); `create_event(p_theme)` la copia al crear la carrera y la migración da su propia copia a cada semestre existente, así que editarla no toca otras carreras ni la plantilla. `event_committees`: los comités asignados a cada carrera (al crearla se asignan los activos). `events.coordinator_id`: el coordi de la carrera. `event_seals`: los sellos de cada carrera (temática, subtemática, grupo, comité y coordi) con forma, color e imagen; un elemento tiene un solo sello, dos elementos del mismo tipo no comparten diseño dentro de la carrera (`event_seals_unique_design`) y al elegir al coordi un trigger le pone el **sello dorado** (y lo mueve al cambiar de coordi). Los inductores de una carrera siguen siendo los registros del semestre de esa carrera.
+
+**Por qué** Cada edición debe ser independiente: su temática, sus subtemáticas, sus comités, su coordi y sus sellos no se heredan. Sin la migración el panel sigue funcionando, pero las pestañas Temática, Sellos y Coordi y comités de una carrera avisan que falta aplicarla.
+
+**Verificación** `tests/db/carrera-propia-0037.test.ts` (copia de la temática por carrera y sin tocar la plantilla, plantilla inexistente, los comités asignados son de la carrera, unicidad de sellos, mismo diseño permitido en otra carrera, el sello dorado se crea y se mueve, formas y colores válidos).
+
+**Cómo revertir** `drop table public.event_seals, public.event_committees;` `alter table public.events drop column coordinator_id;` `drop function public.events_coordinator_seal() cascade, public.event_seals_unique_design() cascade, public.copy_theme_for_term(uuid, text);` recrear `create_event()` como en 0036 y `alter table public.themes drop column term_id, drop column template_of;` (borra antes las temáticas copiadas: `delete from public.themes where term_id is not null` y vuelve a apuntar `terms.theme` a la plantilla).
 
 ## Plantilla para nuevos registros
 

@@ -80,3 +80,5 @@ La hoja de la cuenta (avatar de la barra) tiene los ajustes de **sonido y notifi
 **Estados de la Carrera (0032):** el coordinador la maneja con `PhaseControl` (Preparación → Carrera y arriba de En vivo): Deshabilitada → Habilitada → Iniciada → Terminada. En *Habilitada* las bases y los corredores ven un aviso, los botones desactivados y el botón **Ver tutorial**; en *Iniciada* todo funciona y corre el reloj; en *Terminada* se bloquea otra vez; *Deshabilitar* pasa al Historial y *Reiniciar* (solo desde Terminada) deja la Carrera Habilitada para otra prueba.
 
 **Pasos de la ventanilla (base):** Llegada, Etapas y Sello se ven desde que los grupos vienen en camino; Sello queda «Puesto» cuando la base confirma «Ya los dejé ir».
+
+**Panel del coordi (0036):** tres niveles: *Todas las carreras* (`/admin`), *una carrera* (`/admin/carreras/<id>/…` con su código, estado, lo permitido y sus pestañas) y *Administración global* (inductores, grupos de carreras, comités, insignias, sellos, historial). Ver la Bitácora.
