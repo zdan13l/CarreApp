@@ -14,9 +14,9 @@ Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 - «carrera» va en minúscula en los textos de la app cuando no inicia la oración. Aviso de estado: solo «La carrera aún no empieza» / «La carrera terminó». Rol en la cuenta: «Inductor base».
 - Cruces de tu base: solo las cajas de etapa van centradas. Tutorial: los puntitos de progreso van centrados. El diálogo de apurar a ambos lista un grupo por línea («GRUPO, falta 3:20»).
 
-## Ajustes finos y «coordi» (2026-11-22, migración 0033, pendiente)
+## Ajustes finos y «coordi» (2026-11-22, migración 0033, aplicada)
 - «Coordinador» pasó a **«coordi»** en todos los textos de la app. El título de la notificación al inductor cambia con la migración 0033 («Aviso del coordi»).
-- **Apurar:** el botón descansa 16 s; la migración 0033 baja el límite del servidor de 20 s a 15 s (con 20 s el aviso justo después fallaba con «No se pudo enviar el aviso»). Aplicar la 0033.
+- **Apurar:** el botón descansa 16 s; la migración 0033 baja el límite del servidor de 20 s a 15 s (con 20 s el aviso justo después fallaba con «No se pudo enviar el aviso»).
 - **Mapa:** «Centrar» enmarca toda la Javeriana (calle 39 a 45, carrera 7 a la Circunvalar) y los dos botones del mapa son solo icono.
 - Equipos de la Carrera: la fila se ve amarilla al elegirla (la tarjeta abre 220 ms después). Cruces de tu base: todo centrado. «Equipos en rotación» ya no lleva el icono (queda en el botón). «Apurar a los grupos» ya no se ilumina en amarillo.
 - Al **terminar** la Carrera, el sonido de alertas y las notificaciones de ese teléfono se desactivan solos.
