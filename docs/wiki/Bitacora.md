@@ -2,6 +2,9 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## El sello se pone al dejar ir a los grupos (2026-11-22)
+- El tercer paso (**Sello**) ya no se completa al calificar: queda «Falta» en la tarjeta de rotación y pasa a «Puesto» cuando la base confirma «Ya los dejé ir». Entonces los tres pasos quedan completos y la tarjeta se mantiene unos segundos antes de pasar al siguiente cruce.
+
 ## Revisión de la vista de las bases (2026-11-22)
 - **Pantalla que se «bugueaba» al calificar:** varias recargas seguidas (una por cada puntaje) podían responder en desorden y pintar un estado viejo, o actualizar partes de la pantalla en momentos distintos. Ahora solo la última carga toca la pantalla y todo (cruces, equipos, rotaciones y confirmaciones) se aplica de una vez.
 - Los tres pasos **Llegada / Etapas / Sello** se ven también mientras los grupos vienen en camino (Llegada «Falta», Etapas «0 de 3», Sello «Luego»).
