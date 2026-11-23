@@ -134,7 +134,7 @@ const ICONS: Record<CultureKey, () => ReactNode> = {
 
 /** The drawing of the culture alone (inside a 100 x 100 box, within a circle of radius 40). */
 export function CultureIcon({ culture }: { culture: CultureKey }) {
-  const Icon = ICONS[culture]
+  const Icon = ICONS[culture] ?? Estrella // a culture the coordinator added has no drawing of its own yet
   return <Icon />
 }
 

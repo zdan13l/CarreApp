@@ -2447,3 +2447,32 @@ button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justi
 .seal-face .stamp-ink { fill: var(--stamp-ink); stroke: var(--stamp-ink); }
 .seal-preview { margin: .8rem 0; }
 .seal-mask { display: block; width: 100%; height: 100%; background: var(--stamp-ink); -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+
+/* Admin: committees, groups of careers and themes. */
+.committee-list, .group-list { display: grid; gap: 1rem; margin-bottom: 1rem; }
+.committee-card { display: flex; gap: 1rem; align-items: flex-start; }
+.committee-card.off { opacity: .6; }
+.committee-body { flex: 1; min-width: 0; display: grid; gap: .6rem; }
+.committee-edit, .inline-edit { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.committee-edit input, .inline-edit input { flex: 1 1 10rem; min-width: 0; }
+.committee-coordi { display: grid; gap: .4rem; }
+.committee-coordi p { margin: 0; }
+.group-head { display: flex; gap: 1rem; align-items: center; }
+.group-main { flex: 1; min-width: 0; display: grid; gap: .5rem; }
+.career-chips { list-style: none; margin: .8rem 0; padding: 0; display: grid; gap: .4rem; }
+.career-chips li { display: flex; gap: .5rem; align-items: center; padding: .4rem .6rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
+.career-chips li > span { flex: 1; min-width: 0; font-weight: 600; }
+.career-chips select { width: auto; max-width: 9rem; }
+.culture-grid { display: grid; gap: .8rem; margin: .6rem 0 1rem; }
+.culture-edit { display: flex; gap: .8rem; align-items: center; }
+.culture-edit > div { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.culture-edit input { flex: 1 1 100%; min-width: 0; }
+.culture-add { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0; }
+.culture-add input { flex: 1 1 10rem; min-width: 0; }
+.culture-add select { width: auto; }
+
+/* Inductores: ancestors and new people. */
+.badge.ancestor { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
+.badge.off { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); }
+.add-person { display: grid; gap: .6rem; }
+.add-person .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .6rem; }

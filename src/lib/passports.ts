@@ -37,10 +37,14 @@ export interface PassportPerson {
   symbol_label?: string | null
   generation?: string | null
   joined_term?: string | null
+  // migration 0035: an ancestor (left the induction) keeps their passport until `disable_at`, then it is disabled
+  status?: 'active' | 'ancestor' | 'disabled'
+  ancestor_at?: string | null
+  disable_at?: string | null
 }
 
 /** The columns of the passport, with and without the ones of migration 0024 (the app keeps working until it is applied). */
-export const PERSON_COLUMNS = 'id, username, full_name, photo_path, nickname, symbol, symbol_label, generation, joined_term'
+export const PERSON_COLUMNS = 'id, username, full_name, photo_path, nickname, symbol, symbol_label, generation, joined_term, status, ancestor_at, disable_at'
 export const PERSON_COLUMNS_BASE = 'id, username, full_name, photo_path'
 export const RECORD_COLUMNS = 'id, passport_id, term_id, role, career, culture, team_id, base_id, committee, committee_lead, extra_committees, extra_leads'
 /** The columns before migration 0027 (the extra committees). */

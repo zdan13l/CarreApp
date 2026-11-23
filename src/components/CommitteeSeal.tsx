@@ -177,7 +177,7 @@ export default function CommitteeSeal({
               <textPath href={`#cb${uid}`} startOffset="50%">{(lead ? `COORDI · ${c.name}` : c.tagline).toUpperCase()}</textPath>
             </text>
             <g transform="translate(50 50) scale(.92) translate(-50 -50)">
-              {Art && <Art {...paint} />}
+              {Art ? <Art {...paint} /> : <text x="50" y="62" fontSize="34" fontWeight="800" textAnchor="middle" fill={ink} stroke="none" className="stamp-text">{c.name.charAt(0).toUpperCase()}</text>}
             </g>
           </g>
         </g>

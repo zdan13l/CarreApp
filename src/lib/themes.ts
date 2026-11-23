@@ -3,7 +3,7 @@
 // of each induction do. Every inductor belongs to the culture that their career is assigned to in the theme of THAT induction. A new
 // induction with a new theme ("2720 · casas de Harry Potter") only needs a new entry here; nothing in the database changes
 // (terms.theme is just the key). A theme this version of the app does not know shows a neutral page instead of another theme's cultures.
-export type CultureKey = 'nordica' | 'griega' | 'mexicana' | 'china' | 'egipcia' | 'general'
+export type CultureKey = string // nordica, griega, mexicana, china, egipcia, general… or one the coordinator added to a theme
 export type Ornament = 'runes' | 'meander' | 'steps' | 'clouds' | 'lotus' | 'plain'
 
 export interface Culture {
@@ -35,7 +35,7 @@ const MITOLOGIAS: Culture[] = [
 
 const GENERAL: Culture = { key: 'general', name: 'Tu grupo', myth: 'Tu lugar en esta inducción', ink: 1, ornament: 'plain', emblem: 'Estrella' }
 
-export const THEMES: Record<string, Theme> = {
+const BUILT_IN_THEMES: Record<string, Theme> = {
   mitologias: {
     key: 'mitologias',
     name: 'Mitologías',
@@ -52,7 +52,45 @@ export const THEMES: Record<string, Theme> = {
   },
 }
 
+// The themes as the coordinator keeps them in the panel (0035): there is always a global one, and the others reach each group of careers through
+// a culture. THEMES starts with the one the app was made with and is changed IN PLACE when the database answers.
+export const THEMES: Record<string, Theme> = { ...BUILT_IN_THEMES }
 export const DEFAULT_THEME = 'mitologias'
+
+export interface ThemeRows {
+  themes: { key: string; name: string; is_global: boolean }[]
+  cultures: { theme_key: string; key: string; name: string; myth: string | null; ink: number; ornament: string; emblem: string; sort_order: number }[]
+  groups: { id: string; name: string }[]
+  careers: { name: string; group_id: string }[]
+  groupCultures: { theme_key: string; group_id: string; culture_key: string }[]
+}
+export function setThemes(rows: ThemeRows) {
+  if (rows.themes.length === 0) return
+  const careers = rows.careers.map((c) => ({ plain: plain(c.name), group_id: c.group_id }))
+  const next: Record<string, Theme> = {}
+  for (const t of rows.themes) {
+    const cultures: Culture[] = rows.cultures
+      .filter((c) => c.theme_key === t.key)
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((c) => ({ key: c.key, name: c.name, myth: c.myth ?? '', ink: ((c.ink >= 1 && c.ink <= 5 ? c.ink : 1) as Culture['ink']), ornament: (c.ornament as Ornament) ?? 'plain', emblem: c.emblem }))
+    if (cultures.length === 0) cultures.push(GENERAL)
+    const byGroup = new Map(rows.groupCultures.filter((g) => g.theme_key === t.key).map((g) => [g.group_id, g.culture_key]))
+    next[t.key] = {
+      key: t.key,
+      name: t.name,
+      cultures,
+      cultureOf: (career) => {
+        if (t.is_global) return cultures[0].key
+        const c = plain(career)
+        // the career as written ("Ingeniería de Sistemas") finds its group by name, whole or contained
+        const hit = careers.find((x) => x.plain === c) ?? careers.filter((x) => c.includes(x.plain) || x.plain.includes(c)).sort((a, b) => b.plain.length - a.plain.length)[0]
+        return (hit && byGroup.get(hit.group_id)) || BUILT_IN_THEMES[t.key]?.cultureOf(career) || null
+      },
+    }
+  }
+  for (const k of Object.keys(THEMES)) delete THEMES[k]
+  Object.assign(THEMES, next)
+}
 
 const pretty = (key: string) => key.replace(/[-_]+/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
 

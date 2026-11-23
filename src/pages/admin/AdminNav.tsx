@@ -1,4 +1,4 @@
-import { Contact, Flag, History, KeyRound, MapPin, Radar, ShieldCheck, SlidersHorizontal, Stamp, Swords, TowerControl, Users } from 'lucide-react'
+import { Contact, Flag, GraduationCap, Network, History, KeyRound, MapPin, Radar, ShieldCheck, SlidersHorizontal, Stamp, Swords, TowerControl, Users } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import AccountMenu from '../../components/AccountMenu'
@@ -29,6 +29,8 @@ export const SETUP_TABS: NavItem[] = [
   { to: '/admin/cruces', label: 'Cruces', icon: <Swords {...ICON} /> },
   { to: '/admin/usuarios', label: 'Usuarios', icon: <KeyRound {...ICON} /> },
   { to: '/admin/inductores', label: 'Inductores', icon: <Contact {...ICON} /> },
+  { to: '/admin/comites', label: 'Comités', icon: <Network {...ICON} /> },
+  { to: '/admin/programas', label: 'Programas', icon: <GraduationCap {...ICON} /> },
   { to: '/admin/sellos', label: 'Sellos', icon: <Stamp {...ICON} /> },
   { to: '/admin/historial', label: 'Historial', icon: <History {...ICON} /> },
 ]

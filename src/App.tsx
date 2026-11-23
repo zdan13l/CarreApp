@@ -13,7 +13,10 @@ import Mapa from './pages/admin/Mapa'
 import Puntajes from './pages/admin/Puntajes'
 import Historial from './pages/admin/Historial'
 import Sellos from './pages/admin/Sellos'
+import Comites from './pages/admin/Comites'
+import Programas from './pages/admin/Programas'
 import { useCustomSeals } from './lib/customSeals'
+import { useCatalog } from './lib/catalog'
 import Inductores from './pages/admin/Inductores'
 import Usuarios from './pages/admin/Usuarios'
 import BaseHome from './pages/BaseHome'
@@ -36,6 +39,7 @@ function RootRedirect() {
 function SealLoader() {
   const { profile } = useAuth()
   useCustomSeals(Boolean(profile))
+  useCatalog(Boolean(profile))
   return null
 }
 
@@ -63,6 +67,8 @@ export default function App() {
             <Route path="inductores" element={<Inductores />} />
             <Route path="historial" element={<Historial />} />
             <Route path="sellos" element={<Sellos />} />
+            <Route path="comites" element={<Comites />} />
+            <Route path="programas" element={<Programas />} />
           </Route>
           <Route path="/base" element={<RequireRole role="base"><BaseHome /></RequireRole>} />
           <Route path="/corredor" element={<RequireRole role="runner"><RunnerHome /></RequireRole>} />

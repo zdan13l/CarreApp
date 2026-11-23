@@ -1,4 +1,4 @@
-import { Camera, Copy, Download, FileSpreadsheet, KeyRound, Search, Trash2, Upload } from 'lucide-react'
+import { Camera, Copy, Download, FileSpreadsheet, GraduationCap, KeyRound, RotateCcw, Search, Trash2, Upload, UserPlus, UserX } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Avatar from '../../components/Avatar'
 import { confirmDialog } from '../../lib/dialog'
@@ -7,6 +7,7 @@ import {
   downloadBlob,
   nameKey,
   newPassword,
+  passportUsername,
   PASSPORT_ROLE_LABEL,
   PASSPORT_ROLES,
   readPeopleFile,
@@ -27,6 +28,7 @@ import {
 import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import { COMMITTEES, committeeOf } from '../../lib/committees'
+import { useCatalogVersion } from '../../lib/catalogStore'
 import { SYMBOLS } from '../../lib/symbols'
 import { cultureOf, DEFAULT_THEME, THEMES, themeOf, type CultureKey } from '../../lib/themes'
 import { createPassportUser, deleteUser, resetPassword } from '../../lib/usersApi'
@@ -67,6 +69,9 @@ export function PersonItem({
   onPhoto,
   onReset,
   onDelete,
+  onAncestor,
+  onReactivate,
+  onDisable,
 }: {
   person: PersonRow
   themeKey: string
@@ -83,15 +88,23 @@ export function PersonItem({
   onPhoto: (file: File) => void
   onReset: () => void
   onDelete: () => void
+  onAncestor?: () => void
+  onReactivate?: () => void
+  onDisable?: () => void
 }) {
   const { passport: p, record: r } = person
+  const status = p.status ?? 'active'
   const theme = themeOf(themeKey)
   const culture = r ? cultureOf(themeKey, r.culture) : null
   return (
     <li className="person">
       <Avatar name={p.full_name} photoPath={p.photo_path} size={46} />
       <span className="grow person-main">
-        <strong>{p.full_name}</strong>
+        <strong>
+          {p.full_name}
+          {status === 'ancestor' && <span className="badge ancestor"> Ancestro{p.disable_at ? ` · hasta ${new Date(p.disable_at).toLocaleDateString('es-CO')}` : ''}</span>}
+          {status === 'disabled' && <span className="badge off"> Deshabilitado</span>}
+        </strong>
         <small className="muted">
           @{p.username}
           {r ? ` · ${r.career}` : ''}
@@ -179,6 +192,21 @@ export function PersonItem({
           }}
         />
       </label>
+      {status === 'active' && onAncestor && (
+        <button className="ghost icon-btn" disabled={busy} onClick={onAncestor} aria-label={`Marcar a ${p.full_name} como ancestro`} title="Ancestro: ya no está en la inducción">
+          <GraduationCap size={18} />
+        </button>
+      )}
+      {status !== 'active' && onReactivate && (
+        <button className="ghost icon-btn" disabled={busy} onClick={onReactivate} aria-label={`Reactivar a ${p.full_name}`} title="Volver a activarlo">
+          <RotateCcw size={18} />
+        </button>
+      )}
+      {status === 'ancestor' && onDisable && (
+        <button className="ghost danger icon-btn" disabled={busy} onClick={onDisable} aria-label={`Deshabilitar ya a ${p.full_name}`} title="Deshabilitar su perfil ya">
+          <UserX size={18} />
+        </button>
+      )}
       <button className="ghost icon-btn" disabled={busy} onClick={onReset} aria-label={`Nueva contraseña de ${p.full_name}`} title="Generar una contraseña nueva">
         <KeyRound size={18} />
       </button>
@@ -246,6 +274,7 @@ interface Report {
 // with the @ and the password of everybody; then they set who runs, who staffs a base and who coordinates, and link each runner to
 // the group of two. Each @ opens only the personal passport (see MemberHome).
 export default function Inductores() {
+  useCatalogVersion() // the committees and cultures are the ones the coordinator keeps
   const input = useRef<HTMLInputElement>(null)
   const [terms, setTerms] = useState<TermRow[]>([])
   const [termId, setTermId] = useState<string | null>(null)
@@ -272,10 +301,11 @@ export default function Inductores() {
   const [report, setReport] = useState<Report | null>(null)
   const [sheet, setSheet] = useState<{ rows: CredentialRow[]; term: string; theme: string } | null>(null)
   const [creds, setCreds] = useState<{ username: string; password: string; label: string } | null>(null)
-  const [filter, setFilter] = useState<PassportRole | 'all' | 'none'>('all')
+  const [filter, setFilter] = useState<PassportRole | 'all' | 'none' | 'ancestor'>('all')
   const [search, setSearch] = useState('')
   const [newName, setNewName] = useState(defaultTermName)
   const [newTheme, setNewTheme] = useState(DEFAULT_THEME)
+  const [careerNames, setCareerNames] = useState<string[]>([])
 
   const term = terms.find((t) => t.id === termId) ?? null
 
@@ -326,6 +356,8 @@ export default function Inductores() {
     setFreeEvents((free.data ?? []) as { id: string; name: string }[])
     setTeams(events.flatMap((e) => [...e.teams].sort((a, b) => a.sort_order - b.sort_order).map((x) => ({ id: x.id, name: x.name, event: e.name }))))
     setBases(events.flatMap((e) => [...e.bases].sort((a, b) => a.sort_order - b.sort_order).map((x) => ({ id: x.id, name: x.name, event: e.name }))))
+    const cn = await supabase.from('careers').select('name').order('name')
+    setCareerNames((cn.data ?? []).map((x) => x.name as string))
     setUsernames(new Set([...((p.data ?? []) as unknown as PassportPerson[]).map((x) => x.username), ...(pf.data ?? []).map((x) => x.username)]))
     setLoading(false)
   }, [termId])
@@ -484,7 +516,7 @@ export default function Inductores() {
       if (err) throw new Error(/dos personas/.test(err.message) ? 'Un grupo tiene como máximo dos personas.' : /otro semestre/.test(err.message) ? err.message : missingColumn(err) ? 'Falta aplicar la migración 0024 (o la 0027 para los comités extra).' : failMessage)
     })
   }
-  function updateIdentity(person: PersonRow, patch: { generation?: string | null; joined_term?: string | null; nickname?: string | null; symbol?: string | null; symbol_label?: string | null }) {
+  function updateIdentity(person: PersonRow, patch: { status?: 'active' | 'ancestor' | 'disabled'; ancestor_at?: string | null; disable_at?: string | null; generation?: string | null; joined_term?: string | null; nickname?: string | null; symbol?: string | null; symbol_label?: string | null }) {
     if (!supabase) return
     void run(async () => {
       const { error: err } = await supabase!.from('passports').update(patch).eq('id', person.passport.id)
@@ -521,6 +553,58 @@ export default function Inductores() {
     })
   }
 
+  // ---------- one new inductor (the Excel is only for many at once) ----------
+  async function onAddPerson(form: HTMLFormElement) {
+    if (!supabase || !term) return
+    const f = new FormData(form)
+    const fullName = String(f.get('name') ?? '').trim().replace(/\s+/g, ' ')
+    const career = String(f.get('career') ?? '').trim()
+    const role = String(f.get('role') ?? 'runner') as PassportRole
+    const committee = String(f.get('committee') ?? '') || null
+    if (fullName.length < 3 || !career) return setError('Escribe el nombre y elige la carrera.')
+    const culture = themeOf(term.theme).cultureOf(career)
+    if (!culture) return setError(`La carrera «${career}» no tiene grupo ni cultura en ${themeOf(term.theme).name}. Agrégala en Programas.`)
+    const known = passports.find((x) => nameKey(x.full_name) === nameKey(fullName))
+    if (known && byPassport.has(known.id)) return setError(`${known.full_name} ya está en este semestre (@${known.username}).`)
+    const extra: Record<string, unknown> = {}
+    for (const [k, col] of [['generation', 'generation'], ['joined', 'joined_term'], ['nickname', 'nickname']] as const) {
+      const v = String(f.get(k) ?? '').trim()
+      if (v) extra[col] = v
+    }
+    await run(async () => {
+      let id = known?.id
+      let password = ''
+      let username = known?.username ?? ''
+      if (!id) {
+        username = passportUsername(fullName, usernames)
+        password = newPassword()
+        id = (await createPassportUser({ username, password, full_name: fullName })).id
+        if (!id) throw new Error('No se pudo crear el usuario.')
+        if (Object.keys(extra).length) await supabase!.from('passports').update(extra).eq('id', id)
+      }
+      const { error: err } = await supabase!.from('passport_records').insert({ passport_id: id, term_id: term.id, role, career, culture, ...(committee ? { committee } : {}) })
+      if (err) {
+        if (password) await deleteUser(id).catch(() => undefined)
+        throw new Error('No se pudo registrar en el semestre.')
+      }
+      form.reset()
+      if (password) setCreds({ username, password, label: `Usuario nuevo de ${fullName}` })
+    })
+  }
+
+  // ---------- ancestors: they left the induction; their profile stays for a while and then it is disabled ----------
+  async function onAncestor(p: PassportPerson) {
+    const until = new Date()
+    until.setMonth(until.getMonth() + 6)
+    if (!(await confirmDialog({ title: `¿${p.full_name} es ahora ancestro?`, message: `Ya no está en la inducción. Su perfil sigue activo hasta el ${until.toLocaleDateString('es-CO')} y después queda deshabilitado. Puedes reactivarlo o deshabilitarlo antes.`, confirmLabel: 'Marcar ancestro', icon: 'question' }))) return
+    updateIdentity({ passport: p, record: null }, { status: 'ancestor', ancestor_at: new Date().toISOString(), disable_at: until.toISOString() })
+  }
+  const onReactivate = (p: PassportPerson) => updateIdentity({ passport: p, record: null }, { status: 'active', ancestor_at: null, disable_at: null })
+  async function onDisableNow(p: PassportPerson) {
+    if (!(await confirmDialog({ title: `¿Deshabilitar a ${p.full_name} ya?`, message: 'Su perfil deja de abrir el pasaporte ahora mismo. Puedes reactivarlo después.', confirmLabel: 'Deshabilitar', tone: 'danger', icon: 'warning' }))) return
+    updateIdentity({ passport: p, record: null }, { status: 'disabled', disable_at: new Date().toISOString() })
+  }
+
   const teamOptions: LinkOption[] = teams.map((t) => {
     const n = records.filter((r) => r.team_id === t.id).length
     return { id: t.id, label: `${t.name} (${n}/2)${teams.some((o) => o.name === t.name && o.id !== t.id) ? ` · ${t.event}` : ''}` }
@@ -529,6 +613,7 @@ export default function Inductores() {
 
   const shown = people.filter((x) => {
     if (filter === 'none') return !x.record
+    if (filter === 'ancestor') return (x.passport.status ?? 'active') !== 'active'
     if (filter !== 'all' && x.record?.role !== filter) return false
     const q = nameKey(search)
     return !q || nameKey(x.passport.full_name).includes(q) || x.passport.username.includes(search.trim().toLowerCase())
@@ -645,8 +730,42 @@ export default function Inductores() {
       </section>
 
       {term && (
-        <section className="card">
-          <h2>Cargar inductores</h2>
+        <form className="card add-person" onSubmit={(e) => { e.preventDefault(); void onAddPerson(e.currentTarget) }}>
+          <h2>Agregar un inductor</h2>
+          <p className="muted">Solo los nuevos: los que ya están registrados siguen en el sistema. Se crea su usuario personal y se muestra la contraseña una sola vez.</p>
+          <div className="grid2">
+            <label className="inline-field">Nombre completo<input name="name" required minLength={3} maxLength={80} placeholder="Nombre Apellido" /></label>
+            <label className="inline-field">
+              Carrera
+              <select name="career" required defaultValue="">
+                <option value="" disabled>Elige…</option>
+                {careerNames.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+            <label className="inline-field">
+              Rol
+              <select name="role" defaultValue="runner">
+                {PASSPORT_ROLES.map((x) => <option key={x} value={x}>{PASSPORT_ROLE_LABEL[x]}</option>)}
+              </select>
+            </label>
+            <label className="inline-field">
+              Comité
+              <select name="committee" defaultValue="">
+                <option value="">Sin comité</option>
+                {COMMITTEES.map((c) => <option key={c.key} value={c.key}>{c.name}</option>)}
+              </select>
+            </label>
+            <label className="inline-field">Generación<input name="generation" maxLength={30} placeholder="Peluches" /></label>
+            <label className="inline-field">Ingresó<input name="joined" maxLength={20} placeholder="2027-1" /></label>
+            <label className="inline-field">Apodo<input name="nickname" maxLength={24} /></label>
+          </div>
+          <div className="row"><button disabled={busy}><UserPlus size={18} aria-hidden="true" /> Agregar inductor</button></div>
+        </form>
+      )}
+
+      {term && (
+        <details className="card">
+          <summary><strong>Carga masiva con Excel</strong> <span className="muted">(solo si llegan muchos a la vez)</span></summary>
           <p className="muted">
             Excel con las columnas <strong>Nombre</strong> y <strong>Carrera</strong> (y, si quieres, <strong>Rol</strong>). Cada carrera recibe su cultura según la temática de esta inducción («{themeOf(term.theme).name}»), solo para ella. Quien ya tenía pasaporte de una inducción anterior conserva su @ y solo se le abren páginas nuevas.
           </p>
@@ -714,7 +833,7 @@ export default function Inductores() {
               )}
             </div>
           )}
-        </section>
+        </details>
       )}
 
       {term && (
@@ -727,6 +846,7 @@ export default function Inductores() {
                 <option key={x} value={x}>{PASSPORT_ROLE_LABEL[x]}</option>
               ))}
               <option value="none">Fuera de este semestre</option>
+              <option value="ancestor">Ancestros</option>
             </select>
           </div>
           <label className="search">
@@ -769,6 +889,9 @@ export default function Inductores() {
                   onPhoto={(file) => onPhoto(x.passport, file)}
                   onReset={() => void onReset(x.passport)}
                   onDelete={() => void onDelete(x.passport)}
+                  onAncestor={() => void onAncestor(x.passport)}
+                  onReactivate={() => onReactivate(x.passport)}
+                  onDisable={() => void onDisableNow(x.passport)}
                 />
               ))}
             </ul>

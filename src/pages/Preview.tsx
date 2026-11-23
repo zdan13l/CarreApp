@@ -34,6 +34,7 @@ import type { LegInfo } from '../lib/delays'
 import PhaseBanner from '../components/PhaseBanner'
 import PhaseControl from './admin/PhaseControl'
 import Sellos from './admin/Sellos'
+import Comites from './admin/Comites'
 import Tutorial from '../components/Tutorial'
 import { baseTutorial } from '../lib/tutorials'
 import LoadFailed from '../components/LoadFailed'
@@ -542,6 +543,7 @@ export default function Preview() {
     )
   }
 
+  if (screen === 'admin-comites') return <div className="admin tower"><main className="admin-main"><Comites /></main></div>
   if (screen === 'admin-sellos') return <div className="admin tower"><main className="admin-main"><Sellos /></main></div>
 
   // the coordinator's control in each of the four states
