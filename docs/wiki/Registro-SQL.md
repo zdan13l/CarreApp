@@ -50,6 +50,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0035 | [`0035_inductor_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0035_inductor_admin.sql) | 2026-11-22 | Ancestros, comités, grupos de carreras y temáticas manejados desde el panel |
 | 0036 | [`0036_carreras_ciclo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0036_carreras_ciclo.sql) | 2026-11-22 | Código de carrera (2710, 2730, 2810…), carrera de prueba permanente, estado Finalizada, sin eliminar carreras e insignias globales |
 | 0037 | [`0037_carrera_propia.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0037_carrera_propia.sql) | 2026-11-22 | Temática y subtemáticas propias de cada carrera, comités y coordi por carrera y sellos propios con reglas de unicidad |
+| 0038 | [`0038_sellos_por_induccion.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0038_sellos_por_induccion.sql) | 2026-11-22 | Cada sello pertenece a una inducción; sellos de base editables; sellos arbitrarios en la carrera de prueba |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -585,6 +586,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/carrera-propia-0037.test.ts` (copia de la temática por carrera y sin tocar la plantilla, plantilla inexistente, los comités asignados son de la carrera, unicidad de sellos, mismo diseño permitido en otra carrera, el sello dorado se crea y se mueve, formas y colores válidos).
 
 **Cómo revertir** `drop table public.event_seals, public.event_committees;` `alter table public.events drop column coordinator_id;` `drop function public.events_coordinator_seal() cascade, public.event_seals_unique_design() cascade, public.copy_theme_for_term(uuid, text);` recrear `create_event()` como en 0036 y `alter table public.themes drop column term_id, drop column template_of;` (borra antes las temáticas copiadas: `delete from public.themes where term_id is not null` y vuelve a apuntar `terms.theme` a la plantilla).
+
+## 0038 — Sellos por inducción
+
+**Qué cambia** `custom_seals.event_id`: cada sello que se sube pertenece a UNA carrera (los que ya existían quedan en la 2710) y solo cuenta para su límite de bases (`event_seal_capacity`: los 15 de la app + los subidos para esa carrera; `bases_seal_limit` y `custom_seals_keep` la usan). `event_seals` admite el tipo `base` (el sello de cada base de la carrera: forma, color e imagen editables). La carrera de prueba recibe **sellos arbitrarios** (temática, subtemáticas, grupos, bases, comités y un coordi de prueba con su sello dorado) para probar; la siembra no falla si ya hay sellos que chocan. Los sellos de siempre (los 15 de las bases, los de los comités y los de las culturas) son los de la 2710 y se editan desde su pestaña *Sellos*.
+
+**Por qué** Cada sello debe estar atado a una inducción y no usarse en otra; los sellos de los comités son únicos por inducción (ya lo exigía 0037). Los pasaportes usan el sello que cada carrera le dio a su subtemática y a sus comités.
+
+**Verificación** `tests/db/sellos-induccion-0038.test.ts` (el límite cuenta solo los sellos de esa carrera, los existentes son de la 2710, sello de base único, la siembra de la prueba deja sellos únicos y se puede repetir).
+
+**Cómo revertir** `alter table public.custom_seals drop column event_id;` recrear `bases_seal_limit` y `custom_seals_keep` como en 0034, `drop function public.event_seal_capacity(uuid);`, borrar los `event_seals` de tipo `base` y volver a poner el `check` de `kind` sin `base`.
 
 ## Plantilla para nuevos registros
 

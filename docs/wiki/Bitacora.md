@@ -2,6 +2,12 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Sellos de la carrera en los pasaportes y por inducción (2026-11-22, migración 0038, aplicada)
+- **Pasaportes:** la página de cultura (subtemática) y la de comité muestran el sello que la carrera de ese semestre les dio (forma, color e imagen); sin sello editado queda el dibujo de siempre. También en el PDF. Los sellos de las bases editados se ven en los teléfonos y en el panel.
+- **Editar los sellos actuales:** en la pestaña *Sellos* de una carrera cada subtemática, comité y base muestra su «sello de siempre» con el botón *Editar el de siempre* (nueva forma, color o imagen solo para esa carrera). Hay una sección *Bases*.
+- **Cada sello, una inducción:** los sellos que se suben (global → Sellos) se atan a una carrera y solo cuentan para su límite de bases; los de siempre son de la 2710. Los sellos de comité y de subtemática son únicos dentro de cada inducción.
+- **Carrera de prueba:** queda con sellos arbitrarios de todos los tipos y un coordi de prueba con sello dorado.
+
 ## Fase B del panel: lo propio de cada carrera (2026-11-22, migración 0037, aplicada)
 - **Temática propia:** al crear una carrera se **copia** la plantilla de temática elegida (mitologías…) con sus subtemáticas y la subtemática de cada grupo de carreras; solo cambia esa carrera (pestaña *Temática*: renombrar, agregar, quitar subtemáticas y asignar una a cada grupo de carreras). *Grupos de carreras* (global) edita solo las plantillas.
 - **Sellos de la carrera** (pestaña *Sellos*): temática, subtemáticas, grupos, comités y coordi, cada uno con su sello (forma, color e imagen convertida a tinta) y previsualización. Dentro de la carrera, dos elementos del mismo tipo no pueden compartir diseño (también lo exige la base de datos); no se reutilizan entre carreras. El **coordi** de la carrera recibe siempre el **sello dorado**, que se pone y se mueve solo al elegirlo.
