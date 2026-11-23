@@ -5,6 +5,7 @@ import PhotoField from '../../components/PhotoField'
 import Stamp from '../../components/Stamp'
 import { airportCode } from '../../lib/flight'
 import { deletePhoto, uploadPhoto } from '../../lib/storage'
+import { registerSealRoster } from '../../lib/seals'
 import { supabase } from '../../lib/supabase'
 import { infoOf, MAX_QUESTIONS, MIN_QUESTIONS, type BaseRow, type Profile } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
@@ -42,6 +43,7 @@ export default function Bases() {
       supabase.from('profiles').select('id, username, full_name, role').eq('role', 'base').eq('event_id', eventId).order('full_name'),
     ])
     const b = first.error && /answer|column|schema cache/i.test(first.error.message) ? await readBases(false) : first // migration 0030 is not applied yet
+    registerSealRoster((b.data ?? []).map((x) => x.id))
     setBases(b.data ?? [])
     setStaff(p.data ?? [])
   }, [eventId])

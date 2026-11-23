@@ -19,6 +19,7 @@ import { disableSound, useManualAlerts, useNow } from '../lib/alerts'
 import { disablePush } from '../lib/push'
 import { clockText, legInfo, legRemainingSec, type LegInfo, type TimedMatch } from '../lib/delays'
 import { airportCode, flightCodes } from '../lib/flight'
+import { registerSealRoster } from '../lib/seals'
 import { stampLook } from '../lib/stamp'
 import { useTravelTimes } from '../lib/travel'
 import { useRealtimeReload } from '../lib/realtime'
@@ -164,6 +165,7 @@ export default function BaseHome() {
     setLoadFailed(false)
     setBase(b as MyBase)
     setEventMatches((all.data ?? []) as TimedMatch[])
+    if (!bs.error) registerSealRoster((bs.data ?? []).map((x) => x.id as string))
     if (!bs.error) setBaseNames(new Map((bs.data ?? []).map((x) => [x.id as string, x.name as string])))
     setMatches((m.data ?? []) as BaseMatch[])
     setTeams(new Map((t.data ?? []).map((x) => [x.id, x])))

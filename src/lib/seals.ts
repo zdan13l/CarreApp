@@ -108,8 +108,18 @@ function hash(text: string): number {
   return h >>> 0
 }
 
-/** Every base always gets the same seal (from its id), so it is recognisable on every screen. */
-export const sealForSeed = (seed: string): MythSeal => sealOf(SEAL_ORDER[hash(seed || 'base') % SEAL_ORDER.length])
+// The seal of each base of the Carrera: no two bases repeat a seal (while there are 15 or fewer) and the cultures alternate. Every screen that
+// loads the bases tells this list which they are (`registerSealRoster`); the i-th base by id takes the i-th seal of SEAL_ORDER, so it looks the
+// same on every screen. A base that is not in the list (an old stamp in a passport) falls back to a seal drawn from its id.
+let roster = new Map<string, number>()
+export function registerSealRoster(ids: string[]) {
+  roster = new Map([...new Set(ids)].sort().map((id, i) => [id, i % SEAL_ORDER.length]))
+}
+export const sealForSeed = (seed: string): MythSeal => sealOf(SEAL_ORDER[roster.get(seed) ?? hash(seed || 'base') % SEAL_ORDER.length])
+
+/** The ink of a mythology: one colour each, shared by its three seals and never by another mythology. */
+export const CULTURE_INK: Record<string, 1 | 2 | 3 | 4 | 5> = { griega: 1, china: 2, mexicana: 3, nordica: 4, egipcia: 5 }
+export const sealInk = (seed: string) => CULTURE_INK[sealForSeed(seed).culture] ?? 1
 
 // ---------- the generations ----------
 export type GenerationKey = 'peluches' | 'barbies' | 'champinones' | 'textiles' | 'minichips'

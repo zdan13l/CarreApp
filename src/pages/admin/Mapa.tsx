@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import LazyMap, { type MapMarker } from '../../components/LazyMap'
 import { lateTeams, type TimedMatch } from '../../lib/delays'
 import { isLocationFresh, timeAgo } from '../../lib/geo'
+import { registerSealRoster } from '../../lib/seals'
 import { useTravelTimes } from '../../lib/travel'
 import { useRotationTimes } from '../../lib/rotations'
 import { useRealtimeReload } from '../../lib/realtime'
@@ -57,6 +58,7 @@ export default function Mapa() {
         .eq('event_id', eventId),
     ])
     setMatches((m.data ?? []) as TimedMatch[])
+    registerSealRoster((b.data ?? []).map((x) => x.id))
     setBases(b.data ?? [])
     setTeams(t.data ?? [])
   }, [eventId])

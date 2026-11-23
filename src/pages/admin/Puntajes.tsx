@@ -15,6 +15,7 @@ import {
 } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
 import { confirmDialog } from '../../lib/dialog'
+import { registerSealRoster } from '../../lib/seals'
 import { exportResults } from '../../lib/results'
 import PassportMatrix from '../../components/PassportMatrix'
 import { flightCodes } from '../../lib/flight'
@@ -80,6 +81,7 @@ export default function Puntajes() {
       supabase.from('profiles').select('id, full_name'),
     ])
     setTeams(t.data ?? [])
+    registerSealRoster((b.data ?? []).map((x) => x.id))
     setBases(b.data ?? [])
     setMatches((m.data ?? []) as MatchWithScores[])
     setAudit((a.data ?? []) as AuditRow[])

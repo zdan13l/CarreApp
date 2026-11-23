@@ -19,6 +19,7 @@ import { STATUS_LABEL, type MatchScore, type MatchStatus, type StandingRow } fro
 import { useAdmin } from './AdminContext'
 import { promptDialog } from '../../lib/dialog'
 import { exportResults } from '../../lib/results'
+import { registerSealRoster } from '../../lib/seals'
 import PhaseControl from './PhaseControl'
 import { PHASE_LABEL } from '../../lib/phase'
 
@@ -87,6 +88,7 @@ export default function EnVivo() {
     ])
     setAlerts(al.data ?? [])
     setTeams(t.data ?? [])
+    registerSealRoster((b.data ?? []).map((x) => x.id))
     setBases(b.data ?? [])
     setMatches((m.data ?? []) as LiveMatch[])
     setStandings(((s.data ?? []) as StandingRow[]).map((r) => ({ ...r, points: Number(r.points) })))

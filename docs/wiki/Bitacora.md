@@ -2,6 +2,10 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Sellos de las bases sin repetir y con color por mitología (2026-11-22)
+- Antes el color del sello salía del id de la base (el mismo sello podía verse en varios colores) y dos bases podían caer en el mismo sello. Ahora **cada mitología tiene su color** (griega azul, china rojo, mexicana verde, nórdica morado, egipcia ámbar), compartido por sus tres sellos y por ninguna otra mitología, y el sello **nunca cambia de color**.
+- Las bases de la Carrera reciben los sellos **sin repetir** (hasta 15) y alternando mitologías: cada pantalla que carga las bases registra la lista (`registerSealRoster`) y la base número *i* (por id) toma el sello *i*. Un sello viejo de un pasaporte cuya base ya no está se dibuja con el sello que sale de su id.
+
 ## El sello se pone al dejar ir a los grupos (2026-11-22)
 - El tercer paso (**Sello**) ya no se completa al calificar: queda «Falta» en la tarjeta de rotación y pasa a «Puesto» cuando la base confirma «Ya los dejé ir». Entonces los tres pasos quedan completos y la tarjeta se mantiene unos segundos antes de pasar al siguiente cruce.
 
