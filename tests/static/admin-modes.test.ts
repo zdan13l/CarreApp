@@ -90,3 +90,18 @@ describe('what is particular of each carrera (phase B, 0037)', () => {
     expect(read('src/pages/admin/CarreraInductores.tsx')).toMatch(/fixedTermId=\{event\.term_id\}/)
   })
 })
+
+describe('the seals of a carrera are used in the passports (0038)', () => {
+  it('the culture and committee seals take the carrera\'s own seal when it has one', () => {
+    expect(read('src/components/Seals.tsx')).toMatch(/sealOverride\(eventOfTheme\(theme\), 'subtheme', culture\)/)
+    expect(read('src/components/CommitteeSeal.tsx')).toMatch(/sealOverride\(eventId, 'committee', c\.key\)/)
+    expect(read('src/components/MemberPassport.tsx')).toMatch(/eventId=\{eventOfTerm\(record\.term_id\)\}/)
+    expect(read('src/lib/passportPdf.ts')).toMatch(/eventSealFilesOf\(/) // the PDF embeds their pictures
+  })
+  it('the stamps of the bases use the edited seal, and every seal belongs to one carrera', () => {
+    expect(read('src/lib/seals.ts')).toMatch(/baseOverrides\.get\(seed\)/)
+    expect(read('src/lib/seals.ts')).toMatch(/c\.eventId === eventId/)
+    expect(read('src/pages/admin/Sellos.tsx')).toMatch(/Inducción \(carrera\) a la que pertenece/)
+    expect(read('src/pages/admin/CarreraSellos.tsx')).toMatch(/Editar el de siempre/)
+  })
+})

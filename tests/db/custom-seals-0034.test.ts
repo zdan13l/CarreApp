@@ -19,7 +19,7 @@ describe('seals and the number of bases (0034)', () => {
     for (let i = 2; i <= 15; i++) await addBase(c.eventId, i)
     await expect(addBase(c.eventId, 16)).rejects.toThrow(/Hay 15 sellos.*corregir los sellos/)
     const admin = await getAdmin(db)
-    const [seal] = await db.asUser(admin).sql<{ id: string }>(`insert into public.custom_seals (name, culture, color, path) values ('Colibrí', 'otra', '#118877', 'seals/x.png') returning id`)
+    const [seal] = await db.asUser(admin).sql<{ id: string }>(`insert into public.custom_seals (name, culture, color, path, event_id) values ('Colibrí', 'otra', '#118877', 'seals/x.png', $1) returning id`, [c.eventId])
     await addBase(c.eventId, 16)
     await expect(addBase(c.eventId, 17)).rejects.toThrow(/Hay 16 sellos/)
     // the seal that makes room cannot be removed while it is needed
