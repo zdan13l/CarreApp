@@ -46,7 +46,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0031 | [`0031_targeted_alerts.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0031_targeted_alerts.sql) | 2026-11-22 | El aviso «apúrense» puede ir a un solo grupo del cruce (`alerts.team_id`) |
 | 0032 | [`0032_event_phases.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0032_event_phases.sql) | 2026-11-22 | Los cuatro estados de la Carrera (`events.phase`), `event_action()`, las bases solo actúan con la Carrera Iniciada y el reloj de demora cuenta desde el aviso de rotación |
 | 0033 | [`0033_alert_rate_and_title.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0033_alert_rate_and_title.sql) | 2026-11-22 | Límite de 15 s entre avisos de una base y la notificación dice «Aviso del coordi» |
-| 0034 | [`0034_custom_seals.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0034_custom_seals.sql) | _pendiente_ | Sellos propios (`custom_seals`) y una carrera no puede tener más bases que sellos |
+| 0034 | [`0034_custom_seals.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0034_custom_seals.sql) | 2026-11-22 | Sellos propios (`custom_seals`) y una carrera no puede tener más bases que sellos |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -547,7 +547,7 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 
 **Qué cambia** Tabla `custom_seals` (nombre, mitología, color en hex y la imagen ya convertida a tinta en el bucket `photos`, carpeta `seals/`): la leen todos los usuarios con sesión y solo la escribe el coordinador. `seal_capacity()` = 15 sellos de la app + los subidos. El trigger `bases_seal_limit` impide crear una base si la carrera ya tiene tantas bases como sellos («Hay N sellos… primero hay que corregir los sellos») y `custom_seals_keep` impide borrar un sello que alguna carrera necesita.
 
-**Por qué** Cada base lleva un sello distinto y no hay más de 15 en la app. Con más de 15 bases habría sellos repetidos: ahora se avisa y se pide subir más sellos en la pestaña *Sellos*. Sin la migración la app sigue funcionando con sus 15 sellos, pero la pestaña no puede guardar sellos nuevos.
+**Por qué** Cada base lleva un sello distinto y no hay más de 15 en la app. Con más de 15 bases habría sellos repetidos: ahora se avisa y se pide subir más sellos en la pestaña *Sellos*.
 
 **Verificación** `tests/db/custom-seals-0034.test.ts` (la base 16 se rechaza con la explicación, un sello nuevo hace espacio, no se borra el que hace falta, solo el coordinador sube sellos).
 
