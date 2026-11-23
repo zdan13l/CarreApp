@@ -49,7 +49,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0034 | [`0034_custom_seals.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0034_custom_seals.sql) | 2026-11-22 | Sellos propios (`custom_seals`) y una carrera no puede tener más bases que sellos |
 | 0035 | [`0035_inductor_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0035_inductor_admin.sql) | 2026-11-22 | Ancestros, comités, grupos de carreras y temáticas manejados desde el panel |
 | 0036 | [`0036_carreras_ciclo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0036_carreras_ciclo.sql) | 2026-11-22 | Código de carrera (2710, 2730, 2810…), carrera de prueba permanente, estado Finalizada, sin eliminar carreras e insignias globales |
-| 0037 | [`0037_carrera_propia.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0037_carrera_propia.sql) | _pendiente_ | Temática y subtemáticas propias de cada carrera, comités y coordi por carrera y sellos propios con reglas de unicidad |
+| 0037 | [`0037_carrera_propia.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0037_carrera_propia.sql) | 2026-11-22 | Temática y subtemáticas propias de cada carrera, comités y coordi por carrera y sellos propios con reglas de unicidad |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -580,7 +580,7 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 
 **Qué cambia** `themes.term_id` y `template_of`: la temática de una carrera es una **copia** de una plantilla (`copy_theme_for_term`), con sus subtemáticas (`theme_cultures`) y la subtemática de cada grupo de carreras (`group_cultures`); `create_event(p_theme)` la copia al crear la carrera y la migración da su propia copia a cada semestre existente, así que editarla no toca otras carreras ni la plantilla. `event_committees`: los comités asignados a cada carrera (al crearla se asignan los activos). `events.coordinator_id`: el coordi de la carrera. `event_seals`: los sellos de cada carrera (temática, subtemática, grupo, comité y coordi) con forma, color e imagen; un elemento tiene un solo sello, dos elementos del mismo tipo no comparten diseño dentro de la carrera (`event_seals_unique_design`) y al elegir al coordi un trigger le pone el **sello dorado** (y lo mueve al cambiar de coordi). Los inductores de una carrera siguen siendo los registros del semestre de esa carrera.
 
-**Por qué** Cada edición debe ser independiente: su temática, sus subtemáticas, sus comités, su coordi y sus sellos no se heredan. Sin la migración el panel sigue funcionando, pero las pestañas Temática, Sellos y Coordi y comités de una carrera avisan que falta aplicarla.
+**Por qué** Cada edición debe ser independiente: su temática, sus subtemáticas, sus comités, su coordi y sus sellos no se heredan.
 
 **Verificación** `tests/db/carrera-propia-0037.test.ts` (copia de la temática por carrera y sin tocar la plantilla, plantilla inexistente, los comités asignados son de la carrera, unicidad de sellos, mismo diseño permitido en otra carrera, el sello dorado se crea y se mueve, formas y colores válidos).
 

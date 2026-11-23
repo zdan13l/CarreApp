@@ -2,7 +2,7 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
-## Fase B del panel: lo propio de cada carrera (2026-11-22, migración 0037, pendiente)
+## Fase B del panel: lo propio de cada carrera (2026-11-22, migración 0037, aplicada)
 - **Temática propia:** al crear una carrera se **copia** la plantilla de temática elegida (mitologías…) con sus subtemáticas y la subtemática de cada grupo de carreras; solo cambia esa carrera (pestaña *Temática*: renombrar, agregar, quitar subtemáticas y asignar una a cada grupo de carreras). *Grupos de carreras* (global) edita solo las plantillas.
 - **Sellos de la carrera** (pestaña *Sellos*): temática, subtemáticas, grupos, comités y coordi, cada uno con su sello (forma, color e imagen convertida a tinta) y previsualización. Dentro de la carrera, dos elementos del mismo tipo no pueden compartir diseño (también lo exige la base de datos); no se reutilizan entre carreras. El **coordi** de la carrera recibe siempre el **sello dorado**, que se pone y se mueve solo al elegirlo.
 - **Coordi y comités** (pestaña propia): el coordi de la carrera, qué comités participan en esa edición (se asignan los activos al crearla) y quién coordina cada uno (sello dorado), sin heredar nada; *Comités* (global) queda como catálogo (nombre, frase, agregar y quitar).
