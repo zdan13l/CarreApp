@@ -52,7 +52,6 @@ describe('creating the carrera and ending it', () => {
     // the final results are saved to a file before anything is erased
     expect(ctl).toMatch(/exportResults/)
     expect(read('src/pages/admin/EnVivo.tsx')).toMatch(/<PhaseControl/)
-    expect(read('src/pages/admin/Carrera.tsx')).toMatch(/<PhaseControl/)
     expect(read('src/pages/admin/Puntajes.tsx')).toMatch(/Descargar resultados/)
   })
 })
@@ -101,7 +100,39 @@ describe('the seals of a carrera are used in the passports (0038)', () => {
   it('the stamps of the bases use the edited seal, and every seal belongs to one carrera', () => {
     expect(read('src/lib/seals.ts')).toMatch(/baseOverrides\.get\(seed\)/)
     expect(read('src/lib/seals.ts')).toMatch(/c\.eventId === eventId/)
-    expect(read('src/pages/admin/Sellos.tsx')).toMatch(/Inducción \(carrera\) a la que pertenece/)
+    expect(read('src/components/CustomSealsManager.tsx')).toMatch(/event_id: eventId/) // an uploaded seal is tied to its carrera
     expect(read('src/pages/admin/CarreraSellos.tsx')).toMatch(/Editar el de siempre/)
+  })
+})
+
+describe('nothing is entered twice in the panel', () => {
+  const pages = ['Carreras', 'Carrera', 'CarreraShell', 'CarreraTematica', 'CarreraSellos', 'CarreraComites', 'CarreraInductores', 'Comites', 'Programas', 'Insignias', 'Sellos', 'EnVivo', 'Grupos', 'Bases', 'Cruces', 'Usuarios', 'Puntajes', 'Mapa', 'Inductores'].map((p) => [p, read(`src/pages/admin/${p}.tsx`)] as const)
+  const using = (re: RegExp) => pages.filter(([, src]) => re.test(src)).map(([name]) => name)
+
+  it('the state of a carrera is controlled in ONE place (Resumen y control)', () => {
+    expect(using(/<PhaseControl/)).toEqual(['EnVivo'])
+  })
+  it('a PERSON is created in ONE place: Administración global → Inductores (inside a carrera people only join it)', () => {
+    const src = read('src/pages/admin/Inductores.tsx')
+    expect(src).toMatch(/\{!isCarrera && \(\s*<form className="card add-person" onSubmit=\{\(e\) => \{ e\.preventDefault\(\); void onCreatePerson/)
+    expect(src).toMatch(/\{isCarrera && term && \(\s*<form className="card add-person" onSubmit=\{\(e\) => \{ e\.preventDefault\(\); void onJoin/)
+    expect(src).toMatch(/\{isCarrera && term && \(\s*<details className="card">/) // the Excel only exists inside a carrera
+    expect(src.match(/createPassportUser\(/g)?.length).toBeLessThanOrEqual(3) // the global form and the Excel
+    expect(src).toMatch(/view\?: 'global' \| 'carrera'/)
+    expect(src).toMatch(/\{view === 'global' && \(\s*<span className="person-edit identity-edit">/) // identity is edited only globally
+  })
+  it('the seals are made inside each carrera; the global page is a read-only library', () => {
+    expect(using(/uploadSeal\(/)).toEqual([]) // no page uploads: only the manager inside the carrera
+    expect(using(/saveEventSeal\(/)).toEqual(['CarreraSellos']) // seals are edited only in the carrera's own tab
+    expect(read('src/components/CustomSealsManager.tsx')).toMatch(/uploadSeal\(/)
+    expect(read('src/pages/admin/CarreraSellos.tsx')).toMatch(/<CustomSealsManager eventId=\{event\.id\}/)
+    expect(read('src/pages/admin/Sellos.tsx')).not.toMatch(/type="file"/)
+  })
+  it('the history of results has ONE entry in the menu, and the names do not clash', () => {
+    const nav = read('src/pages/admin/AdminNav.tsx')
+    expect(nav.match(/\/admin\/historial/g)?.length).toBeLessThanOrEqual(3) // the link, the mobile link, the active check
+    expect(nav).toMatch(/label: 'Grupos participantes'/)
+    expect(nav).toMatch(/label: 'Grupos organizativos'/)
+    expect(nav).toMatch(/label: 'Puntajes'/) // not «Pasaportes»: that name belongs to the personal passports
   })
 })
