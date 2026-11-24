@@ -1,3 +1,5 @@
+import SectionSeals from '../../components/SectionSeals'
+import type { SealKind } from '../../lib/eventSeals'
 import { useCallback, useEffect, useState } from 'react'
 import CommitteeSeal from '../../components/CommitteeSeal'
 import EventSealView from '../../components/EventSealView'
@@ -21,6 +23,7 @@ interface Person { id: string; full_name: string; username: string }
 
 // The coordi and the committees of THIS carrera. The committees themselves are global (Administración global → Comités); what is particular of an
 // edition is which ones take part, who coordinates each one and who the coordi of the carrera is. Nothing is inherited from the previous carrera.
+const SEAL_KINDS: SealKind[] = ['committee']
 export default function CarreraComites() {
   useCatalogVersion()
   const { event, reload } = useAdmin()
@@ -121,7 +124,7 @@ export default function CarreraComites() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Esta carrera</p>
+          <p className="eyebrow">Preparación · 6</p>
           <h1>Coordi y comités</h1>
         </div>
         <p className="head-meta">El coordi y los comités cambian de una carrera a otra y no se heredan.</p>
@@ -169,6 +172,7 @@ export default function CarreraComites() {
           )
         })}
       </div>
+      <SectionSeals event={event} kinds={SEAL_KINDS} title="Sellos de los comités de esta carrera" />
     </>
   )
 }

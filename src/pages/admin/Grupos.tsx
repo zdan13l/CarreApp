@@ -1,3 +1,5 @@
+import SectionSeals from '../../components/SectionSeals'
+import type { SealKind } from '../../lib/eventSeals'
 import { Radio, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import PhotoField from '../../components/PhotoField'
@@ -7,6 +9,7 @@ import type { Profile, TeamRow } from '../../types'
 import { errMsg, useAdmin } from './AdminContext'
 import { confirmDialog } from '../../lib/dialog'
 
+const SEAL_KINDS: SealKind[] = ['team']
 export default function Grupos() {
   const { event } = useAdmin()
   const [teams, setTeams] = useState<TeamRow[]>([])
@@ -68,8 +71,8 @@ export default function Grupos() {
 
   return (
     <>
-      <p className="eyebrow">Flight roster</p>
-      <h1>Grupos</h1>
+      <p className="eyebrow">Preparación · 3</p>
+      <h1>Grupos participantes</h1>
       <p className="muted">{teams.length} grupos en {event.name}</p>
 
       <section className="card">
@@ -93,6 +96,7 @@ export default function Grupos() {
           <TeamCard key={t.id} team={t} runners={runners} free={free} onChange={load} />
         ))}
       </div>
+      <SectionSeals event={event} kinds={SEAL_KINDS} title="Sellos de los grupos" />
     </>
   )
 }

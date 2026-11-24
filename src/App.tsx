@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import DialogHost from './components/DialogHost'
 import RequireRole from './components/RequireRole'
 import { AuthProvider, homePathForRole, useAuth } from './lib/auth'
@@ -18,7 +18,6 @@ import Comites from './pages/admin/Comites'
 import Programas from './pages/admin/Programas'
 import Insignias from './pages/admin/Insignias'
 import CarreraTematica from './pages/admin/CarreraTematica'
-import CarreraSellos from './pages/admin/CarreraSellos'
 import CarreraComites from './pages/admin/CarreraComites'
 import CarreraInductores from './pages/admin/CarreraInductores'
 import Carreras from './pages/admin/Carreras'
@@ -52,6 +51,12 @@ function SealLoader() {
   return null
 }
 
+// the old Sellos tab of a carrera: seals are made in ONE place now, the workshop (Administración global → Sellos), opened on that carrera
+function SealsRedirect() {
+  const { eventId } = useParams()
+  return <Navigate to={`/admin/sellos?kind=committee&event=${eventId ?? ''}`} replace />
+}
+
 // /admin/grupos (and the like) → the same section of the carrera that is open or running
 function LegacyRedirect({ section }: { section: string }) {
   const { event } = useAdmin()
@@ -76,7 +81,7 @@ export default function App() {
               <Route index element={<EnVivo />} />
               <Route path="configuracion" element={<Carrera />} />
               <Route path="tematica" element={<CarreraTematica />} />
-              <Route path="sellos" element={<CarreraSellos />} />
+              <Route path="sellos" element={<SealsRedirect />} />
               <Route path="inductores" element={<CarreraInductores />} />
               <Route path="comites" element={<CarreraComites />} />
               <Route path="grupos" element={<Grupos />} />

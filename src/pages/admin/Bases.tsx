@@ -1,3 +1,5 @@
+import SectionSeals from '../../components/SectionSeals'
+import type { SealKind } from '../../lib/eventSeals'
 import { MapPin, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import BaseLocationEditor from '../../components/BaseLocationEditor'
@@ -11,6 +13,7 @@ import { infoOf, MAX_QUESTIONS, MIN_QUESTIONS, type BaseRow, type Profile } from
 import { errMsg, useAdmin } from './AdminContext'
 import { confirmDialog } from '../../lib/dialog'
 
+const SEAL_KINDS: SealKind[] = ['base']
 export default function Bases() {
   const { event } = useAdmin()
   const [bases, setBases] = useState<BaseRow[]>([])
@@ -76,8 +79,8 @@ export default function Bases() {
 
   return (
     <>
-      <p className="eyebrow">Gate Management</p>
-      <h1>Puertas</h1>
+      <p className="eyebrow">Preparación · 4</p>
+      <h1>Bases</h1>
       <p className="muted">{bases.length} bases (destinos) en {event.name}. Cada una tiene su código de aeropuerto y su propio sello.</p>
 
       <section className="card">
@@ -98,6 +101,7 @@ export default function Bases() {
           <BaseCard key={b.id} base={b} staff={staff} taken={taken} onChange={load} />
         ))}
       </div>
+      <SectionSeals event={event} kinds={SEAL_KINDS} title="Sellos de las bases" />
     </>
   )
 }

@@ -1,3 +1,5 @@
+import type { SealKind } from '../../lib/eventSeals'
+import SectionSeals from '../../components/SectionSeals'
 import { Plus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { CultureSeal } from '../../components/Seals'
@@ -17,6 +19,7 @@ const slugKey = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').
 
 // The theme of THIS carrera and its subthemes. It was copied from a template when the carrera was created, so changing it here changes only this
 // edition. Every group of careers takes one subtheme (a culture); each subtheme has its own seal (see "Sellos").
+const SEAL_KINDS: SealKind[] = ['theme', 'subtheme']
 export default function CarreraTematica() {
   useCatalogVersion()
   const { event } = useAdmin()
@@ -101,7 +104,7 @@ export default function CarreraTematica() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Esta carrera</p>
+          <p className="eyebrow">Preparación · 2</p>
           <h1>Temática</h1>
         </div>
         <p className="head-meta">La temática y las subtemáticas son solo de esta edición: se copiaron de una plantilla al crearla y cambiarlas no afecta a otras carreras.</p>
@@ -145,6 +148,7 @@ export default function CarreraTematica() {
         </ul>
         <p className="muted">Los grupos de carreras se administran en Administración global → Grupos de carreras.</p>
       </section>
+      <SectionSeals event={event} kinds={SEAL_KINDS} title="Sellos de la temática y las subtemáticas" />
     </>
   )
 }
