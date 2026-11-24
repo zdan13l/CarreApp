@@ -206,14 +206,14 @@ describe('the personal symbol', () => {
 describe('the Excel with committee, generation, entry and nickname (all optional)', () => {
   const ctx = () => ({ theme: 'mitologias', usernames: new Set<string>(), known: new Map<string, string>() })
   const table = [[['Nombre', 'Carrera', 'Rol (opcional)', 'Comité (opcional)', 'Generación (opcional)', 'Ingreso (opcional)', 'Apodo (opcional)'],
-    ['Ana María Pérez Gómez', 'Ingeniería de Sistemas', 'Corredor', 'Clausura', 'Generación 7', '2024-2', 'Anita'],
+    ['Ana María Pérez Gómez', 'Ingeniería de Sistemas', 'Corredor', 'Clausura', 'barbies', '2024-2', 'Anita'],
     ['Luis Ruiz', 'Ingeniería Civil', '', 'caos', '', '', ''],
     ['Eva Paz', 'Redes', '', 'Comité Inventado', '', '', ''],
-    ['Zoe Vega', 'Redes', '', '', 'g'.repeat(31), 'j'.repeat(21), 'n'.repeat(25)]]]
+    ['Zoe Vega', 'Redes', '', '', 'Inventada', 'j'.repeat(21), 'n'.repeat(25)]]]
 
   it('reads them (the titles may say "(opcional)", with accents or without)', () => {
     const rows = parsePeople(table, ctx())
-    expect(rows[0]).toMatchObject({ committee: 'clausura', generation: 'Generación 7', joined: '2024-2', nickname: 'Anita', role: 'runner' })
+    expect(rows[0]).toMatchObject({ committee: 'clausura', generation: 'Barbies', joined: '2024-2', nickname: 'Anita', role: 'runner' })
     expect(rows[1].committee).toBe('caos')
     expect(rows[1]).toMatchObject({ generation: '', joined: '', nickname: '' })
   })
@@ -221,7 +221,7 @@ describe('the Excel with committee, generation, entry and nickname (all optional
   it('an unknown committee or a text too long for the database is explained, not guessed', () => {
     const rows = parsePeople(table, ctx())
     expect(rows[2].errors.join()).toMatch(/comité no se entiende \(Clausura, Meraki, Conzumo, Carrera, Caos, Bienvenida\)/)
-    expect(rows[3].errors.join(' ')).toMatch(/generación es muy larga/)
+    expect(rows[3].errors.join(' ')).toMatch(/generación no existe \(Champiñones, Peluches, Barbies, Minichips, Textiles\)/)
     expect(rows[3].errors.join(' ')).toMatch(/ingreso es muy largo/)
     expect(rows[3].errors.join(' ')).toMatch(/apodo es muy largo/)
   })

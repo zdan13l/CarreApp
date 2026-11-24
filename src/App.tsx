@@ -13,6 +13,7 @@ import Mapa from './pages/admin/Mapa'
 import Puntajes from './pages/admin/Puntajes'
 import Historial from './pages/admin/Historial'
 import Sellos from './pages/admin/Sellos'
+import Generaciones from './pages/admin/Generaciones'
 import Comites from './pages/admin/Comites'
 import Programas from './pages/admin/Programas'
 import Insignias from './pages/admin/Insignias'
@@ -89,6 +90,7 @@ export default function App() {
             <Route path="programas" element={<Programas />} />
             <Route path="comites" element={<Comites />} />
             <Route path="insignias" element={<Insignias />} />
+            <Route path="generaciones" element={<Generaciones />} />
             <Route path="sellos" element={<Sellos />} />
             <Route path="historial" element={<Historial />} />
             {/* the old addresses (before the panel was split in global / carrera) still work: they open the same section of the open carrera */}

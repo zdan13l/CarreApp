@@ -27,7 +27,8 @@ import { RoundCard } from './admin/Cruces'
 import BaseSealCard from '../components/BaseSealCard'
 import { CrucesList, BaseGuide, BaseTicket, BaseWhere, ClosedDesk, MatchCard, NextRound, RotationCard, type BaseMatch, type Team } from './BaseHome'
 import { ArchiveCard, type Archive } from './admin/Historial'
-import { SEAL_ORDER, sealForSeed, sealInkVar } from '../lib/seals'
+import { GENERATIONS, SEAL_ORDER, sealForSeed, sealInkVar } from '../lib/seals'
+import GenerationSeals from '../components/GenerationSeal'
 import { AfterCard, CurrentRound, FinishedCard, ItemResults, StatusBar, TopTab, type RouteMatch } from './RunnerHome'
 import { AlertBanner } from '../components/Alerts'
 import type { LegInfo } from '../lib/delays'
@@ -56,7 +57,7 @@ import CultureEmblem from '../components/CultureEmblem'
 import { COMMITTEES } from '../lib/committees'
 import MemberPage from '../components/MemberPage'
 import type { MemberPassportData } from '../components/MemberPassport'
-import { PersonItem, UploadPreview, type PersonRow } from './admin/Inductores'
+import { GenerationPicker, PersonItem, UploadPreview, type PersonRow } from './admin/Inductores'
 import type { PassportRole, PassportStampRow, PersonIn } from '../lib/passports'
 
 const user = { full_name: 'Daniel Rodríguez', username: 'daniel' }
@@ -572,6 +573,27 @@ export default function Preview() {
           <figure className="seal-item"><EventSealView shape="circle" color="currentColor" gold initial="Coordi" size={88} /><figcaption>coordi (dorado)</figcaption></figure>
         </div>
       </section></main></div>
+    )
+  }
+  if (screen === 'admin-generaciones') {
+    return (
+      <div className="admin tower">
+        <main className="admin-main">
+          <header className="page-head"><div><p className="eyebrow">Administración global</p><h1>Generaciones</h1></div></header>
+          <section className="card">
+            <h2>Los sellos de las generaciones</h2>
+            <div className="seal-grid">
+              {GENERATIONS.map((g) => <figure key={g.key} className="seal-item"><GenerationSeals generation={g.name} size={96} /><figcaption><strong>{g.name}</strong><small>{g.term ?? 'sin semestre'}</small></figcaption></figure>)}
+              <figure className="seal-item"><EventSealView shape="shield" color={hslToHex(268, 62, 55)} initial="Mariposas" size={96} /><figcaption><strong>Mariposas</strong><small>editado</small></figcaption></figure>
+            </div>
+          </section>
+          <section className="card add-person">
+            <h2>La generación de una persona se elige</h2>
+            <GenerationPicker value="Barbies" label="Generación de Ana" />
+            <GenerationPicker value="Pendiente" label="Generación de Luis" />
+          </section>
+        </main>
+      </div>
     )
   }
   if (screen === 'admin-insignias') return <div className="admin tower"><main className="admin-main"><Insignias /></main></div>

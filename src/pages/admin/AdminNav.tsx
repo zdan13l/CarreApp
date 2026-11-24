@@ -1,4 +1,4 @@
-import { Archive, Contact, Flag, GraduationCap, Palette, History, KeyRound, LayoutGrid, MapPin, Medal, Network, Radar, Settings2, ShieldCheck, Stamp, Swords, TowerControl, Users, Waypoints } from 'lucide-react'
+import { Archive, Baby, Contact, Flag, GraduationCap, Palette, History, KeyRound, LayoutGrid, MapPin, Medal, Network, Radar, Settings2, ShieldCheck, Stamp, Swords, TowerControl, Users, Waypoints } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import AccountMenu from '../../components/AccountMenu'
@@ -17,7 +17,7 @@ export interface NavItem {
 }
 
 // The panel has three levels. 1) Carreras: every edition, with its state. 2) Inside ONE carrera: only what belongs to that edition.
-// 3) Global administration: what is shared by all the carreras (inductores, grupos de carreras, comités, insignias, the library of seals).
+// 3) Global administration: what is shared by all the carreras (inductores, grupos de carreras, comités, generaciones with their seals, insignias, the library of seals).
 
 /** What lives inside one carrera (the paths hang from /admin/carreras/<id>/). */
 export const CARRERA_TABS: { path: string; label: string; icon: ReactNode; end?: boolean }[] = [
@@ -40,6 +40,7 @@ export const GLOBAL_TABS: NavItem[] = [
   { to: '/admin/inductores', label: 'Inductores', icon: <Contact {...ICON} /> },
   { to: '/admin/programas', label: 'Grupos organizativos', icon: <GraduationCap {...ICON} /> },
   { to: '/admin/comites', label: 'Comités', icon: <Network {...ICON} /> },
+  { to: '/admin/generaciones', label: 'Generaciones', icon: <Baby {...ICON} /> },
   { to: '/admin/insignias', label: 'Insignias', icon: <Medal {...ICON} /> },
   { to: '/admin/sellos', label: 'Biblioteca de sellos', icon: <Stamp {...ICON} /> },
 ]

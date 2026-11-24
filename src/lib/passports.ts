@@ -3,6 +3,7 @@
 import { readTablesFromFile } from './bulk'
 import { COMMITTEES } from './committees'
 import { generatePassword } from './password'
+import { GENERATIONS, generationsOf } from './seals'
 import { cultureOf, themeOf, type CultureKey } from './themes'
 import { USERNAME_PATTERN } from './username'
 
@@ -212,10 +213,15 @@ export function parsePeople(tables: string[][][], ctx: PeopleContext): PersonIn[
     if (roleText.trim() && !parsedRole) errors.push('El rol no se entiende (corredor, base o coordi).')
     const committee = parseCommittee(cell(r, iCommittee))
     if (committee === undefined) errors.push(`El comité no se entiende (${COMMITTEES.map((c) => c.name).join(', ')}).`)
-    const generation = cell(r, iGeneration)
+    let generation = cell(r, iGeneration)
     const joined = cell(r, iJoined)
     const nickname = cell(r, iNick)
-    if (generation.length > 30) errors.push('La generación es muy larga (máximo 30 letras).')
+    if (generation) {
+      const parts = generation.split(/[/,+]/).map((x) => x.trim()).filter(Boolean)
+      const found = generationsOf(generation)
+      if (found.length !== parts.length) errors.push(`La generación no existe (${GENERATIONS.map((g) => g.name).join(', ')}).`)
+      else generation = found.map((g) => g.name).join(' / ') // the exact names of the catalog
+    }
     if (joined.length > 20) errors.push('El ingreso es muy largo (máximo 20 letras).')
     if (nickname.length > 24) errors.push('El apodo es muy largo (máximo 24 letras).')
     if (seen.has(key(fullName)) && fullName) errors.push('Esta persona está repetida en el archivo.')
@@ -298,7 +304,7 @@ export async function credentialsWorkbook(rows: CredentialRow[], termName: strin
 
 export const TEMPLATE_DATA = [
   ['Nombre', 'Carrera', 'Rol (opcional)', 'Comité (opcional)', 'Generación (opcional)', 'Ingreso (opcional)', 'Apodo (opcional)'].map(head),
-  ['Ana María Pérez Gómez', 'Ingeniería de Sistemas', 'Corredor', 'Clausura', 'Generación 7', '2024-2', 'Anita'],
+  ['Ana María Pérez Gómez', 'Ingeniería de Sistemas', 'Corredor', 'Clausura', 'Barbies', '2024-2', 'Anita'],
   ['Luis Fernando Ruiz', 'Ingeniería Civil', 'Base', 'Caos', '', '', ''],
   ['Camila Torres Vega', 'Bioingeniería', '', '', '', '', ''],
 ]

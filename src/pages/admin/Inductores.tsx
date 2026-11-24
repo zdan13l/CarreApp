@@ -28,11 +28,43 @@ import {
 import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import { COMMITTEES, committeeOf } from '../../lib/committees'
+import { GENERATIONS, generationsOf } from '../../lib/seals'
 import { useCatalogVersion } from '../../lib/catalogStore'
 import { SYMBOLS } from '../../lib/symbols'
 import { cultureOf, themeOf, type CultureKey } from '../../lib/themes'
 import { createPassportUser, deleteUser, resetPassword } from '../../lib/usersApi'
 import { errMsg } from './AdminContext'
+
+// The generation of a person is CHOSEN from the catalog (Administración global → Generaciones), never typed. Someone who entered twice has two:
+// the second selector appears once the first is chosen. The value is the names joined by « / » ('' = none). A text written before the catalog
+// existed and not in it is shown as «sin elegir» so it can be fixed.
+export function GenerationPicker({ value, onChange, disabled, label, name }: { value: string | null | undefined; onChange?: (value: string) => void; disabled?: boolean; label: string; name?: string }) {
+  const known = generationsOf(value)
+  const legacy = Boolean(value?.trim()) && known.length === 0
+  const [first, setFirst] = useState(known[0]?.name ?? '')
+  const [second, setSecond] = useState(known[1]?.name ?? '')
+  const join = (a: string, b: string) => [a, b].filter(Boolean).filter((x, i, all) => all.indexOf(x) === i).join(' / ')
+  const options = (skip: string) => GENERATIONS.filter((g) => g.name !== skip).map((g) => <option key={g.key} value={g.name}>{g.name}{g.term ? ` (${g.term})` : ''}</option>)
+  const pick = (a: string, b: string) => {
+    setFirst(a)
+    setSecond(b)
+    onChange?.(join(a, b))
+  }
+  return (
+    <span className="gen-picker">
+      <select name={name} value={first} disabled={disabled} aria-label={label} onChange={(e) => pick(e.target.value, e.target.value ? second : '')}>
+        <option value="">{legacy ? `Sin elegir (decía «${value}»)` : 'Sin generación'}</option>
+        {options('')}
+      </select>
+      {first && (
+        <select name={name ? `${name}2` : undefined} value={second} disabled={disabled} aria-label={`${label}: segunda generación (si entró dos veces)`} onChange={(e) => pick(first, e.target.value)}>
+          <option value="">Una sola generación</option>
+          {options(first)}
+        </select>
+      )}
+    </span>
+  )
+}
 
 export interface PersonRow {
   passport: PassportPerson
@@ -173,7 +205,7 @@ export function PersonItem({
         )}
         {view === 'global' && (
         <span className="person-edit identity-edit">
-          <input defaultValue={p.generation ?? ''} maxLength={30} placeholder="Generación" aria-label={`Generación de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.generation ?? '') && onIdentity({ generation: e.target.value.trim() || null })} />
+          <GenerationPicker key={p.generation ?? ''} value={p.generation} label={`Generación de ${p.full_name}`} disabled={busy} onChange={(v) => v !== (p.generation ?? '') && onIdentity({ generation: v || null })} />
           <input defaultValue={p.joined_term ?? ''} maxLength={20} placeholder="Ingresó (2024-2)" aria-label={`Ingreso a inducción de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.joined_term ?? '') && onIdentity({ joined_term: e.target.value.trim() || null })} />
           <input defaultValue={p.nickname ?? ''} maxLength={24} placeholder="Apodo" aria-label={`Apodo de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.nickname ?? '') && onIdentity({ nickname: e.target.value.trim() || null })} />
           <select value={p.symbol ?? ''} disabled={busy} onChange={(e) => onIdentity({ symbol: e.target.value || null })} aria-label={`Símbolo de ${p.full_name}`}>
@@ -574,10 +606,12 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     const known = passports.find((x) => nameKey(x.full_name) === nameKey(fullName))
     if (known) return setError(`${known.full_name} ya existe (@${known.username}). Agrégalo a una carrera desde la pestaña Inductores de esa carrera.`)
     const extra: Record<string, unknown> = {}
-    for (const [k, col] of [['generation', 'generation'], ['joined', 'joined_term'], ['nickname', 'nickname']] as const) {
+    for (const [k, col] of [['joined', 'joined_term'], ['nickname', 'nickname']] as const) {
       const v = String(f.get(k) ?? '').trim()
       if (v) extra[col] = v
     }
+    const generation = [String(f.get('generation') ?? ''), String(f.get('generation2') ?? '')].filter(Boolean).join(' / ') // chosen from the catalog
+    if (generation) extra.generation = generation
     await run(async () => {
       const username = passportUsername(fullName, usernames)
       const password = newPassword()
@@ -757,7 +791,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
           <p className="muted">Se crea su usuario personal y se muestra la contraseña una sola vez. Su carrera, rol y comité se eligen al agregarla a una carrera.</p>
           <div className="grid2">
             <label className="inline-field">Nombre completo<input name="name" required minLength={3} maxLength={80} placeholder="Nombre Apellido" /></label>
-            <label className="inline-field">Generación<input name="generation" maxLength={30} placeholder="Peluches" /></label>
+            <label className="inline-field">Generación<GenerationPicker value="" name="generation" label="Generación" disabled={busy} /></label>
             <label className="inline-field">Ingresó<input name="joined" maxLength={20} placeholder="2027-1" /></label>
             <label className="inline-field">Apodo<input name="nickname" maxLength={24} /></label>
           </div>
