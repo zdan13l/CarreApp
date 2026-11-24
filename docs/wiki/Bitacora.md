@@ -2,7 +2,15 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
-## Generaciones con su sello, globales y permanentes (2026-11-23, migración 0039, pendiente de aplicar)
+## Menú por niveles, segmentación por momento y taller de sellos (2026-11-24, migración 0040, pendiente de aplicar)
+- **Menú:** dentro de una carrera ya no se ve la administración global (se llega con *Todas las carreras*). El menú de la carrera se arregló (la marca y la cuenta quedan fijas y la lista se desplaza; antes se aplastaba) y se quitó la barra de pestañas de arriba, que repetía el menú. Se agrupa en **Resumen y control**, **Preparación** (8 pasos numerados en orden) y **En carrera** (Puntajes, Radar); según el estado de la carrera se abre uno u otro grupo.
+- **Qué va en cada pantalla:** *Resumen y control* es la lista de pasos y pendientes mientras se prepara y la torre de control cuando corre; *Configuración* solo tiene ajustes (la lista de pendientes y el estado salieron de ahí). Cada pantalla muestra su lugar («Preparación · 3») y se llama igual que el menú (*Grupos participantes*, *Bases*, *Cruces*, *Puntajes*, *Radar*).
+- **Taller de sellos:** *Administración global → Sellos* es el único lugar donde se crean y cambian los sellos; se elige para qué es (generación, temática, subtemática, grupo, base o comité) y, salvo las generaciones, la inducción a la que pertenece. Las secciones solo muestran los sellos de su sección (sin editar) con un botón al taller; la pestaña *Sellos* de la carrera desapareció.
+- **Reglas en la base de datos (0040):** un sello solo puede ir en un elemento de SU carrera (temática propia, subtemática suya, grupo, base, comité que participa o su coordi) y se borra con su elemento.
+- **Pruebas:** `tests/db/taller-sellos-0040.test.ts`, `tests/unit/panel-shell.test.ts` y `tests/static/admin-modes.test.ts` actualizado.
+- Marcada la **0039** como aplicada.
+
+## Generaciones con su sello, globales y permanentes (2026-11-23, migración 0039, aplicada)
 - **Catálogo global:** nueva tabla `generations` (Champiñones, Peluches, Barbies, Minichips y Textiles, con el semestre en que entró cada una). Son de todas las inducciones y no cambian de una a otra.
 - **Página nueva** *Administración global → Generaciones*: el sello de cada generación se puede cambiar (forma, color e imagen; mientras no se edite queda el de siempre, y *Volver al de siempre* lo restaura), se corrige el semestre, se agregan generaciones nuevas y se borran las que no tienen personas. El nombre no se cambia.
 - **Se elige, no se escribe:** en Inductores (global) la generación de cada persona es un selector del catálogo (con un segundo selector si entró dos veces); la base de datos rechaza lo que no esté en el catálogo y lo guarda con el nombre exacto. El Excel de personas también se valida contra el catálogo.

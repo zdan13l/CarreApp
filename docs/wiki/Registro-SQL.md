@@ -51,7 +51,8 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0036 | [`0036_carreras_ciclo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0036_carreras_ciclo.sql) | 2026-11-22 | Código de carrera (2710, 2730, 2810…), carrera de prueba permanente, estado Finalizada, sin eliminar carreras e insignias globales |
 | 0037 | [`0037_carrera_propia.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0037_carrera_propia.sql) | 2026-11-22 | Temática y subtemáticas propias de cada carrera, comités y coordi por carrera y sellos propios con reglas de unicidad |
 | 0038 | [`0038_sellos_por_induccion.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0038_sellos_por_induccion.sql) | 2026-11-22 | Cada sello pertenece a una inducción; sellos de base editables; sellos arbitrarios en la carrera de prueba |
-| 0039 | [`0039_generaciones.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0039_generaciones.sql) | pendiente | Las generaciones con su sello, un catálogo global y permanente; la generación de cada persona se elige, no se escribe |
+| 0039 | [`0039_generaciones.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0039_generaciones.sql) | 2026-11-24 | Las generaciones con su sello, un catálogo global y permanente; la generación de cada persona se elige, no se escribe |
+| 0040 | [`0040_taller_de_sellos.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0040_taller_de_sellos.sql) | pendiente | Cada sello solo puede ir en un elemento de su carrera y se va con él; el taller de sellos es el único lugar donde se crean |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -607,6 +608,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/generations-0039.test.ts` (las cinco de siempre, solo el coordi las edita, forma y color van juntos, nombre inmodificable, se acepta una o dos generaciones del catálogo y se guardan con su nombre exacto, se rechaza lo que no existe, no se borra una con personas, lo anterior no se revalida).
 
 **Cómo revertir** `drop trigger passports_generation_known on public.passports;` `drop function public.passports_generation_known();` `alter table public.passports drop constraint passports_generation_check, add constraint passports_generation_check check (generation is null or length(trim(generation)) between 1 and 30);` `drop table public.generations;` `drop function public.generations_guard(), public.generation_keys(text), public.generation_plain(text);`
+
+## 0040 — Taller de sellos
+
+**Qué cambia** `event_seals_valid_ref` (se dispara antes que la regla de diseño único): un sello de temática, subtemática, grupo, base, comité o coordi está ligado a una carrera (inducción) y solo puede ponerse a un elemento de ESA carrera: la temática propia de la carrera, una subtemática de esa temática, un grupo o una base suyos, un comité que participa en ella o su coordi. Lo ya guardado no se revisa. Si un grupo, una base o un comité deja de pertenecer a la carrera, su sello se borra con él (`event_seals_drop_with_element`) y se limpian los sellos huérfanos que hubiera. Los sellos de las generaciones siguen siendo globales (tabla `generations`, sin inducción).
+
+**Por qué** Los sellos se crean en UN solo lugar (Administración global → Sellos): se elige para qué es (generación, temática, subtemática, grupo, base o comité) y, salvo las generaciones, la inducción a la que pertenece. Las secciones de cada carrera solo muestran los sellos de su sección, así que la base de datos tiene que impedir un sello ligado a una carrera equivocada.
+
+**Verificación** `tests/db/taller-sellos-0040.test.ts` (comité de otra carrera, temática de otra carrera o la plantilla, subtemática inventada, grupo y base de otra carrera, sin carrera, coordi equivocado, solo el coordi crea sellos, el sello se va con su elemento sin tocar los demás, los sellos de generación son globales).
+
+**Cómo revertir** `drop trigger event_seals_a_valid_ref on public.event_seals; drop trigger teams_drop_seal on public.teams; drop trigger bases_drop_seal on public.bases; drop trigger event_committees_drop_seal on public.event_committees; drop function public.event_seals_valid_ref(), public.event_seals_drop_with_element();`
 
 ## Plantilla para nuevos registros
 

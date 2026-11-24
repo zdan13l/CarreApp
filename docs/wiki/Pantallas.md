@@ -4,9 +4,13 @@ Dónde vive cada información y por qué. El criterio es sencillo: **cada dato v
 
 ## Coordinador (`/admin`)
 
-En el computador el menú lateral tiene dos grupos; en el celular la barra inferior muestra las pantallas en vivo y un botón **Preparar** que abre las de preparación.
+**El menú lateral muestra un nivel a la vez** (así nadie se pierde): fuera de una carrera ve *Todas las carreras*, el *Historial de resultados* y la *Administración global* (Inductores, Grupos organizativos, Comités, Generaciones, Insignias y **Sellos**, el taller donde se crean todos los sellos); **dentro de una carrera no aparece la administración global**: solo esa carrera, con un enlace para volver a *Todas las carreras*. El menú de una carrera tiene tres partes que siguen su vida: **Resumen y control** (siempre), **Preparación** (8 pasos numerados en el orden en que se hacen: 1 Configuración, 2 Temática, 3 Grupos participantes, 4 Bases, 5 Cruces, 6 Coordi y comités, 7 Inductores, 8 Usuarios) y **En carrera** (Puntajes y Radar). Antes de iniciar, Preparación está abierta y En carrera plegada («al iniciar»); desde que corre es al revés y Preparación queda plegada («protegida mientras corre»); el grupo de la página donde estás siempre se ve. No hay barra de pestañas arriba: en el celular solo una línea con el código, el nombre y el estado. Cada pantalla dice en su cabecera su lugar («Preparación · 3») y se llama igual que en el menú.
 
-El panel tiene **dos modos** que se eligen arriba del menú lateral: **Preparación** (crear la Carrera) y **En carrera** (verla correr). Cambia solo de modo al activar o terminar la Carrera; mientras corre, Preparación sigue disponible con un aviso. **Finalizar Carrera** (en *En vivo*) o desactivarla **reinicia todo su avance**, pero antes **descarga los resultados** (CSV con la clasificación y el detalle por cruce; también hay un botón *Descargar resultados* en *En vivo* y en *Puntajes*) (puntajes, llegadas, avisos, ubicaciones, registro) y conserva grupos, bases, usuarios y cronograma.
+**Resumen y control según el momento:** mientras la carrera se prepara (Deshabilitada o Habilitada) es **la lista de pasos y pendientes** (los mismos 8 pasos del menú, los obligatorios con círculo, y qué falta para habilitar) con el control de estado; desde que inicia es **la torre de control** (indicadores, tablero de vuelos, puertas, demoras, registro y top). *Configuración* solo tiene ajustes (carga desde un archivo y tiempos de traslado): nada del estado ni de los pendientes, que viven en un solo lugar.
+
+**Sellos (taller global):** se elige *para qué* es el sello (generación, temática, subtemática, grupo, base o comité) y, salvo las generaciones (permanentes), *la inducción* a la que pertenece; el sello solo vale en esa carrera. Las secciones de cada carrera (Temática, Grupos participantes, Bases, Coordi y comités) y Generaciones **solo muestran** los sellos de su sección, con un botón al taller.
+
+**Finalizar Carrera** (en *En vivo*) o desactivarla **reinicia todo su avance**, pero antes **descarga los resultados** (CSV con la clasificación y el detalle por cruce; también hay un botón *Descargar resultados* en *En vivo* y en *Puntajes*) (puntajes, llegadas, avisos, ubicaciones, registro) y conserva grupos, bases, usuarios y cronograma.
 
 ### Durante la Carrera (modo En carrera)
 | Pantalla | Qué muestra | Para qué |
@@ -81,4 +85,4 @@ La hoja de la cuenta (avatar de la barra) tiene los ajustes de **sonido y notifi
 
 **Pasos de la ventanilla (base):** Llegada, Etapas y Sello se ven desde que los grupos vienen en camino; Sello queda «Puesto» cuando la base confirma «Ya los dejé ir».
 
-**Panel del coordi (0036):** tres niveles: *Todas las carreras* (`/admin`), *una carrera* (`/admin/carreras/<id>/…` con su código, estado, lo permitido y sus pestañas) y *Administración global* (inductores, grupos de carreras, comités, **generaciones con su sello (0039)**, insignias, sellos, historial). Ver la Bitácora.
+**Panel del coordi (0036):** tres niveles: *Todas las carreras* (`/admin`), *una carrera* (`/admin/carreras/<id>/…` con su código, estado, lo permitido y sus pestañas) y *Administración global* (inductores, grupos de carreras, comités, **generaciones (0039)**, insignias, el **taller de sellos (0040)** e historial). Ver la Bitácora.

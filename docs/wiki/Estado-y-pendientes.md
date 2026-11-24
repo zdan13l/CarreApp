@@ -5,7 +5,7 @@ Foto del proyecto al **2026-11-22**, para retomar el trabajo en una conversació
 ## Dónde está todo
 - Repositorio: `https://github.com/zdan13l/CarreApp` (rama `main`; Vercel despliega solo en ~15 s). Carpeta local: `C:\Users\zdan1\Downloads\Carrera2710`.
 - Wiki: `https://github.com/zdan13l/CarreApp.wiki.git` (rama `master`). Se publica copiando `docs/wiki/*.md` a un clon de la wiki y haciendo push.
-- Base de datos: Supabase; **las migraciones `0001` a `0038` están aplicadas (la `0039`, Generaciones, está pendiente de aplicar)** (de la `0028` a la `0038` el 2026-11-22; la `0023` el 2026-11-19; la `0024` el 2026-11-19/20; la `0025` y la `0026` el 2026-11-20 y la `0027` el 2026-11-21). El usuario las aplica a mano en el SQL Editor; ver el registro.
+- Base de datos: Supabase; **las migraciones `0001` a `0039` están aplicadas (la `0040`, taller de sellos, está pendiente de aplicar)** (de la `0028` a la `0038` el 2026-11-22; la `0023` el 2026-11-19; la `0024` el 2026-11-19/20; la `0025` y la `0026` el 2026-11-20 y la `0027` el 2026-11-21). El usuario las aplica a mano en el SQL Editor; ver el registro.
 
 ## Qué hace la app (resumen)
 Roles: **coordinador** (PC), **inductor de base** y **corredor** (iPhone). Cada Carrera es una edición con grupos, bases, usuarios, cruces (cronograma) y puntajes. Solo una Carrera activa a la vez.
