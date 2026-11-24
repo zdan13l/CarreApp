@@ -1,4 +1,5 @@
 import { Upload } from 'lucide-react'
+import CustomSealsManager from '../../components/CustomSealsManager'
 import { useCallback, useEffect, useState } from 'react'
 import CommitteeSeal from '../../components/CommitteeSeal'
 import EventSealView from '../../components/EventSealView'
@@ -138,6 +139,7 @@ export default function CarreraSellos() {
           </section>
         )
       })}
+      {!locked && event && <CustomSealsManager eventId={event.id} />}
     </>
   )
 }

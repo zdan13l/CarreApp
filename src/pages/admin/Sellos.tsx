@@ -1,14 +1,10 @@
-import { Trash2, Upload } from 'lucide-react'
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
 import { MythPicture } from '../../components/InkSeals'
-import { hslToHex } from '../../lib/color'
-import { confirmDialog } from '../../lib/dialog'
-import { loadCustomSeals, pictureToInk, removeSeal, uploadSeal } from '../../lib/customSeals'
-import { MYTH_SEALS, SEAL_ORDER, sealCount, sealOf, type CustomSealRow, type MythSeal } from '../../lib/seals'
+import { SEAL_ORDER, sealOf, type MythSeal } from '../../lib/seals'
 import { supabase } from '../../lib/supabase'
-import { photoUrl } from '../../lib/storage'
 
-const CULTURES: Record<string, string> = { egipcia: 'Egipcia', nordica: 'Nórdica', griega: 'Griega', mexicana: 'Mexicana', china: 'China', otra: 'Otra' }
+const CULTURES: Record<string, string> = { egipcia: 'Egipcia', nordica: 'Nórdica', griega: 'Griega', mexicana: 'Mexicana', china: 'China' }
 
 // One seal at its real size, in its own ink.
 function SealFace({ seal, color }: { seal: MythSeal; color: string }) {
@@ -23,114 +19,44 @@ function SealFace({ seal, color }: { seal: MythSeal; color: string }) {
   )
 }
 
-// The coordinator's place for the seals: the ones the app brings (each with its own colour) and the ones uploaded. A Carrera cannot have more
-// bases than seals (migration 0034): to have more bases, upload more seals here first.
+// GLOBAL: the library of the seals the app brings (read only). Seals are made and edited INSIDE each carrera (its Sellos tab): the seals of its
+// theme, subthemes, groups, committees and bases, and the extra ones it uploads. Nothing is made here, so nothing is made twice.
 export default function Sellos() {
-  const [custom, setCustom] = useState<CustomSealRow[]>([])
-  const [bases, setBases] = useState<{ event: string; n: number }[]>([])
-  const [events, setEvents] = useState<{ id: string; name: string }[]>([])
-  const [eventId, setEventId] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [file, setFile] = useState<File | null>(null)
-  const [invert, setInvert] = useState(false)
-  const [name, setName] = useState('')
-  const [culture, setCulture] = useState('otra')
-  const [color, setColor] = useState(() => hslToHex(170, 60, 35))
-  const [story, setStory] = useState('')
-  const [preview, setPreview] = useState<string | null>(null)
+  const [rows, setRows] = useState<{ id: string; name: string; code: string | null; is_test: boolean; bases: number; seals: number }[]>([])
 
   const load = useCallback(async () => {
-    setCustom(await loadCustomSeals())
     if (!supabase) return
-    const [{ data: b }, { data: e }] = await Promise.all([supabase.from('bases').select('event_id'), supabase.from('events').select('id, name')])
-    const names = new Map((e ?? []).map((x) => [x.id as string, x.name as string]))
-    setEvents((e ?? []).map((x) => ({ id: x.id as string, name: x.name as string })))
-    const count = new Map<string, number>()
-    for (const r of b ?? []) count.set(r.event_id as string, (count.get(r.event_id as string) ?? 0) + 1)
-    setBases([...count].map(([id, n]) => ({ event: names.get(id) ?? '—', n })).sort((x, y) => y.n - x.n))
+    const [e, b, s] = await Promise.all([
+      supabase.from('events').select('id, name, code, is_test').order('created_at', { ascending: false }),
+      supabase.from('bases').select('event_id'),
+      supabase.from('event_seals').select('event_id'),
+    ])
+    const count = (list: { event_id: string }[] | null) => {
+      const m = new Map<string, number>()
+      for (const r of list ?? []) m.set(r.event_id, (m.get(r.event_id) ?? 0) + 1)
+      return m
+    }
+    const bases = count(b.data)
+    const seals = count(s.data)
+    setRows((e.data ?? []).map((x) => ({ id: x.id as string, name: x.name as string, code: x.code as string | null, is_test: Boolean(x.is_test), bases: bases.get(x.id as string) ?? 0, seals: seals.get(x.id as string) ?? 0 })))
   }, [])
   useEffect(() => {
     void load()
   }, [load])
 
-  // the converted picture, shown before uploading
-  useEffect(() => {
-    let url: string | null = null
-    let cancelled = false
-    if (!file) {
-      setPreview(null)
-      return
-    }
-    void pictureToInk(file, invert, 256)
-      .then((blob) => {
-        if (cancelled) return
-        url = URL.createObjectURL(blob)
-        setPreview(url)
-      })
-      .catch(() => setPreview(null))
-    return () => {
-      cancelled = true
-      if (url) URL.revokeObjectURL(url)
-    }
-  }, [file, invert])
-
-  const capacity = sealCount(eventId || null)
-  const most = bases[0]?.n ?? 0
-
-  async function upload() {
-    if (!file || !name.trim() || !eventId) return
-    setBusy(true)
-    setError(null)
-    setNotice(null)
-    try {
-      const blob = await pictureToInk(file, invert)
-      const err = await uploadSeal(blob, { name, culture, color, story, event_id: eventId })
-      if (err) setError(err)
-      else {
-        setNotice(`Sello «${name.trim()}» agregado. Ya hay ${capacity + 1} sellos.`)
-        setFile(null)
-        setName('')
-        setStory('')
-        await load()
-      }
-    } catch {
-      setError('No se pudo leer la imagen.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function remove(row: CustomSealRow) {
-    if (!(await confirmDialog({ title: `¿Borrar el sello «${row.name}»?`, message: 'Las bases que lo tenían reciben otro sello.', confirmLabel: 'Borrar sello', tone: 'danger', icon: 'trash' }))) return
-    setError(null)
-    const err = await removeSeal(row)
-    if (err) setError(err)
-    else await load()
-  }
-
   return (
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Preparación</p>
-          <h1>Sellos</h1>
+          <p className="eyebrow">Administración global</p>
+          <h1>Biblioteca de sellos</h1>
         </div>
-        <p className="head-meta">Cada sello que subes pertenece a UNA carrera y solo se usa en ella. Una carrera no puede tener más bases que sellos (los 15 de la app, de siempre, más los que subas para ella).</p>
+        <p className="head-meta">Los sellos de siempre de la app. Cada carrera los usa, los edita y sube los suyos en su pestaña Sellos.</p>
       </header>
-      {error && <p className="error">{error}</p>}
-      {notice && <p className="ok-box">{notice}</p>}
 
       <section className="card">
-        <h2>
-          {capacity} sellos <span className="muted">· {eventId ? `hasta ${capacity} bases en esa carrera` : 'elige una carrera para ver su límite'}</span>
-        </h2>
-        <p className="muted">
-          {bases.length === 0
-            ? 'Todavía no hay bases.'
-            : `La carrera con más bases tiene ${most}${most >= capacity ? ': ya no caben más, sube sellos antes de crear otra base' : `, quedan ${capacity - most} sellos libres`}.`}
-        </p>
+        <h2>Los 15 sellos de la app</h2>
+        <p className="muted">Cinco mitologías, tres sellos cada una, cada uno con su color. Son los de siempre (los de la 2710); editarlos para otra carrera se hace en esa carrera.</p>
         <div className="seal-grid">
           {SEAL_ORDER.map((k) => {
             const s = sealOf(k)
@@ -145,75 +71,23 @@ export default function Sellos() {
               </figure>
             )
           })}
-          {custom.map((r) => {
-            const s: MythSeal = { key: r.id, name: r.name, story: r.story ?? '', culture: r.culture, frame: 'circle', file: photoUrl(r.path) ?? '', color: r.color }
-            return (
-              <figure key={r.id} className="seal-item custom">
-                <SealFace seal={s} color={r.color} />
-                <figcaption>
-                  <strong>{r.name}</strong>
-                  <small>{CULTURES[r.culture] ?? r.culture} · {events.find((x) => x.id === r.event_id)?.name ?? 'sin carrera'}</small>
-                  <i className="swatch" style={{ background: r.color }} aria-hidden="true" />
-                </figcaption>
-                <button type="button" className="ghost icon-btn danger" onClick={() => void remove(r)} aria-label={`Borrar el sello ${r.name}`} title="Borrar">
-                  <Trash2 size={18} />
-                </button>
-              </figure>
-            )
-          })}
         </div>
-        <p className="muted">{MYTH_SEALS.length} del sistema + {custom.length} subidos.</p>
       </section>
 
       <section className="card">
-        <h2>Subir un sello</h2>
-        <p className="muted">Sube un dibujo (mejor oscuro sobre fondo claro, o con fondo transparente, hasta 2 MB). La app lo convierte a tinta y lo imprime en el color que elijas.</p>
-        <label className="inline-field">
-          Inducción (carrera) a la que pertenece
-          <select value={eventId} onChange={(e) => setEventId(e.target.value)}>
-            <option value="">Elige…</option>
-            {events.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
-          </select>
-        </label>
-        <label className="inline-field">
-          Imagen
-          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        </label>
-        <label className="inline-field">
-          <span>
-            <input type="checkbox" checked={invert} onChange={(e) => setInvert(e.target.checked)} /> El dibujo es claro sobre fondo oscuro (invertir)
-          </span>
-        </label>
-        <label className="inline-field">
-          Nombre
-          <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} placeholder="Colibrí" />
-        </label>
-        <label className="inline-field">
-          Mitología
-          <select value={culture} onChange={(e) => setCulture(e.target.value)}>
-            {Object.entries(CULTURES).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </select>
-        </label>
-        <label className="inline-field">
-          Color (distinto al de los demás sellos)
-          <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
-        </label>
-        <label className="inline-field">
-          Qué es (opcional)
-          <input value={story} maxLength={400} onChange={(e) => setStory(e.target.value)} placeholder="Una frase para el inductor de la base" />
-        </label>
-        {preview && (
-          <span className="seal-face seal-preview" style={{ '--stamp-ink': color } as CSSProperties}>
-            <span className="seal-mask" style={{ WebkitMaskImage: `url(${preview})`, maskImage: `url(${preview})` }} />
-          </span>
-        )}
-        <div className="row">
-          <button disabled={busy || !file || !name.trim() || !eventId} onClick={() => void upload()}>
-            <Upload size={18} aria-hidden="true" /> {busy ? 'Subiendo…' : 'Subir sello'}
-          </button>
-        </div>
+        <h2>Sellos de cada carrera</h2>
+        <ul className="list">
+          {rows.map((r) => (
+            <li key={r.id}>
+              <span className="grow">
+                <strong>{r.is_test ? 'Carrera de prueba' : r.name}</strong>
+                <small className="muted"> · {r.bases} bases · {r.seals} sellos propios</small>
+              </span>
+              <Link className="btn-like" to={`/admin/carreras/${r.id}/sellos`}>Abrir sellos</Link>
+            </li>
+          ))}
+          {rows.length === 0 && <li className="muted">Todavía no hay carreras.</li>}
+        </ul>
       </section>
     </>
   )

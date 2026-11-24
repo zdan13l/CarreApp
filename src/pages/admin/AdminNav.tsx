@@ -25,23 +25,23 @@ export const CARRERA_TABS: { path: string; label: string; icon: ReactNode; end?:
   { path: 'configuracion', label: 'Configuración', icon: <Settings2 {...ICON} /> },
   { path: 'tematica', label: 'Temática', icon: <Palette {...ICON} /> },
   { path: 'sellos', label: 'Sellos', icon: <Stamp {...ICON} /> },
-  { path: 'grupos', label: 'Grupos', icon: <Users {...ICON} /> },
+  { path: 'grupos', label: 'Grupos participantes', icon: <Users {...ICON} /> },
   { path: 'bases', label: 'Bases', icon: <MapPin {...ICON} /> },
   { path: 'cruces', label: 'Cruces', icon: <Swords {...ICON} /> },
   { path: 'inductores', label: 'Inductores', icon: <Contact {...ICON} /> },
   { path: 'comites', label: 'Coordi y comités', icon: <Network {...ICON} /> },
   { path: 'usuarios', label: 'Usuarios', icon: <KeyRound {...ICON} /> },
-  { path: 'puntajes', label: 'Pasaportes', icon: <ShieldCheck {...ICON} /> },
+  { path: 'puntajes', label: 'Puntajes', icon: <ShieldCheck {...ICON} /> },
   { path: 'mapa', label: 'Radar', icon: <Radar {...ICON} /> },
 ]
 
 /** Shared by every carrera. */
 export const GLOBAL_TABS: NavItem[] = [
   { to: '/admin/inductores', label: 'Inductores', icon: <Contact {...ICON} /> },
-  { to: '/admin/programas', label: 'Grupos de carreras', icon: <GraduationCap {...ICON} /> },
+  { to: '/admin/programas', label: 'Grupos organizativos', icon: <GraduationCap {...ICON} /> },
   { to: '/admin/comites', label: 'Comités', icon: <Network {...ICON} /> },
   { to: '/admin/insignias', label: 'Insignias', icon: <Medal {...ICON} /> },
-  { to: '/admin/sellos', label: 'Sellos', icon: <Stamp {...ICON} /> },
+  { to: '/admin/sellos', label: 'Biblioteca de sellos', icon: <Stamp {...ICON} /> },
 ]
 
 export interface NavEvent {
@@ -77,7 +77,7 @@ export default function AdminNav({
   const [sheet, setSheet] = useState<'carrera' | 'global' | null>(null)
   const { pathname } = useLocation()
   const base = event ? `/admin/carreras/${event.id}` : ''
-  const inGlobal = GLOBAL_TABS.some((t) => pathname.startsWith(t.to)) || pathname.startsWith('/admin/historial')
+  const inGlobal = GLOBAL_TABS.some((t) => pathname.startsWith(t.to))
   const close = () => setSheet(null)
 
   const link = (t: NavItem, onClick?: () => void) => (
@@ -88,7 +88,7 @@ export default function AdminNav({
   )
   const carreraLinks = (onClick?: () => void) =>
     CARRERA_TABS.map((t) => link({ to: t.path ? `${base}/${t.path}` : base, label: t.label, icon: t.icon, end: t.end }, onClick))
-  const globalLinks = (onClick?: () => void) => [...GLOBAL_TABS, { to: '/admin/historial', label: 'Historial', icon: <History {...ICON} /> }].map((t) => link(t, onClick))
+  const globalLinks = (onClick?: () => void) => GLOBAL_TABS.map((t) => link(t, onClick))
   const name = event ? (event.is_test ? 'Carrera de prueba' : event.name) : null
 
   return (
@@ -112,6 +112,7 @@ export default function AdminNav({
       <nav className="nav-desktop" aria-label="Secciones del panel">
         <p className="nav-label">Carreras</p>
         {link({ to: '/admin', label: 'Todas las carreras', icon: <LayoutGrid {...ICON} />, end: true })}
+        {link({ to: '/admin/historial', label: 'Historial de resultados', icon: <History {...ICON} /> })}
         {event && (
           <>
             <p className="nav-label nav-sub">{name}{event.code && !name?.includes(event.code) ? ` · ${event.code}` : ''}</p>
