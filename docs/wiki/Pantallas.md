@@ -81,4 +81,4 @@ La hoja de la cuenta (avatar de la barra) tiene los ajustes de **sonido y notifi
 
 **Pasos de la ventanilla (base):** Llegada, Etapas y Sello se ven desde que los grupos vienen en camino; Sello queda «Puesto» cuando la base confirma «Ya los dejé ir».
 
-**Panel del coordi (0036):** tres niveles: *Todas las carreras* (`/admin`), *una carrera* (`/admin/carreras/<id>/…` con su código, estado, lo permitido y sus pestañas) y *Administración global* (inductores, grupos de carreras, comités, insignias, sellos, historial). Ver la Bitácora.
+**Panel del coordi (0036):** tres niveles: *Todas las carreras* (`/admin`), *una carrera* (`/admin/carreras/<id>/…` con su código, estado, lo permitido y sus pestañas) y *Administración global* (inductores, grupos de carreras, comités, **generaciones con su sello (0039)**, insignias, sellos, historial). Ver la Bitácora.

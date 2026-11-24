@@ -2,6 +2,13 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Generaciones con su sello, globales y permanentes (2026-11-23, migración 0039, pendiente de aplicar)
+- **Catálogo global:** nueva tabla `generations` (Champiñones, Peluches, Barbies, Minichips y Textiles, con el semestre en que entró cada una). Son de todas las inducciones y no cambian de una a otra.
+- **Página nueva** *Administración global → Generaciones*: el sello de cada generación se puede cambiar (forma, color e imagen; mientras no se edite queda el de siempre, y *Volver al de siempre* lo restaura), se corrige el semestre, se agregan generaciones nuevas y se borran las que no tienen personas. El nombre no se cambia.
+- **Se elige, no se escribe:** en Inductores (global) la generación de cada persona es un selector del catálogo (con un segundo selector si entró dos veces); la base de datos rechaza lo que no esté en el catálogo y lo guarda con el nombre exacto. El Excel de personas también se valida contra el catálogo.
+- **Pasaporte y PDF:** usan el sello editado (con su imagen) de la generación; una generación sin sello todavía (Minichips) no muestra ninguno hasta que se edite.
+- **Pruebas:** `tests/db/generations-0039.test.ts`, `tests/unit/generations.test.ts`, `tests/static/generations.test.ts`.
+
 ## Panel sin información repetida (2026-11-23, sin migración)
 Auditoría de lo que se pedía o se mostraba en más de un lugar. Regla: **cada cosa se crea y se cambia en UN solo lugar; los demás la usan o la enlazan.**
 - **Personas:** *Administración global → Inductores* es el único lugar donde se **crea** una persona (su login, identidad, ancestro, contraseña, eliminar) y muestra en qué carreras participa. Dentro de una carrera, *Inductores* solo **agrega a la carrera** a alguien ya registrado (carrera, rol, comité) o lo **quita de la carrera**; ya no se crean personas ni se elige otro semestre ahí, y el Excel masivo vive solo dentro de la carrera. La misma persona puede tener otro rol y comité en otra carrera sin tocar la primera.

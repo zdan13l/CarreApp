@@ -152,6 +152,8 @@ erDiagram
   }
 ```
 
+**Generaciones (0039):** `generations` es un catálogo global y permanente (clave = nombre sin tildes, semestre de entrada, sello de siempre y sello editado: forma, color, imagen). `passports.generation` guarda los nombres exactos del catálogo (uno, o dos separados por « / ») y un disparador rechaza lo que no esté; una generación con personas no se borra ni se renombra.
+
 ## Reglas de negocio (las hace cumplir la base de datos)
 
 | Regla | Cómo se garantiza |
