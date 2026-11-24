@@ -2,6 +2,14 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Centro de control con identidad Visado, en modo claro y oscuro (2026-11-24, sin migración)
+- **Mismo idioma que el corredor y la base:** el panel ya no es una torre oscura con colores de instrumento (cian, verde radar): usa las mismas variables de la app y **sigue el modo claro y el oscuro** (interruptor en la cuenta del menú). Fondo con la trama de la entrada (papel en claro, noche en oscuro).
+- **El mostrador:** el menú lateral es azul marino con la lámina dorada en lo activo (en el celular, la pastilla flotante del corredor con la hoja de «Esta carrera» arriba de ella).
+- **Pases de abordar:** el encabezado de *Resumen y control* (`CarreraTicket`), cada carrera de *Todas las carreras* (el código es el talón), cada puerta de la ronda y la tira de indicadores (un solo pase, una celda por indicador, en vez de seis tarjetas iguales).
+- **Tablero de salidas:** los vuelos en azul marino en los dos modos, con los estados en colores claros (`--on-hero-ok/warn/danger`).
+- **Cada pantalla:** título con línea de lámina dorada y, en Preparación, la etiqueta «Paso n de 8» (el número del menú). Se quitaron los rótulos sobre los títulos («Administración global», «Flight Control»…).
+- **Pruebas:** `tests/static/torre.test.ts` (sigue el modo de la app, usa el lenguaje de Visado, los colores del azul existen en los dos modos) y `tests/unit/panel-shell.test.ts`.
+
 ## Menú por niveles, segmentación por momento y taller de sellos (2026-11-24, migración 0040, pendiente de aplicar)
 - **Menú:** dentro de una carrera ya no se ve la administración global (se llega con *Todas las carreras*). El menú de la carrera se arregló (la marca y la cuenta quedan fijas y la lista se desplaza; antes se aplastaba) y se quitó la barra de pestañas de arriba, que repetía el menú. Se agrupa en **Resumen y control**, **Preparación** (8 pasos numerados en orden) y **En carrera** (Puntajes, Radar); según el estado de la carrera se abre uno u otro grupo.
 - **Qué va en cada pantalla:** *Resumen y control* es la lista de pasos y pendientes mientras se prepara y la torre de control cuando corre; *Configuración* solo tiene ajustes (la lista de pendientes y el estado salieron de ahí). Cada pantalla muestra su lugar («Preparación · 3») y se llama igual que el menú (*Grupos participantes*, *Bases*, *Cruces*, *Puntajes*, *Radar*).

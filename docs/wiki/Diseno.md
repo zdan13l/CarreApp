@@ -6,7 +6,7 @@ Guía visual de CarreApp. Sirve para que cualquier pantalla nueva se vea igual q
 **Un viaje internacional.** Cada grupo es un vuelo, cada base es un destino con puerta y código de aeropuerto, y el pasaporte es la prueba del viaje. Un mismo lenguaje (sellos, códigos de tres letras, indicativos de vuelo, el escudo de la Universidad) y dos experiencias distintas:
 
 - **Corredores: viajeros.** Papel limpio (sin tramas de fondo), portada azul con **lámina dorada**, fotografías inmersivas y un pasaporte digital con **los sellos de las bases**. **Claro por defecto** (el papel se lee mejor al sol) y un modo oscuro "pasaporte de noche".
-- **Coordinador: torre de control.** Un centro de operaciones **siempre oscuro** (sin importar el modo de la app), con rejilla de cartografía, radar, tablero de vuelos y colores de instrumento (verde radar, ámbar, cian, rojo). Las mismas variables de color de siempre, con otros valores dentro de `.tower`.
+- **Coordinador: centro de control.** Habla el mismo idioma que el corredor y la base y **sigue el modo claro / oscuro** de la app (papel de seguridad con la trama de la entrada, o la noche del pasaporte): el **mostrador** azul marino (menú lateral; en el celular la pastilla flotante), el **pase de abordar** (cada carrera, el encabezado de Resumen y control, cada puerta de la ronda y la tira de indicadores), el **tablero de salidas** azul marino para los vuelos, la lámina dorada en lo activo y las etiquetas monoespaciadas. Sin paleta propia: usa las mismas variables que el resto de la app (`--pass-navy`, `--pass-gold`, `--foil`, `--on-hero-*`).
 
 Sin emojis: iconos de línea (Lucide) y escudos con iniciales. Sin fuentes nuevas. Todo el vocabulario aeroportuario sale de datos reales (grupos, bases, cruces), nunca se guarda ni se inventa: `src/lib/flight.ts`.
 
@@ -34,14 +34,15 @@ Sin emojis: iconos de línea (Lucide) y escudos con iniciales. Sin fuentes nueva
 ### Tarjeta de destino (pestaña *Visado* del corredor)
 La foto de la base ocupa la tarjeta (4:5) con la **señalética**: puerta, código de aeropuerto y estado (*Disponible*, *En puerta*, *En juego*); debajo, el rival, las **tres etapas** como un trayecto (con quién ganó cada una) y el sello esperando. El destino siguiente es una **tarjeta de embarque**.
 
-### Torre de control (coordinador)
-- **Live Monitoring** (indicadores): ronda, vuelos en ruta, en puerta, aterrizados, demoras y vuelos con GPS.
-- **Flight Control** (tablero de vuelos): indicativo, grupo, destino, puerta, estado, destinos completados y hora del último sello.
-- **Gate Management** (puertas): las bases de la ronda con su código, y la pantalla *Puertas* (antes *Bases*).
-- **Passport Verification** (*Pasaportes*): una celda por destino de cada vuelo con su estado, y la corrección de resultados de siempre.
-- **Operations Log** (registro de operaciones): llegadas confirmadas, cruces terminados y avisos enviados, solo con registros reales.
-- **Flight Radar** (*Radar*): el mapa nocturno con retícula y barrido de radar; cada grupo lleva su indicativo.
-- Menú con el escudo de la Universidad, la marca y la **hora local** (corregida con la del servidor).
+### Centro de control (coordinador)
+- **Encabezado de la carrera** (`CarreraTicket`, el mismo pase `.tc` del corredor): el nombre y el estado a la izquierda y el código (el número de vuelo del talón) a la derecha; la línea de arriba es un dato (ronda, vuelos, grupos y bases), no un rótulo.
+- **Indicadores:** UN solo pase con una celda por indicador (ronda, vuelos en ruta, en puerta, aterrizados, demoras y GPS), separadas por una línea fina y con muescas en los bordes.
+- **Vuelos** (`FlightBoard`): tablero de salidas azul marino en los dos modos: indicativo, grupo, destino, puerta, estado, destinos completados y hora del último sello.
+- **Puertas:** cada puerta de la ronda es un pase de abordar con su talón (el marcador y los avisos).
+- **Puntajes** (matriz de verificación de sellos), **registro de operaciones** (solo registros reales) y **radar** (mapa nocturno dentro de un marco azul marino con esquinas doradas).
+- **Todas las carreras:** cada edición es un pase de abordar; el código es el talón.
+- **Cada pantalla:** el título, una línea de lámina dorada y, en Preparación, la etiqueta «Paso n de 8» (`StepTag`, el mismo número del menú). No hay rótulos sobre los títulos.
+- Menú con el escudo, la marca y la **hora local** (corregida con la del servidor), y el interruptor claro / oscuro en la cuenta.
 
 ### Entrada
 El login es **la foto del campus a pantalla completa** (`public/campus.jpg` y `campus-800.jpg` para teléfonos), el logo de CarreApp arriba a la izquierda (frente al interruptor de modo claro u oscuro), la frase "Un sello por cada base que alcances" y el formulario como una **tarjeta de embarque** (PUJ → 2710, perforación con talón, código de barras y líneas de lectura). **En el celular cabe entera, sin scroll** (100dvh): si la pantalla es baja, la tarjeta se compacta (sin código de barras y, en las muy bajas, sin talón). En PC, la foto a la izquierda y la tarjeta a la derecha. Ya no aparece la palabra "Pasaporte" en el login.
