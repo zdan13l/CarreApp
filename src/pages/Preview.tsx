@@ -21,6 +21,7 @@ import LazyMap from '../components/LazyMap'
 import Ranking from '../components/Ranking'
 import RoundPager from '../components/RoundPager'
 import AdminNav, { AdminTopbar } from './admin/AdminNav'
+import CarreraTicket from '../components/CarreraTicket'
 import PrepSteps, { PrepReport } from '../components/PrepSteps'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
@@ -675,38 +676,26 @@ export default function Preview() {
           {screen === 'admin' || screen === 'admin-carrera' ? (
             screen === 'admin' ? (
               <>
-                <header className="page-head">
-                  <div>
-                    <p className="eyebrow">Live Monitoring · Carrera 2027-1</p>
-                    <h1>Control de vuelos</h1>
-                  </div>
-                  <div className="head-meta">
-                    <span className="badge ok live">Activa</span>
-                    <span>Ronda 2 de 2</span>
-                    <button className="ghost">Descargar resultados</button>
-                    <button className="ghost danger">Finalizar Carrera</button>
-                  </div>
-                </header>
-                <div className="kpis">
+                <CarreraTicket name="Carrera 2027-1" code="2710" isTest={false} phase="started" line="Ronda 2 de 2 · 5 vuelos" onExport={() => {}} />
+                <div className="kpi-strip"><div className="kpis">
                   <Kpi tone="accent" label="Ronda en curso" value="2/2" sub="0 de 2 cruces terminados" />
                   <Kpi label="En ruta" value={1} sub="vuelo hacia su destino" />
                   <Kpi label="En puerta" value={2} sub="la base confirmó su llegada" />
                   <Kpi label="Aterrizados" value="1/5" sub="con todos sus sellos" />
                   <Kpi tone="hot" label="Demoras" value={1} sub="vuelo tarde al traslado" />
                   <Kpi label="Radar" value="3/5" sub="vuelos con GPS" to="#" />
-                </div>
+                </div></div>
                 <FlightBoard teams={towerTeams} matches={towerMatches} baseName={towerBases} codes={towerCodes} lateIds={new Set(['t1'])} />
                 <div className="live-grid">
                   <div>
                     <section className="card">
                       <div className="match-head">
                         <div>
-                          <p className="eyebrow">Gate Management</p>
                           <h2>Puertas · Ronda 2</h2>
                         </div>
                         <span className="chip">0 de 2 terminados</span>
                       </div>
-                      <ul className="list">
+                      <ul className="list gates">
                         {towerMatches.filter((m) => m.round_number === 2).map((m) => (
                           <li key={m.id} className="mrow">
                             <span className="mbase"><b className="mono gate-code">{airportCode(towerBases.get(m.base_id) ?? '')}</b><strong>{towerBases.get(m.base_id)}</strong></span>

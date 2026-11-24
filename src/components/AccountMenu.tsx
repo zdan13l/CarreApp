@@ -22,7 +22,7 @@ export default function AccountMenu({
   onSignOut: () => void
   placement?: 'down' | 'up'
   roleLabel?: string
-  showTheme?: boolean // the coordinator's panel is always dark: no switch there
+  showTheme?: boolean // the switch light / dark
   short?: boolean // phone top bar: the button shows the @user and opens a sheet
   alerts?: boolean // the sheet also holds the sound and notification switches (runners and bases)
 }) {

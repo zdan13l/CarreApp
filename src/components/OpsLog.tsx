@@ -53,7 +53,6 @@ export default function OpsLog({ events }: { events: OpEvent[] }) {
     <section className="card oplog">
       <header className="board-head">
         <div>
-          <p className="eyebrow">Operations Log</p>
           <h2>Registro de operaciones</h2>
         </div>
       </header>

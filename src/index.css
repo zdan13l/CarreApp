@@ -41,6 +41,8 @@
   --on-hero-ok: #7cf0c8;
   --on-hero-gold: #ffc53d;
   --on-hero-sky: #66b3ff;
+  --on-hero-warn: #ffc069;
+  --on-hero-danger: #ff9aa5;
   --medal-1: #ffc53d;
   --medal-2: #c9d3e6;
   --medal-3: #d98b52;
@@ -71,24 +73,6 @@
   --foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;
   --plate-a: #0a1f4a; --plate-b: #031538; --plate-line: rgba(242, 207, 122, .28); --plate-disc: rgba(2, 12, 36, .55); /* the career plates are always navy and gold */
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
-  /* Torre de control (coordi): siempre oscura, con colores de instrumento */
-  --tw-bg: #060b13;
-  --tw-surface: #0b131e;
-  --tw-surface-2: #111c2a;
-  --tw-surface-3: #182739;
-  --tw-inset: #070d16;
-  --tw-border: #1a2b3f;
-  --tw-border-strong: #34506c;
-  --tw-text: #e8f0f9;
-  --tw-text-muted: #a3b6cb;
-  --tw-text-faint: #8ea4bc;
-  --tw-radar: #3df5ab;
-  --tw-amber: #ffb43c;
-  --tw-cyan: #5ccbff;
-  --tw-red: #ff6f7d;
-  --tw-hero-a: #123a6e;
-  --tw-hero-b: #081b34;
-  --tw-grid: rgba(92, 203, 255, .055);
 }
 
 /* Modo claro: mismas variables, otros valores (el dorado de marca sigue en botones; como texto usa --gold-ink). */
@@ -123,6 +107,8 @@
   --on-hero-ok: #7cf0c8;
   --on-hero-gold: #ffc53d;
   --on-hero-sky: #66b3ff;
+  --on-hero-warn: #ffc069;
+  --on-hero-danger: #ff9aa5;
   --medal-1: #d69a00;
   --medal-2: #8e9ab2;
   --medal-3: #b5673a;
@@ -142,24 +128,6 @@
   --foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;
   --plate-a: #0a1f4a; --plate-b: #031538; --plate-line: rgba(242, 207, 122, .28); --plate-disc: rgba(2, 12, 36, .55); /* the career plates are always navy and gold */
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
-  /* Torre de control (coordi): siempre oscura, con colores de instrumento */
-  --tw-bg: #060b13;
-  --tw-surface: #0b131e;
-  --tw-surface-2: #111c2a;
-  --tw-surface-3: #182739;
-  --tw-inset: #070d16;
-  --tw-border: #1a2b3f;
-  --tw-border-strong: #34506c;
-  --tw-text: #e8f0f9;
-  --tw-text-muted: #a3b6cb;
-  --tw-text-faint: #8ea4bc;
-  --tw-radar: #3df5ab;
-  --tw-amber: #ffb43c;
-  --tw-cyan: #5ccbff;
-  --tw-red: #ff6f7d;
-  --tw-hero-a: #123a6e;
-  --tw-hero-b: #081b34;
-  --tw-grid: rgba(92, 203, 255, .055);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -1114,7 +1082,7 @@ h3, .label, .stat-label, .kpi-label, .eyebrow, .nav-label, .round-tag, .dialog-f
 .admin-topbar::after { opacity: .9; }
 
 /* Botones: el dorado es lámina, con un brillo fino arriba */
-button:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.account-item):not(.eye):not(.mode):not(.choice):not(.slot-btn):not(.route-row):not(.cover) {
+button:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.account-item):not(.eye):not(.mode):not(.choice):not(.slot-btn):not(.route-row):not(.cover):not(.nav-group-head):not(.chip-btn) {
   background-image: linear-gradient(180deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 55%);
 }
 button.btn-danger { background-image: none; }
@@ -1405,62 +1373,6 @@ button.slot-btn:hover .stamp { transform: rotate(0deg) scale(1.04); }
 .who-line { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem .7rem; }
 .flight-chip { padding: .1rem .5rem; color: var(--on-hero-gold); border: 1px solid var(--hero-line); border-radius: 5px; font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
 
-/* =====================================================================
-   Capa de diseño 5 · "Torre de control" (coordi)
-   El panel del coordi es un centro de operaciones: siempre oscuro (sin importar el modo de la app), rejilla de
-   cartografía, tipografía técnica en los datos y colores de instrumento (verde radar, ámbar, cian, rojo).
-   Mismas variables de color de siempre, con otros valores dentro de `.tower`: así todos los componentes se adaptan.
-   ===================================================================== */
-.tower {
-  color-scheme: dark;
-  --bg: var(--tw-bg); --surface: var(--tw-surface); --surface-2: var(--tw-surface-2); --surface-3: var(--tw-surface-3); --inset: var(--tw-inset);
-  --border: var(--tw-border); --border-strong: var(--tw-border-strong);
-  --text: var(--tw-text); --text-muted: var(--tw-text-muted); --text-faint: var(--tw-text-faint);
-  --ok: var(--tw-radar); --warn: var(--tw-amber); --danger: var(--tw-red); --sky: var(--tw-cyan); --gold-ink: var(--gold);
-  --hero-a: var(--tw-hero-a); --hero-b: var(--tw-hero-b);
-  --shadow: 0 1px 0 rgba(120, 200, 255, .05) inset, 0 14px 34px -20px rgba(0, 0, 0, .9);
-  --shadow-pop: 0 18px 44px -14px rgba(0, 0, 0, .85);
-  position: relative; color: var(--text); background: var(--bg);
-}
-.tower::before {
-  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background:
-    linear-gradient(var(--tw-grid) 1px, transparent 1px) 0 0 / 44px 44px,
-    linear-gradient(90deg, var(--tw-grid) 1px, transparent 1px) 0 0 / 44px 44px,
-    radial-gradient(120% 70% at 85% -10%, rgba(92, 203, 255, .1), transparent 60%);
-}
-.tower > * { position: relative; z-index: 1; }
-.tower .admin-nav { z-index: 20; }
-body:has(.tower) { background: var(--tw-bg); }
-body:has(.tower)::before { display: none; }
-
-/* Datos con tipografía técnica */
-.tower .kpi-value, .tower .mscore, .tower .num, .tower .stat-value, .tower .passport-count { font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace; font-stretch: 100%; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-.tower h1 { font-size: 2.1rem; letter-spacing: .02em; }
-.tower .eyebrow { color: var(--sky); }
-.tower .card { background: color-mix(in srgb, var(--surface) 92%, transparent); border-color: var(--border-strong); }
-.tower .card::before { content: ''; position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-top: 2px solid var(--sky); border-left: 2px solid var(--sky); border-radius: var(--radius) 0 0 0; opacity: .7; pointer-events: none; }
-.tower .card { position: relative; }
-
-/* Menú lateral: la marca, la Universidad y la hora local */
-.tower .tower-hour { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin: .85rem 0 0; padding: .45rem .65rem; background: rgba(0, 0, 0, .28); border: 1px solid var(--hero-line); border-radius: var(--radius-sm); }
-.tower .tower-hour small { color: var(--on-hero-muted); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
-.tower-clock { color: var(--tw-radar); font-size: 1.15rem; font-weight: 700; letter-spacing: .06em; text-shadow: 0 0 12px color-mix(in srgb, var(--tw-radar) 55%, transparent); font-variant-numeric: tabular-nums; }
-@media (min-width: 900px) {
-  .tower .admin-nav { background: color-mix(in srgb, var(--surface) 96%, transparent); border-right-color: var(--border-strong); }
-  .tower .admin-brand { margin-bottom: .5rem; }
-}
-
-/* Indicadores (Live Monitoring) */
-.tower .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (min-width: 700px) { .tower .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 1200px) { .tower .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
-.tower .kpi { border-radius: var(--radius-sm); background: color-mix(in srgb, var(--surface) 94%, transparent); }
-.tower .kpi-value { font-size: 2rem; }
-.tower .kpi-sub { line-height: 1.25; }
-.tower .kpi.hot .kpi-value { text-shadow: 0 0 14px color-mix(in srgb, var(--danger) 60%, transparent); animation: breathe 1.8s ease-in-out infinite; }
-.tower .kpi.accent { background: linear-gradient(145deg, var(--hero-a), var(--hero-b)); }
-
 /* Flight Control: el tablero de vuelos */
 .board-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .4rem; }
 .board-head h2 { margin: 0; }
@@ -1532,16 +1444,14 @@ body:has(.tower)::before { display: none; }
 .verify-legend i.done { background: var(--ok); } .verify-legend i.current { background: var(--warn); }
 
 /* Flight Radar: el mapa con retícula de radar */
-.tower .map-card { position: relative; padding: .4rem; overflow: hidden; }
 .radar-frame { position: relative; }
 .radar-frame::before, .radar-frame::after { content: ''; position: absolute; z-index: 3; width: 28px; height: 28px; pointer-events: none; border: 2px solid var(--sky); opacity: .85; }
 .radar-frame::before { left: .35rem; top: .35rem; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0; }
 .radar-frame::after { right: .35rem; bottom: .35rem; border-left: 0; border-top: 0; border-radius: 0 0 8px 0; }
+.tower .map-card { position: relative; overflow: hidden; }
 .radar-sweep { position: absolute; z-index: 2; inset: 0; overflow: hidden; pointer-events: none; border-radius: var(--radius-sm); }
 .radar-sweep::before { content: ''; position: absolute; left: 50%; top: 50%; width: 140%; aspect-ratio: 1; margin: -70% 0 0 -70%; border-radius: 50%; background: conic-gradient(from 0deg, rgba(61, 245, 171, 0) 0deg, rgba(61, 245, 171, .09) 40deg, rgba(61, 245, 171, 0) 42deg); animation: sweep 9s linear infinite; }
 @keyframes sweep { to { transform: rotate(360deg); } }
-.tower .mk-label { background: rgba(5, 10, 19, .92); color: var(--tw-radar); border: 1px solid color-mix(in srgb, var(--tw-radar) 45%, transparent); font-family: ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .06em; }
-.tower .mk-base .mk-label { color: var(--tw-cyan); border-color: color-mix(in srgb, var(--tw-cyan) 45%, transparent); }
 .radar-list .fl-code { margin-right: .6rem; }
 @media (prefers-reduced-motion: reduce) { .radar-sweep::before { animation: none; } }
 
@@ -2478,7 +2388,7 @@ button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justi
 .add-person .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .6rem; }
 
 /* Admin: carreras overview and the space of one carrera. */
-.carrera-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; margin: 1rem 0 1.5rem; }
+.carrera-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: 1.1rem; margin: 1rem 0 1.5rem; }
 .carrera-card { display: grid; gap: .45rem; color: inherit; text-decoration: none; transition: border-color .15s ease-out, transform .15s ease-out; }
 .carrera-card:hover { border-color: var(--gold); transform: translateY(-2px); }
 .carrera-card h2 { margin: 0; }
@@ -2535,3 +2445,174 @@ button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justi
 .chip-btn:hover:not(:disabled) { background: var(--surface-2); color: var(--text); transform: none; }
 .chip-btn.active { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
 .nav-group-head { border: 0; box-shadow: none; }
+
+/* =====================================================================
+   Capa de diseño 6 · "Centro de control" (coordi)
+   El panel del coordi habla el mismo idioma que el corredor y la base y sigue el modo claro / oscuro de la app: papel de
+   seguridad con la trama de la entrada (claro) o la noche del pasaporte (oscuro), el pase de abordar azul marino con muescas
+   y talón, la lámina dorada y las etiquetas monoespaciadas. El menú lateral es el mostrador azul marino; el tablero de vuelos,
+   un tablero de salidas azul marino; cada puerta y cada carrera, un pase de abordar.
+   ===================================================================== */
+.tower { position: relative; color: var(--text); }
+html:has(.tower), body:has(.tower) { background: #fff url(/login-pattern.svg) 0 0 / 520px 520px fixed; }
+:root:not([data-theme='light']) html:has(.tower), :root:not([data-theme='light']) body:has(.tower) { background: var(--bg) url(/login-pattern-dark.svg) 0 0 / 520px 520px fixed; }
+.tower .num, .tower .mscore, .tower .stat-value { font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace; font-stretch: 100%; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.tower h1 { font-size: 2.1rem; letter-spacing: .02em; }
+.tower .card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.tower .card h2 { font-size: 1.3rem; }
+.tower ::selection { color: var(--on-gold); background: var(--gold); }
+
+/* Cabecera de cada pantalla: el título, la etiqueta del paso y una línea de lámina dorada */
+.tower .page-head, .title-row { position: relative; display: flex; align-items: center; justify-content: space-between; gap: .75rem 1rem; flex-wrap: wrap; margin-bottom: 1.4rem; padding-bottom: .95rem; }
+.tower .page-head::after, .title-row::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px; background: var(--foil); }
+.title-row h1 { margin: 0; }
+.step-tag { display: inline-flex; align-items: baseline; gap: .45rem; padding: .5rem .8rem .45rem; color: #fff; background: var(--pass-navy); border-radius: 10px; box-shadow: inset 0 3px 0 0 var(--pass-gold), 0 8px 16px -10px rgba(3, 29, 68, .6); line-height: 1; white-space: nowrap; }
+.step-tag small { color: var(--pass-gold); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.step-tag b { font: 800 1.4rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .02em; }
+.step-tag span { color: rgba(255, 255, 255, .62); font: 700 .8rem/1 ui-monospace, 'SF Mono', Consolas, monospace; }
+
+/* El mostrador: el menú lateral en azul marino, con la lámina dorada en lo activo */
+.tower .admin-nav .brand { color: #fff; }
+.tower .admin-nav { color: #fff; background: var(--pass-navy); }
+.tower .admin-nav .tab { color: rgba(255, 255, 255, .74); }
+.tower .admin-nav .tab svg { color: rgba(255, 255, 255, .6); }
+.tower .admin-nav .tab:hover:not(:disabled) { color: #fff; background: rgba(255, 255, 255, .08); }
+.tower .admin-nav .tab.active, .tower .admin-nav .tab.active:hover:not(:disabled) { color: var(--pass-navy); background: var(--foil); font-weight: 700; }
+.tower .admin-nav .tab.active svg { color: var(--pass-navy); }
+.tower .admin-nav .tab.active::before { content: none; }
+.tower .admin-nav .nav-label { color: var(--pass-gold); }
+.tower .admin-nav .back-link { color: rgba(255, 255, 255, .7); }
+.tower .admin-nav .back-link:hover { color: #fff; }
+.tower .admin-nav .nav-event { color: rgba(255, 255, 255, .72); background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .16); }
+.tower .admin-nav .nav-event strong { color: #fff; }
+.tower .admin-nav .nav-event svg { color: var(--pass-gold); }
+.tower .admin-nav .nav-event .badge { color: #fff; background: rgba(255, 255, 255, .16); }
+.tower .admin-nav .nav-event .badge.ok { color: var(--on-hero-ok); }
+.tower .admin-nav .nav-group-head { color: rgba(255, 255, 255, .6); }
+.tower .admin-nav .nav-group-head:hover:not(:disabled) { color: #fff; background: rgba(255, 255, 255, .08); }
+.tower .admin-brand { color: #fff; }
+.tower .admin-brand .office { color: var(--pass-gold); }
+.tower .tower-hour { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin: .8rem 0 0; padding: .45rem .65rem; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); border-radius: var(--radius-sm); }
+.tower .tower-hour small { color: rgba(255, 255, 255, .7); font: 700 .75rem/1 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.tower-clock { color: var(--pass-gold); font-size: 1.15rem; font-weight: 700; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+.tower .admin-user { border-top-color: rgba(255, 255, 255, .16); }
+.tower .admin-user .account-btn { color: #fff; background: var(--pass-navy-2); border: 1px solid rgba(255, 255, 255, .16); }
+.tower .admin-user .account-btn:hover:not(:disabled) { background: var(--pass-navy-3); }
+.tower .admin-user .account-btn .avatar { box-shadow: 0 0 0 2px var(--pass-gold); }
+.tower .admin-user .account-text small { color: var(--pass-gold); }
+@media (min-width: 900px) {
+  .tower .admin-nav { background: var(--pass-navy); border-right: 0; box-shadow: 10px 0 30px -20px rgba(3, 29, 68, .75); }
+  .tower .admin-brand { padding: .2rem .5rem 1rem; border-radius: 0; background: none; border-bottom: 1px solid rgba(255, 255, 255, .16); }
+  .tower .admin-brand::after { content: none; }
+  .tower .admin-main { max-width: 1320px; }
+}
+/* en el celular: la misma pastilla azul marino flotante del corredor y la base */
+@media (max-width: 899px) {
+  .tower .admin-nav { inset: auto 12px max(10px, env(safe-area-inset-bottom)) 12px; padding: 6px; background: var(--pass-navy); border: 1px solid rgba(255, 255, 255, .14); border-radius: 26px; box-shadow: 0 16px 32px -10px rgba(3, 29, 68, .6); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .tower .nav-mobile { background: transparent; gap: 4px; }
+  .tower .nav-mobile .tab { min-height: 54px; border-radius: 20px; }
+  .tower .nav-mobile .tab.active { color: var(--pass-navy); }
+  .tower .nav-mobile .tab.active::before { inset: 0; top: 0; left: 0; right: 0; width: auto; height: auto; margin: 0; border-radius: 20px; background: var(--foil); box-shadow: none; }
+  .tower .nav-mobile .tab.active svg { color: var(--pass-navy); }
+  .tower .nav-mobile .tab span { position: relative; z-index: 1; }
+  .tower .setup-sheet { bottom: calc(var(--nav-h) + 1.4rem + env(safe-area-inset-bottom)); left: 12px; right: 12px; max-height: calc(100dvh - var(--nav-h) - 5.5rem); background: var(--pass-navy); border: 1px solid rgba(255, 255, 255, .14); border-radius: 22px; }
+  .tower .setup-sheet::before { background: rgba(255, 255, 255, .3); }
+  .tower .setup-sheet .tab { color: rgba(255, 255, 255, .8); }
+  .tower .setup-sheet .tab.active { color: var(--pass-navy); background: var(--foil); }
+  .tower .admin-main { padding-bottom: calc(var(--nav-h) + 2.6rem + env(safe-area-inset-bottom)); }
+}
+
+/* El pase de la carrera: el encabezado de Resumen y control, el mismo pase azul del corredor y la base */
+.carrera-ticket .tc { --stub: 128px; }
+.carrera-ticket .tc-name { font-stretch: 76%; font-size: 2.1rem; line-height: 1; }
+.carrera-ticket .tc-code { font-size: 2.3rem; }
+.carrera-ticket .tc-code.long { font-size: 1.35rem; letter-spacing: .08em; }
+.carrera-ticket .tc-chips { margin-top: .65rem; }
+.carrera-ticket .tc-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
+.carrera-ticket .tc-actions .ghost { width: auto; min-height: 38px; color: #fff; border-color: rgba(255, 255, 255, .34); background: transparent; }
+.carrera-ticket .tc-actions .ghost:hover:not(:disabled) { background: rgba(255, 255, 255, .12); }
+.carrera-ticket .tc .badge { color: #fff; background: rgba(255, 255, 255, .16); }
+.carrera-ticket .tc .badge.ok { color: var(--on-hero-ok); }
+.carrera-ticket .tc-state { color: var(--on-hero-muted); font-size: .875rem; }
+
+/* Los indicadores: UN solo pase con una celda por indicador, separadas por una línea fina */
+.kpi-strip { margin-bottom: 1.4rem; filter: drop-shadow(0 12px 18px rgba(3, 29, 68, .3)); }
+.tower .kpis {
+  position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin: 0; padding-top: 3px; overflow: hidden; color: #fff; border-radius: 18px;
+  background: color-mix(in srgb, #fff 18%, var(--pass-navy));
+  -webkit-mask: radial-gradient(circle 9px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 9px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 9px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 9px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat;
+}
+.tower .kpis::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; z-index: 2; background: var(--foil); }
+@media (min-width: 700px) { .tower .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .tower .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.tower .kpi { padding: 1rem 1.05rem .9rem; color: #fff; background: var(--pass-navy); border: 0; border-radius: 0; box-shadow: none; }
+.tower .kpi-label { color: var(--pass-gold); }
+.tower .kpi-value { color: #fff; font-size: 2.1rem; }
+.tower .kpi-sub { color: rgba(255, 255, 255, .7); line-height: 1.25; }
+.tower .kpi.accent { background: var(--pass-navy-2); box-shadow: none; }
+.tower .kpi.accent .kpi-label, .tower .kpi.accent .kpi-sub { color: var(--pass-gold); }
+.tower .kpi.accent .kpi-sub { color: rgba(255, 255, 255, .7); }
+.tower .kpi.accent .kpi-value { color: var(--pass-gold); }
+.tower .kpi.hot .kpi-value { color: color-mix(in srgb, var(--danger) 45%, #fff); text-shadow: none; animation: breathe 1.8s ease-in-out infinite; }
+.tower a.kpi:hover { background: var(--pass-navy-2); transform: none; }
+
+/* El tablero de salidas: azul marino en los dos modos, con la lámina arriba y los estados en colores claros */
+.tower .board {
+  --text: #fff; --text-muted: rgba(255, 255, 255, .76); --text-faint: rgba(255, 255, 255, .58); --border: rgba(255, 255, 255, .14); --border-strong: rgba(255, 255, 255, .32); --surface-3: rgba(255, 255, 255, .12);
+  --sky: var(--pass-gold); --ok: var(--on-hero-ok); --warn: var(--on-hero-warn); --danger: var(--on-hero-danger);
+  overflow: hidden; color: #fff; background: var(--pass-navy); border-color: rgba(255, 255, 255, .14); box-shadow: var(--shadow-pop);
+}
+.tower .board::before { content: ''; position: absolute; left: 0; right: 0; top: 0; width: auto; height: 3px; border: 0; border-radius: 0; background: var(--foil); opacity: 1; }
+.tower .board .chip { color: var(--pass-gold); background: rgba(255, 255, 255, .1); }
+.tower .board .fl-prog i.on { box-shadow: none; }
+.tower .flight.st-demora { background: color-mix(in srgb, var(--danger) 14%, transparent); }
+.tower .flight.head { color: var(--pass-gold); }
+
+/* Las puertas de la ronda: cada una es un pase de abordar con su talón (puerta y marcador) */
+.tower .list.gates { display: grid; gap: .7rem; margin-top: .6rem; }
+.tower .list.gates li.mrow {
+  --stub: 104px; --notch: 9px; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) var(--stub); gap: 0; padding: 0; border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+  background: linear-gradient(to right, var(--surface) calc(100% - var(--stub)), var(--surface-2) 0);
+  -webkit-mask: radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 0, transparent 97%, #000) top / 100% 51% no-repeat, radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 100%, transparent 97%, #000) bottom / 100% 51% no-repeat;
+  mask: radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 0, transparent 97%, #000) top / 100% 51% no-repeat, radial-gradient(circle var(--notch) at calc(100% - var(--stub)) 100%, transparent 97%, #000) bottom / 100% 51% no-repeat;
+}
+.tower .list.gates li.mrow::before { content: ''; position: absolute; top: 14px; bottom: 14px; right: var(--stub); border-left: 2px dashed var(--border-strong); }
+.tower .list.gates li.mrow:last-child { border-bottom: 1px solid var(--border); }
+.tower .gates .mbase { grid-column: 1; grid-row: 1; padding: .85rem .6rem 0 1rem; }
+.tower .gates .mteams { grid-column: 1; grid-row: 2; padding: .25rem .6rem 0 1rem; }
+.tower .gates .mmeta { grid-column: 1; grid-row: 3; padding: .55rem .6rem 0 1rem; }
+.tower .gates .mdetail { grid-column: 1; grid-row: 4; padding: .3rem .6rem .85rem 1rem; }
+.tower .gates .mscore { grid-column: 2; grid-row: 1 / span 2; place-self: center; padding: 0; font-size: 1.9rem; text-align: center; }
+.tower .gates .mact { grid-column: 2; grid-row: 3 / span 2; align-self: end; justify-self: center; padding-bottom: .75rem; }
+
+/* El registro de operaciones y la matriz de sellos: papel, con los colores de siempre */
+.tower .op-icon { color: var(--sky); }
+.tower .op.finished .op-icon { color: var(--ok); }
+.tower .op.alert .op-icon { color: var(--warn); }
+.tower .verify th { color: var(--text-faint); }
+.tower .v-cell.done { color: var(--ok); }
+
+/* El radar: marco azul marino con esquinas doradas */
+.tower .map-card { padding: .4rem; background: var(--pass-navy); border-color: rgba(255, 255, 255, .14); }
+.radar-frame::before, .radar-frame::after { border-color: var(--pass-gold); }
+
+/* Todas las carreras: cada edición es un pase de abordar; el código es el número de vuelo del talón */
+.carrera-grid .tc-wrap { margin-top: 0; }
+.carrera-pass { display: block; color: inherit; text-decoration: none; transition: transform .15s; }
+.carrera-pass:hover { transform: translateY(-2px); }
+.carrera-pass:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; border-radius: 18px; }
+.carrera-pass .tc-name { font-size: 1.5rem; }
+.carrera-pass .tc-code { font-size: 2.3rem; }
+.carrera-pass .tc-code.long { font-size: 1.3rem; letter-spacing: .08em; }
+.carrera-pass .tc-note { margin: .55rem 0 0; color: rgba(255, 255, 255, .74); font-size: .875rem; }
+.carrera-pass .tc-note.allowed { color: var(--pass-gold); font-size: .8125rem; }
+.carrera-pass.test .tc-kicker { color: var(--on-hero-warn); }
+.carrera-pass.archived .tc { background: var(--pass-navy-3); }
+.carrera-pass .badge { color: #fff; background: rgba(255, 255, 255, .16); }
+.carrera-pass .badge.ok { color: var(--on-hero-ok); }
+@media (prefers-reduced-motion: reduce) { .carrera-pass { transition: none; } .carrera-pass:hover { transform: none; } }
+.head-title { display: flex; align-items: center; gap: .6rem 1rem; flex-wrap: wrap; }
+.head-title h1 { margin: 0; }
+.carrera-ticket .tc-actions .ghost { padding: 0 .75rem; font-size: .85rem; white-space: nowrap; }
+@media (max-width: 480px) { .carrera-ticket .tc { --stub: 104px; } .carrera-ticket .tc-name { font-size: 1.8rem; } .carrera-ticket .tc-code { font-size: 1.9rem; } }

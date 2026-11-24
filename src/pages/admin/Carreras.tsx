@@ -7,7 +7,6 @@ import { supabase } from '../../lib/supabase'
 import type { EventRow } from '../../types'
 import { useAdmin } from './AdminContext'
 import { ALLOWED } from './PhaseControl'
-import { phaseBadge } from './AdminNav'
 
 interface Counts { teams: number; bases: number; matches: number }
 
@@ -69,7 +68,6 @@ export default function Carreras() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Carreras</p>
           <h1>Todas las carreras</h1>
         </div>
         <div className="head-meta">
@@ -107,16 +105,26 @@ export default function Carreras() {
 }
 
 function CarreraCard({ e, c }: { e: EventRow; c?: Counts }) {
+  const code = e.is_test ? 'PRUEBA' : (e.code ?? '—')
   return (
-    <Link to={`/admin/carreras/${e.id}`} className={`card carrera-card${e.is_test ? ' test' : ''}`}>
-      <div className="carrera-top">
-        <strong className="carrera-code mono">{e.is_test ? 'PRUEBA' : (e.code ?? '—')}</strong>
-        <span className={phaseBadge(e.phase)}>{PHASE_LABEL[e.phase]}</span>
-      </div>
-      <h2>{e.is_test ? 'Carrera de prueba' : e.name}</h2>
-      {e.is_test && <p className="test-note"><FlaskConical size={15} aria-hidden="true" /> Permanente: para probar configuraciones y funciones.</p>}
-      <p className="muted">{c ? `${c.teams} grupos · ${c.bases} bases · ${c.matches} cruces` : 'Sin grupos ni bases todavía'}</p>
-      <p className="muted allowed">{ALLOWED[e.phase]}</p>
-    </Link>
+    <div className="tc-wrap">
+      <Link to={`/admin/carreras/${e.id}`} className={`carrera-pass${e.is_test ? ' test' : ''}${e.phase === 'archived' ? ' archived' : ''}`}>
+        <div className="tc">
+          <div className="tc-main">
+            <p className="tc-kicker">{c ? `${c.teams} grupos · ${c.bases} bases · ${c.matches} cruces` : 'Sin grupos ni bases todavía'}</p>
+            <span className="tc-name">{e.is_test ? 'Carrera de prueba' : e.name}</span>
+            <div className="tc-chips">
+              {e.phase === 'started' ? <span className="live-label">{PHASE_LABEL[e.phase]}</span> : <span className={`badge${e.phase === 'enabled' ? ' ok' : ''}`}>{PHASE_LABEL[e.phase]}</span>}
+            </div>
+            {e.is_test && <p className="tc-note"><FlaskConical size={15} aria-hidden="true" /> Permanente: para probar configuraciones y funciones.</p>}
+            <p className="tc-note allowed">{ALLOWED[e.phase]}</p>
+          </div>
+          <div className="tc-stub">
+            <span className={`tc-code${code.length > 5 ? ' long' : ''}`}>{code}</span>
+            <small>carrera</small>
+          </div>
+        </div>
+      </Link>
+    </div>
   )
 }

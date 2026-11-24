@@ -21,9 +21,9 @@ import { promptDialog } from '../../lib/dialog'
 import { exportResults } from '../../lib/results'
 import { registerSealRoster } from '../../lib/seals'
 import PhaseControl from './PhaseControl'
+import CarreraTicket from '../../components/CarreraTicket'
 import PrepSteps, { PrepReport } from '../../components/PrepSteps'
 import { usePrepStatus } from '../../lib/prepStatus'
-import { PHASE_LABEL } from '../../lib/phase'
 
 interface Named {
   id: string
@@ -157,17 +157,14 @@ export default function EnVivo() {
 
   return (
     <>
-      <header className="page-head">
-        <div>
-          <p className="eyebrow">{preparing ? 'Preparación' : 'Live Monitoring'} · {event.name}</p>
-          <h1>Resumen y control</h1>
-        </div>
-        <div className="head-meta">
-          <span className={`badge ${event.phase === 'started' ? 'ok live' : ''}`}>{active ? PHASE_LABEL[event.phase] : 'Borrador'}</span>
-          {!preparing && matches.length > 0 && <span>Ronda {round} de {totalRounds}</span>}
-          {!preparing && matches.length > 0 && <button className="ghost" onClick={() => void exportResults(event.id, event.name)}>Descargar resultados</button>}
-        </div>
-      </header>
+      <CarreraTicket
+        name={event.name}
+        code={event.code ?? null}
+        isTest={Boolean(event.is_test)}
+        phase={event.phase}
+        line={preparing ? `Preparación · ${prep.counts.teams} grupos · ${prep.counts.bases} bases` : matches.length > 0 ? `Ronda ${round} de ${totalRounds} · ${teams.length} vuelos` : `${teams.length} vuelos`}
+        onExport={!preparing && matches.length > 0 ? () => void exportResults(event.id, event.name) : undefined}
+      />
 
       <PhaseControl key={`p-${event.id}`} event={event} canEnable={prep.problems.length === 0} onChanged={async () => { await reload(); await prep.reload() }} />
 
@@ -189,14 +186,14 @@ export default function EnVivo() {
       {notice && <p className="ok-text">{notice}</p>}
 
       {matches.length > 0 && (
-        <div className="kpis">
+        <div className="kpi-strip"><div className="kpis">
           <Kpi tone="accent" label="Ronda en curso" value={`${round}/${totalRounds}`} sub={`${inRound.filter((m) => m.status === 'finished').length} de ${inRound.length} cruces terminados`} />
           <Kpi label="En ruta" value={enRuta} sub={enRuta === 1 ? 'vuelo hacia su destino' : 'vuelos hacia su destino'} />
           <Kpi label="En puerta" value={enPuerta} sub="la base confirmó su llegada" />
           <Kpi label="Aterrizados" value={`${aterrizados}/${teams.length}`} sub="con todos sus sellos" />
           <Kpi tone={late > 0 ? 'hot' : undefined} label="Demoras" value={late} sub={late === 1 ? 'vuelo tarde al traslado' : 'vuelos tarde al traslado'} />
           <Kpi label="Radar" value={`${sharing.length}/${teams.length}`} sub="vuelos con GPS" to={`/admin/carreras/${event.id}/mapa`} />
-        </div>
+        </div></div>
       )}
 
       {matches.length > 0 && <FlightBoard teams={teams} matches={matches} baseName={baseName} codes={codes} lateIds={lateIds} />}
@@ -208,12 +205,11 @@ export default function EnVivo() {
             <section className="card">
               <div className="match-head">
                 <div>
-                  <p className="eyebrow">Gate Management</p>
                   <h2>Puertas · Ronda {round}</h2>
                 </div>
                 <span className="chip">{inRound.filter((m) => m.status === 'finished').length} de {inRound.length} terminados</span>
               </div>
-              <ul className="list">
+              <ul className="list gates">
                 {inRound.map((m) => {
                   const resolved = m.match_scores.length
                   return (

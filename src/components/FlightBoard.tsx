@@ -38,7 +38,6 @@ export default function FlightBoard({
     <section className="card board">
       <header className="board-head">
         <div>
-          <p className="eyebrow">Flight Control</p>
           <h2>Vuelos</h2>
         </div>
         <span className="chip">{rows.length} vuelos</span>

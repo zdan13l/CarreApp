@@ -21,7 +21,6 @@ export default function PassportMatrix({
     <section className="card">
       <header className="board-head">
         <div>
-          <p className="eyebrow">Sellos por vuelo</p>
           <h2>Verificación de sellos</h2>
         </div>
       </header>

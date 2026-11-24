@@ -52,7 +52,7 @@ export const GLOBAL_TABS: NavItem[] = [
 export const groupOpenIn = (group: CarreraGroup, phase: EventPhase): boolean =>
   group === 'prep' ? phase === 'disabled' || phase === 'enabled' : group === 'live' ? phase === 'started' || phase === 'finished' || phase === 'archived' : true
 const GROUP_HINT: Record<'prep' | 'live', Partial<Record<EventPhase, string>>> = {
-  prep: { started: 'protegida mientras corre', finished: 'cerrada', archived: 'solo lectura' },
+  prep: { started: 'protegida', finished: 'cerrada', archived: 'solo lectura' },
   live: { disabled: 'al iniciar', enabled: 'al iniciar' },
 }
 
@@ -69,7 +69,7 @@ export function AdminTopbar({ user, onSignOut }: { user?: { full_name: string; u
   return (
     <header className="topbar admin-topbar">
       <Logo size={30} />
-      <AccountMenu user={user} onSignOut={onSignOut} roleLabel="Coordi" showTheme={false} />
+      <AccountMenu user={user} onSignOut={onSignOut} roleLabel="Coordi" />
     </header>
   )
 }
@@ -212,7 +212,7 @@ export default function AdminNav({
       )}
 
       <div className="admin-user">
-        <AccountMenu user={user} onSignOut={onSignOut} placement="up" roleLabel="Coordi" showTheme={false} />
+        <AccountMenu user={user} onSignOut={onSignOut} placement="up" roleLabel="Coordi" />
       </div>
     </aside>
   )
