@@ -79,8 +79,8 @@ describe('the seals of a carrera (0037)', () => {
     const admin = await getAdmin(db)
     const a = await create()
     const b = await create()
-    await seal(admin, a.id, 'team', 'g1', 'shield', '#abcdef')
-    await seal(admin, b.id, 'team', 'g1', 'shield', '#abcdef')
+    await seal(admin, a.id, 'committee', 'caos', 'shield', '#abcdef')
+    await seal(admin, b.id, 'committee', 'caos', 'shield', '#abcdef')
   })
 
   it('setting the coordi gives the golden seal, changing it moves it, and nobody inherits it', async () => {
