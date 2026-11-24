@@ -58,7 +58,7 @@ describe('the menu follows the life of the carrera (preparation → running)', (
     }
     expect(groupOpenIn('prep', 'started')).toBe(false)
     expect(groupOpenIn('live', 'enabled')).toBe(false)
-    expect(menu(event('started'), '/admin/carreras/e1')).toContain('protegida mientras corre')
+    expect(menu(event('started'), '/admin/carreras/e1')).toContain('protegida')
   })
   it('Resumen y control is always there, and the folded group opens when you are inside one of its pages', () => {
     for (const phase of ['disabled', 'started', 'archived'] as EventPhase[]) expect(has(menu(event(phase), '/admin/carreras/e1'), 'Resumen y control')).toBe(true)
@@ -75,7 +75,7 @@ describe('what each screen holds in each moment', () => {
     expect(src).toMatch(/\{!preparing && \(\s*<>/)
     // the tower modules are all inside the not-preparing branch
     const tower = src.slice(src.indexOf('{!preparing && ('))
-    for (const piece of ['<FlightBoard', '<RotationPanel', '<DelaysPanel', '<OpsLog', 'Top equipos', 'Gate Management']) expect(tower, piece).toContain(piece)
+    for (const piece of ['<FlightBoard', '<RotationPanel', '<DelaysPanel', '<OpsLog', 'Top equipos', 'Puertas · Ronda']) expect(tower, piece).toContain(piece)
     const gate = src.indexOf('{!preparing && (')
     for (const piece of ['<FlightBoard', '<RotationPanel', '<DelaysPanel', '<OpsLog', '<Kpi']) expect(src.indexOf(piece), piece).toBeGreaterThan(gate) // none of them before the gate
   })
@@ -83,14 +83,15 @@ describe('what each screen holds in each moment', () => {
     const src = read('src/pages/admin/Carrera.tsx')
     expect(src).not.toMatch(/PhaseControl|PrepSteps|PrepReport|event_problems|PHASE_LABEL/)
   })
-  it('each screen says where it is in the menu: «Preparación · n» or «En carrera»', () => {
+  it('each screen says where it is in the menu: a «Paso n de 8» tag in Preparación, nothing but the menu group in En carrera', () => {
     const steps: [string, number][] = [['Carrera', 1], ['CarreraTematica', 2], ['Grupos', 3], ['Bases', 4], ['Cruces', 5], ['CarreraComites', 6], ['Inductores', 7], ['Usuarios', 8]]
-    for (const [file, n] of steps) expect(read(`src/pages/admin/${file}.tsx`), file).toMatch(new RegExp(`Preparación · ${n}`))
-    for (const file of ['Puntajes', 'Mapa']) expect(read(`src/pages/admin/${file}.tsx`), file).toMatch(/eyebrow">En carrera</)
+    for (const [file, n] of steps) expect(read(`src/pages/admin/${file}.tsx`), file).toMatch(new RegExp(`step=\\{(fixedTermId \\? )?${n}( : undefined)?\\}|<StepTag n=\\{${n}\\} />`))
+    expect(read('src/pages/admin/PageTitle.tsx')).toMatch(/de \{STEPS\}/)
+    for (const file of ['Puntajes', 'Mapa']) expect(read(`src/pages/admin/${file}.tsx`), file).not.toMatch(/StepTag|PageTitle step/)
   })
   it('the titles of the screens are the names of the menu', () => {
     const names: [string, string][] = [['Carrera', 'Configuración'], ['CarreraTematica', 'Temática'], ['Grupos', 'Grupos participantes'], ['Bases', 'Bases'], ['Cruces', 'Cruces'], ['CarreraComites', 'Coordi y comités'], ['Usuarios', 'Usuarios'], ['Puntajes', 'Puntajes'], ['Mapa', 'Radar']]
-    for (const [file, h1] of names) expect(read(`src/pages/admin/${file}.tsx`), file).toContain(`<h1>${h1}</h1>`)
+    for (const [file, h1] of names) expect(read(`src/pages/admin/${file}.tsx`), file).toMatch(new RegExp(`<h1>${h1}</h1>|<PageTitle[^>]*>${h1}</PageTitle>`))
     expect(CARRERA_TABS.map((t) => t.label)).toEqual(expect.arrayContaining(names.map(([, h1]) => h1)))
   })
 })

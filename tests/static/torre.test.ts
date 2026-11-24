@@ -1,4 +1,4 @@
-// The two experiences of "Visado": the runner's passport (light paper) and the coordinator's control tower (always dark).
+// "Visado": the runner's passport, the base's counter and the coordinator's control center share one design language and the light / dark mode.
 import fs from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { rootPath } from './helpers'
@@ -7,19 +7,36 @@ const read = (p: string) => fs.readFileSync(rootPath(p), 'utf8')
 const css = read('src/index.css')
 
 describe('control tower (coordinator)', () => {
-  it('the panel is always dark, whatever the mode of the app: it has its own palette and no light/dark switch', () => {
+  it('the panel follows the light / dark mode of the app, like the runner and the base (no palette of its own)', () => {
     expect(read('src/pages/admin/AdminLayout.tsx')).toMatch(/className="admin tower"/)
-    expect(css).toMatch(/\.tower \{\s*color-scheme: dark;/)
-    expect(read('src/pages/admin/AdminNav.tsx')).toMatch(/showTheme=\{false\}/)
+    expect(css).not.toMatch(/\.tower \{\s*color-scheme: dark;/) // it is not locked to dark any more
+    expect(css).not.toMatch(/--tw-/) // the instrument palette (cyan / radar green) is gone: the panel uses the tokens of the app
+    expect(read('src/pages/admin/AdminNav.tsx')).not.toMatch(/showTheme=\{false\}/)
     expect(read('src/components/AccountMenu.tsx')).toMatch(/showTheme && \(/)
-    expect(read('src/pages/admin/Mapa.tsx')).toMatch(/lightPreset="night"/)
+    expect(read('src/pages/admin/Mapa.tsx')).toMatch(/lightPreset="night"/) // the radar map keeps its night look inside the navy frame
   })
 
-  it('both palettes define the same tower colours (they are variables, never literals in the layer)', () => {
+  it('it speaks the language of the runner and the base: navy desk, boarding-pass tickets, gold foil, the paper pattern', () => {
+    const layer = css.slice(css.indexOf('Capa de diseño 6'))
+    for (const piece of ['.tower .admin-nav', '.tower .kpis', '.tower .board', '.tower .list.gates li.mrow', '.carrera-pass', '.step-tag', '.title-row']) expect(layer, piece).toContain(piece)
+    expect(layer).toMatch(/var\(--pass-navy\)/)
+    expect(layer).toMatch(/var\(--foil\)/)
+    expect(layer).toMatch(/login-pattern\.svg/)
+    expect(layer).toMatch(/login-pattern-dark\.svg/) // the night pattern in dark mode
+    // the head of a carrera and every carrera of the list are the same boarding pass the runners know
+    expect(read('src/components/CarreraTicket.tsx')).toMatch(/className="tc-wrap carrera-ticket"/)
+    expect(read('src/pages/admin/Carreras.tsx')).toMatch(/className="tc-stub"/)
+    // no kicker above the headings of the panel: the heading speaks, and the step is a tag
+    for (const f of ['EnVivo', 'Grupos', 'Bases', 'Cruces', 'Usuarios', 'Puntajes', 'Mapa', 'Carreras', 'Sellos', 'Generaciones']) expect(read(`src/pages/admin/${f}.tsx`), f).not.toMatch(/className="eyebrow"/)
+  })
+
+  it('the colours the navy needs exist in both palettes with the same value (variables, never literals in the layer)', () => {
     const blocks = [/\n:root \{[\s\S]*?\n\}/.exec(css)![0], /\n:root\[data-theme='light'\] \{[\s\S]*?\n\}/.exec(css)![0]]
-    const names = (b: string) => [...b.matchAll(/(--tw-[\w-]+)\s*:/g)].map((m) => m[1]).sort()
-    expect(names(blocks[0]).length).toBeGreaterThan(10)
-    expect(names(blocks[0])).toEqual(names(blocks[1]))
+    for (const token of ['--on-hero-ok', '--on-hero-warn', '--on-hero-danger', '--pass-navy', '--pass-gold', '--foil']) {
+      const values = blocks.map((b) => new RegExp(`${token}:\\s*([^;]+);`).exec(b)?.[1])
+      expect(values[0], token).toBeTruthy()
+      expect(values[0], token).toEqual(values[1])
+    }
   })
 
   it('the modules read real data: flights from the matches, the log from matches and alerts, the verification from the matches of each group', () => {
