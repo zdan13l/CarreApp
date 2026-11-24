@@ -5,7 +5,6 @@ import { supabase } from '../../lib/supabase'
 import { useAdmin } from './AdminContext'
 import BulkImport from './BulkImport'
 import TravelTimes from './TravelTimes'
-import PhaseControl from './PhaseControl'
 import { PHASE_LABEL } from '../../lib/phase'
 
 export interface Counts {
@@ -92,7 +91,7 @@ export default function Carrera() {
           {error && <p className="error">{error}</p>}
         </section>
       )}
-      {event && <PhaseControl key={`p-${event.id}`} event={event} canEnable={problems.length === 0} onChanged={async () => { await reload(); await check() }} />}
+      {event && <p className="muted">El estado de la carrera (habilitar, iniciar, terminar, finalizar, reiniciar) se controla en <Link to={`/admin/carreras/${event.id}`}>Resumen y control</Link>.</p>}
 
       <BulkImport />
       </div>

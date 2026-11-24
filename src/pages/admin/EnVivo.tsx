@@ -168,7 +168,7 @@ export default function EnVivo() {
         </div>
       </header>
 
-      {active && <PhaseControl key={`p-${event.id}`} event={event} onChanged={reload} />}
+      <PhaseControl key={`p-${event.id}`} event={event} canEnable={pending === 0} onChanged={reload} />
 
       {!active && (
         <div className="warn">
