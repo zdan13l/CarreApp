@@ -91,7 +91,7 @@ describe('what each side edits in the passport', () => {
   it('the coordinator sets generation and entry, photo and name', async () => {
     const admin = await getAdmin(db)
     const a = await addPassport()
-    expect(await db.asUser(admin).affected(`update public.passports set generation = 'Generación 7', joined_term = '2024-2', photo_path = 'users/x.jpg', full_name = 'Nombre Nuevo' where id = $1`, [a])).toBe(1)
+    expect(await db.asUser(admin).affected(`update public.passports set generation = 'Barbies', joined_term = '2024-2', photo_path = 'users/x.jpg', full_name = 'Nombre Nuevo' where id = $1`, [a])).toBe(1)
   })
 
   it('the server (service role, no signed-in user) can change the @', async () => {
