@@ -28,7 +28,7 @@ describe('control tower (coordinator)', () => {
     expect(live).toMatch(/buildOpEvents\(\{ matches, alerts/)
     expect(live).toMatch(/<FlightBoard teams=\{teams\} matches=\{matches\}/)
     expect(read('src/components/FlightBoard.tsx')).toMatch(/flightOf\(t\.id, matches\)/)
-    expect(read('src/pages/admin/Puntajes.tsx')).toMatch(/Passport Verification/)
+    expect(read('src/pages/admin/Puntajes.tsx')).toMatch(/<h1>Puntajes<\/h1>/)
     expect(read('src/pages/admin/Puntajes.tsx')).toMatch(/<PassportMatrix teams=\{teams\} matches=\{matches\}/)
     // nothing simulated: no random data or placeholder numbers in the control components
     for (const f of ['src/components/FlightBoard.tsx', 'src/components/OpsLog.tsx', 'src/lib/flight.ts']) expect(read(f), f).not.toMatch(/Math\.random|faker|lorem/i)

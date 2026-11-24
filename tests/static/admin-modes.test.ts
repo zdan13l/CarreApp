@@ -21,20 +21,24 @@ describe('the admin panel has three levels (global, carreras, one carrera)', () 
     const lay = read('src/pages/admin/AdminLayout.tsx')
     expect(lay).toMatch(/useMatch\('\/admin\/carreras\/:eventId\/\*'\)/) // the open carrera comes from the address
   })
-  it('the carrera shell always shows which carrera it is, its state and what is allowed now', () => {
+  it('the carrera shell says which carrera it is and its state (a thin strip on phones; the side menu does it on computers), with no bar of tabs', () => {
     const shell = read('src/pages/admin/CarreraShell.tsx')
     expect(shell).toMatch(/PHASE_LABEL\[event\.phase\]/)
-    expect(shell).toMatch(/ALLOWED\[event\.phase\]/)
     expect(shell).toMatch(/PRUEBA/)
+    expect(shell).not.toMatch(/carrera-tabs|NavLink/)
   })
 })
 
 describe('creating the carrera and ending it', () => {
-  it('the settings open with the ordered steps to create the carrera, scoped to the open carrera', () => {
+  it('the ordered steps to prepare the carrera live in Resumen y control, scoped to the open carrera, and Configuración only holds settings', () => {
+    const steps = read('src/components/PrepSteps.tsx')
+    expect(steps).toMatch(/Pasos para preparar la carrera/)
+    expect(steps).toContain('/admin/carreras/${eventId}/${path}')
+    for (const s of ['configuracion', 'tematica', 'grupos', 'bases', 'cruces', 'comites', 'inductores', 'usuarios']) expect(steps).toContain(`to('${s}')`)
+    expect(read('src/pages/admin/EnVivo.tsx')).toMatch(/<PrepSteps /)
     const car = read('src/pages/admin/Carrera.tsx')
-    expect(car).toMatch(/export function PrepSteps/)
-    expect(car).toMatch(/Pasos para crear la carrera/)
-    for (const s of ['grupos', 'bases', 'usuarios', 'cruces']) expect(car).toContain('/admin/carreras/${eventId}/' + s)
+    expect(car).not.toMatch(/PrepSteps|event_problems/) // the checklist is not repeated in Configuración
+    expect(car).toMatch(/<BulkImport \/>/)
   })
   it('carreras are created with the next code by the database, never typed, and never deleted from the panel', () => {
     const list = read('src/pages/admin/Carreras.tsx')
@@ -68,16 +72,19 @@ describe('alerts do not pile up after a reload', () => {
 describe('what is particular of each carrera (phase B, 0037)', () => {
   it('the carrera has its own theme, seals, committees, coordi and inductores', () => {
     const app = read('src/App.tsx')
-    for (const s of ['tematica', 'sellos', 'inductores', 'comites']) expect(app).toContain(`path="${s}"`)
-    expect(read('src/pages/admin/AdminNav.tsx')).toMatch(/path: 'tematica'[\s\S]*path: 'sellos'[\s\S]*path: 'inductores'[\s\S]*path: 'comites'/)
+    for (const s of ['tematica', 'inductores', 'comites']) expect(app).toContain(`path="${s}"`)
+    expect(read('src/pages/admin/AdminNav.tsx')).toMatch(/path: 'tematica'[\s\S]*path: 'comites'[\s\S]*path: 'inductores'/)
+    // the old Sellos tab of a carrera sends to the workshop (the only place where seals are made)
+    expect(app).toMatch(/path="sellos" element=\{<SealsRedirect \/>\}/)
   })
   it('the theme page edits the carrera\'s own theme (by its semester), never a template', () => {
     expect(read('src/pages/admin/CarreraTematica.tsx')).toMatch(/from\('themes'\)\.select\('key, name'\)\.eq\('term_id', termId\)/)
     expect(read('src/pages/admin/Programas.tsx')).toMatch(/filter\(\(t\) => !t\.termId\)/) // the global page lists templates only
   })
-  it('the seals page offers shape, colour and picture with a preview, and the coordi seal is golden', () => {
-    const p = read('src/pages/admin/CarreraSellos.tsx')
-    for (const w of ['Forma', 'Color', 'Subir imagen', 'Previsualización del sello', 'gold={e.kind === \'coordinator\'}']) expect(p).toContain(w)
+  it('the seal editor offers shape, colour and picture with a preview, and the coordi seal is golden', () => {
+    const p = read('src/components/SealEditor.tsx')
+    for (const w of ['Forma', 'Color', 'Subir imagen', 'Previsualización del sello']) expect(p).toContain(w)
+    expect(read('src/components/ElementSeal.tsx')).toContain("gold={e.kind === 'coordinator'}")
     expect(read('src/lib/eventSeals.ts')).toMatch(/ya lo usa otro elemento/)
   })
   it('the coordi and the committees of a carrera are chosen inside it; the global committees page only keeps the catalog', () => {
@@ -101,12 +108,12 @@ describe('the seals of a carrera are used in the passports (0038)', () => {
     expect(read('src/lib/seals.ts')).toMatch(/baseOverrides\.get\(seed\)/)
     expect(read('src/lib/seals.ts')).toMatch(/c\.eventId === eventId/)
     expect(read('src/components/CustomSealsManager.tsx')).toMatch(/event_id: eventId/) // an uploaded seal is tied to its carrera
-    expect(read('src/pages/admin/CarreraSellos.tsx')).toMatch(/Editar el de siempre/)
+    expect(read('src/pages/admin/Sellos.tsx')).toMatch(/Editar el de siempre/)
   })
 })
 
 describe('nothing is entered twice in the panel', () => {
-  const pages = ['Carreras', 'Carrera', 'CarreraShell', 'CarreraTematica', 'CarreraSellos', 'CarreraComites', 'CarreraInductores', 'Comites', 'Programas', 'Insignias', 'Sellos', 'EnVivo', 'Grupos', 'Bases', 'Cruces', 'Usuarios', 'Puntajes', 'Mapa', 'Inductores'].map((p) => [p, read(`src/pages/admin/${p}.tsx`)] as const)
+  const pages = ['Carreras', 'Carrera', 'CarreraShell', 'CarreraTematica', 'CarreraComites', 'CarreraInductores', 'Comites', 'Programas', 'Insignias', 'Sellos', 'EnVivo', 'Grupos', 'Bases', 'Cruces', 'Usuarios', 'Puntajes', 'Mapa', 'Inductores'].map((p) => [p, read(`src/pages/admin/${p}.tsx`)] as const)
   const using = (re: RegExp) => pages.filter(([, src]) => re.test(src)).map(([name]) => name)
 
   it('the state of a carrera is controlled in ONE place (Resumen y control)', () => {
@@ -121,12 +128,14 @@ describe('nothing is entered twice in the panel', () => {
     expect(src).toMatch(/view\?: 'global' \| 'carrera'/)
     expect(src).toMatch(/\{view === 'global' && \(\s*<span className="person-edit identity-edit">/) // identity is edited only globally
   })
-  it('the seals are made inside each carrera; the global page is a read-only library', () => {
-    expect(using(/uploadSeal\(/)).toEqual([]) // no page uploads: only the manager inside the carrera
-    expect(using(/saveEventSeal\(/)).toEqual(['CarreraSellos']) // seals are edited only in the carrera's own tab
+  it('seals are made in ONE place: the workshop (Administración global → Sellos); the sections only show theirs', () => {
+    expect(using(/uploadSeal\(/)).toEqual([]) // no page uploads: the manager (used by the workshop) does
+    expect(using(/saveEventSeal\(|saveGenerationSeal\(/)).toEqual(['Sellos']) // only the workshop saves a seal
     expect(read('src/components/CustomSealsManager.tsx')).toMatch(/uploadSeal\(/)
-    expect(read('src/pages/admin/CarreraSellos.tsx')).toMatch(/<CustomSealsManager eventId=\{event\.id\}/)
-    expect(read('src/pages/admin/Sellos.tsx')).not.toMatch(/type="file"/)
+    expect(read('src/pages/admin/Sellos.tsx')).toMatch(/<CustomSealsManager eventId=\{event\.id\}/)
+    const section = read('src/components/SectionSeals.tsx')
+    expect(section).not.toMatch(/saveEventSeal|removeEventSeal|type="file"/) // read only
+    expect(section).toMatch(/workshopLink\(/)
   })
   it('the history of results has ONE entry in the menu, and the names do not clash', () => {
     const nav = read('src/pages/admin/AdminNav.tsx')
