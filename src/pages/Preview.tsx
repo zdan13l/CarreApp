@@ -21,7 +21,7 @@ import LazyMap from '../components/LazyMap'
 import Ranking from '../components/Ranking'
 import RoundPager from '../components/RoundPager'
 import AdminNav, { AdminTopbar } from './admin/AdminNav'
-import { PrepSteps } from './admin/Carrera'
+import PrepSteps, { PrepReport } from '../components/PrepSteps'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
 import BaseSealCard from '../components/BaseSealCard'
@@ -753,7 +753,8 @@ export default function Preview() {
                 </header>
                 <div className="live-grid">
                   <div>
-                <PrepSteps eventId="e1" counts={{ teams: 4, bases: 3, users: 11, matches: 6, warnings: [] }} problems={['La base "Atrio" tiene 2 de 3 preguntas.']} active={false} />
+                <PrepSteps eventId="e1" counts={{ teams: 4, bases: 3, users: 11, matches: 6, warnings: [] }} problems={['La base "Atrio" tiene 2 de 3 preguntas.']} phase="disabled" />
+                <PrepReport phase="disabled" problems={['La base "Atrio" tiene 2 de 3 preguntas.']} warnings={['La base "Atrio" no tiene ubicación en el mapa.']} />
                 <section className="card">
                   <h2>Carrera 2027-1</h2>
                   <p>

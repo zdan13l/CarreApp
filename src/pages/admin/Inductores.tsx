@@ -694,7 +694,8 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
 
   return (
     <>
-      <h1>{fixedTermId ? 'Inductores de esta carrera' : 'Inductores'}</h1>
+      {fixedTermId && <p className="eyebrow">Preparación · 7</p>}
+      <h1>Inductores</h1>
       <p className="muted">
         {isCarrera
           ? 'Quiénes participan en ESTA carrera y con qué papel: carrera, rol, comité, grupo o base. Las personas se registran una sola vez en Administración global → Inductores.'

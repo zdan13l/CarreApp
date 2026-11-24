@@ -151,8 +151,8 @@ export default function Puntajes() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Passport Verification</p>
-          <h1>Pasaportes</h1>
+          <p className="eyebrow">En carrera</p>
+          <h1>Puntajes</h1>
         </div>
         <div className="head-meta">
           <button className="ghost" onClick={() => void exportResults(event.id, event.name)}>Descargar resultados</button>

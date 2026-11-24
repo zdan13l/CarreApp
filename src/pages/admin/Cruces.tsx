@@ -90,8 +90,8 @@ export default function Cruces() {
 
   return (
     <>
-      <p className="eyebrow">Flight schedule</p>
-      <h1>Cruces y rotación</h1>
+      <p className="eyebrow">Preparación · 5</p>
+      <h1>Cruces</h1>
       <p className="muted">
         {teams.length} grupos · {bases.length} bases · {matches.length} cruces en {maxRound} rondas.
         Cada pareja de grupos solo puede enfrentarse una vez; la app lo valida.

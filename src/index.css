@@ -2487,15 +2487,33 @@ button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justi
 .carrera-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
 .carrera-code { font-size: 1.5rem; letter-spacing: .06em; }
 .test-note { display: flex; align-items: center; gap: .4rem; margin: 0; color: var(--warn); font-size: .85rem; }
-.carrera-bar { display: grid; gap: .5rem; margin-bottom: 1.25rem; padding-bottom: .9rem; border-bottom: 1px solid var(--border); }
+.carrera-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 0 0 1rem; font-size: 1rem; }
+.carrera-strip .mono { font-size: 1.15rem; letter-spacing: .06em; }
+@media (min-width: 900px) { .carrera-strip { display: none; } }
 .back-link { display: inline-flex; align-items: center; gap: .2rem; color: var(--text-muted); text-decoration: none; font-size: .9rem; width: fit-content; }
-.carrera-id { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; font-size: 1.15rem; }
-.carrera-id .mono { font-size: 1.4rem; letter-spacing: .06em; }
-.carrera-bar .allowed { margin: 0; }
-.carrera-tabs { display: flex; gap: .35rem; overflow-x: auto; padding-bottom: .2rem; scrollbar-width: thin; }
-.ctab { flex: none; padding: .45rem .8rem; border-radius: 99px; border: 1px solid var(--border); color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: .9rem; white-space: nowrap; }
-.ctab.active { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
-.nav-sub { margin-top: .6rem; text-transform: none; letter-spacing: 0; color: var(--text); }
+/* Menú lateral dentro de una carrera: volver, la carrera, y los grupos Preparación / En carrera */
+.nav-back { margin: .5rem 0 .1rem .5rem; }
+.nav-event { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: .25rem 0 .4rem; padding: .55rem .75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text-muted); font-size: .8125rem; }
+.nav-event strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 700; }
+.nav-event svg { flex: none; color: var(--gold-ink); }
+.nav-event .badge { margin-left: auto; }
+.nav-group { display: grid; gap: .2rem; margin-top: .4rem; }
+.nav-group-head { display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 34px; padding: 0 .9rem; background: transparent; color: var(--text-faint); border-radius: var(--radius-sm); font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; text-align: left; }
+.nav-group-head:hover:not(:disabled) { background: var(--surface-2); color: var(--text); transform: none; }
+.nav-group-head span { flex: 1; }
+.nav-group-head small { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: .75rem; }
+.nav-group-head svg { flex: none; transition: transform .2s; }
+.nav-group:not(.open) .nav-group-head svg { transform: rotate(-90deg); }
+.nav-group-body { display: grid; gap: .25rem; }
+.step-no { display: grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid currentColor; font-size: .75rem; font-weight: 700; line-height: 1; }
+/* el menú se desplaza solo: la marca y la cuenta quedan fijas y nada se aplasta */
+@media (min-width: 900px) {
+  .admin-brand, .admin-user { flex: none; }
+  .nav-desktop { flex: 1 1 auto; min-height: 0; overflow-y: auto; align-content: start; margin-bottom: .5rem; scrollbar-width: thin; }
+  .nav-desktop .tab { min-height: 40px; }
+  .admin-user { margin-top: 0; }
+}
+.setup-sheet { max-height: calc(100dvh - var(--nav-h) - 24px); overflow-y: auto; }
 .phase-control .allowed { margin: .2rem 0; }
 .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; margin-bottom: 1rem; }
 .badge-card { display: grid; gap: .6rem; align-content: start; }
@@ -2510,3 +2528,10 @@ button.map-recenter.ghost.icon { width: 44px; min-width: 44px; padding: 0; justi
 .event-seal { display: inline-block; flex: none; line-height: 0; }
 .seal-editor { display: flex; flex-wrap: wrap; gap: 1.2rem; margin-top: .8rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); }
 .seal-fields { flex: 1 1 14rem; display: grid; gap: .6rem; min-width: 0; }
+
+/* El taller de sellos: elegir para qué es el sello */
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
+.chip-btn { min-height: 38px; padding: 0 .9rem; border: 1px solid var(--border); border-radius: 99px; background: transparent; color: var(--text-muted); box-shadow: none; font-size: .9rem; font-weight: 600; }
+.chip-btn:hover:not(:disabled) { background: var(--surface-2); color: var(--text); transform: none; }
+.chip-btn.active { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+.nav-group-head { border: 0; box-shadow: none; }

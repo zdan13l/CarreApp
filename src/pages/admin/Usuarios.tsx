@@ -128,6 +128,7 @@ export default function Usuarios() {
 
   return (
     <>
+      <p className="eyebrow">Preparación · 8</p>
       <h1>Usuarios</h1>
       <p className="muted">{mine.length} usuarios en {event?.name ?? 'esta carrera'} (los corredores e inductores son propios de cada carrera). Las contraseñas no se pueden consultar después: cópialas al crearlas.</p>
 

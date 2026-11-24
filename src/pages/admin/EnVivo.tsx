@@ -21,6 +21,8 @@ import { promptDialog } from '../../lib/dialog'
 import { exportResults } from '../../lib/results'
 import { registerSealRoster } from '../../lib/seals'
 import PhaseControl from './PhaseControl'
+import PrepSteps, { PrepReport } from '../../components/PrepSteps'
+import { usePrepStatus } from '../../lib/prepStatus'
 import { PHASE_LABEL } from '../../lib/phase'
 
 interface Named {
@@ -55,26 +57,27 @@ const NO_SIGNAL_MS = 2 * 60 * 1000
 // who is late, who is winning and who is sharing their location. Everything updates by itself.
 // Preparing the Carrera is in "Carrera", "Grupos", "Bases", "Cruces" and "Usuarios".
 export default function EnVivo() {
-  const { event, reload, setMode } = useAdmin()
+  const { event, reload } = useAdmin()
   const [teams, setTeams] = useState<Named[]>([])
   const [bases, setBases] = useState<BasePoint[]>([])
   const [matches, setMatches] = useState<LiveMatch[]>([])
   const [standings, setStandings] = useState<StandingRow[]>([])
   const [positions, setPositions] = useState<Position[]>([])
   const [alerts, setAlerts] = useState<{ id: string; match_id: string; message: string; created_at: string }[]>([])
-  const [pending, setPending] = useState(0) // what still prevents activating a draft Carrera
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const now = useNow(15000)
 
   const eventId = event?.id
   const active = event?.is_active ?? false
+  const preparing = event?.phase === 'disabled' || event?.phase === 'enabled' // nothing runs yet: this page is the checklist, not the tower
+  const prep = usePrepStatus(eventId, preparing)
   const travel = useTravelTimes(eventId)
   const rotations = useRotationTimes(eventId)
 
   const load = useCallback(async () => {
     if (!supabase || !eventId) return
-    const [t, b, m, s, p, al] = await Promise.all([
+    const [t, b, m, s, al] = await Promise.all([
       supabase.from('teams').select('id, name').eq('event_id', eventId).order('sort_order'),
       supabase.from('bases').select('id, name, lat, lng').eq('event_id', eventId).order('sort_order'),
       supabase
@@ -83,7 +86,6 @@ export default function EnVivo() {
         .eq('event_id', eventId)
         .order('round_number'),
       supabase.from('team_standings').select('team_id, name, photo_path, points').eq('event_id', eventId),
-      active ? Promise.resolve(null) : supabase.rpc('event_problems', { p_event: eventId }),
       supabase.from('alerts').select('id, match_id, message, created_at').eq('event_id', eventId).order('created_at', { ascending: false }).limit(20),
     ])
     setAlerts(al.data ?? [])
@@ -92,8 +94,7 @@ export default function EnVivo() {
     setBases(b.data ?? [])
     setMatches((m.data ?? []) as LiveMatch[])
     setStandings(((s.data ?? []) as StandingRow[]).map((r) => ({ ...r, points: Number(r.points) })))
-    setPending(((p?.data as string[] | null) ?? []).length)
-  }, [eventId, active])
+  }, [eventId])
 
   // GPS positions have their own light reload: they arrive every few seconds.
   const loadPositions = useCallback(async () => {
@@ -158,25 +159,27 @@ export default function EnVivo() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Live Monitoring · {event.name}</p>
-          <h1>Control de vuelos</h1>
+          <p className="eyebrow">{preparing ? 'Preparación' : 'Live Monitoring'} · {event.name}</p>
+          <h1>Resumen y control</h1>
         </div>
         <div className="head-meta">
           <span className={`badge ${event.phase === 'started' ? 'ok live' : ''}`}>{active ? PHASE_LABEL[event.phase] : 'Borrador'}</span>
-          {matches.length > 0 && <span>Ronda {round} de {totalRounds}</span>}
-          {matches.length > 0 && <button className="ghost" onClick={() => void exportResults(event.id, event.name)}>Descargar resultados</button>}
+          {!preparing && matches.length > 0 && <span>Ronda {round} de {totalRounds}</span>}
+          {!preparing && matches.length > 0 && <button className="ghost" onClick={() => void exportResults(event.id, event.name)}>Descargar resultados</button>}
         </div>
       </header>
 
-      <PhaseControl key={`p-${event.id}`} event={event} canEnable={pending === 0} onChanged={reload} />
+      <PhaseControl key={`p-${event.id}`} event={event} canEnable={prep.problems.length === 0} onChanged={async () => { await reload(); await prep.reload() }} />
 
-      {!active && (
-        <div className="warn">
-          <strong>Esta Carrera está en borrador.</strong>{' '}
-          {pending > 0 ? `Faltan ${pending} cosas para poder habilitarla.` : 'Ya está completa: puedes habilitarla.'}{' '}
-          <button className="ghost" onClick={() => setMode('setup')}>Ir a la configuración</button>
-        </div>
+      {preparing && event.phase !== undefined && (
+        <>
+          <PrepSteps eventId={event.id} counts={prep.counts} problems={prep.problems} phase={event.phase as 'disabled' | 'enabled'} />
+          <PrepReport phase={event.phase as 'disabled' | 'enabled'} problems={prep.problems} warnings={prep.counts.warnings} />
+        </>
       )}
+      {!preparing && (
+        <>
+
       {matches.length === 0 && (
         <div className="warn">
           Todavía no hay cruces. Arma el cronograma en <Link to={`/admin/carreras/${event.id}/cruces`}>Cruces</Link>.
@@ -278,6 +281,8 @@ export default function EnVivo() {
           </section>
         </div>
       </div>
+        </>
+      )}
     </>
   )
 }
