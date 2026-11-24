@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { createPortal } from 'react-dom'
 import { airportCode } from '../lib/flight'
 import { committeeOf, committeesOfRecord } from '../lib/committees'
-import { generationsOf } from '../lib/seals'
+import { sealedGenerationsOf } from '../lib/seals'
 import {
   PASSPORT_ROLE_LONG,
   personNumber,
@@ -207,7 +207,7 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
             </li>
             <li className={`slot ${generation ? 'done' : 'rest'}`}>
               <div className="slot-btn">
-                {generationsOf(generation).some((g) => g.kind) ? <GenerationSeals generation={generation} size={104} /> : generation ? <TextSeal center={generation} top="Generación" bottom="Inducción Javeriana" size={104} tilt={-3} /> : <span className="slot-ghost" aria-hidden="true"><b>GENERACIÓN</b></span>}
+                {sealedGenerationsOf(generation).length > 0 ? <GenerationSeals generation={generation} size={104} /> : generation ? <TextSeal center={generation} top="Generación" bottom="Inducción Javeriana" size={104} tilt={-3} /> : <span className="slot-ghost" aria-hidden="true"><b>GENERACIÓN</b></span>}
                 <span className="slot-name">Generación</span>
                 <span className={`flap-mini${generation ? ' done' : ''}`}>{generation || 'Por definir'}</span>
               </div>

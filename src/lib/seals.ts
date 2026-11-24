@@ -160,24 +160,66 @@ export const sealInkVar = (seed: string) => {
 }
 
 // ---------- the generations ----------
-export type GenerationKey = 'peluches' | 'barbies' | 'champinones' | 'textiles' | 'minichips'
+// The generations are a GLOBAL catalog (table `generations`, migration 0039): permanent, shared by every inducción. Each has the seal the app
+// brings (a silhouette + a picture) and, once the coordi edits it, its own shape, colour and picture. Before the migration (or offline) the list the
+// app was made with is used. The list is changed IN PLACE, like the committees, so every screen that imported it sees the new one.
+export type GenerationKey = string // the name without accents or spaces: 'champinones', 'barbies'…
 export interface GenerationSeal {
   key: GenerationKey
   name: string
   term: string | null // the semester they entered (2X10 first half of the year, 2X30 second half, 2X20 intersemestral)
-  kind: 'arch' | 'ticket' | 'block' | 'spool' | null // null: its picture is not defined yet
+  kind: 'arch' | 'ticket' | 'block' | 'spool' | null // the silhouette of the seal the app brings; null: it brings none yet
   ink: 1 | 2 | 3 | 4 | 5
-  source?: InkSource
+  source?: InkSource // the picture the app brings
+  shape?: Exclude<FrameKind, 'medal'> // the seal the coordi edited: its shape, its colour and (optionally) its own picture
+  color?: string
+  imageUrl?: string
 }
 
-export const GENERATIONS: GenerationSeal[] = [
+const BUILT_IN_GENERATIONS: GenerationSeal[] = [
   { key: 'champinones', name: 'Champiñones', term: '2510', kind: 'block', ink: 2, source: { file: 'ink/gen-champinones.png' } },
   { key: 'peluches', name: 'Peluches', term: '2610', kind: 'arch', ink: 5, source: { file: 'ink/gen-peluches.png' } },
   { key: 'barbies', name: 'Barbies', term: '2630', kind: 'ticket', ink: 4, source: { file: 'ink/gen-barbies.png' } },
   { key: 'minichips', name: 'Minichips', term: '2710', kind: null, ink: 3 }, // the logo of the newest generation is not defined yet
   { key: 'textiles', name: 'Textiles', term: null, kind: 'spool', ink: 1 },
 ]
+export const GENERATIONS: GenerationSeal[] = [...BUILT_IN_GENERATIONS]
 
+export interface GenerationRow {
+  key: string
+  name: string
+  term: string | null
+  sort_order: number
+  kind: GenerationSeal['kind']
+  ink: number
+  source_file: string | null
+  shape: Exclude<FrameKind, 'medal'> | null
+  color: string | null
+  image_path: string | null
+}
+export function setGenerations(rows: GenerationRow[], urlOf: (path: string) => string) {
+  if (rows.length === 0) return
+  const list = [...rows].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)).map((r): GenerationSeal => ({
+    key: r.key,
+    name: r.name,
+    term: r.term,
+    kind: r.kind,
+    ink: (r.ink >= 1 && r.ink <= 5 ? r.ink : 1) as GenerationSeal['ink'],
+    source: r.source_file ? { file: r.source_file } : undefined,
+    shape: r.shape ?? undefined,
+    color: r.color ?? undefined,
+    imageUrl: r.image_path ? urlOf(r.image_path) : undefined,
+  }))
+  GENERATIONS.splice(0, GENERATIONS.length, ...list)
+}
+
+/** Does this generation have a seal to show (the app's own or the one the coordi edited)? */
+export const hasGenerationSeal = (g: GenerationSeal) => Boolean(g.kind || g.shape)
+/** The picture inside the edited seal: the one uploaded for it, else the one the app brings. */
+export const generationPicture = (g: GenerationSeal): string | undefined => g.imageUrl ?? g.source?.file
+
+/** The key of a generation from its name: no accents, no spaces, lower case (the same rule the database uses). */
+export const generationKeyOf = (text: string) => plain(text)
 const plain = (text: string) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '')
 
 /** "Barbies / Pendiente" -> the generations of the text that this version knows, in order. */
@@ -191,3 +233,5 @@ export function generationsOf(text: string | null | undefined): GenerationSeal[]
 
 /** Every picture file the seals can use (for the PDF). */
 export const allSealFiles = () => [...new Set([...MYTH_SEALS.map((s) => s.file), ...GENERATIONS.flatMap((g) => (g.source ? [g.source.file] : []))])]
+/** The generations of a text whose seal can be shown. */
+export const sealedGenerationsOf = (text: string | null | undefined) => generationsOf(text).filter(hasGenerationSeal)

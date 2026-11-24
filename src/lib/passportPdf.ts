@@ -7,7 +7,7 @@
 import { createElement, type ReactElement } from 'react'
 import { airportCode } from './flight'
 import { committeeOf, committeesOfRecord } from './committees'
-import { embedSealAssets, generationsOf, sealForSeed, sealInkVar, type GenerationSeal } from './seals'
+import { embedSealAssets, generationPicture, generationsOf, sealedGenerationsOf, sealForSeed, sealInkVar, type GenerationSeal } from './seals'
 import { personNumber, PASSPORT_ROLE_LONG } from './passports'
 import { jpegPdf } from './pdf'
 import { mrzText, stampLook, stampTime } from './stamp'
@@ -251,7 +251,7 @@ function identity(ctx: PageContext, no: number, total: number): string {
   const photo = ctx.assets.photo
     ? `<clipPath id="ph"><rect x="56" y="160" width="150" height="190" rx="14"/></clipPath><image href="${ctx.assets.photo}" x="56" y="160" width="150" height="190" preserveAspectRatio="xMidYMid slice" clip-path="url(#ph)"/>`
     : `<rect x="56" y="160" width="150" height="190" rx="14" fill="#dfe5f1"/>${text(131, 275, (person.full_name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('') || '?').toUpperCase(), { size: 58, weight: 800, fill: MUTED, anchor: 'middle', stretch: true })}`
-  const genSeal: GenerationSeal | undefined = generationsOf(generation).find((g) => g.kind)
+  const genSeal: GenerationSeal | undefined = sealedGenerationsOf(generation)[0]
   const slot = (x: number, label: string, value: string | undefined, top: string, bottom: string, tilt: number) =>
     `${value ? piece(createElement(TextSeal, { center: value, top, bottom, size: 150, tilt: 0 }), x, 566, 150, 150, tilt, ink, PAPER) : `<circle cx="${x + 75}" cy="641" r="72" fill="none" stroke="${LINE}" stroke-width="2" stroke-dasharray="6 6"/>${text(x + 75, 646, label.toUpperCase(), { size: 12, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' })}`}${text(x + 75, 736, label, { size: 14, weight: 800, anchor: 'middle', stretch: true })}${text(x + 75, 752, (value ?? 'Por definir').toUpperCase().slice(0, 22), { size: 9.5, mono: true, spacing: 1.6, fill: FAINT, anchor: 'middle' })}`
   const body = `
@@ -443,7 +443,11 @@ async function loadPhotos(data: MemberPassportData): Promise<{ photo: string | n
 /** The picture files of the seals this passport shows: the base stamps and the generation. */
 function sealFilesOf(data: MemberPassportData): string[] {
   const files = data.stamps.filter((s) => s.kind !== 'coordinated').map((s) => sealForSeed(s.base_key ?? s.base_name ?? '').file)
-  for (const g of generationsOf(data.person.generation)) if (g.source) files.push(g.source.file)
+  for (const g of generationsOf(data.person.generation)) {
+    if (g.source) files.push(g.source.file)
+    const own = generationPicture(g)
+    if (own) files.push(own) // the picture the coordi gave to the generation's seal
+  }
   files.push(...eventSealFilesOf(data.records.map((r) => r.term_id))) // the seals this carrera gave to its subthemes and committees
   return files
 }
