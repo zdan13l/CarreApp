@@ -2,6 +2,15 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Panel sin información repetida (2026-11-23, sin migración)
+Auditoría de lo que se pedía o se mostraba en más de un lugar. Regla: **cada cosa se crea y se cambia en UN solo lugar; los demás la usan o la enlazan.**
+- **Personas:** *Administración global → Inductores* es el único lugar donde se **crea** una persona (su login, identidad, ancestro, contraseña, eliminar) y muestra en qué carreras participa. Dentro de una carrera, *Inductores* solo **agrega a la carrera** a alguien ya registrado (carrera, rol, comité) o lo **quita de la carrera**; ya no se crean personas ni se elige otro semestre ahí, y el Excel masivo vive solo dentro de la carrera. La misma persona puede tener otro rol y comité en otra carrera sin tocar la primera.
+- **Estado de la carrera:** `PhaseControl` solo está en *Resumen y control*; *Configuración* enlaza a él.
+- **Sellos:** subir y editar sellos se hace solo dentro de la carrera (pestaña *Sellos*, con `CustomSealsManager`); *Biblioteca de sellos* (global) queda de solo lectura (los 15 de la app y un enlace por carrera).
+- **Nombres:** *Grupos participantes* vs *Grupos organizativos*, *Puntajes* (no «Pasaportes», que es el pasaporte personal) e *Historial de resultados* con una sola entrada en el menú.
+- **Pruebas:** `tests/static/admin-modes.test.ts` («nothing is entered twice in the panel») y `tests/db/inductor-participation.test.ts`.
+- **A propósito se dejó:** asignar usuarios a grupos/bases (acceso a la app) es distinto del registro personal del pasaporte; *Cruces* (el calendario) y *Puntajes* (los resultados) muestran los mismos cruces con otro fin.
+
 ## Sellos de la carrera en los pasaportes y por inducción (2026-11-22, migración 0038, aplicada)
 - **Pasaportes:** la página de cultura (subtemática) y la de comité muestran el sello que la carrera de ese semestre les dio (forma, color e imagen); sin sello editado queda el dibujo de siempre. También en el PDF. Los sellos de las bases editados se ven en los teléfonos y en el panel.
 - **Editar los sellos actuales:** en la pestaña *Sellos* de una carrera cada subtemática, comité y base muestra su «sello de siempre» con el botón *Editar el de siempre* (nueva forma, color o imagen solo para esa carrera). Hay una sección *Bases*.
