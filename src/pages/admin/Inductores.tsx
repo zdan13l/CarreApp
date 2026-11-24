@@ -68,6 +68,9 @@ export function PersonItem({
   onAncestor,
   onReactivate,
   onDisable,
+  view = 'global',
+  participation,
+  onRemove,
 }: {
   person: PersonRow
   themeKey: string
@@ -87,6 +90,12 @@ export function PersonItem({
   onAncestor?: () => void
   onReactivate?: () => void
   onDisable?: () => void
+  // the same person is shown in two places and each one edits only what is its own:
+  //   'global'  (Administración global → Inductores): the PERSON: photo, @, password, nickname, symbol, generation, ancestor, delete
+  //   'carrera' (inside a carrera): their PARTICIPATION in that edition: role, culture, committees, group or base, and removing them from it
+  view?: 'global' | 'carrera'
+  participation?: string // global: the carreras they take part in
+  onRemove?: () => void // carrera: take them out of this edition (the person stays in the system)
 }) {
   const { passport: p, record: r } = person
   const status = p.status ?? 'active'
@@ -105,11 +114,13 @@ export function PersonItem({
           @{p.username}
           {r ? ` · ${r.career}` : ''}
         </small>
-        {r ? (
+        {view === 'global' ? (
+          <small className="muted">{participation ? `Participa en: ${participation}` : 'Todavía no participa en ninguna carrera.'}</small>
+        ) : r ? (
           <span className="person-edit">
             <select value={r.role} disabled={busy} onChange={(e) => onRole(e.target.value as PassportRole)} aria-label={`Papel de ${p.full_name}`}>
               {PASSPORT_ROLES.map((x) => (
-                <option key={x} value={x}>{PASSPORT_ROLE_LABEL[x]}</option>
+                <option key={x} value={x} disabled={x === 'coordinator' && r.role !== 'coordinator'}>{PASSPORT_ROLE_LABEL[x]}{x === 'coordinator' && r.role !== 'coordinator' ? ' (se elige en Coordi y comités)' : ''}</option>
               ))}
             </select>
             <select value={r.culture} disabled={busy} onChange={(e) => onCulture(e.target.value as CultureKey)} aria-label={`Cultura de ${p.full_name}`} className={`culture-pick culture-${culture?.key}`}>
@@ -160,6 +171,7 @@ export function PersonItem({
         ) : (
           <small className="muted">No está en este semestre.</small>
         )}
+        {view === 'global' && (
         <span className="person-edit identity-edit">
           <input defaultValue={p.generation ?? ''} maxLength={30} placeholder="Generación" aria-label={`Generación de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.generation ?? '') && onIdentity({ generation: e.target.value.trim() || null })} />
           <input defaultValue={p.joined_term ?? ''} maxLength={20} placeholder="Ingresó (2024-2)" aria-label={`Ingreso a inducción de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.joined_term ?? '') && onIdentity({ joined_term: e.target.value.trim() || null })} />
@@ -172,7 +184,10 @@ export function PersonItem({
           </select>
           <input defaultValue={p.symbol_label ?? ''} maxLength={24} placeholder="Nombre del símbolo" aria-label={`Nombre del símbolo de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.symbol_label ?? '') && onIdentity({ symbol_label: e.target.value.trim() || null })} />
         </span>
+        )}
       </span>
+      {view === 'global' && (
+        <>
       <label className={`btn-like icon-only${busy ? ' disabled' : ''}`} title={p.photo_path ? 'Cambiar foto' : 'Agregar foto'}>
         <Camera size={18} aria-hidden="true" />
         <span className="sr-only">{p.photo_path ? `Cambiar la foto de ${p.full_name}` : `Agregar foto a ${p.full_name}`}</span>
@@ -209,6 +224,11 @@ export function PersonItem({
       <button className="ghost danger icon-btn" disabled={busy} onClick={onDelete} aria-label={`Eliminar a ${p.full_name}`} title="Eliminar el pasaporte">
         <Trash2 size={18} />
       </button>
+        </>
+      )}
+      {view === 'carrera' && onRemove && (
+        <button className="ghost danger" disabled={busy} onClick={onRemove} title="Quitarlo de esta carrera (la persona sigue en el sistema)">Quitar de la carrera</button>
+      )}
     </li>
   )
 }
@@ -301,6 +321,8 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
   const [filter, setFilter] = useState<PassportRole | 'all' | 'none' | 'ancestor'>('all')
   const [search, setSearch] = useState('')
   const [careerNames, setCareerNames] = useState<string[]>([])
+  const [participation, setParticipation] = useState<Map<string, string>>(new Map()) // global: person -> the carreras they take part in
+  const isCarrera = Boolean(fixedTermId)
 
   const term = terms.find((t) => t.id === termId) ?? null
 
@@ -351,6 +373,11 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     setFreeEvents((free.data ?? []) as { id: string; name: string }[])
     setTeams(events.flatMap((e) => [...e.teams].sort((a, b) => a.sort_order - b.sort_order).map((x) => ({ id: x.id, name: x.name, event: e.name }))))
     setBases(events.flatMap((e) => [...e.bases].sort((a, b) => a.sort_order - b.sort_order).map((x) => ({ id: x.id, name: x.name, event: e.name }))))
+    const all = await supabase.from('passport_records').select('passport_id, term_id')
+    const termName = new Map(list.map((x) => [x.id, x.name]))
+    const part = new Map<string, string[]>()
+    for (const x of all.data ?? []) part.set(x.passport_id as string, [...(part.get(x.passport_id as string) ?? []), termName.get(x.term_id as string) ?? '—'])
+    setParticipation(new Map([...part].map(([k, v]) => [k, v.join(', ')])))
     const cn = await supabase.from('careers').select('name').order('name')
     setCareerNames((cn.data ?? []).map((x) => x.name as string))
     setUsernames(new Set([...((p.data ?? []) as unknown as PassportPerson[]).map((x) => x.username), ...(pf.data ?? []).map((x) => x.username)]))
@@ -538,42 +565,53 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     })
   }
 
-  // ---------- one new inductor (the Excel is only for many at once) ----------
-  async function onAddPerson(form: HTMLFormElement) {
-    if (!supabase || !term) return
+  // ---------- global: a new PERSON (the only place where people are created) ----------
+  async function onCreatePerson(form: HTMLFormElement) {
+    if (!supabase) return
     const f = new FormData(form)
     const fullName = String(f.get('name') ?? '').trim().replace(/\s+/g, ' ')
-    const career = String(f.get('career') ?? '').trim()
-    const role = String(f.get('role') ?? 'runner') as PassportRole
-    const committee = String(f.get('committee') ?? '') || null
-    if (fullName.length < 3 || !career) return setError('Escribe el nombre y elige la carrera.')
-    const culture = themeOf(term.theme).cultureOf(career)
-    if (!culture) return setError(`La carrera «${career}» no tiene grupo ni cultura en ${themeOf(term.theme).name}. Agrégala en Programas.`)
+    if (fullName.length < 3) return setError('Escribe el nombre completo.')
     const known = passports.find((x) => nameKey(x.full_name) === nameKey(fullName))
-    if (known && byPassport.has(known.id)) return setError(`${known.full_name} ya está en este semestre (@${known.username}).`)
+    if (known) return setError(`${known.full_name} ya existe (@${known.username}). Agrégalo a una carrera desde la pestaña Inductores de esa carrera.`)
     const extra: Record<string, unknown> = {}
     for (const [k, col] of [['generation', 'generation'], ['joined', 'joined_term'], ['nickname', 'nickname']] as const) {
       const v = String(f.get(k) ?? '').trim()
       if (v) extra[col] = v
     }
     await run(async () => {
-      let id = known?.id
-      let password = ''
-      let username = known?.username ?? ''
-      if (!id) {
-        username = passportUsername(fullName, usernames)
-        password = newPassword()
-        id = (await createPassportUser({ username, password, full_name: fullName })).id
-        if (!id) throw new Error('No se pudo crear el usuario.')
-        if (Object.keys(extra).length) await supabase!.from('passports').update(extra).eq('id', id)
-      }
-      const { error: err } = await supabase!.from('passport_records').insert({ passport_id: id, term_id: term.id, role, career, culture, ...(committee ? { committee } : {}) })
-      if (err) {
-        if (password) await deleteUser(id).catch(() => undefined)
-        throw new Error('No se pudo registrar en el semestre.')
-      }
+      const username = passportUsername(fullName, usernames)
+      const password = newPassword()
+      const id = (await createPassportUser({ username, password, full_name: fullName })).id
+      if (!id) throw new Error('No se pudo crear el usuario.')
+      if (Object.keys(extra).length) await supabase!.from('passports').update(extra).eq('id', id)
       form.reset()
-      if (password) setCreds({ username, password, label: `Usuario nuevo de ${fullName}` })
+      setCreds({ username, password, label: `Usuario nuevo de ${fullName}` })
+    })
+  }
+
+  // ---------- inside a carrera: an EXISTING person takes part in this edition ----------
+  async function onJoin(form: HTMLFormElement) {
+    if (!supabase || !term) return
+    const f = new FormData(form)
+    const id = String(f.get('person') ?? '')
+    const career = String(f.get('career') ?? '').trim()
+    const role = String(f.get('role') ?? 'runner') as PassportRole
+    const committee = String(f.get('committee') ?? '') || null
+    if (!id || !career) return setError('Elige a la persona y su carrera.')
+    const culture = themeOf(term.theme).cultureOf(career)
+    if (!culture) return setError(`La carrera «${career}» no tiene grupo ni subtemática en la temática de esta carrera. Agrégala en Grupos organizativos o asígnale una subtemática en Temática.`)
+    await run(async () => {
+      const { error: err } = await supabase!.from('passport_records').insert({ passport_id: id, term_id: term.id, role, career, culture, ...(committee ? { committee } : {}) })
+      if (err) throw new Error('No se pudo agregar a esta carrera.')
+      form.reset()
+    })
+  }
+  async function onLeave(p: PassportPerson, recordId: string) {
+    if (!supabase) return
+    if (!(await confirmDialog({ title: `¿Quitar a ${p.full_name} de esta carrera?`, message: 'Deja de participar en esta edición (rol, comité, grupo o base). La persona, su pasaporte y su participación en otras carreras no cambian.', confirmLabel: 'Quitar de la carrera', tone: 'danger', icon: 'warning' }))) return
+    void run(async () => {
+      const { error: err } = await supabase!.from('passport_records').delete().eq('id', recordId)
+      if (err) throw new Error('No se pudo quitar de la carrera.')
     })
   }
 
@@ -597,7 +635,8 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
   const baseOptions: LinkOption[] = bases.map((b) => ({ id: b.id, label: b.name }))
 
   const shown = people.filter((x) => {
-    if (filter === 'none') return !x.record
+    if (isCarrera && !x.record) return false // inside a carrera only its participants are listed
+    if (filter === 'none') return !participation.has(x.passport.id)
     if (filter === 'ancestor') return (x.passport.status ?? 'active') !== 'active'
     if (filter !== 'all' && x.record?.role !== filter) return false
     const q = nameKey(search)
@@ -623,7 +662,9 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     <>
       <h1>{fixedTermId ? 'Inductores de esta carrera' : 'Inductores'}</h1>
       <p className="muted">
-        Sube el Excel de inductores (nombre y carrera): la app crea el @ y la contraseña de cada uno, te devuelve otro Excel con todo, y cada persona entra a su pasaporte personal. Aquí decides quién corre, quién es base y quién coordina, y enlazas cada corredor con su grupo.
+        {isCarrera
+          ? 'Quiénes participan en ESTA carrera y con qué papel: carrera, rol, comité, grupo o base. Las personas se registran una sola vez en Administración global → Inductores.'
+          : 'Las personas del sistema, con su identidad y su perfil (ancestros incluidos). Aquí se registran una sola vez; en qué carrera participan se decide dentro de cada carrera.'}
       </p>
       {error && <p className="error" role="alert">{error}</p>}
       {missing0025 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0025_passport_pages.sql</span> para las palabras de la inducción y de los comités.</p>}
@@ -645,6 +686,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
         </section>
       )}
 
+      {isCarrera ? (
       <section className="card">
         <h2>Semestre</h2>
         {fixedTermId ? (
@@ -702,13 +744,39 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
           </details>
         )}
       </section>
+      ) : (
+        <section className="card">
+          <h2>Las personas</h2>
+          <p className="muted">Aquí se registran las personas y su identidad (usuario, contraseña, foto, apodo, símbolo, generación). Una persona se crea UNA sola vez: su participación (rol, comité, grupo o base) se pone dentro de cada carrera, en su pestaña Inductores.</p>
+        </section>
+      )}
 
-      {term && (
-        <form className="card add-person" onSubmit={(e) => { e.preventDefault(); void onAddPerson(e.currentTarget) }}>
-          <h2>Agregar un inductor</h2>
-          <p className="muted">Solo los nuevos: los que ya están registrados siguen en el sistema. Se crea su usuario personal y se muestra la contraseña una sola vez.</p>
+      {!isCarrera && (
+        <form className="card add-person" onSubmit={(e) => { e.preventDefault(); void onCreatePerson(e.currentTarget) }}>
+          <h2>Registrar una persona nueva</h2>
+          <p className="muted">Se crea su usuario personal y se muestra la contraseña una sola vez. Su carrera, rol y comité se eligen al agregarla a una carrera.</p>
           <div className="grid2">
             <label className="inline-field">Nombre completo<input name="name" required minLength={3} maxLength={80} placeholder="Nombre Apellido" /></label>
+            <label className="inline-field">Generación<input name="generation" maxLength={30} placeholder="Peluches" /></label>
+            <label className="inline-field">Ingresó<input name="joined" maxLength={20} placeholder="2027-1" /></label>
+            <label className="inline-field">Apodo<input name="nickname" maxLength={24} /></label>
+          </div>
+          <div className="row"><button disabled={busy}><UserPlus size={18} aria-hidden="true" /> Registrar persona</button></div>
+        </form>
+      )}
+
+      {isCarrera && term && (
+        <form className="card add-person" onSubmit={(e) => { e.preventDefault(); void onJoin(e.currentTarget) }}>
+          <h2>Agregar una persona a esta carrera</h2>
+          <p className="muted">Eliges entre las personas ya registradas. ¿No está? Regístrala una vez en Administración global → Inductores.</p>
+          <div className="grid2">
+            <label className="inline-field">
+              Persona
+              <select name="person" required defaultValue="">
+                <option value="" disabled>Elige…</option>
+                {passports.filter((x) => !byPassport.has(x.id) && (x.status ?? 'active') !== 'disabled').map((x) => <option key={x.id} value={x.id}>{x.full_name} (@{x.username})</option>)}
+              </select>
+            </label>
             <label className="inline-field">
               Carrera
               <select name="career" required defaultValue="">
@@ -719,7 +787,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
             <label className="inline-field">
               Rol
               <select name="role" defaultValue="runner">
-                {PASSPORT_ROLES.map((x) => <option key={x} value={x}>{PASSPORT_ROLE_LABEL[x]}</option>)}
+                {PASSPORT_ROLES.filter((x) => x !== 'coordinator').map((x) => <option key={x} value={x}>{PASSPORT_ROLE_LABEL[x]}</option>)}
               </select>
             </label>
             <label className="inline-field">
@@ -729,15 +797,12 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
                 {COMMITTEES.map((c) => <option key={c.key} value={c.key}>{c.name}</option>)}
               </select>
             </label>
-            <label className="inline-field">Generación<input name="generation" maxLength={30} placeholder="Peluches" /></label>
-            <label className="inline-field">Ingresó<input name="joined" maxLength={20} placeholder="2027-1" /></label>
-            <label className="inline-field">Apodo<input name="nickname" maxLength={24} /></label>
           </div>
-          <div className="row"><button disabled={busy}><UserPlus size={18} aria-hidden="true" /> Agregar inductor</button></div>
+          <div className="row"><button disabled={busy}><UserPlus size={18} aria-hidden="true" /> Agregar a esta carrera</button></div>
         </form>
       )}
 
-      {term && (
+      {isCarrera && term && (
         <details className="card">
           <summary><strong>Carga masiva con Excel</strong> <span className="muted">(solo si llegan muchos a la vez)</span></summary>
           <p className="muted">
@@ -810,24 +875,24 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
         </details>
       )}
 
-      {term && (
+      {(isCarrera ? term : true) && (
         <section className="card">
           <div className="row">
-            <h2 className="grow">Lista de {term.name}</h2>
+            <h2 className="grow">{isCarrera ? `Participan en ${term?.name ?? 'esta carrera'}` : 'Todas las personas'}</h2>
             <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)} aria-label="Filtrar">
               <option value="all">Todos</option>
-              {PASSPORT_ROLES.map((x) => (
+              {isCarrera && PASSPORT_ROLES.map((x) => (
                 <option key={x} value={x}>{PASSPORT_ROLE_LABEL[x]}</option>
               ))}
-              <option value="none">Fuera de este semestre</option>
-              <option value="ancestor">Ancestros</option>
+              {!isCarrera && <option value="none">Sin ninguna carrera</option>}
+              {!isCarrera && <option value="ancestor">Ancestros y deshabilitados</option>}
             </select>
           </div>
           <label className="search">
             <Search size={16} aria-hidden="true" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nombre o @" aria-label="Buscar" />
           </label>
-          {(loose > 0 || alone > 0) && (
+          {isCarrera && (loose > 0 || alone > 0) && (
             <p className="muted">
               {loose > 0 && `${plural(loose, 'corredor sin grupo', 'corredores sin grupo')}. `}
               {alone > 0 && `${plural(alone, 'grupo con una sola persona', 'grupos con una sola persona')}.`}
@@ -836,14 +901,17 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
           {loading ? (
             <p className="loading">Cargando…</p>
           ) : shown.length === 0 ? (
-            <p className="muted">{people.length === 0 ? 'Todavía no hay inductores. Carga el Excel de arriba.' : 'Nadie coincide con ese filtro.'}</p>
+            <p className="muted">{people.length === 0 ? (isCarrera ? 'Todavía no hay inductores en esta carrera: agrégalos arriba.' : 'Todavía no hay personas registradas.') : 'Nadie coincide con ese filtro.'}</p>
           ) : (
             <ul className="list people">
               {shown.map((x) => (
                 <PersonItem
                   key={x.passport.id}
                   person={x}
-                  themeKey={term.theme}
+                  themeKey={term?.theme ?? 'mitologias'}
+                  view={isCarrera ? 'carrera' : 'global'}
+                  participation={participation.get(x.passport.id)}
+                  onRemove={x.record ? () => void onLeave(x.passport, x.record!.id) : undefined}
                   teams={teamOptions}
                   bases={baseOptions}
                   busy={busy}
