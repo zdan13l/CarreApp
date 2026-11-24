@@ -1,3 +1,4 @@
+import PageTitle from './PageTitle'
 import { Camera, Copy, Download, FileSpreadsheet, GraduationCap, KeyRound, RotateCcw, Search, Trash2, Upload, UserPlus, UserX } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Avatar from '../../components/Avatar'
@@ -694,8 +695,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
 
   return (
     <>
-      {fixedTermId && <p className="eyebrow">Preparación · 7</p>}
-      <h1>Inductores</h1>
+      <PageTitle step={fixedTermId ? 7 : undefined}>Inductores</PageTitle>
       <p className="muted">
         {isCarrera
           ? 'Quiénes participan en ESTA carrera y con qué papel: carrera, rol, comité, grupo o base. Las personas se registran una sola vez en Administración global → Inductores.'

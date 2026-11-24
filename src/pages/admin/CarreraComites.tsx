@@ -1,3 +1,4 @@
+import { StepTag } from './PageTitle'
 import SectionSeals from '../../components/SectionSeals'
 import type { SealKind } from '../../lib/eventSeals'
 import { useCallback, useEffect, useState } from 'react'
@@ -123,9 +124,9 @@ export default function CarreraComites() {
   return (
     <>
       <header className="page-head">
-        <div>
-          <p className="eyebrow">Preparación · 6</p>
-          <h1>Coordi y comités</h1>
+        <div className="head-title">
+                    <h1>Coordi y comités</h1>
+                    <StepTag n={6} />
         </div>
         <p className="head-meta">El coordi y los comités cambian de una carrera a otra y no se heredan.</p>
       </header>

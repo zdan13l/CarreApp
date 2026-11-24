@@ -1,3 +1,4 @@
+import PageTitle from './PageTitle'
 import { Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BellRing } from 'lucide-react'
@@ -90,8 +91,7 @@ export default function Cruces() {
 
   return (
     <>
-      <p className="eyebrow">Preparación · 5</p>
-      <h1>Cruces</h1>
+            <PageTitle step={5}>Cruces</PageTitle>
       <p className="muted">
         {teams.length} grupos · {bases.length} bases · {matches.length} cruces en {maxRound} rondas.
         Cada pareja de grupos solo puede enfrentarse una vez; la app lo valida.

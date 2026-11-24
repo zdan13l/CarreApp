@@ -102,7 +102,6 @@ export default function Sellos() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Administración global</p>
           <h1>Sellos</h1>
         </div>
         <p className="head-meta">El taller: aquí se crean y se cambian todos los sellos. Cada sello se hace para algo (una generación, una temática, un comité…) y, salvo las generaciones, para una inducción en especial.</p>

@@ -1,3 +1,4 @@
+import PageTitle from './PageTitle'
 import SectionSeals from '../../components/SectionSeals'
 import type { SealKind } from '../../lib/eventSeals'
 import { MapPin, Trash2, X } from 'lucide-react'
@@ -79,8 +80,7 @@ export default function Bases() {
 
   return (
     <>
-      <p className="eyebrow">Preparación · 4</p>
-      <h1>Bases</h1>
+            <PageTitle step={4}>Bases</PageTitle>
       <p className="muted">{bases.length} bases (destinos) en {event.name}. Cada una tiene su código de aeropuerto y su propio sello.</p>
 
       <section className="card">

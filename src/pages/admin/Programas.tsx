@@ -142,7 +142,6 @@ export default function Programas() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Preparación</p>
           <h1>Programas y temáticas</h1>
         </div>
         <p className="head-meta">Las carreras van en grupos (Tronicas, Sistemas…). Cada temática le da una cultura a cada grupo. Siempre existe una temática global.</p>

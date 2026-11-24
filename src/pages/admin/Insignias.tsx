@@ -106,7 +106,6 @@ export default function Insignias() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Administración global</p>
           <h1>Insignias</h1>
         </div>
         <p className="head-meta">Una insignia es el logo de un grupo de carreras. Son de todas las carreras y de todos los grupos; no son sellos.</p>

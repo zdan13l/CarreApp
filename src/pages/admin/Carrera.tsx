@@ -1,3 +1,4 @@
+import { StepTag } from './PageTitle'
 import { useAdmin } from './AdminContext'
 import BulkImport from './BulkImport'
 import TravelTimes from './TravelTimes'
@@ -11,9 +12,9 @@ export default function Carrera() {
   return (
     <>
       <header className="page-head">
-        <div>
-          <p className="eyebrow">Preparación · 1</p>
-          <h1>Configuración</h1>
+        <div className="head-title">
+                    <h1>Configuración</h1>
+                    <StepTag n={1} />
         </div>
         <p className="head-meta">Carga desde un archivo y tiempos de traslado de esta carrera.</p>
       </header>

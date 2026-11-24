@@ -1,3 +1,4 @@
+import PageTitle from './PageTitle'
 import SectionSeals from '../../components/SectionSeals'
 import type { SealKind } from '../../lib/eventSeals'
 import { Radio, Trash2, X } from 'lucide-react'
@@ -71,8 +72,7 @@ export default function Grupos() {
 
   return (
     <>
-      <p className="eyebrow">Preparación · 3</p>
-      <h1>Grupos participantes</h1>
+            <PageTitle step={3}>Grupos participantes</PageTitle>
       <p className="muted">{teams.length} grupos en {event.name}</p>
 
       <section className="card">

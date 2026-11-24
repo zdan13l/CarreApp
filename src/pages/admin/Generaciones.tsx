@@ -98,7 +98,6 @@ export default function Generaciones() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Administración global</p>
           <h1>Generaciones</h1>
         </div>
         <p className="head-meta">Son permanentes y de todas las inducciones. Su sello se crea y se cambia en el taller de Sellos, y a cada persona se le elige su generación en Inductores.</p>

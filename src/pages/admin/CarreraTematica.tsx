@@ -1,3 +1,4 @@
+import { StepTag } from './PageTitle'
 import type { SealKind } from '../../lib/eventSeals'
 import SectionSeals from '../../components/SectionSeals'
 import { Plus } from 'lucide-react'
@@ -103,9 +104,9 @@ export default function CarreraTematica() {
   return (
     <>
       <header className="page-head">
-        <div>
-          <p className="eyebrow">Preparación · 2</p>
-          <h1>Temática</h1>
+        <div className="head-title">
+                    <h1>Temática</h1>
+                    <StepTag n={2} />
         </div>
         <p className="head-meta">La temática y las subtemáticas son solo de esta edición: se copiaron de una plantilla al crearla y cambiarlas no afecta a otras carreras.</p>
       </header>

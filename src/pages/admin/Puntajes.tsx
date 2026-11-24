@@ -151,7 +151,6 @@ export default function Puntajes() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">En carrera</p>
           <h1>Puntajes</h1>
         </div>
         <div className="head-meta">

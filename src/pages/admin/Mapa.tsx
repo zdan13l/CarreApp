@@ -128,7 +128,6 @@ export default function Mapa() {
 
   return (
     <>
-      <p className="eyebrow">En carrera</p>
       <h1>Radar</h1>
       <p className="muted">
         Cada vuelo (grupo) aparece con la ubicación del corredor designado para el GPS. Se actualiza solo.
@@ -148,7 +147,6 @@ export default function Mapa() {
       )}
 
       <section className="card">
-        <p className="eyebrow">Vuelos</p>
         <h2>Señal de cada vuelo</h2>
         <ul className="list radar-list">
           {teams.map((t) => {

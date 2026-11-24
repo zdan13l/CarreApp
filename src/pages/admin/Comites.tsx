@@ -78,7 +78,6 @@ export default function Comites() {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Administración global</p>
           <h1>Comités</h1>
         </div>
         <p className="head-meta">El catálogo global de comités: cámbiales el nombre y la frase, agrega o quita. Qué comités participan en cada carrera y quién los coordina se elige dentro de la carrera (Coordi y comités).</p>

@@ -69,7 +69,6 @@ export default function PhaseControl({
   const canRestart = event.is_test && (phase === 'enabled' || phase === 'started')
   return (
     <section className="card phase-control" aria-label="Estado de la carrera">
-      <p className="eyebrow">Estado de la carrera</p>
       <ol className="phase-steps">
         {PHASE_ORDER.map((p, i) => (
           <li key={p} className={i < at ? 'done' : i === at ? 'now' : 'todo'} aria-current={i === at ? 'step' : undefined}>
