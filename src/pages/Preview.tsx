@@ -3,7 +3,7 @@
 //   /preview/runner  /preview/runner-ruta  /preview/runner-top  /preview/runner-fin
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
 import { useEffect, useState, type CSSProperties } from 'react'
-import { BookMarked, BellRing, Camera, ChevronRight, ClipboardCheck, KeyRound, LocateFixed, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy, Users } from 'lucide-react'
+import { BookMarked, BellRing, Camera, ChevronRight, ClipboardCheck, FileSpreadsheet, KeyRound, LocateFixed, Search, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy, UserPlus, Users } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import Avatar from '../components/Avatar'
@@ -59,8 +59,13 @@ import CultureEmblem from '../components/CultureEmblem'
 import { COMMITTEES } from '../lib/committees'
 import MemberPage from '../components/MemberPage'
 import type { MemberPassportData } from '../components/MemberPassport'
-import { GenerationPicker, PersonItem, UploadPreview, type PersonRow } from './admin/Inductores'
-import type { PassportRole, PassportStampRow, PersonIn } from '../lib/passports'
+import { PersonItem, type PersonRow } from './admin/Inductores'
+import FilterChips from '../components/FilterChips'
+import GenerationPicker from '../components/GenerationPicker'
+import InductorsBulk from '../components/InductorsBulk'
+import NewInductorForm from '../components/NewInductorForm'
+import type { InductorIn } from '../lib/inductors'
+import type { PassportRole, PassportStampRow } from '../lib/passports'
 
 // a real preview from the catalogue, only for this screen of the design preview
 const SAMPLE_SONG = {
@@ -198,17 +203,17 @@ function memberData(role: PassportRole, culture: string, career: string, query: 
 }
 const sampleCareers: Record<string, [string, string]> = { nordica: ['nordica', 'Ingeniería de Sistemas'], griega: ['griega', 'Mecatrónica'], mexicana: ['mexicana', 'Ingeniería Industrial'], china: ['china', 'Bioingeniería'], egipcia: ['egipcia', 'Ingeniería Civil'] }
 const samplePeople: PersonRow[] = [
-  { passport: { id: 'a', username: 'camila.rojas', full_name: 'Camila Andrea Rojas Prieto', photo_path: null }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
-  { passport: { id: 'b', username: 'ana.ruiz', full_name: 'Ana Pardo Ruiz', photo_path: null }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
-  { passport: { id: 'c', username: 'diana.pardo', full_name: 'Diana Carolina Pardo', photo_path: null }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
-  { passport: { id: 'd', username: 'lucia.ortega', full_name: 'Lucía Marcela Ortega Páez', photo_path: null }, record: null },
+  { passport: { id: 'a', username: 'camila.rojas', full_name: 'Camila Andrea Rojas Prieto', photo_path: null, nickname: 'Cami', generation: 'Minichips', joined_term: '2710', career: 'Ingeniería de Sistemas', song: SAMPLE_SONG }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
+  { passport: { id: 'b', username: 'ana.ruiz', full_name: 'Ana Pardo Ruiz', photo_path: null, generation: 'Barbies', joined_term: '2630', career: 'Ingeniería de Sistemas' }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
+  { passport: { id: 'c', username: 'diana.pardo', full_name: 'Diana Carolina Pardo', photo_path: null, generation: 'Peluches / Barbies', joined_term: '2610', career: 'Mecatrónica', status: 'ancestor', disable_at: '2027-05-30T00:00:00Z' }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
+  { passport: { id: 'd', username: 'lucia.ortega', full_name: 'Lucía Marcela Ortega Páez', photo_path: null, generation: 'Minichips', joined_term: '2710', career: 'Ingeniería Civil' }, record: null },
 ]
-const sampleRows: PersonIn[] = [
-  { line: 2, fullName: 'Camilo José Mora Ibáñez', career: 'Bioingeniería', role: 'runner', culture: 'china', username: 'camilo.mora', existing: false, committee: 'caos', generation: '', joined: '', nickname: '', errors: [] },
-  { line: 3, fullName: 'Miguel Ángel Vera Soto', career: 'Ingeniería Civil', role: 'runner', culture: 'egipcia', username: 'miguel.vera', existing: false, committee: null, generation: '', joined: '', nickname: '', errors: [] },
-  { line: 4, fullName: 'Laura Camila Pinto', career: 'Ingeniería Ambiental', role: 'base', culture: null, username: 'laura.pinto', existing: false, committee: 'meraki', generation: '', joined: '', nickname: '', errors: [] },
-  { line: 5, fullName: 'Sara Nelly Beltrán', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'sara.beltran', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: [] },
-  { line: 6, fullName: 'Sara Nelly Beltrán', career: 'Ingeniería Industrial', role: 'runner', culture: 'mexicana', username: 'sara.beltran', existing: true, committee: null, generation: '', joined: '', nickname: '', errors: ['Esta persona está repetida en el archivo.'] },
+const sampleRows: InductorIn[] = [
+  { line: 2, fullName: 'Camilo José Mora Ibáñez', careerWritten: 'Bioingeniería', career: 'Bioingeniería', generation: 'Minichips', nickname: 'Camilo', songWritten: 'Mujeriego - Ryan Castro', username: 'camilo.mora', existing: false, errors: [] },
+  { line: 3, fullName: 'Miguel Ángel Vera Soto', careerWritten: 'Civil', career: 'Ingeniería Civil', generation: 'Minichips', nickname: '', songWritten: 'https://open.spotify.com/track/2K9vpqu9', username: 'miguel.vera', existing: false, errors: [] },
+  { line: 4, fullName: 'Laura Camila Pinto', careerWritten: 'Ingeniería Ambiental', career: null, generation: '', nickname: '', songWritten: '', username: 'laura.pinto', existing: false, errors: [] },
+  { line: 5, fullName: 'Sara Nelly Beltrán', careerWritten: 'Ingeniería Industrial', career: 'Ingeniería Industrial', generation: 'Minichips', nickname: '', songWritten: 'Comernos - bad gyal', username: 'sara.beltran', existing: true, errors: [] },
+  { line: 6, fullName: 'Sara Nelly Beltrán', careerWritten: 'Ingeniería Industrial', career: 'Ingeniería Industrial', generation: 'Minichips', nickname: '', songWritten: '', username: 'sara.beltran', existing: true, errors: ['Esta persona está repetida en el archivo.'] },
 ]
 
 // The pages of the PDF of the passport as pictures, and a button that builds the whole PDF (development only).
@@ -324,22 +329,47 @@ export default function Preview() {
   }
 
   if (screen === 'inductores') {
+    const query = new URLSearchParams(window.location.search)
     return (
       <div className="admin tower">
         <AdminNav event={{ id: 'e1', name: 'Carrera 2710', code: '2710', phase: 'started' }} user={user} onSignOut={noop} />
         <main className="admin-main">
           <AdminTopbar user={user} onSignOut={noop} />
-          <h1>Inductores</h1>
-          <section className="card">
-            <h2>Cargar inductores</h2>
-            <UploadPreview rows={sampleRows} themeKey="mitologias" onChange={noop} />
-            <div className="row"><button>Crear 3 pasaportes y descargar las contraseñas</button><button className="ghost">Cancelar</button></div>
-          </section>
-          <section className="card">
-            <h2>Lista de 2026-2</h2>
+          <div className="title-row"><h1>Inductores</h1></div>
+          <details className="card info-box" open={query.has('info')}>
+            <summary>¿Qué es un inductor?</summary>
+            <p>Es una persona del equipo de la inducción: corre con un grupo, atiende una base o coordina. Cada inductor tiene su usuario y un pasaporte personal que lo acompaña toda su vida en la inducción, con su carrera, su generación y su canción.</p>
+            <p>Cuando ya no está en la inducción pasa a ser <strong>ancestro</strong>: su perfil sigue abierto un tiempo y después se deshabilita.</p>
+          </details>
+          <div className="inductor-actions" role="group" aria-label="Agregar inductores">
+            <button type="button" className={`action-tab${query.get('panel') === 'new' ? ' on' : ''}`}><UserPlus size={20} aria-hidden="true" /><span><strong>Registrar inductor/a nuevo</strong><small>De a uno, con su canción</small></span></button>
+            <button type="button" className={`action-tab${query.get('panel') === 'bulk' ? ' on' : ''}`}><FileSpreadsheet size={20} aria-hidden="true" /><span><strong>Carga masiva con Excel</strong><small>Muchos a la vez, con plantilla</small></span></button>
+          </div>
+          {query.get('panel') === 'new' && (
+            <section className="card panel-card">
+              <h2>Registrar inductor/a nuevo</h2>
+              <NewInductorForm careers={['Bioingeniería', 'Ingeniería Civil', 'Ingeniería de Sistemas', 'Mecatrónica']} people={[]} usernames={new Set()} busy={false} run={async () => undefined} onError={noop} onCreated={noop} />
+            </section>
+          )}
+          {query.get('panel') === 'bulk' && (
+            <section className="card panel-card">
+              <h2>Carga masiva con Excel</h2>
+              <InductorsBulk careers={['Bioingeniería', 'Ingeniería Civil', 'Ingeniería Industrial', 'Ingeniería de Sistemas', 'Mecatrónica']} people={[{ id: 's', username: 'sara.beltran', full_name: 'Sara Nelly Beltrán', photo_path: null }]} usernames={new Set()} onDone={async () => undefined} startRows={sampleRows} />
+            </section>
+          )}
+          <section className="card people-card">
+            <div className="people-head"><h2 className="grow">Todos los inductores</h2><span className="badge">{samplePeople.length} inductores</span></div>
+            <label className="search"><Search size={16} aria-hidden="true" /><input defaultValue={query.get('q') ?? ''} placeholder="Buscar inductor, carrera o @" aria-label="Buscar" /></label>
+            <FilterChips
+              groups={[
+                { id: 'career', label: 'Carrera', options: [{ value: 'Sistemas', label: 'Sistemas', count: 2 }, { value: 'Mecatrónica', label: 'Mecatrónica', count: 1 }, { value: 'Civil', label: 'Civil', count: 1 }], selected: query.has('filtro') ? ['Sistemas'] : [], onChange: noop },
+                { id: 'state', label: 'Estado', options: [{ value: 'active', label: 'Activos', count: 3 }, { value: 'ancestor', label: 'Ancestros', count: 1 }], selected: [], onChange: noop },
+              ]}
+              onClear={noop}
+            />
             <ul className="list people">
-              {samplePeople.map((p) => (
-                <PersonItem key={p.passport.id} person={p} themeKey="mitologias" teams={[{ id: 'g1', label: 'Dioses Nórdicos (1/2)' }]} bases={[{ id: 'b1', label: 'Atrio' }]} busy={false} onRole={noop} onLink={noop} onCulture={noop} onCommittee={noop} onLead={noop} onExtra={noop} onIdentity={noop} onPhoto={noop} onReset={noop} onDelete={noop} />
+              {samplePeople.map((p, i) => (
+                <PersonItem key={p.passport.id} person={p} themeKey="mitologias" career={p.passport.career} careers={['Bioingeniería', 'Ingeniería Civil', 'Ingeniería de Sistemas', 'Mecatrónica']} participation={i === 0 ? '2710, 2730' : undefined} startEditing={query.has('editar') && i === 0} teams={[{ id: 'g1', label: 'Dioses Nórdicos (1/2)' }]} bases={[{ id: 'b1', label: 'Atrio' }]} busy={false} onRole={noop} onLink={noop} onCulture={noop} onCommittee={noop} onLead={noop} onExtra={noop} onIdentity={noop} onPhoto={noop} onReset={noop} onDelete={noop} onAncestor={noop} onReactivate={noop} onDisable={noop} />
               ))}
             </ul>
           </section>

@@ -18,11 +18,14 @@ describe('generations', () => {
     expect(workshop).toMatch(/loadCatalog\(\)/) // the passports read the new seal at once
   })
   it('are never typed: the person forms use the selector of the catalog (and the Excel is validated against it)', () => {
-    const ind = read('src/pages/admin/Inductores.tsx')
-    expect(ind).toMatch(/<GenerationPicker /)
-    expect(ind).not.toMatch(/name="generation" maxLength/)
-    expect(ind).not.toMatch(/placeholder="Generación"/)
-    expect(read('src/lib/passports.ts')).toMatch(/La generación no existe/)
+    for (const f of ['src/components/NewInductorForm.tsx', 'src/components/PersonEditor.tsx', 'src/components/InductorsBulk.tsx']) {
+      const src = read(f)
+      expect(src).toMatch(/<GenerationPicker /)
+      expect(src).not.toMatch(/name="generation" maxLength/)
+      expect(src).not.toMatch(/placeholder="Generación"/)
+    }
+    expect(read('src/pages/admin/Inductores.tsx')).not.toMatch(/placeholder="Generación"/)
+    expect(read('src/lib/inductors.ts')).toMatch(/generación «\$\{generation\}» no existe/)
   })
   it('the catalog is read at sign-in and the passport and the PDF draw the edited seal', () => {
     expect(read('src/lib/catalog.ts')).toMatch(/from\('generations'\)/)

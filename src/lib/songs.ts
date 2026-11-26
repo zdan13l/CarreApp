@@ -102,32 +102,6 @@ export function looksRight(wrote: string, song: PassportSong): boolean {
   return title.length >= 3 && flat(wrote).includes(title)
 }
 
-export interface SongAnswer {
-  line: number
-  name: string
-  wrote: string
-}
-
-/** Finds the name and the song of each row of a form (Microsoft Forms, Google Forms…) by the titles of its columns. */
-export function parseSongRows(tables: string[][][]): { rows: SongAnswer[]; error: string | null } {
-  for (const table of tables) {
-    const [head, ...body] = table
-    if (!head) continue
-    const heads = head.map((h) => fold(String(h ?? '')).replace(/[^a-z0-9? ]/g, ' ').trim())
-    const song = heads.findIndex((h) => h.includes('cancion'))
-    const name = heads.findIndex((h) => h === 'nombre') >= 0 ? heads.findIndex((h) => h === 'nombre') : heads.findIndex((h) => h.startsWith('nombre'))
-    if (song < 0 || name < 0) continue
-    const rows: SongAnswer[] = []
-    body.forEach((r, i) => {
-      const n = String(r[name] ?? '').replace(/\s+/g, ' ').trim()
-      const w = String(r[song] ?? '').replace(/\s+/g, ' ').trim()
-      if (n && w) rows.push({ line: i + 2, name: n, wrote: w })
-    })
-    return { rows, error: null }
-  }
-  return { rows: [], error: 'No encontré las columnas «Nombre» y la de la canción (¿Qué canción sonaría…?) en el archivo.' }
-}
-
 export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 /** The pause between two searches so the catalogue does not refuse them. */
 export const SEARCH_GAP_MS = 3200

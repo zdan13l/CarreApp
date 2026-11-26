@@ -121,12 +121,15 @@ describe('nothing is entered twice in the panel', () => {
   })
   it('a PERSON is created in ONE place: Administración global → Inductores (inside a carrera people only join it)', () => {
     const src = read('src/pages/admin/Inductores.tsx')
-    expect(src).toMatch(/\{!isCarrera && \(\s*<form className="card add-person" onSubmit=\{\(e\) => \{ e\.preventDefault\(\); void onCreatePerson/)
-    expect(src).toMatch(/\{isCarrera && term && \(\s*<form className="card add-person" onSubmit=\{\(e\) => \{ e\.preventDefault\(\); void onJoin/)
-    expect(src).toMatch(/\{isCarrera && term && \(\s*<details className="card">/) // the Excel only exists inside a carrera
-    expect(src.match(/createPassportUser\(/g)?.length).toBeLessThanOrEqual(3) // the global form and the Excel
+    expect(src).toMatch(/\{!isCarrera && panel === 'new' && \(\s*<section className="card panel-card">\s*<h2>Registrar inductor\/a nuevo<\/h2>\s*<NewInductorForm/) // one by one
+    expect(src).toMatch(/\{!isCarrera && panel === 'bulk' && \(\s*<section className="card panel-card">\s*<h2>Carga masiva con Excel<\/h2>\s*<InductorsBulk/) // many at once
+    expect(src).toMatch(/\{isCarrera && term && \(\s*<form className="card add-person" onSubmit=\{\(e\) => \{ e\.preventDefault\(\); void onJoin/) // inside a carrera they only join
+    expect(src).not.toMatch(/createPassportUser\(/) // the page never creates a login: the form and the Excel do, through createInductor
     expect(src).toMatch(/view\?: 'global' \| 'carrera'/)
-    expect(src).toMatch(/\{view === 'global' && \(\s*<span className="person-edit identity-edit">/) // identity is edited only globally
+    expect(src).toMatch(/\{view === 'global' && editing && \(\s*<div className="person-editor-slot">/) // the profile is edited only globally
+    const makers = ['src/pages', 'src/components'].flatMap((d) => fs.readdirSync(rootPath(d), { recursive: true }).map(String).filter((f) => /\.tsx?$/.test(f)).map((f) => `${d}/${f}`)).filter((f) => /createInductor\(|createPassportUser\(/.test(read(f)))
+    expect(makers.sort()).toEqual(['src/components/InductorsBulk.tsx', 'src/components/NewInductorForm.tsx'])
+    expect(read('src/lib/inductors.ts').match(/createPassportUser\(/g)?.length).toBe(1) // and only one place calls the server
   })
   it('seals are made in ONE place: the workshop (Administración global → Sellos); the sections only show theirs', () => {
     expect(using(/uploadSeal\(/)).toEqual([]) // no page uploads: the manager (used by the workshop) does

@@ -51,10 +51,10 @@ export default function SongCell({ song, name, disabled, onChange }: { song: Pas
       {song && <button type="button" className="ghost danger icon-btn" disabled={disabled} aria-label={`Quitar la canción de ${name}`} onClick={() => onChange(null)}><X size={16} aria-hidden="true" /></button>}
       {open && (
         <span className="song-search">
-          <form onSubmit={(e) => { e.preventDefault(); void search() }}>
-            <input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Título y artista, o el enlace de Apple Music" aria-label={`Buscar la canción de ${name}`} maxLength={120} />
-            <button disabled={busy || !term.trim()}><Search size={16} aria-hidden="true" /> {busy ? 'Buscando…' : 'Buscar'}</button>
-          </form>
+          <span className="song-form">
+            <input value={term} onChange={(e) => setTerm(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (term.trim() && !busy) void search() } }} placeholder="Título y artista, o el enlace de Apple Music" aria-label={`Buscar la canción de ${name}`} maxLength={120} />
+            <button type="button" disabled={busy || !term.trim()} onClick={() => void search()}><Search size={16} aria-hidden="true" /> {busy ? 'Buscando…' : 'Buscar'}</button>
+          </span>
           {error && <span className="error">{error}</span>}
           <ul className="song-results">
             {(results ?? []).map((r) => (

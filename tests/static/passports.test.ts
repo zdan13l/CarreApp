@@ -121,18 +121,19 @@ describe('the coordinator\'s list of inductors', () => {
   })
 
   it('creates the logins through the server, asks before deleting, and never uses window.confirm', () => {
-    expect(page).toMatch(/createPassportUser\(/)
+    expect(read('src/lib/inductors.ts')).toMatch(/createPassportUser\(/)
     expect(page).toMatch(/confirmDialog\(/)
     expect(page).not.toMatch(/window\.(confirm|prompt)/)
   })
 
   it('gives the Excel with the @ and the password back at the end, and again on demand', () => {
-    expect(page).toMatch(/downloadBlob\(await credentialsWorkbook\(s\.rows, s\.term, s\.theme\)/)
-    expect(page).toMatch(/Descargar de nuevo/)
+    const bulk = read('src/components/InductorsBulk.tsx')
+    expect(bulk).toMatch(/downloadBlob\(await credentialsWorkbook\(credentials\), 'credenciales-inductores\.xlsx'\)/)
+    expect(bulk).toMatch(/Descargar de nuevo/)
   })
 
-  it('a login that cannot be given its semester record is removed (no orphan login)', () => {
-    expect(page).toMatch(/deleteUser\(id\)/)
+  it('a login whose data is refused is removed (no orphan login)', () => {
+    expect(read('src/lib/inductors.ts')).toMatch(/deleteUser\(id\)/)
   })
 
   it('changing the role clears the group and the base (a runner has a group, a base has a base)', () => {

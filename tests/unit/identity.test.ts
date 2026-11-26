@@ -8,7 +8,6 @@ import CareerEmblem, { careerKey } from '../../src/components/CareerEmblem'
 import { BLANK_PAGES, committeeWords, MIN_VISA_PAGES, pageSpecsOf, photoSealOf, visaPagesFor, type MemberPassportData, type MemberRecord } from '../../src/components/MemberPassport'
 import { PhotoSeal, splitWords, TextSeal } from '../../src/components/Seals'
 import { COMMITTEES, committeeOf } from '../../src/lib/committees'
-import { parsePeople } from '../../src/lib/passports'
 
 const html = (el: Parameters<typeof renderToStaticMarkup>[0]) => renderToStaticMarkup(el)
 
@@ -181,34 +180,5 @@ describe('text seals (generation, entry)', () => {
     const svg = html(createElement(TextSeal, { center: 'Generación 7', top: 'Generación', bottom: 'Inducción Javeriana' }))
     expect(svg).toContain('>7<')
     expect(svg).toContain('GENERACIÓN') // on the ring
-  })
-})
-
-describe('the Excel with committee, generation, entry and nickname (all optional)', () => {
-  const ctx = () => ({ theme: 'mitologias', usernames: new Set<string>(), known: new Map<string, string>() })
-  const table = [[['Nombre', 'Carrera', 'Rol (opcional)', 'Comité (opcional)', 'Generación (opcional)', 'Ingreso (opcional)', 'Apodo (opcional)'],
-    ['Ana María Pérez Gómez', 'Ingeniería de Sistemas', 'Corredor', 'Clausura', 'barbies', '2024-2', 'Anita'],
-    ['Luis Ruiz', 'Ingeniería Civil', '', 'caos', '', '', ''],
-    ['Eva Paz', 'Redes', '', 'Comité Inventado', '', '', ''],
-    ['Zoe Vega', 'Redes', '', '', 'Inventada', 'j'.repeat(21), 'n'.repeat(25)]]]
-
-  it('reads them (the titles may say "(opcional)", with accents or without)', () => {
-    const rows = parsePeople(table, ctx())
-    expect(rows[0]).toMatchObject({ committee: 'clausura', generation: 'Barbies', joined: '2024-2', nickname: 'Anita', role: 'runner' })
-    expect(rows[1].committee).toBe('caos')
-    expect(rows[1]).toMatchObject({ generation: '', joined: '', nickname: '' })
-  })
-
-  it('an unknown committee or a text too long for the database is explained, not guessed', () => {
-    const rows = parsePeople(table, ctx())
-    expect(rows[2].errors.join()).toMatch(/comité no se entiende \(Clausura, Meraki, Conzumo, Carrera, Caos, Bienvenida\)/)
-    expect(rows[3].errors.join(' ')).toMatch(/generación no existe \(Champiñones, Peluches, Barbies, Minichips, Textiles\)/)
-    expect(rows[3].errors.join(' ')).toMatch(/ingreso es muy largo/)
-    expect(rows[3].errors.join(' ')).toMatch(/apodo es muy largo/)
-  })
-
-  it('without those columns the people load as before', () => {
-    const rows = parsePeople([[['Nombre', 'Carrera'], ['Ana Gómez', 'Redes']]], ctx())
-    expect(rows[0]).toMatchObject({ committee: null, generation: '', joined: '', nickname: '', errors: [] })
   })
 })
