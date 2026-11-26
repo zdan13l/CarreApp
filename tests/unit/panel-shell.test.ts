@@ -98,9 +98,10 @@ describe('what each screen holds in each moment', () => {
 
 describe('the seal workshop: seals are made in one place, for something, and (except generations) for one inducción', () => {
   it('the sections a seal can be for, and which ones belong to a carrera', () => {
-    expect(SECTIONS.map((s) => s.kind)).toEqual(['generation', 'theme', 'subtheme', 'team', 'base', 'committee'])
+    expect(SECTIONS.map((s) => s.kind)).toEqual(['generation', 'theme', 'subtheme', 'base', 'committee'])
     expect(sectionOf('generation')?.perCarrera).toBe(false) // permanent: valid in every inducción
-    for (const kind of ['theme', 'subtheme', 'team', 'base', 'committee']) expect(sectionOf(kind)?.perCarrera, kind).toBe(true)
+    for (const kind of ['theme', 'subtheme', 'base', 'committee']) expect(sectionOf(kind)?.perCarrera, kind).toBe(true)
+    expect(sectionOf('team')).toBeUndefined() // the groups are represented by their insignia, never by a seal
     expect(sectionOf('committee')?.rule).toMatch(/UNA inducción/)
   })
   it('the workshop asks for the inducción before showing or creating a seal that belongs to one', () => {
@@ -115,7 +116,7 @@ describe('the seal workshop: seals are made in one place, for something, and (ex
     expect(workshopLink('generation', null, 'barbies')).toBe('/admin/sellos?kind=generation&ref=barbies')
   })
   it('each section shows only its own seals (read only) with a link to the workshop', () => {
-    const wanted: [string, string][] = [['CarreraTematica', "['theme', 'subtheme']"], ['Grupos', "['team']"], ['Bases', "['base']"], ['CarreraComites', "['committee']"]]
+    const wanted: [string, string][] = [['CarreraTematica', "['theme', 'subtheme']"], ['Bases', "['base']"], ['CarreraComites', "['committee']"]]
     for (const [file, kinds] of wanted) {
       const src = read(`src/pages/admin/${file}.tsx`)
       expect(src, file).toContain(`SEAL_KINDS: SealKind[] = ${kinds}`)

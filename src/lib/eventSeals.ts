@@ -3,7 +3,7 @@ import { deletePhoto, photoUrl } from './storage'
 
 // The seals of ONE carrera (migration 0037): its theme, its subthemes, its groups, its committees and the golden seal of its coordi. Each element
 // has one seal (shape, colour and an image turned into ink); two elements of the same kind cannot share the same design inside a carrera.
-export type SealKind = 'theme' | 'subtheme' | 'team' | 'committee' | 'coordinator' | 'base'
+export type SealKind = 'theme' | 'subtheme' | 'committee' | 'coordinator' | 'base'
 
 export const SHAPES = ['circle', 'hexagon', 'octagon', 'pentagon', 'shield', 'arch', 'roundsq', 'tablet', 'oval', 'wide', 'scallop'] as const
 export type SealShape = (typeof SHAPES)[number]
@@ -11,7 +11,7 @@ export const SHAPE_LABEL: Record<SealShape, string> = {
   circle: 'Círculo', hexagon: 'Hexágono', octagon: 'Octágono', pentagon: 'Pentágono', shield: 'Escudo', arch: 'Arco', roundsq: 'Cuadrado suave',
   tablet: 'Tableta', oval: 'Óvalo', wide: 'Alargado', scallop: 'Festón',
 }
-export const KIND_LABEL: Record<SealKind, string> = { theme: 'Temática', subtheme: 'Subtemática', team: 'Grupo', committee: 'Comité', coordinator: 'Coordi', base: 'Base' }
+export const KIND_LABEL: Record<SealKind, string> = { theme: 'Temática', subtheme: 'Subtemática', committee: 'Comité', coordinator: 'Coordi', base: 'Base' }
 
 export interface EventSeal {
   id: string

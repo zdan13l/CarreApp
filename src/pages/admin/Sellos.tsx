@@ -168,7 +168,7 @@ export default function Sellos() {
           {locked && <p className="warn">Esta carrera está finalizada (solo lectura): sus sellos no se cambian.</p>}
           <section className="card">
             <h2>{section.title} de {eventLabel(event)} <span className="muted">· {elements.length}</span></h2>
-            {elements.length === 0 && <p className="muted">Esta carrera no tiene {section.title.toLowerCase()} todavía{kind === 'team' ? ' (créalos en Grupos participantes)' : kind === 'base' ? ' (créalas en Bases)' : kind === 'committee' ? ' (elígelos en Coordi y comités)' : ''}.</p>}
+            {elements.length === 0 && <p className="muted">Esta carrera no tiene {section.title.toLowerCase()} todavía{kind === 'base' ? ' (créalas en Bases)' : kind === 'committee' ? ' (elígelos en Coordi y comités)' : ''}.</p>}
             <ul className="seal-rows">
               {elements.map((e, i) => {
                 const seal = seals.find((s) => s.kind === e.kind && s.ref === e.ref)

@@ -2,7 +2,7 @@ import { allCommittees } from './committees'
 import { loadEventSeals, type EventSeal, type SealKind } from './eventSeals'
 import { supabase } from './supabase'
 
-// Every element of a carrera that can carry a seal: its theme, each subtheme, each group, each base, each committee that takes part and its coordi.
+// Every element of a carrera that can carry a seal: its theme, each subtheme, each base, each committee that takes part and its coordi.
 // The seals are CREATED in one place (Administración global → Sellos); the sections only show the ones that belong to them.
 export interface SealElement {
   kind: SealKind
@@ -23,7 +23,6 @@ export const SECTIONS: { kind: SealSection; title: string; one: string; rule: st
   { kind: 'generation', title: 'Generaciones', one: 'generación', rule: 'Las generaciones son permanentes: su sello vale para todas las inducciones.', perCarrera: false },
   { kind: 'theme', title: 'Temática', one: 'temática', rule: 'Cada carrera tiene su temática y su sello único.', perCarrera: true },
   { kind: 'subtheme', title: 'Subtemáticas', one: 'subtemática', rule: 'Cada subtemática de la carrera tiene su sello, distinto al de las demás.', perCarrera: true },
-  { kind: 'team', title: 'Grupos', one: 'grupo', rule: 'Cada grupo participante tiene un sello único dentro de su carrera.', perCarrera: true },
   { kind: 'base', title: 'Bases', one: 'base', rule: 'Cada base de la carrera tiene su sello: el de siempre (los 15 de la app) o uno editado solo para esa carrera.', perCarrera: true },
   { kind: 'committee', title: 'Comités', one: 'comité', rule: 'El sello de un comité está ligado a UNA inducción: el comité tiene un sello distinto en cada carrera.', perCarrera: true },
 ]
@@ -32,9 +31,8 @@ export const sectionOf = (kind: string) => SECTIONS.find((s) => s.kind === kind)
 export async function loadSealElements(event: SealEvent): Promise<SealElement[]> {
   if (!supabase) return []
   const eventId = event.id
-  const [th, tm, ec, ppl, bs] = await Promise.all([
+  const [th, ec, ppl, bs] = await Promise.all([
     event.term_id ? supabase.from('themes').select('key, name').eq('term_id', event.term_id).maybeSingle() : Promise.resolve({ data: null }),
-    supabase.from('teams').select('id, name').eq('event_id', eventId).order('sort_order'),
     supabase.from('event_committees').select('committee_key').eq('event_id', eventId),
     event.coordinator_id ? supabase.from('passports').select('id, full_name').eq('id', event.coordinator_id).maybeSingle() : Promise.resolve({ data: null }),
     supabase.from('bases').select('id, name').eq('event_id', eventId).order('sort_order'),
@@ -46,7 +44,6 @@ export async function loadSealElements(event: SealEvent): Promise<SealElement[]>
     const cu = await supabase.from('theme_cultures').select('key, name').eq('theme_key', theme.key).order('sort_order')
     for (const c of cu.data ?? []) out.push({ kind: 'subtheme', ref: c.key as string, name: c.name as string, theme: theme.key })
   }
-  for (const t of tm.data ?? []) out.push({ kind: 'team', ref: t.id as string, name: t.name as string })
   for (const b of bs.data ?? []) out.push({ kind: 'base', ref: b.id as string, name: b.name as string })
   const names = new Map(allCommittees().map((c) => [c.key, c.name]))
   for (const c of ec.data ?? []) out.push({ kind: 'committee', ref: c.committee_key as string, name: names.get(c.committee_key as string) ?? (c.committee_key as string) })

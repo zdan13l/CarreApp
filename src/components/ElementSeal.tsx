@@ -6,10 +6,10 @@ import { imageUrl, type EventSeal } from '../lib/eventSeals'
 import type { SealElement } from '../lib/sealElements'
 
 // The seal of an element of a carrera as it is shown in the panel: the one made for this carrera in the workshop, or, while none was made, the
-// seal the app has always had (subtheme, committee and base) or the first letter (theme and group).
+// seal the app has always had (subtheme, committee and base) or the first letter (theme).
 export default function ElementSeal({ element, seal, size = 64 }: { element: SealElement; seal?: EventSeal; size?: number }) {
   const e = element
-  if (seal || e.kind === 'theme' || e.kind === 'team' || e.kind === 'coordinator') {
+  if (seal || e.kind === 'theme' || e.kind === 'coordinator') {
     return <EventSealView shape={seal?.shape ?? 'circle'} color={seal?.color ?? 'currentColor'} imageUrl={imageUrl(seal?.image_path ?? null)} initial={e.name} gold={e.kind === 'coordinator'} size={size} label={`Sello de ${e.name}`} />
   }
   if (e.kind === 'subtheme' && e.theme) return <CultureSeal culture={e.ref} theme={e.theme} top={e.name.toUpperCase()} bottom="DE SIEMPRE" size={size} tilt={0} />
