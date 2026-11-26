@@ -52,7 +52,8 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0037 | [`0037_carrera_propia.sql`](https://github.com/zdan13/CarreApp/blob/main/supabase/migrations/0037_carrera_propia.sql) | 2026-11-22 | Temática y subtemáticas propias de cada carrera, comités y coordi por carrera y sellos propios con reglas de unicidad |
 | 0038 | [`0038_sellos_por_induccion.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0038_sellos_por_induccion.sql) | 2026-11-22 | Cada sello pertenece a una inducción; sellos de base editables; sellos arbitrarios en la carrera de prueba |
 | 0039 | [`0039_generaciones.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0039_generaciones.sql) | 2026-11-24 | Las generaciones con su sello, un catálogo global y permanente; la generación de cada persona se elige, no se escribe |
-| 0040 | [`0040_taller_de_sellos.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0040_taller_de_sellos.sql) | pendiente | Cada sello solo puede ir en un elemento de su carrera y se va con él; el taller de sellos es el único lugar donde se crean |
+| 0040 | [`0040_taller_de_sellos.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0040_taller_de_sellos.sql) | 2026-11-25 | Cada sello solo puede ir en un elemento de su carrera y se va con él; el taller de sellos es el único lugar donde se crean |
+| 0041 | [`0041_sin_sellos_de_grupo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0041_sin_sellos_de_grupo.sql) | 2026-11-25 | Los grupos no tienen sello: los representa su insignia |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -618,6 +619,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/taller-sellos-0040.test.ts` (comité de otra carrera, temática de otra carrera o la plantilla, subtemática inventada, grupo y base de otra carrera, sin carrera, coordi equivocado, solo el coordi crea sellos, el sello se va con su elemento sin tocar los demás, los sellos de generación son globales).
 
 **Cómo revertir** `drop trigger event_seals_a_valid_ref on public.event_seals; drop trigger teams_drop_seal on public.teams; drop trigger bases_drop_seal on public.bases; drop trigger event_committees_drop_seal on public.event_committees; drop function public.event_seals_valid_ref(), public.event_seals_drop_with_element();`
+
+## 0041 — Sin sellos de grupo
+
+**Qué cambia** Se borran los sellos de tipo `team` de `event_seals` y el tipo deja de existir (el `check` de `kind` y la regla `event_seals_valid_ref` ya no lo admiten); `teams_drop_seal` se quita porque ya no hay sello de grupo que borrar con el grupo.
+
+**Por qué** Cada grupo está representado por su insignia (el logo del grupo de carreras), no por un sello. Los sellos quedan para generaciones, temática, subtemáticas, bases y comités.
+
+**Verificación** `tests/db/taller-sellos-0040.test.ts` (un sello de grupo ya no se puede crear; los de base y comité siguen siendo de su carrera y se van con su elemento) y `tests/db/sellos-induccion-0038.test.ts` (la siembra de la carrera de prueba ya no deja sellos de grupo).
+
+**Cómo revertir** `alter table public.event_seals drop constraint event_seals_kind_check, add constraint event_seals_kind_check check (kind in ('theme', 'subtheme', 'team', 'committee', 'coordinator', 'base'));` y recrear `event_seals_valid_ref`, `event_seals_drop_with_element` y el disparador `teams_drop_seal` como en 0040 (los sellos de grupo borrados no vuelven).
 
 ## Plantilla para nuevos registros
 

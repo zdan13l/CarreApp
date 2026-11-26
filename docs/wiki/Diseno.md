@@ -44,6 +44,9 @@ La foto de la base ocupa la tarjeta (4:5) con la **señalética**: puerta, códi
 - **Cada pantalla:** el título, una línea de lámina dorada y, en Preparación, la etiqueta «Paso n de 8» (`StepTag`, el mismo número del menú). No hay rótulos sobre los títulos.
 - Menú con el escudo, la marca y la **hora local** (corregida con la del servidor), y el interruptor claro / oscuro en la cuenta.
 
+### La insignia de la carrera
+La **medalla de la Javeriana**: dorada, de ocho brazos en punta (como la Cruz San Pedro Claver), colgada de un pasador por una cinta con los colores de la **bandera de la Universidad** (amarillo, blanco y azul: `--puj-yellow`, `--puj-white`, `--puj-blue`, iguales en claro y oscuro). El aro lleva grabado el nombre de la carrera y «INGENIERÍA · JAVERIANA»; el centro es esmalte azul de la bandera con la ilustración de la carrera (contorno blanco, dos tonos de azul y toques amarillos; Sistemas: computador; Trónicas: chip; Biomec: planta y tuerca; Civil: puente colgante; Industrial: brazo robótico) y el aro lleva el nombre y «INGENIERÍA · JAVERIANA» en su propia banda, sin tocar el dibujo. Hay versión con cinta y versión solo medalla. No es un sello: los sellos son de bases, temática, subtemáticas y comités.
+
 ### Entrada
 El login es **la foto del campus a pantalla completa** (`public/campus.jpg` y `campus-800.jpg` para teléfonos), el logo de CarreApp arriba a la izquierda (frente al interruptor de modo claro u oscuro), la frase "Un sello por cada base que alcances" y el formulario como una **tarjeta de embarque** (PUJ → 2710, perforación con talón, código de barras y líneas de lectura). **En el celular cabe entera, sin scroll** (100dvh): si la pantalla es baja, la tarjeta se compacta (sin código de barras y, en las muy bajas, sin talón). En PC, la foto a la izquierda y la tarjeta a la derecha. Ya no aparece la palabra "Pasaporte" en el login.
 
