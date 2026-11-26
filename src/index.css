@@ -2519,6 +2519,8 @@ html:has(.tower), body:has(.tower) { background: #fff url(/login-pattern.svg) 0 
   .tower .nav-mobile .tab span { position: relative; z-index: 1; }
   .tower .setup-sheet { bottom: calc(var(--nav-h) + 1.4rem + env(safe-area-inset-bottom)); left: 12px; right: 12px; max-height: calc(100dvh - var(--nav-h) - 5.5rem); background: var(--pass-navy); border: 1px solid rgba(255, 255, 255, .14); border-radius: 22px; }
   .tower .setup-sheet::before { background: rgba(255, 255, 255, .3); }
+  /* el velo del menú va debajo de la hoja y de la barra: la regla general del velo (z-index 70, el de los ajustes) lo dejaba encima y se comía los toques */
+  .admin-nav .sheet-backdrop { z-index: 18; }
   .tower .setup-sheet .tab { color: rgba(255, 255, 255, .8); }
   .tower .setup-sheet .tab.active { color: var(--pass-navy); background: var(--foil); }
   .tower .admin-main { padding-bottom: calc(var(--nav-h) + 2.6rem + env(safe-area-inset-bottom)); }
@@ -2771,10 +2773,18 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 
 /* Inductores, segunda mano: el recordatorio de qué es ser inductor, los filtros en menús, los botones de agregar lo que falta */
 .info-box { margin-bottom: 1rem; }
-.info-box[open] { padding-bottom: 1.25rem; }
-.info-box blockquote { display: grid; gap: .7rem; max-width: 60ch; margin: 0 1.1rem; padding: .15rem 0 .15rem 1.1rem; border-left: 3px solid var(--gold); }
-.info-box blockquote p { margin: 0; color: var(--text); font-size: 1.05rem; line-height: 1.55; }
-.info-box blockquote footer { color: var(--gold-ink, var(--text-muted)); font: 800 .8rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .18em; text-transform: uppercase; }
+.info-box[open] { padding-bottom: 1.5rem; }
+/* centrado: una frase grande, dos de apoyo y el lema entre dos hilos dorados, para que el recuadro no quede cargado a un lado */
+.info-box blockquote { display: grid; justify-items: center; gap: .85rem; max-width: 52ch; margin: .6rem auto 0; padding: 0 1.25rem; text-align: center; text-wrap: balance; }
+.info-box blockquote::before { content: ''; width: 64px; height: 9px; margin-bottom: .2rem; background:
+  linear-gradient(var(--gold), var(--gold)) left center / 24px 1.5px no-repeat,
+  linear-gradient(var(--gold), var(--gold)) right center / 24px 1.5px no-repeat,
+  linear-gradient(45deg, transparent 38%, var(--gold) 38% 62%, transparent 62%) center / 9px 9px no-repeat,
+  linear-gradient(-45deg, transparent 38%, var(--gold) 38% 62%, transparent 62%) center / 9px 9px no-repeat; }
+.info-box blockquote p { margin: 0; color: var(--text-muted); font-size: 1rem; line-height: 1.6; }
+.info-box blockquote p:first-of-type { color: var(--text); font-size: 1.3rem; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; }
+.info-box blockquote footer { display: flex; align-items: center; gap: .75rem; margin-top: .35rem; color: var(--gold-ink, var(--text-muted)); font: 800 .8rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .18em; text-transform: uppercase; }
+.info-box blockquote footer::before, .info-box blockquote footer::after { content: ''; width: 2.25rem; height: 1.5px; background: var(--gold); }
 
 .field-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 28px; }
 .field-head > label, .field-head > span { color: var(--text-muted); font-size: .875rem; font-weight: 600; }
@@ -2823,3 +2833,8 @@ button.filter-clear:hover:not(:disabled) { color: var(--danger); background: col
   .filter-panel, .filter-menu:last-child .filter-panel { left: 0; right: 0; min-width: 0; }
   button.filter-clear { margin-left: 0; }
 }
+
+/* Inducciones que lleva cada persona (el pasaporte y la lista) */
+.member-grid dt { line-height: 1.25; }
+.member-grid dd.inductions-count { font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.person-meta .inductions-meta { color: var(--text); font-weight: 700; }

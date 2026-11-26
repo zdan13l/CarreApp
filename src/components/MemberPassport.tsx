@@ -21,6 +21,7 @@ import { photoUrl } from '../lib/storage'
 import { cultureOf, themeOf, type CultureKey } from '../lib/themes'
 import Avatar from './Avatar'
 import CareerEmblem, { careerKey } from './CareerEmblem'
+import { medalsOf } from '../lib/careers'
 import Insignia from './Insignia'
 import InsigniaStory from './InsigniaStory'
 import GenerationSeals from './GenerationSeal'
@@ -153,7 +154,10 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
   const specs = pageSpecsOf(data)
   const pages = specs.length
   const spec = specs[Math.min(page, pages - 1)]
-  const career = data.records[0]?.career ?? ''
+  // the career of the person is one for their whole life in the induction (0043); before it, the one of their latest induction
+  const career = person.career?.trim() || data.records[0]?.career || ''
+  const secondCareer = person.second_career?.trim() || ''
+  const inductions = person.inductions ?? null // migration 0044: how many inductions they have taken part in
 
   const go = (to: number) => {
     const next = Math.min(Math.max(to, 0), pages - 1)
@@ -173,6 +177,7 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
 
   if (spec.kind === 'dni') {
     const generation = person.generation?.trim()
+    const medals = medalsOf(career, secondCareer)
     const joined = person.joined_term?.trim()
     content = (
       <>
@@ -197,18 +202,22 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
           <SongPlayer song={person.song} />
           <dl className="member-grid">
             <div className="wide"><dt>Carrera</dt><dd>{career || '—'}</dd></div>
+            {secondCareer && <div className="wide"><dt>Otra carrera</dt><dd>{secondCareer}</dd></div>}
             <div><dt>Ingresó a inducción</dt><dd>{joined || 'Por definir'}</dd></div>
             <div><dt>Generación</dt><dd>{generation || 'Por definir'}</dd></div>
+            {inductions !== null && <div><dt>Inducciones</dt><dd className="inductions-count">{inductions}</dd></div>}
             <div><dt>Usuario</dt><dd className="mono">@{person.username}</dd></div>
-            <div><dt>Número</dt><dd className="mono">{personNumber(person.id)}</dd></div>
+            <div className={inductions !== null ? 'wide' : undefined}><dt>Número</dt><dd className="mono">{personNumber(person.id)}</dd></div>
           </dl>
           <ul className="slots identity-slots dni-slots">
-            <li className="slot done career-slot">
-              <button type="button" className="slot-btn" aria-haspopup="dialog" aria-label="Ver tu insignia de la carrera" onClick={() => setZoom(<InsigniaStory career={career} />)}>
-                <Insignia career={career} size={112} />
-                <span className="slot-name">Tu carrera</span>
-              </button>
-            </li>
+            {(medals.length ? medals : [{ career, other: false }]).map((m) => (
+              <li key={m.career} className="slot done career-slot">
+                <button type="button" className="slot-btn" aria-haspopup="dialog" aria-label={m.other ? 'Ver tu otra insignia' : 'Ver tu insignia de la carrera'} onClick={() => setZoom(<InsigniaStory career={m.career} other={m.other} />)}>
+                  <Insignia career={m.career} size={112} other={m.other} />
+                  <span className="slot-name">{m.other ? 'Tu otra carrera' : 'Tu carrera'}</span>
+                </button>
+              </li>
+            ))}
             <li className={`slot ${generation ? 'done' : 'rest'}`}>
               <div className="slot-btn">
                 {sealedGenerationsOf(generation).length > 0 ? <GenerationSeals generation={generation} size={104} /> : generation ? <TextSeal center={generation} top="Generación" bottom="Inducción Javeriana" size={104} tilt={-3} /> : <span className="slot-ghost" aria-hidden="true"><b>GENERACIÓN</b></span>}

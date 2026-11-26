@@ -111,10 +111,10 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
             if (err) throw new Error(/song|migraci/i.test(err.message) ? 'Falta aplicar la migración 0042.' : 'No se pudo guardar la canción.')
             out.songs++
           } else {
-            const made = await createInductor({ fullName: r.fullName, career: r.career!, generation: r.generation, nickname: r.nickname, song, username: r.username }, usernames)
+            const made = await createInductor({ fullName: r.fullName, career: r.career!, secondCareer: r.secondCareer, generation: r.generation, nickname: r.nickname, song, username: r.username }, usernames)
             out.created++
             if (song) out.songs++
-            credentials.push({ fullName: r.fullName, career: r.career!, generation: r.generation, username: made.username, password: made.password })
+            credentials.push({ fullName: r.fullName, career: r.career!, secondCareer: r.secondCareer ?? undefined, generation: r.generation, username: made.username, password: made.password })
           }
         } catch (e) {
           out.failed.push({ name: r.fullName, why: errMsg(e) })
@@ -196,6 +196,10 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
                     <span className="bulk-fields">
                       <select value={r.career ?? ''} aria-label={`Carrera de ${r.fullName}`} onChange={(e) => patch(r.line, { career: e.target.value || null })}>
                         <option value="">{r.careerWritten ? `Elegir (decía «${r.careerWritten}»)` : 'Elegir carrera…'}</option>
+                        {careers.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <select value={r.secondCareer ?? ''} aria-label={`Otra carrera de ${r.fullName}`} onChange={(e) => patch(r.line, { secondCareer: e.target.value || null, secondWritten: '' })}>
+                        <option value="">{r.secondWritten ? `Otra carrera: elegir (decía «${r.secondWritten}»)` : 'Sin otra carrera'}</option>
                         {careers.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
                       <input value={r.nickname} maxLength={24} placeholder="Apodo" aria-label={`Apodo de ${r.fullName}`} onChange={(e) => patch(r.line, { nickname: e.target.value, errors: r.errors.filter((x) => !/apodo/i.test(x)).concat(e.target.value.trim() ? [] : ['Falta el apodo.']) })} />

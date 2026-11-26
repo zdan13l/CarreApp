@@ -14,6 +14,7 @@ import { mrzText, stampLook, stampTime } from './stamp'
 import { photoUrl } from './storage'
 import { cultureOf, themeOf } from './themes'
 import CareerEmblem, { careerKey } from '../components/CareerEmblem'
+import { medalsOf } from './careers'
 import Insignia from '../components/Insignia'
 import GenerationSeals from '../components/GenerationSeal'
 import CommitteeSeal from '../components/CommitteeSeal'
@@ -179,7 +180,7 @@ function pieces(ctx: PageContext) {
 
 function cover(ctx: PageContext): string {
   const { person, records } = ctx.data
-  const career = records[0]?.career ?? ''
+  const career = person.career?.trim() || records[0]?.career || ''
   const { piece } = pieces(ctx)
   const name = wrap(person.full_name.toUpperCase(), 22)
   const defs = `<linearGradient id="navy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${NAVY[0]}"/><stop offset="1" stop-color="${NAVY[1]}"/></linearGradient>${foilDefs}`
@@ -222,14 +223,19 @@ const mrzOf = (name: string, second: string): [string, string] => [`P<PUJ<<${mrz
 
 function identity(ctx: PageContext, no: number, total: number): string {
   const { person, records } = ctx.data
-  const career = records[0]?.career ?? ''
+  const career = person.career?.trim() || records[0]?.career || ''
+  const secondCareer = person.second_career?.trim() || ''
+  const medals = medalsOf(career, secondCareer)
+  const double = medals.length > 1 // a double program: both medals in the header, a little smaller
+  const headX = double ? 166 : 136
   const ink = INKS[1]
   const { piece } = pieces(ctx)
-  const nameLines = wrap(person.full_name.toUpperCase(), 24)
+  const nameLines = wrap(person.full_name.toUpperCase(), double ? 21 : 24)
+  const inductions = person.inductions ?? null // migration 0044: how many inductions they have taken part in
   const generation = person.generation?.trim()
   const joined = person.joined_term?.trim()
   const rows: [string, string][] = [
-    ['CARRERA', career || '—'],
+    ['CARRERA', secondCareer ? `${career} + ${secondCareer}` : career || '—'],
     ['INGRESÓ A INDUCCIÓN', joined || 'Por definir'],
     ['GENERACIÓN', generation || 'Por definir'],
     ['USUARIO', `@${person.username}`],
@@ -242,7 +248,7 @@ function identity(ctx: PageContext, no: number, total: number): string {
       const row = wide ? 0 : 1 + Math.floor((i - 1) / 2)
       const x = 56 + col * 258
       const y = 408 + row * 54
-      return `${text(x, y, k, { size: 9.5, mono: true, spacing: 2, fill: FAINT })}${lines(x, y + 19, wrap(v, wide ? 50 : 26).slice(0, 2), 17, { size: 15, weight: 800, mono: k === 'USUARIO' || k === 'NÚMERO', fill: INK })}`
+      return `${text(x, y, k, { size: 9.5, mono: true, spacing: 2, fill: FAINT })}${lines(x, y + 19, wrap(v, wide ? 34 : 26).slice(0, 2), 17, { size: 15, weight: 800, mono: k === 'USUARIO' || k === 'NÚMERO', fill: INK })}`
     })
     .join('')
   const photo = ctx.assets.photo
@@ -252,15 +258,16 @@ function identity(ctx: PageContext, no: number, total: number): string {
   const slot = (x: number, label: string, value: string | undefined, top: string, bottom: string, tilt: number) =>
     `${value ? piece(createElement(TextSeal, { center: value, top, bottom, size: 150, tilt: 0 }), x, 566, 150, 150, tilt, ink, PAPER) : `<circle cx="${x + 75}" cy="641" r="72" fill="none" stroke="${LINE}" stroke-width="2" stroke-dasharray="6 6"/>${text(x + 75, 646, label.toUpperCase(), { size: 12, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' })}`}${text(x + 75, 736, label, { size: 14, weight: 800, anchor: 'middle', stretch: true })}${text(x + 75, 752, (value ?? 'Por definir').toUpperCase().slice(0, 22), { size: 9.5, mono: true, spacing: 1.6, fill: FAINT, anchor: 'middle' })}`
   const body = `
-    ${piece(createElement(Insignia, { career, size: 56 }), 54, 46, 56, 76, 0)}
-    ${text(136, 82, 'DOCUMENTO DE IDENTIDAD · INDUCCIÓN', { size: 11, mono: true, spacing: 2.4, fill: FAINT })}
-    ${lines(136, 112, nameLines.slice(0, 2), 30, { size: 26, weight: 800, stretch: true })}
+    ${double ? medals.map((m, i) => piece(createElement(Insignia, { career: m.career, other: m.other, size: 44 }), 54 + i * 54, 50, 44, 60, 0)).join('') : piece(createElement(Insignia, { career, size: 56 }), 54, 46, 56, 76, 0)}
+    ${text(headX, 82, 'DOCUMENTO DE IDENTIDAD · INDUCCIÓN', { size: 11, mono: true, spacing: 2.4, fill: FAINT })}
+    ${lines(headX, 112, nameLines.slice(0, 2), 30, { size: 26, weight: 800, stretch: true })}
     <path d="M56 140H544" stroke="${LINE}" stroke-dasharray="3 4"/>
     ${photo}<rect x="56" y="160" width="150" height="190" rx="14" fill="none" stroke="${ink}" stroke-width="4"/>
     ${text(242, 184, 'APODO', { size: 10, mono: true, spacing: 2.4, fill: FAINT })}
     ${person.nickname?.trim() ? lines(242, 222, wrap(`«${person.nickname.trim()}»`, 15).slice(0, 2), 36, { size: 34, weight: 800, fill: ink, stretch: true }) : text(242, 216, 'Sin apodo', { size: 20, fill: FAINT })}
     ${person.song ? `${text(242, 266, 'CANCIÓN', { size: 10, mono: true, spacing: 2.4, fill: FAINT })}${lines(242, 292, wrap(person.song.title, 24).slice(0, 2), 21, { size: 17, weight: 800, fill: INK })}${text(242, 336, person.song.artist.slice(0, 40), { size: 13, fill: MUTED })}` : text(242, 290, 'Sin canción', { size: 15, fill: FAINT })}
     ${grid}
+    ${inductions !== null ? `${text(400, 408, 'INDUCCIONES', { size: 9.5, mono: true, spacing: 2, fill: FAINT })}${text(400, 436, String(inductions), { size: 26, weight: 800, fill: ink, stretch: true })}` : ''}
     ${genSeal ? piece(createElement(GenerationSeals, { generation: genSeal.name, size: 150 }), 86, 566, 150, 150, -3, ink, PAPER) + text(161, 740, 'GENERACIÓN', { size: 9.5, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' }) : slot(86, 'Generación', generation, 'Generación', 'Inducción Javeriana', -3)}${slot(364, 'Ingresó a inducción', joined, 'Ingresó a inducción', 'Pontificia Universidad Javeriana', 4)}`
   return page(ctx, { culture: 'general', mrz: mrzOf(person.full_name, `PUJ<<${careerKey(career).toUpperCase()}<<${personNumber(person.id).slice(4)}`) }, body, no, total, ink)
 }

@@ -1,5 +1,6 @@
 // The inductors of the global list: what is needed to register one (career, generation, nickname, song), to search and filter the list, and to
 // read the Excel of a whole induction at once. Pure functions first (they are tested without a browser), then the one place that creates a login.
+import { shortCareer } from './careers'
 import { nameKey, passportUsername, newPassword, type PassportPerson, type PassportRecordRow } from './passports'
 import { readTablesFromFile } from './bulk'
 import { generationsOf, GENERATIONS } from './seals'
@@ -28,7 +29,7 @@ export function matchCareer(text: string, catalog: string[]): string | null {
 }
 
 /** «Ingeniería de Sistemas» → «Sistemas»: the short name that fits in a filter chip. */
-export const shortCareer = (career: string) => career.replace(/^ingenier[ií]a\s+(de\s+|en\s+)?/i, '').trim() || career
+export { shortCareer }
 
 // ---------- the list: search and filters ----------
 
@@ -89,6 +90,8 @@ export interface InductorIn {
   fullName: string
   careerWritten: string
   career: string | null // the one of the catalog (null: the coordi has to choose)
+  secondWritten: string // the other career of a double program, as written ('' = none)
+  secondCareer: string | null // the one of the catalog; null with secondWritten set means it is not in the catalog
   generation: string // exact names of the catalog, « / »-joined ('' = the coordi has to choose)
   nickname: string
   songWritten: string
@@ -122,6 +125,7 @@ export function parseInductors(tables: string[][][], ctx: InductorsContext): Ind
   const heads = table.header.map((c) => plain(String(c ?? '').replace(/\(.*?\)/g, '')))
   const at = (name: string) => heads.indexOf(name)
   const [iName, iCareer, iGen, iNick, iUser] = [at('nombre'), at('carrera'), at('generacion'), at('apodo'), at('usuario')]
+  const iSecond = heads.findIndex((h) => h === 'otra carrera' || h === 'segunda carrera' || h === 'doble programa')
   const iSong = heads.findIndex((h) => h.includes('cancion'))
   const cell = (r: string[], i: number) => (i >= 0 ? String(r[i] ?? '').replace(/\s+/g, ' ').trim() : '')
   const taken = new Set(ctx.usernames)
@@ -134,6 +138,8 @@ export function parseInductors(tables: string[][][], ctx: InductorsContext): Ind
     const knownUser = ctx.known.get(nameKey(fullName))
     const careerWritten = cell(r, iCareer)
     const career = ctx.careers.length ? matchCareer(careerWritten, ctx.careers) : careerWritten || null
+    const secondWritten = cell(r, iSecond)
+    const secondCareer = !secondWritten ? null : ctx.careers.length ? matchCareer(secondWritten, ctx.careers) : secondWritten
     let generation = cell(r, iGen)
     if (generation) {
       const parts = generation.split(/[/,+]/).map((x) => x.trim()).filter(Boolean)
@@ -156,7 +162,7 @@ export function parseInductors(tables: string[][][], ctx: InductorsContext): Ind
         username = wanted
       } else username = passportUsername(fullName, taken)
     }
-    out.push({ line: i + 2, fullName, careerWritten, career, generation, nickname, songWritten: cell(r, iSong), username, existing: Boolean(knownUser), errors })
+    out.push({ line: i + 2, fullName, careerWritten, career, secondWritten, secondCareer, generation, nickname, songWritten: cell(r, iSong), username, existing: Boolean(knownUser), errors })
   })
   if (out.length === 0) throw new Error('La tabla no tiene personas.')
   return out
@@ -171,6 +177,8 @@ export function rowProblem(r: InductorIn): string | null {
   if (r.errors.length) return r.errors[0]
   if (r.existing) return null
   if (!r.career) return 'Elige la carrera.'
+  if (r.secondWritten && !r.secondCareer) return `La otra carrera «${r.secondWritten}» no está: elígela o quítala.`
+  if (r.secondCareer && r.secondCareer === r.career) return 'La otra carrera es la misma que la primera.'
   if (!r.generation) return 'Elige la generación.'
   return null
 }
@@ -183,6 +191,7 @@ export const songSearchOf = (r: InductorIn) => (r.songWritten && !(isSongLink(r.
 export interface NewInductor {
   fullName: string
   career: string
+  secondCareer?: string | null // the other career of a double program
   generation: string
   nickname?: string
   song?: PassportSong | null
@@ -199,6 +208,7 @@ export async function createInductor(input: NewInductor, usernames: Set<string>)
   const entry = entryOf(input.generation)
   const data = {
     career: input.career,
+    ...(input.secondCareer ? { second_career: input.secondCareer } : {}),
     generation: input.generation,
     ...(entry ? { joined_term: entry } : {}),
     ...(input.nickname ? { nickname: input.nickname } : {}),
@@ -207,7 +217,7 @@ export async function createInductor(input: NewInductor, usernames: Set<string>)
   const { error } = await supabase.from('passports').update(data).eq('id', id)
   if (error) {
     await deleteUser(id).catch(() => undefined)
-    throw new Error(/column .*career|schema cache/i.test(error.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /column .*song/i.test(error.message) ? 'Falta aplicar la migración 0042 (la canción).' : error.message || 'No se pudieron guardar los datos del inductor.')
+    throw new Error(/second_career/i.test(error.message) ? 'Falta aplicar la migración 0044 (el doble programa).' : /column .*career|schema cache/i.test(error.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /column .*song/i.test(error.message) ? 'Falta aplicar la migración 0042 (la canción).' : error.message || 'No se pudieron guardar los datos del inductor.')
   }
   return { id, username, password }
 }
@@ -221,6 +231,7 @@ export interface IdentityPatch {
   full_name?: string
   username?: string // changes the login too: it goes through the server (renameUser)
   career?: string | null
+  second_career?: string | null // the other career of a double program (0044)
   generation?: string | null
   joined_term?: string | null
   nickname?: string | null
@@ -228,13 +239,14 @@ export interface IdentityPatch {
 }
 
 /** What changed between a person and the profile the coordi edited. A new generation brings its entry with it. Empty when nothing changed. */
-export function profileChanges(p: PassportPerson, career: string | null, draft: { fullName: string; username: string; career: string; generation: string; nickname: string; song: PassportSong | null }): IdentityPatch {
+export function profileChanges(p: PassportPerson, career: string | null, draft: { fullName: string; username: string; career: string; secondCareer?: string; generation: string; nickname: string; song: PassportSong | null }): IdentityPatch {
   const patch: IdentityPatch = {}
   const user = draft.username.trim().toLowerCase().replace(/^@/, '')
   if (user && user !== p.username) patch.username = user
   const name = draft.fullName.trim().replace(/\s+/g, ' ')
   if (name && name !== p.full_name) patch.full_name = name
   if ((draft.career || null) !== (career ?? null)) patch.career = draft.career || null
+  if (draft.secondCareer !== undefined && (draft.secondCareer || null) !== (p.second_career ?? null)) patch.second_career = draft.secondCareer || null
   if ((draft.generation || null) !== (p.generation ?? null)) {
     patch.generation = draft.generation || null
     const entry = entryOf(draft.generation)
@@ -243,4 +255,14 @@ export function profileChanges(p: PassportPerson, career: string | null, draft: 
   if ((draft.nickname.trim() || null) !== (p.nickname ?? null)) patch.nickname = draft.nickname.trim() || null
   if ((draft.song?.preview ?? null) !== (p.song?.preview ?? null)) patch.song = draft.song
   return patch
+}
+
+// ---------- how many inductions a person has taken part in ----------
+
+/** «1 inducción», «3 inducciones». The count comes from the database (view passport_inductions, 0044): the inductions where their profile is not disabled. */
+export const inductionsLabel = (n: number) => `${n} ${n === 1 ? 'inducción' : 'inducciones'}`
+
+/** person → how many inductions they have, from the rows of the view. */
+export function inductionCounts(rows: { passport_id: string; inductions: number }[]): Map<string, number> {
+  return new Map(rows.map((r) => [r.passport_id, r.inductions]))
 }

@@ -11,6 +11,8 @@ import { confirmDialog } from '../../lib/dialog'
 import {
   careerOfPerson,
   hasFilters,
+  inductionCounts,
+  inductionsLabel,
   latestCareers,
   matchesSearch,
   NO_FILTERS,
@@ -82,6 +84,7 @@ export function PersonItem({
   onDisable,
   view = 'global',
   onRemove,
+  onToggleDisabled,
   career,
   careers = [],
   usernames,
@@ -110,6 +113,7 @@ export function PersonItem({
   //   'carrera' (inside a carrera): their PARTICIPATION in that edition: role, culture, committees, group or base, and removing them from it
   view?: 'global' | 'carrera'
   onRemove?: () => void // carrera: take them out of this edition (the person stays in the system)
+  onToggleDisabled?: () => void // carrera: disable / enable their profile in this edition (a disabled one does not count as an induction of theirs)
   career?: string | null // the career of the person (the one of their passport, or of their latest participation)
   careers?: string[] // the careers of the catalog, to choose one when editing
   usernames?: Set<string> // every @ in use, so editing one cannot repeat it
@@ -140,12 +144,14 @@ export function PersonItem({
           {p.nickname && <span className="nick"> «{p.nickname}»</span>}
           {status === 'ancestor' && <span className="badge ancestor"> Ancestro{p.disable_at ? ` · hasta ${new Date(p.disable_at).toLocaleDateString('es-CO')}` : ''}</span>}
           {status === 'disabled' && <span className="badge off"> Deshabilitado</span>}
+          {view === 'carrera' && r?.disabled && <span className="badge off"> Deshabilitado en esta carrera</span>}
         </strong>
         <small className="muted person-meta">
           <span className="mono">@{p.username}</span>
-          {shownCareer && <span>{shownCareer}</span>}
+          {shownCareer && <span>{shownCareer}{p.second_career ? ` + ${p.second_career}` : ''}</span>}
           {view === 'global' && generations && <span>{generations}</span>}
           {view === 'global' && p.joined_term && <span>Ingresó {p.joined_term}</span>}
+          {view === 'global' && p.inductions != null && <span className="inductions-meta">{inductionsLabel(p.inductions)}</span>}
         </small>
         {view === 'global' && p.song && (
           <span className="person-song">
@@ -191,7 +197,7 @@ export function PersonItem({
                 })}
               </span>
               {r.role === 'runner' && (
-                <select value={r.team_id ?? ''} disabled={busy} onChange={(e) => onLink(e.target.value || null)} aria-label={`Grupo de ${p.full_name}`}>
+                <select value={r.team_id ?? ''} disabled={busy || r.disabled} onChange={(e) => onLink(e.target.value || null)} aria-label={`Grupo de ${p.full_name}`}>
                   <option value="">Sin grupo</option>
                   {teams.map((t) => (
                     <option key={t.id} value={t.id}>{t.label}</option>
@@ -199,7 +205,7 @@ export function PersonItem({
                 </select>
               )}
               {r.role === 'base' && (
-                <select value={r.base_id ?? ''} disabled={busy} onChange={(e) => onLink(e.target.value || null)} aria-label={`Base de ${p.full_name}`}>
+                <select value={r.base_id ?? ''} disabled={busy || r.disabled} onChange={(e) => onLink(e.target.value || null)} aria-label={`Base de ${p.full_name}`}>
                   <option value="">Sin base</option>
                   {bases.map((b) => (
                     <option key={b.id} value={b.id}>{b.label}</option>
@@ -239,8 +245,15 @@ export function PersonItem({
           </button>
         </span>
       )}
-      {view === 'carrera' && onRemove && (
-        <button className="ghost danger" disabled={busy} onClick={onRemove} title="Quitarlo de esta carrera (la persona sigue en el sistema)">Quitar de la carrera</button>
+      {view === 'carrera' && r && (onToggleDisabled || onRemove) && (
+        <span className="person-actions">
+          {onToggleDisabled && (
+            <button className="ghost" disabled={busy} onClick={onToggleDisabled} title={r.disabled ? 'Volver a contarlo en esta carrera' : 'No puede estar en esta carrera: no cuenta como una de sus inducciones'}>
+              {r.disabled ? <RotateCcw size={16} aria-hidden="true" /> : <UserX size={16} aria-hidden="true" />} {r.disabled ? 'Habilitar en la carrera' : 'Deshabilitar en la carrera'}
+            </button>
+          )}
+          {onRemove && <button className="ghost danger" disabled={busy} onClick={onRemove} title="Quitarlo de esta carrera (la persona sigue en el sistema)">Quitar de la carrera</button>}
+        </span>
       )}
       {view === 'global' && editing && (
         <div className="person-editor-slot">
@@ -269,6 +282,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
   const [missing0025, setMissing0025] = useState(false) // the words of the induction need migration 0025
   const [missing0027, setMissing0027] = useState(false) // the extra committees need migration 0027
   const [missing0043, setMissing0043] = useState(false) // the career of each person needs migration 0043
+  const [missing0044, setMissing0044] = useState(false) // the other career, the count of inductions and the disabled profiles need migration 0044
   const [welcome, setWelcome] = useState('')
   const [committeeWords, setCommitteeWords] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
@@ -323,12 +337,22 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     ])
     if (p.error || r.error || ev.error) setError('No se pudo cargar la lista.')
     // the song (0042) and the career (0043) are read apart so the list opens before they are applied
-    let extra = await supabase.from('passports').select('id, song, career')
+    // the other career and the count of inductions (0044) are read apart as well, and so are the profiles disabled in this carrera
+    type Extra = { song?: PassportSong | null; career?: string | null; second_career?: string | null }
+    let extra = await supabase.from('passports').select('id, song, career, second_career')
+    setMissing0044(Boolean(extra.error))
+    if (extra.error) extra = (await supabase.from('passports').select('id, song, career')) as unknown as typeof extra
     setMissing0043(Boolean(extra.error))
     if (extra.error) extra = (await supabase.from('passports').select('id, song')) as unknown as typeof extra
-    const extras = new Map(((extra.error ? [] : extra.data) ?? []).map((x) => [x.id as string, x as unknown as { song?: PassportSong | null; career?: string | null }]))
-    setPassports(((p.data ?? []) as unknown as PassportPerson[]).map((x) => ({ ...x, song: extras.get(x.id)?.song ?? null, career: extras.get(x.id)?.career ?? null })))
-    setRecords((r.data ?? []) as unknown as PassportRecordRow[])
+    const extras = new Map(((extra.error ? [] : extra.data) ?? []).map((x) => [x.id as string, x as unknown as Extra]))
+    const [counted, flagged] = await Promise.all([
+      supabase.from('passport_inductions').select('passport_id, inductions'),
+      current ? supabase.from('passport_records').select('id, disabled').eq('term_id', current) : Promise.resolve({ data: [], error: null }),
+    ])
+    const counts = counted.error ? null : inductionCounts((counted.data ?? []) as { passport_id: string; inductions: number }[])
+    const disabledIds = new Set(flagged.error ? [] : ((flagged.data ?? []) as { id: string; disabled: boolean }[]).filter((x) => x.disabled).map((x) => x.id))
+    setPassports(((p.data ?? []) as unknown as PassportPerson[]).map((x) => ({ ...x, song: extras.get(x.id)?.song ?? null, career: extras.get(x.id)?.career ?? null, second_career: extras.get(x.id)?.second_career ?? null, inductions: counts ? (counts.get(x.id) ?? 0) : null })))
+    setRecords(((r.data ?? []) as unknown as PassportRecordRow[]).map((x) => ({ ...x, disabled: disabledIds.has(x.id) })))
     type Ev = { id: string; name: string; teams: { id: string; name: string; sort_order: number }[]; bases: { id: string; name: string; sort_order: number }[] }
     const events = (ev.data ?? []) as unknown as Ev[]
     setTermEvents(events.map((e) => e.name))
@@ -418,7 +442,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
         return null
       }
       const { error: err } = await supabase.from('passports').update(rest).eq('id', person.passport.id)
-      if (err) return /career/i.test(err.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /song/i.test(err.message) && missingColumn(err) ? 'Falta aplicar la migración 0042 (la canción).' : /generaci/i.test(err.message) ? err.message : 'No se pudo guardar el cambio.'
+      if (err) return /second_career/i.test(err.message) ? 'Falta aplicar la migración 0044 (la otra carrera).' : /career/i.test(err.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /song/i.test(err.message) && missingColumn(err) ? 'Falta aplicar la migración 0042 (la canción).' : /generaci/i.test(err.message) ? err.message : 'No se pudo guardar el cambio.'
       await load()
       return null
     } finally {
@@ -426,6 +450,8 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     }
   }
   const onRole = (p: PersonRow, role: PassportRole) => update(p, { role, team_id: null, base_id: null })
+  // disabled in THIS carrera: it does not count as one of their inductions and they are let go of their group or base
+  const onToggleDisabled = (p: PersonRow) => update(p, { disabled: !p.record?.disabled }, 'No se pudo cambiar. ¿Ya aplicaste la migración 0044?')
 
   function onPhoto(p: PassportPerson, file: File) {
     if (!supabase) return
@@ -557,6 +583,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
       {missing0025 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0025_passport_pages.sql</span> para las palabras de la inducción y de los comités.</p>}
       {missing0027 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0027_more_committees.sql</span> para que una persona esté en más de un comité.</p>}
       {missing0024 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0024_passport_identity.sql</span> para guardar el comité, la generación y el ingreso.</p>}
+      {missing0044 && !missing0043 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0044_inducciones_y_doble_programa.sql</span> para guardar la otra carrera, contar las inducciones y deshabilitar a alguien en una carrera.</p>}
       {missing0043 && !isCarrera && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0043_carrera_de_la_persona.sql</span> para guardar la carrera de cada inductor.</p>}
 
       {creds && (
@@ -707,6 +734,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
                   career={careerOf(x)}
                   careers={careerNames}
                   onRemove={x.record ? () => void onLeave(x.passport, x.record!.id) : undefined}
+                  onToggleDisabled={x.record ? () => onToggleDisabled(x) : undefined}
                   teams={teamOptions}
                   bases={baseOptions}
                   busy={busy}

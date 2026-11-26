@@ -32,7 +32,7 @@ describe('the passport screen reads only the passport', () => {
   const tables = (file: string) => new Set(findChains(sourceFiles('src').filter((s) => s.file.endsWith(file))).map((c) => c.table))
 
   it('MemberHome touches no table of the live operation (teams, bases, matches, scores, profiles…)', () => {
-    expect([...tables('pages/MemberHome.tsx')].sort()).toEqual(['passport_records', 'passport_stamps', 'passports', 'term_committees'])
+    expect([...tables('pages/MemberHome.tsx')].sort()).toEqual(['passport_inductions', 'passport_records', 'passport_stamps', 'passports', 'term_committees'])
     const text = read('src/pages/MemberHome.tsx')
     expect(text).toMatch(/rpc\('my_passport_context'\)/)
     expect(text).toMatch(/rpc\('my_live_stamps'\)/)
@@ -262,5 +262,30 @@ describe('docs', () => {
     expect(read('docs/wiki/Pantallas.md')).toMatch(/Pasaporte personal/)
     expect(read('docs/wiki/Roles-y-permisos.md')).toMatch(/pasaporte personal/i)
     expect(read('docs/wiki/Modelo-de-datos.md')).toMatch(/passport_records/)
+  })
+})
+
+describe('inductions and double program (0044)', () => {
+  it('the passport reads the count, the other career and the disabled inductions apart, so it opens before the migration is applied', () => {
+    const home = read('src/pages/MemberHome.tsx')
+    expect(home).toMatch(/from\('passport_inductions'\)/)
+    expect(home).toMatch(/'song, career, second_career', 'song, career', 'song'/)
+    expect(home).toMatch(/!disabled\.has\(x\.id\)/) // an induction where they were disabled has no pages
+    // none of those columns is in the main queries: before 0044 they would fail and drop the committees
+    expect(home).not.toMatch(/extra_leads, disabled|disabled, terms/)
+  })
+  it('the identity page shows the count and both medals, and the PDF the same', () => {
+    const page = read('src/components/MemberPassport.tsx')
+    expect(page).toMatch(/medalsOf\(career, secondCareer\)/)
+    expect(page).toMatch(/<dt>Inducciones<\/dt>/)
+    const pdf = read('src/lib/passportPdf.ts')
+    expect(pdf).toMatch(/medalsOf\(career, secondCareer\)/)
+    expect(pdf).toMatch(/'INDUCCIONES'/)
+  })
+  it('the coordi disables a person only inside a carrera, and the count is not computed in the browser', () => {
+    const page = read('src/pages/admin/Inductores.tsx')
+    expect(page).toMatch(/onToggleDisabled=\{x\.record \?/)
+    expect(page).toMatch(/Deshabilitar en la carrera/)
+    expect(read('src/lib/inductors.ts')).not.toMatch(/\.filter\([^)]*disabled/)
   })
 })

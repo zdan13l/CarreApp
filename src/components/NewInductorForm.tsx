@@ -48,16 +48,18 @@ export default function NewInductorForm({
     const f = new FormData(form)
     const fullName = name.trim().replace(/\s+/g, ' ')
     const career = String(f.get('career') ?? '')
+    const secondCareer = String(f.get('second_career') ?? '')
     const nickname = String(f.get('nickname') ?? '').trim()
     if (fullName.length < 3) return onError('Escribe el nombre completo.')
     if (!handle || handleProblem) return onError(handleProblem ?? 'Escribe el @ del inductor.')
     if (!career) return onError('Elige la carrera.')
+    if (secondCareer && secondCareer === career) return onError('La otra carrera es la misma que la primera.')
     if (!nickname) return onError('Escribe el apodo.')
     if (!generation) return onError('Elige la generación: toda persona entra en una.')
     const known = people.find((x) => nameKey(x.full_name) === nameKey(fullName))
     if (known) return onError(`${known.full_name} ya existe (@${known.username}). Agrégala a una carrera desde la pestaña Inductores de esa carrera.`)
     await run(async () => {
-      const made = await createInductor({ fullName, career, generation, nickname, song, username: handle }, usernames)
+      const made = await createInductor({ fullName, career, secondCareer: secondCareer || null, generation, nickname, song, username: handle }, usernames)
       setRound((n) => n + 1)
       setName('')
       setUsername('')
@@ -92,6 +94,13 @@ export default function NewInductorForm({
             )}
           </div>
           <div className="inline-field">
+            <div className="field-head"><label htmlFor="new-second-career">Otra carrera <small className="muted">(doble programa)</small></label></div>
+            <select id="new-second-career" name="second_career" defaultValue="" disabled={careers.length === 0}>
+              <option value="">Ninguna</option>
+              {careers.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="inline-field wide">
             <div className="field-head"><span>Generación</span><AddLink to="/admin/generaciones">Crear generación</AddLink></div>
             <GenerationPicker value="" name="generation" label="Generación" disabled={busy} required onChange={setGeneration} />
             {entry && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry}</strong></span>}

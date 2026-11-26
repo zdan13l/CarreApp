@@ -7,6 +7,8 @@ import type { CareerKey } from './CareerEmblem'
 //   sistemas   a laptop with code           industrial a robot arm with its measures        civil   a suspension bridge over the water
 //   biomec     a sprout out of a hexagonal nut with gears and a pulse                       tronicas a chip with its circuit, gears and robot arms
 export type InsigniaKey = Exclude<CareerKey, 'general'>
+/** The five engineering medals plus the generic one (for the other career of a double program that is not an engineering). */
+export type MedalKey = CareerKey
 
 const mix = (c: string, pct: number, other: string) => `color-mix(in srgb, ${c} ${pct}%, ${other})`
 const WHITE = 'white'
@@ -239,13 +241,49 @@ function Tronicas() {
   )
 }
 
+// The generic medal: an open book under a rising sun, between two laurel branches. For the other career of a double program that has no engineering medal.
+function General() {
+  const rays = Array.from({ length: 9 }, (_, i) => {
+    const a = rad(-170 + i * 20)
+    return <path key={i} d={`M${(400 + 78 * Math.cos(a)).toFixed(1)} ${(300 + 78 * Math.sin(a)).toFixed(1)}L${(400 + 124 * Math.cos(a)).toFixed(1)} ${(300 + 124 * Math.sin(a)).toFixed(1)}`} {...line(YEL, 11)} />
+  })
+  const leaves = Array.from({ length: 7 }, (_, i) => {
+    const a = 112 + i * 21
+    const x = 400 + 292 * Math.cos(rad(a))
+    const y = 400 + 292 * Math.sin(rad(a))
+    return (
+      <g key={i}>
+        <ellipse cx={x.toFixed(1)} cy={y.toFixed(1)} rx="34" ry="14" transform={`rotate(${a + 90} ${x.toFixed(1)} ${y.toFixed(1)})`} fill={i % 3 === 2 ? YEL : GREEN} fillOpacity=".92" />
+        <ellipse cx={(800 - x).toFixed(1)} cy={y.toFixed(1)} rx="34" ry="14" transform={`rotate(${-(a + 90)} ${(800 - x).toFixed(1)} ${y.toFixed(1)})`} fill={i % 3 === 2 ? YEL : GREEN} fillOpacity=".92" />
+      </g>
+    )
+  })
+  return (
+    <>
+      {leaves}
+      <path d="M400 300m-46 0a46 46 0 0 1 92 0Z" fill={YEL} />
+      <g>{rays}</g>
+      <path d="M400 478C352 440 280 432 214 446L214 596C280 584 352 592 400 630Z" {...solid(FILL, WHITE, 12)} />
+      <path d="M400 478C448 440 520 432 586 446L586 596C520 584 448 592 400 630Z" {...solid(FILL, WHITE, 12)} />
+      <path d="M400 478V630" {...line(WHITE, 9)} />
+      {[0, 1, 2].map((i) => (
+        <g key={i} {...line(SKY, 6)} strokeOpacity=".8">
+          <path d={`M246 ${478 + i * 30}C290 ${470 + i * 30} 340 ${478 + i * 30} 372 ${504 + i * 30}`} />
+          <path d={`M554 ${478 + i * 30}C510 ${470 + i * 30} 460 ${478 + i * 30} 428 ${504 + i * 30}`} />
+        </g>
+      ))}
+    </>
+  )
+}
+
 // Every drawing is centred in the disc by the middle of its own bounding box (measured, not guessed), so the five medals look balanced.
 const centred = (dx: number, dy: number, node: ReactNode) => <g transform={`translate(${dx} ${dy})`}>{node}</g>
 
-export const EMBLEM: Record<InsigniaKey, () => ReactNode> = {
+export const EMBLEM: Record<MedalKey, () => ReactNode> = {
   sistemas: () => centred(19, 21, <Sistemas />),
   industrial: () => centred(-8, -10, <Industrial />),
   civil: () => centred(0, -22, <Civil />),
   biomec: () => centred(0, 16, <Biomec />),
   tronicas: () => <Tronicas />,
+  general: () => <General />,
 }

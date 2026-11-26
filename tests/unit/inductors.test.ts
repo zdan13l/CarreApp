@@ -4,6 +4,8 @@ import {
   careerOfPerson,
   entryOf,
   hasFilters,
+  inductionCounts,
+  inductionsLabel,
   inductorsTable,
   latestCareers,
   matchCareer,
@@ -209,13 +211,14 @@ describe('the Excel of a whole induction', () => {
 describe('the Excel that goes out and the template', () => {
   it('has the @ and the password of every person, with a header, and does not invent a password for someone who already had one', () => {
     const data = credentialsData([
-      { fullName: 'Ana Gómez', career: 'Ingeniería Civil', generation: 'Barbies', username: 'ana.gomez', password: 'D3lF1nZ4p4t00482' },
+      { fullName: 'Ana Gómez', career: 'Ingeniería Civil', secondCareer: 'Derecho', generation: 'Barbies', username: 'ana.gomez', password: 'D3lF1nZ4p4t00482' },
       { fullName: 'Luis Ruiz', career: 'Mecatrónica', generation: 'Minichips', username: 'luis.ruiz', password: '' },
     ])
     expect(data).toHaveLength(3)
-    expect(data[0].map((c) => (c as { value: string }).value)).toEqual(['Nombre', 'Carrera', 'Generación', 'Usuario (@)', 'Contraseña', 'Entrar en'])
-    expect(data[1]).toEqual(['Ana Gómez', 'Ingeniería Civil', 'Barbies', '@ana.gomez', 'D3lF1nZ4p4t00482', 'carreapp.vercel.app'])
-    expect(data[2][4]).toBe('(ya tenía)')
+    expect(data[0].map((c) => (c as { value: string }).value)).toEqual(['Nombre', 'Carrera', 'Otra carrera', 'Generación', 'Usuario (@)', 'Contraseña', 'Entrar en'])
+    expect(data[1]).toEqual(['Ana Gómez', 'Ingeniería Civil', 'Derecho', 'Barbies', '@ana.gomez', 'D3lF1nZ4p4t00482', 'carreapp.vercel.app'])
+    expect(data[2][2]).toBe('')
+    expect(data[2][5]).toBe('(ya tenía)')
   })
 
   it('the template loads as it is: its examples use the careers and generations of the catalog', () => {
@@ -225,6 +228,42 @@ describe('the Excel that goes out and the template', () => {
     expect(parsed.every((r) => rowProblem(r) === null)).toBe(true)
     expect(parsed.map((r) => [r.username, r.nickname])).toEqual([['ana.perez', 'Anita'], ['luis.ruiz', 'Lucho'], ['camila.torres', 'Cami']])
     expect(parsed[0].songWritten).toBe('Mujeriego - Ryan Castro')
+    expect(parsed.map((r) => r.secondCareer)).toEqual([null, null, 'Mecatrónica']) // the third example is a double program
+  })
+})
+
+describe('the other career of a double program', () => {
+  const head = ['Nombre', 'Carrera', 'Otra carrera (opcional)', 'Generación', 'Apodo']
+  const load = (...rows: string[][]) => parseInductors([[head, ...rows]], { careers: CAREERS, usernames: new Set(), known: new Map(), defaultGeneration: '' })
+  it('is optional, and the column can be called «Otra carrera», «Segunda carrera» or «Doble programa»', () => {
+    const [a] = load(['Ana Gómez', 'Civil', '', 'Barbies', 'Anita'])
+    expect(a.secondCareer).toBeNull()
+    expect(rowProblem(a)).toBeNull()
+    for (const name of ['Segunda carrera', 'Doble programa']) {
+      const [b] = parseInductors([[['Nombre', 'Carrera', name, 'Generación', 'Apodo'], ['Ana Gómez', 'Civil', 'Sistemas', 'Barbies', 'Anita']]], { careers: CAREERS, usernames: new Set(), known: new Map(), defaultGeneration: '' })
+      expect(b.secondCareer).toBe('Ingeniería de Sistemas')
+    }
+  })
+  it('is matched with the catalog like the first one', () => {
+    const [a] = load(['Ana Gómez', 'Civil', 'sistemas', 'Barbies', 'Anita'])
+    expect(a.secondCareer).toBe('Ingeniería de Sistemas')
+    expect(rowProblem(a)).toBeNull()
+  })
+  it('one that is not in the catalog has to be chosen or removed, and it cannot be the same as the first', () => {
+    const [a] = load(['Ana Gómez', 'Civil', 'Medicina Veterinaria', 'Barbies', 'Anita'])
+    expect(a.secondCareer).toBeNull()
+    expect(rowProblem(a)).toMatch(/Medicina Veterinaria/)
+    const [b] = load(['Ana Gómez', 'Civil', 'Civil', 'Barbies', 'Anita'])
+    expect(rowProblem(b)).toMatch(/la misma/)
+  })
+})
+
+describe('how many inductions', () => {
+  it('is said in Spanish, singular and plural, and read from the rows of the view', () => {
+    expect(inductionsLabel(0)).toBe('0 inducciones')
+    expect(inductionsLabel(1)).toBe('1 inducción')
+    expect(inductionsLabel(3)).toBe('3 inducciones')
+    expect(inductionCounts([{ passport_id: 'a', inductions: 2 }, { passport_id: 'b', inductions: 1 }]).get('a')).toBe(2)
   })
 })
 
@@ -241,6 +280,12 @@ describe('what changed in a profile', () => {
   it('saves only what was touched: name (cleaned), career, nickname, song', () => {
     const song = { title: 'Mujeriego', artist: 'Ryan Castro', preview: 'https://audio-ssl.itunes.apple.com/a.m4a' }
     expect(profileChanges(ana, 'Ingeniería Civil', { ...same, fullName: '  Ana  María Pardo ', career: 'Mecatrónica', nickname: '', song })).toEqual({ full_name: 'Ana María Pardo', career: 'Mecatrónica', nickname: null, song })
+  })
+  it('the other career is saved apart, and removing it saves null', () => {
+    expect(profileChanges(ana, 'Ingeniería Civil', { ...same, secondCareer: 'Derecho' })).toEqual({ second_career: 'Derecho' })
+    const double = person({ career: 'Ingeniería Civil', second_career: 'Derecho', generation: 'Barbies', joined_term: '2630', nickname: 'Anita' })
+    expect(profileChanges(double, 'Ingeniería Civil', { ...same, secondCareer: 'Derecho' })).toEqual({})
+    expect(profileChanges(double, 'Ingeniería Civil', { ...same, secondCareer: '' })).toEqual({ second_career: null })
   })
   it('a new @ is saved apart (the login follows it); the same one is not a change', () => {
     expect(profileChanges(ana, 'Ingeniería Civil', { ...same, username: ' @Ana.Nueva ' })).toEqual({ username: 'ana.nueva' })

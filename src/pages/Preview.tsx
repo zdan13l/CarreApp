@@ -194,7 +194,7 @@ function memberData(role: PassportRole, culture: string, career: string, query: 
   if (role === 'coordinator') stamps.push(mStamp('rec1', 'coordinated', '', 0, 'Carrera 2026-1'))
   else stamps.push(mStamp('rec1', 'hosted', 'Mirador', 1, 'Carrera 2026-1'), mStamp('rec1', 'hosted', 'Mirador', 2, 'Carrera 2026-1'))
   return {
-    person: { id: 'p1', username: 'daniel.rodriguez', full_name: 'Daniel Arturo Rodríguez Peña', photo_path: null, nickname: 'Dani', song: SAMPLE_SONG, generation: query.has('sin') ? null : query.get('gen') ?? 'Peluches', joined_term: query.has('sin') ? null : '2024-2' },
+    person: { id: 'p1', username: 'daniel.rodriguez', full_name: 'Daniel Arturo Rodríguez Peña', photo_path: null, nickname: 'Dani', song: SAMPLE_SONG, generation: query.has('sin') ? null : query.get('gen') ?? 'Peluches', joined_term: query.has('sin') ? null : '2024-2', career, second_career: query.get('otra'), inductions: query.has('sin') ? 0 : Number(query.get('ind') ?? 2) },
     records: [rec, old],
     stamps,
     context: [{ record_id: 'rec2', team_id: 'tm', team_name: 'Dioses Nórdicos', team_photo_path: '/campus-800.jpg', partners: ['Sara Lucía Montes'], base_id: 'bs', base_name: 'Atrio', base_photo_path: '/campus-800.jpg', event_id: 'ev', event_name: 'Carrera 2710', event_active: true }],
@@ -203,17 +203,17 @@ function memberData(role: PassportRole, culture: string, career: string, query: 
 }
 const sampleCareers: Record<string, [string, string]> = { nordica: ['nordica', 'Ingeniería de Sistemas'], griega: ['griega', 'Mecatrónica'], mexicana: ['mexicana', 'Ingeniería Industrial'], china: ['china', 'Bioingeniería'], egipcia: ['egipcia', 'Ingeniería Civil'] }
 const samplePeople: PersonRow[] = [
-  { passport: { id: 'a', username: 'camila.rojas', full_name: 'Camila Andrea Rojas Prieto', photo_path: null, nickname: 'Cami', generation: 'Minichips', joined_term: '2710', career: 'Ingeniería de Sistemas', song: SAMPLE_SONG }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
-  { passport: { id: 'b', username: 'ana.ruiz', full_name: 'Ana Pardo Ruiz', photo_path: null, generation: 'Barbies', joined_term: '2630', career: 'Ingeniería de Sistemas' }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
-  { passport: { id: 'c', username: 'diana.pardo', full_name: 'Diana Carolina Pardo', photo_path: null, generation: 'Peluches / Barbies', joined_term: '2610', career: 'Mecatrónica', status: 'ancestor', disable_at: '2027-05-30T00:00:00Z' }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
-  { passport: { id: 'd', username: 'lucia.ortega', full_name: 'Lucía Marcela Ortega Páez', photo_path: null, generation: 'Minichips', joined_term: '2710', career: 'Ingeniería Civil' }, record: null },
+  { passport: { id: 'a', username: 'camila.rojas', full_name: 'Camila Andrea Rojas Prieto', photo_path: null, nickname: 'Cami', generation: 'Minichips', joined_term: '2710', career: 'Ingeniería de Sistemas', second_career: 'Diseño Industrial', inductions: 3, song: SAMPLE_SONG }, record: { id: 'r1', passport_id: 'a', term_id: 't', role: 'runner', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: 'g1', base_id: null } },
+  { passport: { id: 'b', username: 'ana.ruiz', full_name: 'Ana Pardo Ruiz', photo_path: null, generation: 'Barbies', joined_term: '2630', career: 'Ingeniería de Sistemas', second_career: 'Ingeniería Industrial', inductions: 2 }, record: { id: 'r2', passport_id: 'b', term_id: 't', role: 'base', career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: 'b1' } },
+  { passport: { id: 'c', username: 'diana.pardo', full_name: 'Diana Carolina Pardo', photo_path: null, generation: 'Peluches / Barbies', joined_term: '2610', career: 'Mecatrónica', status: 'ancestor', disable_at: '2027-05-30T00:00:00Z', inductions: 5 }, record: { id: 'r3', passport_id: 'c', term_id: 't', role: 'coordinator', career: 'Mecatrónica', culture: 'griega', team_id: null, base_id: null } },
+  { passport: { id: 'd', username: 'lucia.ortega', full_name: 'Lucía Marcela Ortega Páez', photo_path: null, generation: 'Minichips', joined_term: '2710', career: 'Ingeniería Civil', inductions: 1 }, record: null },
 ]
 const sampleRows: InductorIn[] = [
-  { line: 2, fullName: 'Camilo José Mora Ibáñez', careerWritten: 'Bioingeniería', career: 'Bioingeniería', generation: 'Minichips', nickname: 'Camilo', songWritten: 'Mujeriego - Ryan Castro', username: 'camilo.mora', existing: false, errors: [] },
-  { line: 3, fullName: 'Miguel Ángel Vera Soto', careerWritten: 'Civil', career: 'Ingeniería Civil', generation: 'Minichips', nickname: '', songWritten: 'https://open.spotify.com/track/2K9vpqu9', username: 'miguel.vera', existing: false, errors: [] },
-  { line: 4, fullName: 'Laura Camila Pinto', careerWritten: 'Ingeniería Ambiental', career: null, generation: '', nickname: '', songWritten: '', username: 'laura.pinto', existing: false, errors: [] },
-  { line: 5, fullName: 'Sara Nelly Beltrán', careerWritten: 'Ingeniería Industrial', career: 'Ingeniería Industrial', generation: 'Minichips', nickname: '', songWritten: 'Comernos - bad gyal', username: 'sara.beltran', existing: true, errors: [] },
-  { line: 6, fullName: 'Sara Nelly Beltrán', careerWritten: 'Ingeniería Industrial', career: 'Ingeniería Industrial', generation: 'Minichips', nickname: '', songWritten: '', username: 'sara.beltran', existing: true, errors: ['Esta persona está repetida en el archivo.'] },
+  { line: 2, fullName: 'Camilo José Mora Ibáñez', careerWritten: 'Bioingeniería', career: 'Bioingeniería', secondWritten: 'Mecatrónica', secondCareer: 'Mecatrónica', generation: 'Minichips', nickname: 'Camilo', songWritten: 'Mujeriego - Ryan Castro', username: 'camilo.mora', existing: false, errors: [] },
+  { line: 3, fullName: 'Miguel Ángel Vera Soto', careerWritten: 'Civil', career: 'Ingeniería Civil', secondWritten: '', secondCareer: null, generation: 'Minichips', nickname: '', songWritten: 'https://open.spotify.com/track/2K9vpqu9', username: 'miguel.vera', existing: false, errors: [] },
+  { line: 4, fullName: 'Laura Camila Pinto', careerWritten: 'Ingeniería Ambiental', career: null, secondWritten: 'Medicina Veterinaria', secondCareer: null, generation: '', nickname: '', songWritten: '', username: 'laura.pinto', existing: false, errors: [] },
+  { line: 5, fullName: 'Sara Nelly Beltrán', careerWritten: 'Ingeniería Industrial', career: 'Ingeniería Industrial', secondWritten: '', secondCareer: null, generation: 'Minichips', nickname: '', songWritten: 'Comernos - bad gyal', username: 'sara.beltran', existing: true, errors: [] },
+  { line: 6, fullName: 'Sara Nelly Beltrán', careerWritten: 'Ingeniería Industrial', career: 'Ingeniería Industrial', secondWritten: '', secondCareer: null, generation: 'Minichips', nickname: '', songWritten: '', username: 'sara.beltran', existing: true, errors: ['Esta persona está repetida en el archivo.'] },
 ]
 
 // The pages of the PDF of the passport as pictures, and a button that builds the whole PDF (development only).
@@ -632,18 +632,22 @@ export default function Preview() {
           <h2>Con cinta (la insignia grande: pasaporte y ficha de la carrera)</h2>
           <div className="insignia-row">
             {INSIGNIA_KEYS.map((k) => <MedallaBadge key={k} career={k} size={200} />)}
+            <MedallaBadge career="general" label="Derecho" size={200} />
+            <MedallaBadge career="general" label="Medicina Veterinaria" size={200} />
           </div>
         </section>
         <section className="card insignia-option">
           <h2>Detalle</h2>
           <div className="insignia-row">
             {INSIGNIA_KEYS.map((k) => <MedallaBadge key={k} career={k} size={330} ribbon={false} />)}
+            <MedallaBadge career="general" label="Derecho" size={330} ribbon={false} />
           </div>
         </section>
         <section className="card insignia-option">
           <h2>Solo la medalla (listas y avatares)</h2>
           <div className="insignia-row">
             {INSIGNIA_KEYS.map((k) => <MedallaBadge key={k} career={k} size={120} ribbon={false} />)}
+            <MedallaBadge career="general" label="Psicología" size={120} ribbon={false} />
           </div>
           <div className="insignia-row small">
             {INSIGNIA_KEYS.map((k) => <MedallaBadge key={k} career={k} size={56} ribbon={false} />)}

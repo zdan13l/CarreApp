@@ -70,16 +70,31 @@ export default function MemberHome() {
     }
     setFailed(false)
     const person = p.data as unknown as PassportPerson | null
-    if (person) {
-      const songRead = await sb.from('passports').select('song').eq('id', userId).maybeSingle() // migration 0042: without it the passport has no song, nothing else changes
-      person.song = songRead.error ? null : ((songRead.data as { song?: PassportPerson['song'] } | null)?.song ?? null)
-    }
     if (!person) {
       setLoading(false)
       return
     }
+    // what the later migrations added is read apart, so the passport opens before they are applied: the song (0042), the career (0043) and the
+    // other career of a double program (0044), how many inductions they have (0044, a view) and the inductions where their profile is disabled (0044)
+    let apart: { song?: PassportPerson['song']; career?: string | null; second_career?: string | null } = {}
+    for (const columns of ['song, career, second_career', 'song, career', 'song']) {
+      const read1 = await sb.from('passports').select(columns).eq('id', userId).maybeSingle()
+      if (!read1.error) {
+        apart = (read1.data ?? {}) as typeof apart
+        break
+      }
+    }
+    person.song = apart.song ?? null
+    person.career = apart.career ?? null
+    person.second_career = apart.second_career ?? null
+    const [counted, flags] = await Promise.all([
+      sb.from('passport_inductions').select('inductions').eq('passport_id', userId).maybeSingle(),
+      sb.from('passport_records').select('id, disabled').eq('passport_id', userId),
+    ])
+    person.inductions = counted.error ? null : ((counted.data as { inductions?: number } | null)?.inductions ?? 0)
+    const disabled = new Set(flags.error ? [] : ((flags.data ?? []) as { id: string; disabled: boolean }[]).filter((x) => x.disabled).map((x) => x.id))
     const records = ((r.data ?? []) as unknown as RecordQuery[])
-      .filter((x) => x.terms)
+      .filter((x) => x.terms && !disabled.has(x.id)) // an induction where they were disabled has no pages: they did not take part in it
       .map(({ terms, ...rest }) => ({ ...rest, term: terms! }))
       .sort((a, b) => Number(b.term.is_current) - Number(a.term.is_current) || b.term.created_at.localeCompare(a.term.created_at))
     setData({

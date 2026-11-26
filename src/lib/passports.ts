@@ -36,6 +36,8 @@ export interface PassportPerson {
   generation?: string | null
   joined_term?: string | null // migration 0043: it comes from the generation (the semester it entered)
   career?: string | null // migration 0043: the career of the person (one for their whole life in the induction), read apart so the list opens without it
+  second_career?: string | null // migration 0044: the other career of a double program (read apart, like the first)
+  inductions?: number | null // migration 0044 (view passport_inductions): how many inductions they have taken part in; null while the view does not exist
   // migration 0035: an ancestor (left the induction) keeps their passport until `disable_at`, then it is disabled
   status?: 'active' | 'ancestor' | 'disabled'
   ancestor_at?: string | null
@@ -65,6 +67,7 @@ export interface PassportRecordRow {
   committee_lead?: boolean // the coordinator of the committee: golden stamp
   extra_committees?: string[] // the other committees they belong to (migration 0027)
   extra_leads?: string[] // the ones of those they coordinate: golden stamp
+  disabled?: boolean // migration 0044: disabled in this induction (it does not count as one of theirs and they have no group or base)
 }
 
 export type StampKind = 'visited' | 'hosted' | 'coordinated'
@@ -143,6 +146,7 @@ const key = (s: string) => plain(s.replace(/\(.*?\)/g, '')).join(' ') // "Rol (o
 export interface CredentialRow {
   fullName: string
   career: string
+  secondCareer?: string
   generation: string
   username: string
   password: string // empty when the person already had a login
@@ -153,8 +157,8 @@ const head = (value: string) => ({ value, fontWeight: 'bold' as const, backgroun
 /** The rows of the Excel that goes out (a header and one line per person). Pure, so it can be checked without a browser. */
 export function credentialsData(rows: CredentialRow[]) {
   return [
-    ['Nombre', 'Carrera', 'Generación', 'Usuario (@)', 'Contraseña', 'Entrar en'].map(head),
-    ...rows.map((r) => [r.fullName, r.career, r.generation, `@${r.username}`, r.password || '(ya tenía)', 'carreapp.vercel.app']),
+    ['Nombre', 'Carrera', 'Otra carrera', 'Generación', 'Usuario (@)', 'Contraseña', 'Entrar en'].map(head),
+    ...rows.map((r) => [r.fullName, r.career, r.secondCareer ?? '', r.generation, `@${r.username}`, r.password || '(ya tenía)', 'carreapp.vercel.app']),
   ]
 }
 
@@ -163,7 +167,7 @@ export async function credentialsWorkbook(rows: CredentialRow[]): Promise<Blob> 
   const { default: writeXlsxFile } = await import('write-excel-file/browser')
   return writeXlsxFile(credentialsData(rows), {
     sheet: 'Inductores',
-    columns: [{ width: 34 }, { width: 28 }, { width: 18 }, { width: 28 }, { width: 22 }, { width: 22 }],
+    columns: [{ width: 34 }, { width: 28 }, { width: 28 }, { width: 18 }, { width: 28 }, { width: 22 }, { width: 22 }],
     stickyRowsCount: 1,
   }).toBlob()
 }
@@ -176,16 +180,16 @@ export function templateData(careers: string[], generations: string[]) {
   const career = (i: number) => careers[i] ?? careers[0] ?? 'Ingeniería de Sistemas'
   const generation = generations[0] ?? 'Minichips'
   return [
-    ['Nombre', 'Usuario (@)', 'Carrera', 'Generación', 'Apodo', SONG_COLUMN].map(head),
-    ['Ana María Pérez Gómez', 'ana.perez', career(0), generation, 'Anita', 'Mujeriego - Ryan Castro'],
-    ['Luis Fernando Ruiz', 'luis.ruiz', career(1), generation, 'Lucho', 'https://music.apple.com/us/song/comernos/1804988448'],
-    ['Camila Torres Vega', 'camila.torres', career(2), generations[1] ?? generation, 'Cami', ''],
+    ['Nombre', 'Usuario (@)', 'Carrera', 'Otra carrera (opcional)', 'Generación', 'Apodo', SONG_COLUMN].map(head),
+    ['Ana María Pérez Gómez', 'ana.perez', career(0), '', generation, 'Anita', 'Mujeriego - Ryan Castro'],
+    ['Luis Fernando Ruiz', 'luis.ruiz', career(1), '', generation, 'Lucho', 'https://music.apple.com/us/song/comernos/1804988448'],
+    ['Camila Torres Vega', 'camila.torres', career(2), careers[3] ?? '', generations[1] ?? generation, 'Cami', ''],
   ]
 }
 
 export async function templateWorkbook(careers: string[], generations: string[]): Promise<Blob> {
   const { default: writeXlsxFile } = await import('write-excel-file/browser')
-  return writeXlsxFile(templateData(careers, generations), { sheet: 'Inductores', columns: [{ width: 36 }, { width: 22 }, { width: 30 }, { width: 18 }, { width: 18 }, { width: 52 }], stickyRowsCount: 1 }).toBlob()
+  return writeXlsxFile(templateData(careers, generations), { sheet: 'Inductores', columns: [{ width: 36 }, { width: 22 }, { width: 30 }, { width: 30 }, { width: 18 }, { width: 18 }, { width: 52 }], stickyRowsCount: 1 }).toBlob()
 }
 
 export function downloadBlob(blob: Blob, fileName: string) {

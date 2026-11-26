@@ -17,7 +17,12 @@ export const CAREER_TEXT: Record<CareerKey, string> = {
   general: 'Tu ingeniería es javeriana: aplicas la ciencia para resolver problemas reales con y para los demás.',
 }
 
-/** The three paragraphs of the insignia of a career (by its name). */
-export function insigniaText(career: string): { career: string; engineer: string; claver: string } {
-  return { career: CAREER_TEXT[careerKey(career)], engineer: ENGINEER_TEXT, claver: CLAVER_TEXT }
+export const OTHER_CAREER_TEXT =
+  'Tu otra carrera también te hace javeriano: es otro camino para entender el mundo y servirlo. Lo que aprendes en ella no se queda contigo, se pone al servicio de los demás.'
+
+/** The paragraphs of the insignia of a career (by its name). The other career of a double program that is not an engineering has no engineer's paragraph. */
+export function insigniaText(career: string, other = false): { career: string; engineer: string | null; claver: string } {
+  const key = careerKey(career)
+  if (other && key === 'general') return { career: OTHER_CAREER_TEXT, engineer: null, claver: CLAVER_TEXT }
+  return { career: CAREER_TEXT[key], engineer: ENGINEER_TEXT, claver: CLAVER_TEXT }
 }

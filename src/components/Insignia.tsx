@@ -1,7 +1,8 @@
 import { useId, type CSSProperties, type ReactNode } from 'react'
 import { careerKey } from './CareerEmblem'
 import CareerPlate, { CAREER_NAME } from './CareerPlate'
-import { EMBLEM, type InsigniaKey } from './InsigniaEmblems'
+import { shortCareer } from '../lib/careers'
+import { EMBLEM, type InsigniaKey, type MedalKey } from './InsigniaEmblems'
 
 // The INSIGNIA of each group of careers: the top mark of a javeriano, the global representation of the career (not a seal: seals belong
 // to bases, themes and committees). A gold medal of eight arms, after the Cruz San Pedro Claver of the Javeriana, hung from a clasp by a ribbon
@@ -17,7 +18,9 @@ const rad = (d: number) => (d * Math.PI) / 180
 const C = { x: 100, y: 164 } // the centre of the medal
 
 export type MedalProps = {
-  career: InsigniaKey
+  career: MedalKey
+  /** What is engraved at the bottom of the ring: the name of the group of careers, or the name of the career for the generic medal. */
+  label?: string
   size?: number
   /** With the clasp and the ribbon (the big insignia) or only the medal (lists, avatars). */
   ribbon?: boolean
@@ -28,7 +31,15 @@ const stop = (offset: number, c: string) => <stop offset={offset} style={{ stopC
 // one arm of the medal: a spear that widens at the disc and ends in a point, pointing up from the centre
 const arm = (len: number) => `M-9 -60L-5.2 ${-(len - 14)}L0 ${-len}L5.2 ${-(len - 14)}L9 -60Z`
 
-export function MedallaBadge({ career, size = 170, ribbon = true }: MedalProps) {
+// the engraved name shrinks to fit the arc: a short name is spaced out, a long one is set tighter
+function fitName(name: string): [string, number, number] {
+  const text = name.length > 26 ? `${name.slice(0, 25).trim()}…` : name
+  return text.length <= 12 ? [text, 11.5, 2.4] : text.length <= 17 ? [text, 9.4, 1.6] : [text, 7.4, 1]
+}
+
+export function MedallaBadge({ career, label, size = 170, ribbon = true }: MedalProps) {
+  const [name, nameSize, nameSpacing] = fitName((label ?? CAREER_NAME[career]).toUpperCase())
+  const ring = career === 'general' ? 'PONTIFICIA · JAVERIANA' : 'INGENIERÍA · JAVERIANA'
   const uid = useId().replace(/:/g, '')
   const color = BLUE
   const metal = `url(#m${uid})`
@@ -50,7 +61,7 @@ export function MedallaBadge({ career, size = 170, ribbon = true }: MedalProps) 
   )
 
   return (
-    <svg viewBox={viewBox} width={size} height={height} role="img" aria-label={`Insignia de ${CAREER_NAME[career]}: medalla${ribbon ? ' con cinta' : ''}`} style={{ display: 'block', overflow: 'visible', filter: 'drop-shadow(0 5px 5px rgba(3, 29, 68, .32))' }}>
+    <svg viewBox={viewBox} width={size} height={height} role="img" aria-label={`Insignia de ${name}: medalla${ribbon ? ' con cinta' : ''}`} style={{ display: 'block', overflow: 'visible', filter: 'drop-shadow(0 5px 5px rgba(3, 29, 68, .32))' }}>
       <defs>
         <linearGradient id={`m${uid}`} gradientUnits="userSpaceOnUse" x1="30" y1="70" x2="170" y2="262">
           {stop(0, 'var(--foil-b)')}
@@ -124,8 +135,8 @@ export function MedallaBadge({ career, size = 170, ribbon = true }: MedalProps) 
       <circle cx={C.x} cy={C.y} r="53.8" fill="none" stroke={DARK_GOLD} strokeOpacity=".55" strokeWidth=".9" />
       <circle cx={C.x} cy={C.y} r="53" fill="none" stroke="white" strokeOpacity=".4" strokeWidth=".7" />
       {rays}
-      {engraved(<textPath href={`#b${uid}`} startOffset="50%">{CAREER_NAME[career]}</textPath>, 11.5, 2.4, 'stamp-text')}
-      {engraved(<textPath href={`#t${uid}`} startOffset="50%">INGENIERÍA · JAVERIANA</textPath>, 6.2, 1.7, 'stamp-mono')}
+      {engraved(<textPath href={`#b${uid}`} startOffset="50%">{name}</textPath>, nameSize, nameSpacing, 'stamp-text')}
+      {engraved(<textPath href={`#t${uid}`} startOffset="50%">{ring}</textPath>, 6.2, 1.7, 'stamp-mono')}
       <circle cx={C.x - 60.4} cy={C.y} r="1.5" fill={DARK_GOLD} />
       <circle cx={C.x + 60.4} cy={C.y} r="1.5" fill={DARK_GOLD} />
 
@@ -140,9 +151,12 @@ export function MedallaBadge({ career, size = 170, ribbon = true }: MedalProps) 
   )
 }
 
-/** The insignia of a career by its name (Ingeniería de Sistemas, Bioingeniería…): a career the app does not know keeps the plate. */
-export default function Insignia({ career, size = 170, ribbon = true }: { career: string; size?: number; ribbon?: boolean }) {
+/**
+ * The insignia of a career by its name (Ingeniería de Sistemas, Bioingeniería…): a career the app does not know keeps the plate.
+ * `other` is the second career of a double program: one that is not an engineering gets the generic medal with its own name instead.
+ */
+export default function Insignia({ career, size = 170, ribbon = true, other = false }: { career: string; size?: number; ribbon?: boolean; other?: boolean }) {
   const key = careerKey(career)
-  if (key === 'general') return <CareerPlate career={career} size={size} />
+  if (key === 'general') return other ? <MedallaBadge career="general" label={shortCareer(career)} size={size} ribbon={ribbon} /> : <CareerPlate career={career} size={size} />
   return <MedallaBadge career={key} size={size} ribbon={ribbon} />
 }

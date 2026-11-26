@@ -57,7 +57,7 @@ describe('insignia: the final medal', () => {
   })
   it('is the insignia of the Insignias page, of the identity page of the passport and of its PDF', () => {
     expect(read('src/pages/admin/Insignias.tsx')).toMatch(/<Insignia career=\{BUILT_IN\[b\.key\]\}/)
-    expect(read('src/components/MemberPassport.tsx')).toMatch(/<Insignia career=\{career\}/)
+    expect(read('src/components/MemberPassport.tsx')).toMatch(/<Insignia career=\{m\.career\}/)
     const pdf = read('src/lib/passportPdf.ts')
     expect(pdf).toMatch(/createElement\(Insignia, \{ career/)
     expect(pdf).toMatch(/--puj-yellow:#f6cd00;--puj-blue:#2d5799/) // the isolated SVG of the PDF defines the colours of the flag

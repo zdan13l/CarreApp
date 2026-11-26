@@ -35,13 +35,15 @@ export default function PersonEditor({
   const [fullName, setFullName] = useState(person.full_name)
   const [username, setUsername] = useState(person.username)
   const [careerDraft, setCareerDraft] = useState(career ?? '')
+  const [secondDraft, setSecondDraft] = useState(person.second_career ?? '')
   const [generation, setGeneration] = useState(person.generation ?? '')
   const [nickname, setNickname] = useState(person.nickname ?? '')
   const [song, setSong] = useState<PassportSong | null>(person.song ?? null)
   const [problem, setProblem] = useState<string | null>(null)
-  const changes = profileChanges(person, career, { fullName, username, career: careerDraft, generation, nickname, song })
+  const changes = profileChanges(person, career, { fullName, username, career: careerDraft, secondCareer: secondDraft, generation, nickname, song })
   const entry = entryOf(generation)
   const options = careers.includes(careerDraft) || !careerDraft ? careers : [careerDraft, ...careers]
+  const secondOptions = careers.includes(secondDraft) || !secondDraft ? careers : [secondDraft, ...careers]
   const handle = username.trim().toLowerCase().replace(/^@/, '')
   const handleProblem = handle === person.username ? null : !USERNAME_PATTERN.test(handle) ? 'De 3 a 30 letras minúsculas, números, punto, guion o guion bajo.' : usernames?.has(handle) ? 'Ese @ ya existe.' : null
 
@@ -50,6 +52,7 @@ export default function PersonEditor({
     if (handleProblem) return setProblem(handleProblem)
     if (!nickname.trim()) return setProblem('Escribe el apodo.')
     if (!careerDraft) return setProblem('Elige la carrera.')
+    if (secondDraft && secondDraft === careerDraft) return setProblem('La otra carrera es la misma que la primera.')
     if (!generation) return setProblem('Toda persona pertenece a una generación: elige una.')
     setProblem(null)
     onSave(changes)
@@ -84,6 +87,13 @@ export default function PersonEditor({
           </select>
         </div>
         <div className="inline-field">
+          <div className="field-head"><label htmlFor={`second-${person.id}`}>Otra carrera <small className="muted">(doble programa)</small></label></div>
+          <select id={`second-${person.id}`} value={secondDraft} onChange={(e) => setSecondDraft(e.target.value)} disabled={busy}>
+            <option value="">Ninguna</option>
+            {secondOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div className="inline-field wide">
           <div className="field-head"><span>Generación</span><AddLink to="/admin/generaciones">Crear generación</AddLink></div>
           <GenerationPicker key={person.generation ?? ''} value={person.generation} label={`Generación de ${person.full_name}`} disabled={busy} required onChange={setGeneration} />
           {(entry || person.joined_term) && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry ?? person.joined_term}</strong></span>}

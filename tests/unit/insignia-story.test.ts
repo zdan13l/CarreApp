@@ -37,7 +37,7 @@ describe('insignia story', () => {
   })
   it('opens from the career slot of the identity page of the passport, in the same zoom as the stamps', () => {
     const src = fs.readFileSync(rootPath('src/components/MemberPassport.tsx'), 'utf8')
-    expect(src).toMatch(/aria-label="Ver tu insignia de la carrera" onClick=\{\(\) => setZoom\(<InsigniaStory career=\{career\} \/>\)\}/)
+    expect(src).toMatch(/aria-label=\{m\.other \? 'Ver tu otra insignia' : 'Ver tu insignia de la carrera'\} onClick=\{\(\) => setZoom\(<InsigniaStory career=\{m\.career\} other=\{m\.other\} \/>\)\}/)
     expect(src).toMatch(/className="moment zoom member-zoom"/)
   })
 })
