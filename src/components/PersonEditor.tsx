@@ -45,7 +45,7 @@ export default function PersonEditor({
   const changes = profileChanges(person, career, { fullName, username, career: careerDraft, secondCareer: secondDraft, priorInductions: priorOf(priorDraft) ?? undefined, generation, nickname, song })
   const entry = entryOf(generation)
   const options = careers.includes(careerDraft) || !careerDraft ? careers : [careerDraft, ...careers]
-  const handle = username.trim().toLowerCase().replace(/^@/, '')
+  const handle = username.trim().normalize('NFC').toLowerCase().replace(/^@/, '')
   const handleProblem = handle === person.username ? null : !USERNAME_PATTERN.test(handle) ? 'De 3 a 30 letras minúsculas, números, punto, guion o guion bajo.' : usernames?.has(handle) ? 'Ese @ ya existe.' : null
 
   function save() {
@@ -79,7 +79,7 @@ export default function PersonEditor({
         <label className="inline-field wide"><span>Nombre completo</span><input value={fullName} onChange={(e) => setFullName(e.target.value)} minLength={3} maxLength={80} required disabled={busy} /></label>
         <label className="inline-field">
           <span>Usuario (@)</span>
-          <input value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} maxLength={31} required disabled={busy} autoCapitalize="none" spellCheck={false} aria-invalid={Boolean(handleProblem)} />
+          <input value={username} onChange={(e) => setUsername(e.target.value.normalize('NFC').toLowerCase())} maxLength={31} required disabled={busy} autoCapitalize="none" spellCheck={false} aria-invalid={Boolean(handleProblem)} />
           {handleProblem ? <small className="error-note">{handleProblem}</small> : handle !== person.username && <small className="muted">Es con lo que entra: avísale el cambio.</small>}
         </label>
         <label className="inline-field"><span>Apodo</span><input value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={24} required disabled={busy} /></label>

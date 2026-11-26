@@ -2794,8 +2794,11 @@ a.add-link:hover { color: var(--on-gold); background: var(--gold); border-color:
 .bulk-steps .row a.add-link { margin-left: .2rem; }
 .bulk-fields input { min-height: 40px; }
 .bulk-fields .prior-field { display: grid; gap: .15rem; }
-.second-career { display: grid; gap: .4rem; min-width: 0; }
+.second-career { min-width: 0; }
 .second-career select, .second-career input { width: 100%; }
+.second-career.writing { display: flex; align-items: stretch; gap: .4rem; }
+.second-career.writing input { flex: 1 1 auto; min-width: 0; }
+.second-career.writing button { flex: none; min-height: 0; padding: 0 .8rem; display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
 
 .filter-bar { display: grid; gap: .6rem; }
 .filter-row { display: flex; align-items: stretch; gap: .6rem; }

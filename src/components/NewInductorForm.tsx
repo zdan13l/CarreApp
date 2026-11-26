@@ -85,7 +85,7 @@ export default function NewInductorForm({
           <label className="inline-field wide"><span>Nombre completo</span><input value={name} onChange={(e) => setName(e.target.value)} required minLength={3} maxLength={80} placeholder="Nombre Apellido" autoComplete="off" /></label>
           <label className="inline-field">
             <span>Usuario (@)</span>
-            <input value={handle} onChange={(e) => { setTypedUsername(true); setUsername(e.target.value.toLowerCase().replace(/^@/, '')) }} required maxLength={30} placeholder="nombre.apellido" autoComplete="off" autoCapitalize="none" spellCheck={false} aria-invalid={Boolean(handleProblem)} />
+            <input value={handle} onChange={(e) => { setTypedUsername(true); setUsername(e.target.value.normalize('NFC').toLowerCase().replace(/^@/, '')) }} required maxLength={30} placeholder="nombre.apellido" autoComplete="off" autoCapitalize="none" spellCheck={false} aria-invalid={Boolean(handleProblem)} />
             {handleProblem && <small className="error-note">{handleProblem}</small>}
           </label>
           <label className="inline-field"><span>Apodo</span><input name="nickname" required maxLength={24} autoComplete="off" /></label>
