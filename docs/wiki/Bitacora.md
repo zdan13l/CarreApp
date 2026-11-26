@@ -2,7 +2,7 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
-## Inducciones, doble programa y arreglos del panel (2026-11-26, migración 0044 pendiente)
+## Inducciones, doble programa y arreglos del panel (2026-11-26, migración 0044, aplicada)
 - **Cuántas inducciones lleva:** la vista `passport_inductions` cuenta en cuántos semestres tiene la persona un registro no deshabilitado; sale en el pasaporte (la hoja de identidad y el PDF) y en la lista de Inductores («3 inducciones»). Dentro de una carrera cada persona tiene **Deshabilitar en la carrera**: esa inducción no cuenta, la persona queda sin grupo ni base y sus páginas de esa inducción no salen en el pasaporte.
 - **Doble programa:** campo **Otra carrera** en el registro, el editor de perfil y la plantilla del Excel (columna «Otra carrera (opcional)»). Otra ingeniería trae su medalla; una carrera que no es ingeniería lleva la **medalla genérica** (un libro abierto bajo un sol entre dos ramas de laurel, con «PONTIFICIA · JAVERIANA» en el aro y el nombre de la carrera grabado). Dos carreras del mismo grupo (p. ej. Mecatrónica y Electrónica) comparten medalla y se muestra una. La hoja de identidad tiene los dos huecos («Tu carrera», «Tu otra carrera») y el PDF pone las dos medallas en la cabecera. Se leen aparte de las otras columnas: la app abre antes de aplicar la 0044.
 - **Cambiar el @ («Sesión inválida»):** las llamadas a `/api/users` y `/api/account` pasan por `lib/apiFetch.ts`: si el servidor responde 401 renuevan la sesión una vez y repiten antes de pedir que se vuelva a entrar (un token vencido, con el reloj del computador desfasado, o renovado en otra pestaña, llegaba vencido al servidor).
