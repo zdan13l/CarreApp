@@ -86,6 +86,13 @@ describe('POST: create a user', () => {
     expect(state.insertProfile).toHaveBeenCalledWith({ id: 'new-user', username: 'nuevo.usuario', full_name: 'Nuevo Usuario', role: 'runner', event_id: null })
   })
 
+  it('accepts the ñ in the @: the login email carries it as «+», the profile keeps it as written', async () => {
+    const res = await call('POST', { ...valid, username: ' Daniela.Muñoz ' })
+    expect(res.statusCode).toBe(201)
+    expect(state.createUser).toHaveBeenCalledWith({ email: 'daniela.mu+oz@carreapp.test', password: 'secreto1', email_confirm: true })
+    expect(state.insertProfile).toHaveBeenCalledWith(expect.objectContaining({ username: 'daniela.muñoz' }))
+  })
+
   it('stores the Carrera of a runner, but never gives one to a coordinator', async () => {
     await call('POST', { ...valid, event_id: 'evt-1' })
     expect(state.insertProfile).toHaveBeenLastCalledWith(expect.objectContaining({ role: 'runner', event_id: 'evt-1' }))
@@ -175,6 +182,12 @@ describe('PATCH: change the @ of a personal passport', () => {
     expect(res.body).toEqual({ ok: true, username: 'nuevo.usuario' })
     expect(state.updateUserById).toHaveBeenCalledWith('u1', { email: 'nuevo.usuario@carreapp.test', email_confirm: true })
     expect(state.updatePassport).toHaveBeenCalledWith({ username: 'nuevo.usuario' })
+  })
+  it('changes an @ to one with ñ (the ñ written as n + tilde is the same one)', async () => {
+    const res = await call('PATCH', { user_id: 'u1', username: 'Muñoz.perez' })
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toEqual({ ok: true, username: 'muñoz.perez' })
+    expect(state.updateUserById).toHaveBeenCalledWith('u1', { email: 'mu+oz.perez@carreapp.test', email_confirm: true })
   })
   it('validates the @, needs something to change and only works on a passport', async () => {
     expect((await call('PATCH', { user_id: 'u1', username: 'ab' })).statusCode).toBe(400)

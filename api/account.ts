@@ -7,7 +7,9 @@ import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 const EMAIL_DOMAIN = 'carreapp.test'
-const USERNAME_PATTERN = /^[a-z0-9._-]{3,30}$/
+const USERNAME_PATTERN = /^[a-zñ0-9._-]{3,30}$/
+// the login email is ASCII: the ñ of a username travels as «+» (no username can contain it)
+const emailOf = (username: string) => `${username.replace(/ñ/g, '+')}@${EMAIL_DOMAIN}`
 const MIN_PASSWORD_LENGTH = 8
 
 function fail(res: VercelResponse, status: number, message: string) {
@@ -37,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const body = (typeof req.body === 'object' && req.body) || {}
   const current = String(body.current_password ?? '')
-  const username = body.username === undefined ? null : String(body.username).trim().toLowerCase().replace(/^@/, '')
+  const username = body.username === undefined ? null : String(body.username).trim().normalize('NFC').toLowerCase().replace(/^@/, '')
   const newPassword = body.new_password === undefined ? null : String(body.new_password)
 
   if (!current) return fail(res, 400, 'Escribe tu contraseña actual.')
@@ -49,20 +51,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // 2) The current password, checked like a sign-in with the public key (this client keeps no session).
   const anon = createClient(url, anonKey, { auth: { persistSession: false } })
-  const { error: signInError } = await anon.auth.signInWithPassword({ email: user.email ?? `${passport.username}@${EMAIL_DOMAIN}`, password: current })
+  const { error: signInError } = await anon.auth.signInWithPassword({ email: user.email ?? emailOf(passport.username), password: current })
   if (signInError) return fail(res, 403, 'La contraseña actual no es correcta.')
 
   // 3) The changes.
   let changedUsername = passport.username as string
   if (username !== null && username !== passport.username) {
-    const { error } = await admin.auth.admin.updateUserById(user.id, { email: `${username}@${EMAIL_DOMAIN}`, email_confirm: true })
+    const { error } = await admin.auth.admin.updateUserById(user.id, { email: emailOf(username), email_confirm: true })
     if (error) {
       const taken = /already|registered|exists|duplicate/i.test(error.message ?? '')
       return fail(res, taken ? 409 : 500, taken ? 'Ese usuario ya existe: prueba con otro.' : 'No se pudo cambiar el usuario.')
     }
     const { error: rowError } = await admin.from('passports').update({ username }).eq('id', user.id)
     if (rowError) {
-      await admin.auth.admin.updateUserById(user.id, { email: user.email ?? `${passport.username}@${EMAIL_DOMAIN}`, email_confirm: true }) // undo
+      await admin.auth.admin.updateUserById(user.id, { email: user.email ?? emailOf(passport.username), email_confirm: true }) // undo
       const taken = /duplicate|unique/i.test(rowError.message ?? '')
       return fail(res, taken ? 409 : 500, taken ? 'Ese usuario ya existe: prueba con otro.' : 'No se pudo cambiar el usuario.')
     }

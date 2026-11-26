@@ -161,7 +161,7 @@ export function parseInductors(tables: string[][][], ctx: InductorsContext): Ind
     seen.add(nameKey(fullName))
     let username = knownUser ?? ''
     if (!username) {
-      const wanted = cell(r, iUser).toLowerCase().replace(/^@/, '')
+      const wanted = cell(r, iUser).normalize('NFC').toLowerCase().replace(/^@/, '')
       if (wanted) {
         if (!USERNAME_PATTERN.test(wanted)) errors.push('El usuario debe tener 3-30 caracteres: letras minúsculas, números, punto, guion o guion bajo.')
         else if (taken.has(wanted)) errors.push(`El usuario @${wanted} ya existe.`)
@@ -259,7 +259,7 @@ export interface IdentityPatch {
 /** What changed between a person and the profile the coordi edited. A new generation brings its entry with it. Empty when nothing changed. */
 export function profileChanges(p: PassportPerson, career: string | null, draft: { fullName: string; username: string; career: string; secondCareer?: string; priorInductions?: number; generation: string; nickname: string; song: PassportSong | null }): IdentityPatch {
   const patch: IdentityPatch = {}
-  const user = draft.username.trim().toLowerCase().replace(/^@/, '')
+  const user = draft.username.trim().normalize('NFC').toLowerCase().replace(/^@/, '')
   if (user && user !== p.username) patch.username = user
   const name = draft.fullName.trim().replace(/\s+/g, ' ')
   if (name && name !== p.full_name) patch.full_name = name

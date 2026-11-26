@@ -3,7 +3,7 @@ import { distanceMeters, isLocationFresh, LOCATION_HIDE_AFTER_MS, timeAgo } from
 import { formatDistance, formatDuration } from '../../src/lib/mapbox'
 import { generatePassword } from '../../src/lib/password'
 import { legKey } from '../../src/lib/travel'
-import { normalizeUsername, suggestUsername, USERNAME_PATTERN, usernameToEmail } from '../../src/lib/username'
+import { emailLocalOf, foldKeepingEnye, normalizeUsername, suggestUsername, USERNAME_PATTERN, usernameToEmail } from '../../src/lib/username'
 import { ITEM_LABEL, ROLE_LABEL, SCORE_ITEMS, STATUS_LABEL, infoOf } from '../../src/types'
 
 describe('usernames', () => {
@@ -15,10 +15,27 @@ describe('usernames', () => {
 
   it('follow the same pattern as the database check', () => {
     for (const ok of ['abc', 'a.b-c_9', 'x'.repeat(30)]) expect(USERNAME_PATTERN.test(ok)).toBe(true)
-    for (const bad of ['ab', 'A', 'con espacio', 'ñ', 'x'.repeat(31)]) expect(USERNAME_PATTERN.test(bad)).toBe(false)
+    for (const bad of ['ab', 'A', 'con espacio', 'ñ', 'x'.repeat(31), 'mu~noz', 'mu+noz', 'á.b.c']) expect(USERNAME_PATTERN.test(bad)).toBe(false)
   })
 
-  it('are suggested from the name without accents', () => {
+  it('can carry the ñ, and it travels as «+» in the ASCII login email and comes back from it', () => {
+    for (const ok of ['muñoz', 'niño.peña', 'ñandu']) expect(USERNAME_PATTERN.test(ok)).toBe(true)
+    expect(usernameToEmail('Muñoz')).toBe('mu+oz@carreapp.test')
+    expect(emailLocalOf('niño.peña')).toBe('ni+o.pe+a')
+    expect(normalizeUsername('mu+oz@carreapp.test')).toBe('muñoz')
+    expect(normalizeUsername('MUÑOZ')).toBe('muñoz')
+    expect(normalizeUsername('mun\u0303oz')).toBe('muñoz') // the ñ written as n + a combining tilde (Mac, Excel) is the same ñ
+    expect(usernameToEmail('ana.ruiz')).toBe('ana.ruiz@carreapp.test') // nothing else changes
+  })
+
+  it('the ñ stays when the accents are stripped', () => {
+    expect(foldKeepingEnye('Peña Núñez María')).toBe('Peña Nuñez Maria')
+    expect(foldKeepingEnye('PEÑA')).toBe('PEÑA')
+  })
+
+  it('are suggested from the name without accents, but keeping the ñ', () => {
+    expect(suggestUsername('Daniela Muñoz')).toBe('daniela.muñoz')
+    expect(suggestUsername('Iñaki')).toBe('iñaki')
     expect(suggestUsername('María José Pérez')).toBe('maria.perez')
     expect(suggestUsername('Nicolás')).toBe('nicolas')
     expect(suggestUsername('   ')).toBe('')

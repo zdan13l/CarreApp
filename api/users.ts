@@ -9,7 +9,9 @@ import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 const EMAIL_DOMAIN = 'carreapp.test'
-const USERNAME_PATTERN = /^[a-z0-9._-]{3,30}$/
+const USERNAME_PATTERN = /^[a-zñ0-9._-]{3,30}$/
+// the login email is ASCII: the ñ of a username travels as «+» (no username can contain it)
+const emailOf = (username: string) => `${username.replace(/ñ/g, '+')}@${EMAIL_DOMAIN}`
 const ROLES = ['admin', 'base', 'runner', 'member']
 const MIN_PASSWORD_LENGTH = 6
 
@@ -41,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // 2) Dispatch by method.
   if (req.method === 'POST') {
-    const username = String(body.username ?? '').trim().toLowerCase()
+    const username = String(body.username ?? '').trim().normalize('NFC').toLowerCase()
     const password = String(body.password ?? '')
     const fullName = String(body.full_name ?? '').trim()
     const role = String(body.role ?? '')
@@ -55,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!ROLES.includes(role)) return fail(res, 400, 'Rol inválido.')
 
     const { data: created, error: createError } = await admin.auth.admin.createUser({
-      email: `${username}@${EMAIL_DOMAIN}`,
+      email: emailOf(username),
       password,
       email_confirm: true,
     })
@@ -79,7 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'PATCH') {
     const userId = String(body.user_id ?? '')
     const password = body.password === undefined ? null : String(body.password)
-    const username = body.username === undefined ? null : String(body.username).trim().toLowerCase().replace(/^@/, '')
+    const username = body.username === undefined ? null : String(body.username).trim().normalize('NFC').toLowerCase().replace(/^@/, '')
     if (!userId) return fail(res, 400, 'Falta el usuario.')
     if (password === null && username === null) return fail(res, 400, 'No hay nada que cambiar.')
     if (password !== null && password.length < MIN_PASSWORD_LENGTH)
@@ -91,14 +93,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data: passport } = await admin.from('passports').select('id, username').eq('id', userId).maybeSingle()
       if (!passport) return fail(res, 404, 'Ese usuario no es un pasaporte personal.')
       if (username !== passport.username) {
-        const { error } = await admin.auth.admin.updateUserById(userId, { email: `${username}@${EMAIL_DOMAIN}`, email_confirm: true })
+        const { error } = await admin.auth.admin.updateUserById(userId, { email: emailOf(username), email_confirm: true })
         if (error) {
           const taken = /already|registered|exists|duplicate/i.test(error.message ?? '')
           return fail(res, taken ? 409 : 500, taken ? 'Ese usuario ya existe: prueba con otro.' : 'No se pudo cambiar el usuario.')
         }
         const { error: rowError } = await admin.from('passports').update({ username }).eq('id', userId)
         if (rowError) {
-          await admin.auth.admin.updateUserById(userId, { email: `${passport.username}@${EMAIL_DOMAIN}`, email_confirm: true }) // undo
+          await admin.auth.admin.updateUserById(userId, { email: emailOf(passport.username), email_confirm: true }) // undo
           const taken = /duplicate|unique/i.test(rowError.message ?? '')
           return fail(res, taken ? 409 : 500, taken ? 'Ese usuario ya existe: prueba con otro.' : 'No se pudo cambiar el usuario.')
         }

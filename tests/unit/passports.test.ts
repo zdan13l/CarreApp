@@ -24,6 +24,12 @@ describe('passportUsername', () => {
     expect(name('Marta Herrera')).toBe('marta.herrera')
   })
 
+  it('the ñ of a surname stays in the @ (muñoz, not munoz)', () => {
+    expect(name('Daniela Muñoz Peña')).toBe('daniela.peña')
+    expect(name('Luis Fernando Muñoz')).toBe('luis.muñoz')
+    expect(USERNAME_PATTERN.test(name('Nuño Ibáñez'))).toBe(true)
+  })
+
   it('a single word still gives a valid @', () => {
     expect(USERNAME_PATTERN.test(name('Madonna'))).toBe(true)
   })

@@ -3,7 +3,7 @@
 import type { PassportSong } from './songs'
 import { generatePassword } from './password'
 import { cultureOf } from './themes'
-import { USERNAME_PATTERN } from './username'
+import { foldKeepingEnye, USERNAME_PATTERN } from './username'
 
 export type PassportRole = 'runner' | 'base' | 'coordinator'
 export const PASSPORT_ROLES: PassportRole[] = ['runner', 'base', 'coordinator']
@@ -114,11 +114,9 @@ export function personNumber(personId: string): string {
 // ---------- the @ of each person ----------
 
 const plain = (text: string) =>
-  text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+  foldKeepingEnye(text) // the ñ stays: «Muñoz» gives muñoz.something, not munoz
     .toLowerCase()
-    .replace(/[^a-z\s]/g, ' ')
+    .replace(/[^a-zñ\s]/g, ' ')
     .split(/\s+/)
     .filter(Boolean)
 
