@@ -11,6 +11,8 @@ const state = vi.hoisted(() => ({
   updateUserById: vi.fn(),
   insertProfile: vi.fn(),
   insertPassport: vi.fn(),
+  updatePassport: vi.fn(),
+  passportUsername: 'viejo.usuario' as string | null,
 }))
 
 vi.mock('@supabase/supabase-js', () => ({
@@ -21,9 +23,9 @@ vi.mock('@supabase/supabase-js', () => ({
     },
     from: (table: string) => {
       if (table !== 'profiles' && table !== 'passports') throw new Error(`unexpected table ${table}`)
-      const select = queryBuilder(() => ({ data: state.callerRole ? { role: state.callerRole } : null }))
+      const select = queryBuilder(() => ({ data: table === 'passports' ? (state.passportUsername ? { id: 'p', username: state.passportUsername } : null) : state.callerRole ? { role: state.callerRole } : null }))
       const insert = table === 'passports' ? state.insertPassport : state.insertProfile
-      return { select: select.select, insert: (row: unknown) => Promise.resolve(insert(row)) }
+      return { select: select.select, insert: (row: unknown) => Promise.resolve(insert(row)), update: (row: unknown) => ({ eq: () => Promise.resolve(state.updatePassport(row)) }) }
     },
   }),
 }))
@@ -48,6 +50,8 @@ beforeEach(() => {
   state.updateUserById.mockReset().mockResolvedValue({ error: null })
   state.insertProfile.mockReset().mockReturnValue({ error: null })
   state.insertPassport.mockReset().mockReturnValue({ error: null })
+  state.updatePassport.mockReset().mockReturnValue({ error: null })
+  state.passportUsername = 'viejo.usuario'
 })
 
 describe('authentication and authorization', () => {
@@ -161,6 +165,36 @@ describe('PATCH: reset a password', () => {
   it('reports a failure from the auth service', async () => {
     state.updateUserById.mockResolvedValue({ error: { message: 'boom' } })
     expect((await call('PATCH', { user_id: 'u1', password: 'nuevaclave' })).statusCode).toBe(500)
+  })
+})
+
+describe('PATCH: change the @ of a personal passport', () => {
+  it('changes the login and the row together, normalising the @', async () => {
+    const res = await call('PATCH', { user_id: 'u1', username: ' @Nuevo.Usuario ' })
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toEqual({ ok: true, username: 'nuevo.usuario' })
+    expect(state.updateUserById).toHaveBeenCalledWith('u1', { email: 'nuevo.usuario@carreapp.test', email_confirm: true })
+    expect(state.updatePassport).toHaveBeenCalledWith({ username: 'nuevo.usuario' })
+  })
+  it('validates the @, needs something to change and only works on a passport', async () => {
+    expect((await call('PATCH', { user_id: 'u1', username: 'ab' })).statusCode).toBe(400)
+    expect((await call('PATCH', { user_id: 'u1' })).statusCode).toBe(400)
+    state.passportUsername = null
+    expect((await call('PATCH', { user_id: 'u1', username: 'valido' })).statusCode).toBe(404)
+    expect(state.updateUserById).not.toHaveBeenCalled()
+  })
+  it('answers 409 when the @ is taken, and puts the old login back when the row is refused', async () => {
+    state.updateUserById.mockResolvedValueOnce({ error: { message: 'A user with this email address has already been registered' } })
+    expect((await call('PATCH', { user_id: 'u1', username: 'tomado' })).statusCode).toBe(409)
+    state.updateUserById.mockReset().mockResolvedValue({ error: null })
+    state.updatePassport.mockReturnValue({ error: { message: 'duplicate key value violates unique constraint' } })
+    const res = await call('PATCH', { user_id: 'u1', username: 'tomado' })
+    expect(res.statusCode).toBe(409)
+    expect(state.updateUserById).toHaveBeenLastCalledWith('u1', { email: 'viejo.usuario@carreapp.test', email_confirm: true })
+  })
+  it('can change the @ and the password in one go', async () => {
+    expect((await call('PATCH', { user_id: 'u1', username: 'nuevo.usuario', password: 'nuevaclave' })).statusCode).toBe(200)
+    expect(state.updateUserById).toHaveBeenLastCalledWith('u1', { password: 'nuevaclave' })
   })
 })
 
