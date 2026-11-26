@@ -21,7 +21,8 @@ import { photoUrl } from '../lib/storage'
 import { cultureOf, themeOf, type CultureKey } from '../lib/themes'
 import Avatar from './Avatar'
 import CareerEmblem, { careerKey } from './CareerEmblem'
-import CareerPlate from './CareerPlate'
+import Insignia from './Insignia'
+import InsigniaStory from './InsigniaStory'
 import GenerationSeals from './GenerationSeal'
 import CommitteeSeal from './CommitteeSeal'
 import { eventOfTerm } from '../lib/eventSealStore'
@@ -200,10 +201,10 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
           </dl>
           <ul className="slots identity-slots dni-slots">
             <li className="slot done career-slot">
-              <div className="slot-btn">
-                <CareerPlate career={career} size={92} />
+              <button type="button" className="slot-btn" aria-haspopup="dialog" aria-label="Ver tu insignia de la carrera" onClick={() => setZoom(<InsigniaStory career={career} />)}>
+                <Insignia career={career} size={112} />
                 <span className="slot-name">Tu carrera</span>
-              </div>
+              </button>
             </li>
             <li className={`slot ${generation ? 'done' : 'rest'}`}>
               <div className="slot-btn">

@@ -73,6 +73,7 @@
   --foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;
   --plate-a: #0a1f4a; --plate-b: #031538; --plate-line: rgba(242, 207, 122, .28); --plate-disc: rgba(2, 12, 36, .55); /* the career plates are always navy and gold */
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
+  --puj-yellow: #f6cd00; --puj-blue: #2d5799; --puj-white: #ffffff; /* the flag of the Pontificia Universidad Javeriana: the same in both modes */
 }
 
 /* Modo claro: mismas variables, otros valores (el dorado de marca sigue en botones; como texto usa --gold-ink). */
@@ -128,6 +129,7 @@
   --foil-a: #a47c28; --foil-b: #f7de8f; --foil-c: #b98b30; --foil-d: #f4d575;
   --plate-a: #0a1f4a; --plate-b: #031538; --plate-line: rgba(242, 207, 122, .28); --plate-disc: rgba(2, 12, 36, .55); /* the career plates are always navy and gold */
   --pass-navy: #031d44; --pass-navy-2: #062a5c; --pass-navy-3: #0a2a5c; --pass-gold: #f2cf7a; /* el pase de abordar */
+  --puj-yellow: #f6cd00; --puj-blue: #2d5799; --puj-white: #ffffff; /* the flag of the Pontificia Universidad Javeriana: the same in both modes */
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -2616,3 +2618,18 @@ html:has(.tower), body:has(.tower) { background: #fff url(/login-pattern.svg) 0 
 .head-title h1 { margin: 0; }
 .carrera-ticket .tc-actions .ghost { padding: 0 .75rem; font-size: .85rem; white-space: nowrap; }
 @media (max-width: 480px) { .carrera-ticket .tc { --stub: 104px; } .carrera-ticket .tc-name { font-size: 1.8rem; } .carrera-ticket .tc-code { font-size: 1.9rem; } }
+
+/* Opciones de insignias (vista previa de diseño) */
+.insignia-options { display: grid; gap: 1.25rem; width: min(1240px, 100%); max-width: none; margin: 0 auto; padding-bottom: 3rem; }
+.insignia-option h2 { display: flex; align-items: center; gap: .6rem; }
+.option-id { display: grid; place-items: center; width: 2rem; height: 2rem; color: #fff; background: var(--pass-navy); border-radius: 50%; font-size: 1rem; }
+.insignia-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1.1rem 1.4rem; margin-top: 1rem; }
+.insignia-row.small { gap: .8rem 1.1rem; padding-top: .9rem; border-top: 1px dashed var(--border-strong); }
+
+/* La insignia abierta en el pasaporte: la medalla grande y lo que significa */
+.insignia-zoom { display: grid; justify-items: center; margin: .2rem 0 .6rem; }
+.insignia-story { display: grid; gap: .7rem; margin-top: .5rem; text-align: left; }
+.insignia-story p { margin: 0; color: var(--text-muted); font-size: .95rem; line-height: 1.5; }
+.insignia-story p strong { color: var(--text); font-weight: 700; }
+.insignia-story .claver { padding-top: .8rem; border-top: 1px dashed var(--border-strong); }
+.career-slot button.slot-btn { cursor: pointer; }
