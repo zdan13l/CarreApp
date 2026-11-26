@@ -65,6 +65,8 @@ const ICON: Record<CareerKey, (g: string) => ReactNode> = {
 const NAME: Record<CareerKey, string> = { sistemas: 'SISTEMAS', tronicas: 'TRÓNICAS', industrial: 'INDUSTRIAL', biomec: 'BIOMEC', civil: 'CIVIL', general: 'INGENIERÍA' }
 const SERIAL: Record<CareerKey, string> = { sistemas: '01/05', tronicas: '02/05', biomec: '03/05', civil: '04/05', industrial: '05/05', general: '00/05' }
 
+export const CAREER_NAME = NAME
+
 function Guilloche() {
   return (
     <g fill="none" stroke="var(--plate-line)" strokeWidth=".45">

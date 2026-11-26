@@ -22,6 +22,7 @@ import Ranking from '../components/Ranking'
 import RoundPager from '../components/RoundPager'
 import AdminNav, { AdminTopbar } from './admin/AdminNav'
 import CarreraTicket from '../components/CarreraTicket'
+import { INSIGNIA_KEYS, MedallaBadge } from '../components/Insignia'
 import PrepSteps, { PrepReport } from '../components/PrepSteps'
 import { TeamCard } from './admin/Grupos'
 import { RoundCard } from './admin/Cruces'
@@ -574,6 +575,36 @@ export default function Preview() {
           <figure className="seal-item"><EventSealView shape="circle" color="currentColor" gold initial="Coordi" size={88} /><figcaption>coordi (dorado)</figcaption></figure>
         </div>
       </section></main></div>
+    )
+  }
+  if (screen === 'insignias-opciones') {
+    return (
+      <main className="page insignia-options">
+        <h1>Insignias de la Javeriana</h1>
+        <p className="muted">La insignia de cada grupo de carreras: medalla dorada de ocho brazos (Cruz San Pedro Claver), colgada de un pasador por una cinta con los colores de la bandera de la Javeriana. El centro es el azul de la bandera con el dibujo de la carrera; el nombre va grabado en el aro.</p>
+        <section className="card insignia-option">
+          <h2>Con cinta (la insignia grande: pasaporte y ficha de la carrera)</h2>
+          <div className="insignia-row">
+            {INSIGNIA_KEYS.map((k) => <MedallaBadge key={k} career={k} size={200} />)}
+          </div>
+        </section>
+        <section className="card insignia-option">
+          <h2>Detalle</h2>
+          <div className="insignia-row">
+            {INSIGNIA_KEYS.map((k) => <MedallaBadge key={k} career={k} size={330} ribbon={false} />)}
+          </div>
+        </section>
+        <section className="card insignia-option">
+          <h2>Solo la medalla (listas y avatares)</h2>
+          <div className="insignia-row">
+            {INSIGNIA_KEYS.map((k) => <MedallaBadge key={k} career={k} size={120} ribbon={false} />)}
+          </div>
+          <div className="insignia-row small">
+            {INSIGNIA_KEYS.map((k) => <MedallaBadge key={k} career={k} size={56} ribbon={false} />)}
+            {INSIGNIA_KEYS.map((k) => <MedallaBadge key={`r${k}`} career={k} size={40} />)}
+          </div>
+        </section>
+      </main>
     )
   }
   if (screen === 'admin-generaciones') {

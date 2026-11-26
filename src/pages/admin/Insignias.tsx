@@ -1,6 +1,6 @@
 import { Plus, Upload } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import CareerPlate from '../../components/CareerPlate'
+import Insignia from '../../components/Insignia'
 import { confirmDialog } from '../../lib/dialog'
 import { deletePhoto, photoUrl } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
@@ -147,7 +147,7 @@ function BadgeCard({ b, groups, busy, onPatch, onImage, onClear }: { b: Badge; g
   return (
     <section className={`card badge-card${b.active ? '' : ' off'}`}>
       <div className="badge-art">
-        {url ? <img src={url} alt={`Insignia ${b.name}`} /> : BUILT_IN[b.key] ? <CareerPlate career={BUILT_IN[b.key]} size={120} /> : <span className="muted">Sin imagen</span>}
+        {url ? <img src={url} alt={`Insignia ${b.name}`} /> : BUILT_IN[b.key] ? <Insignia career={BUILT_IN[b.key]} size={132} /> : <span className="muted">Sin imagen</span>}
       </div>
       <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} aria-label={`Nombre de la insignia ${b.name}`} />
       <input value={description} maxLength={200} onChange={(e) => setDescription(e.target.value)} placeholder="Descripción" aria-label={`Descripción de ${b.name}`} />

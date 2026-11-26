@@ -15,7 +15,7 @@ import { photoUrl } from './storage'
 import { symbolOf } from './symbols'
 import { cultureOf, themeOf } from './themes'
 import CareerEmblem, { careerKey } from '../components/CareerEmblem'
-import CareerPlate from '../components/CareerPlate'
+import Insignia from '../components/Insignia'
 import GenerationSeals from '../components/GenerationSeal'
 import CommitteeSeal from '../components/CommitteeSeal'
 import { eventOfTerm, eventSealFilesOf } from './eventSealStore'
@@ -109,7 +109,7 @@ function css(font: string): string {
   const inks = INKS.map((c, i) => (i ? `--ink-${i}:${c};` : '')).join('') + Object.entries(SEAL_COLORS).map(([k, c]) => `--seal-${k}:${c};`).join('')
   return `
 @font-face{font-family:'Archivo Variable';src:url(${font}) format('woff2');font-weight:100 900;font-stretch:62% 125%}
-svg{${inks}--seal-paper:${PAPER};--emblem-paper:${PAPER};--stamp-paper:${PAPER};--surface:${PAPER};--foil-a:${FOIL[0]};--foil-b:${FOIL[1]};--foil-c:${FOIL[2]};--foil-d:${FOIL[3]};--plate-a:#0a1f4a;--plate-b:#031538;--plate-line:rgba(242,207,122,.28);--plate-disc:rgba(2,12,36,.55)}
+svg{--puj-yellow:#f6cd00;--puj-blue:#2d5799;--puj-white:#ffffff;${inks}--seal-paper:${PAPER};--emblem-paper:${PAPER};--stamp-paper:${PAPER};--surface:${PAPER};--foil-a:${FOIL[0]};--foil-b:${FOIL[1]};--foil-c:${FOIL[2]};--foil-d:${FOIL[3]};--plate-a:#0a1f4a;--plate-b:#031538;--plate-line:rgba(242,207,122,.28);--plate-disc:rgba(2,12,36,.55)}
 text{font-family:'Archivo Variable',Helvetica,Arial,sans-serif}
 .sans,.stamp-text,.stamp-initial{font-family:'Archivo Variable',Helvetica,Arial,sans-serif;font-stretch:76%}
 .mono,.stamp-mono{font-family:ui-monospace,Menlo,Consolas,'Courier New',monospace}
@@ -255,7 +255,7 @@ function identity(ctx: PageContext, no: number, total: number): string {
   const slot = (x: number, label: string, value: string | undefined, top: string, bottom: string, tilt: number) =>
     `${value ? piece(createElement(TextSeal, { center: value, top, bottom, size: 150, tilt: 0 }), x, 566, 150, 150, tilt, ink, PAPER) : `<circle cx="${x + 75}" cy="641" r="72" fill="none" stroke="${LINE}" stroke-width="2" stroke-dasharray="6 6"/>${text(x + 75, 646, label.toUpperCase(), { size: 12, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' })}`}${text(x + 75, 736, label, { size: 14, weight: 800, anchor: 'middle', stretch: true })}${text(x + 75, 752, (value ?? 'Por definir').toUpperCase().slice(0, 22), { size: 9.5, mono: true, spacing: 1.6, fill: FAINT, anchor: 'middle' })}`
   const body = `
-    ${piece(createElement(CareerPlate, { career, size: 58 }), 52, 54, 58, 71, 0)}
+    ${piece(createElement(Insignia, { career, size: 56 }), 54, 46, 56, 76, 0)}
     ${text(136, 82, 'DOCUMENTO DE IDENTIDAD · INDUCCIÓN', { size: 11, mono: true, spacing: 2.4, fill: FAINT })}
     ${lines(136, 112, nameLines.slice(0, 2), 30, { size: 26, weight: 800, stretch: true })}
     <path d="M56 140H544" stroke="${LINE}" stroke-dasharray="3 4"/>
