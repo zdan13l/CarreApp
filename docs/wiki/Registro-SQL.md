@@ -55,7 +55,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0040 | [`0040_taller_de_sellos.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0040_taller_de_sellos.sql) | 2026-11-25 | Cada sello solo puede ir en un elemento de su carrera y se va con él; el taller de sellos es el único lugar donde se crean |
 | 0041 | [`0041_sin_sellos_de_grupo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0041_sin_sellos_de_grupo.sql) | 2026-11-25 | Los grupos no tienen sello: los representa su insignia |
 | 0042 | [`0042_cancion_del_pasaporte.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0042_cancion_del_pasaporte.sql) | 2026-11-26 | La canción de cada persona en su pasaporte (un fragmento de 30 s de Apple Music); reemplaza al símbolo personal |
-| 0043 | [`0043_carrera_de_la_persona.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0043_carrera_de_la_persona.sql) | pendiente | La carrera universitaria de cada persona y el ingreso que sale solo de su generación |
+| 0043 | [`0043_carrera_de_la_persona.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0043_carrera_de_la_persona.sql) | 2026-11-26 | La carrera universitaria de cada persona y el ingreso que sale solo de su generación |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
