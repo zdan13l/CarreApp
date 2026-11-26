@@ -54,6 +54,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0039 | [`0039_generaciones.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0039_generaciones.sql) | 2026-11-24 | Las generaciones con su sello, un catálogo global y permanente; la generación de cada persona se elige, no se escribe |
 | 0040 | [`0040_taller_de_sellos.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0040_taller_de_sellos.sql) | 2026-11-25 | Cada sello solo puede ir en un elemento de su carrera y se va con él; el taller de sellos es el único lugar donde se crean |
 | 0041 | [`0041_sin_sellos_de_grupo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0041_sin_sellos_de_grupo.sql) | 2026-11-25 | Los grupos no tienen sello: los representa su insignia |
+| 0042 | [`0042_cancion_del_pasaporte.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0042_cancion_del_pasaporte.sql) | 2026-11-26 | La canción de cada persona en su pasaporte (un fragmento de 30 s de Apple Music); reemplaza al símbolo personal |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -629,6 +630,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/taller-sellos-0040.test.ts` (un sello de grupo ya no se puede crear; los de base y comité siguen siendo de su carrera y se van con su elemento) y `tests/db/sellos-induccion-0038.test.ts` (la siembra de la carrera de prueba ya no deja sellos de grupo).
 
 **Cómo revertir** `alter table public.event_seals drop constraint event_seals_kind_check, add constraint event_seals_kind_check check (kind in ('theme', 'subtheme', 'team', 'committee', 'coordinator', 'base'));` y recrear `event_seals_valid_ref`, `event_seals_drop_with_element` y el disparador `teams_drop_seal` como en 0040 (los sellos de grupo borrados no vuelven).
+
+## 0042 — La canción del pasaporte
+
+**Qué cambia** `passports.song` (jsonb) con la canción que caracteriza a la persona, tal como la devuelve el buscador público de Apple Music / iTunes: `{id, title, artist, preview, cover, url}` (el audio de 30 s, la carátula y el enlace a la canción completa). El disparador `passports_song_valid` solo acepta esas llaves, un título y un artista de 1 a 150 letras y direcciones `https` de `apple.com` o `mzstatic.com` para el audio, la carátula y el enlace (así el pasaporte no puede apuntar a cualquier sitio). Nadie edita su propia fila (0025): la canción la pone el coordi. Las columnas del símbolo personal (`symbol`, `symbol_label`) **no se borran** (para no perder datos), pero la app ya no las usa.
+
+**Por qué** A cada inductor se le preguntó qué canción sonaría cada vez que entrara a un lugar: el pasaporte la reproduce (fragmento de 30 s, con pausa y volumen) y reemplaza al símbolo.
+
+**Verificación** `tests/db/passport-song-0042.test.ts` (el coordi la pone y la quita, nadie edita la suya ni la de otro, solo datos y direcciones de Apple, título y artista obligatorios).
+
+**Cómo revertir** `drop trigger passports_song_valid on public.passports; drop function public.passports_song_valid(); alter table public.passports drop column song;`
 
 ## Plantilla para nuevos registros
 

@@ -2,6 +2,12 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## La canción del pasaporte (2026-11-26, migración 0042, aplicada)
+- **Un fragmento de 30 s de la canción de cada inductor** (Apple Music / iTunes: búsqueda pública, sin cuentas ni claves) en la página de identidad del pasaporte, con **pausa**, **volumen** (donde el teléfono lo permite; en un iPhone mandan los botones del teléfono) y el enlace «Escúchala completa». Empieza al **abrir la portada** del pasaporte (un toque, que es lo que el navegador exige para dar sonido), se repite y se detiene al salir del pasaporte o al bloquear el teléfono.
+- **El símbolo personal se quitó** (pasaporte, PDF, Inductores y `lib/symbols.ts`); sus columnas quedan en la base de datos sin usarse. El PDF muestra el título y el artista.
+- **Inductores (global):** cada persona tiene «Elegir canción» (buscador con escucha previa) y una tarjeta **«Canciones desde un Excel»**: se sube el formulario («Nombre» y la columna de la canción), se busca cada canción en Apple Music para las personas **ya registradas** (espaciado, porque Apple limita las búsquedas a unas 20 por minuto), el coordi **escucha cada propuesta**, cambia la que esté mal y aplica las que estén bien; lo que escribió la gente es texto libre, así que la primera opción es una propuesta y solo viene marcada cuando contiene el título. Un enlace de Spotify o una persona sin registrar no se buscan.
+- **Pruebas:** `tests/db/passport-song-0042.test.ts`, `tests/unit/songs.test.ts`, `tests/unit/pdf.test.ts`.
+
 ## La insignia se abre con zoom en el pasaporte (2026-11-25, sin migración)
 - En la página de identidad del pasaporte, al tocar **«Tu carrera»** se abre la insignia en grande (la medalla con su cinta, en el mismo zoom de los sellos) con tres párrafos: **qué es tu ingeniería** (uno por carrera: Sistemas, Trónicas, Industrial, Biomec y Civil, y uno general para una carrera que la app no conoce), **qué es hacer ingeniería** y **la inspiración de la Cruz San Pedro Claver** con su valor en la comunidad javeriana (el servicio a los demás: ocho brazos abiertos como un sol que se reparte y la cinta con los colores de la bandera). Los textos están en `lib/insigniaTexts.ts` y hablan de «tu ingeniería», sin género.
 - Las medallas son las **definitivas**: los cinco dibujos del borrador aprobado, con el mismo estilo (Civil se rehízo con contorno grueso y relleno oscuro) y centrados por su caja medida.
