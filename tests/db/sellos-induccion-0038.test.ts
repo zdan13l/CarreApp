@@ -47,10 +47,10 @@ describe('seals per inducción (0038)', () => {
     const sql = fs.readFileSync('supabase/migrations/0038_sellos_por_induccion.sql', 'utf8')
     await db.pg.exec(sql.slice(sql.indexOf('create or replace function public._seed_event_seal')))
     const by = async (kind: string) => (await db.sql(`select 1 from public.event_seals where event_id = $1 and kind = $2`, [t.id, kind])).length
-    expect(await by('team')).toBe(18)
+    expect(await by('team')).toBe(0) // the groups carry their insignia, not a seal (0041)
     expect(await by('base')).toBe(15)
     // (the theme, subthemes and committees get theirs too when the test carrera has them: here it was created without a semester)
     await db.pg.exec(sql.slice(sql.indexOf('create or replace function public._seed_event_seal'))) // and running it twice changes nothing
-    expect(await by('team')).toBe(18)
+    expect(await by('team')).toBe(0)
   })
 })

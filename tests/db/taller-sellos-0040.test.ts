@@ -47,18 +47,20 @@ describe('a seal can only go on an element of its own carrera (0040)', () => {
     await expect(put(a.id, 'subtheme', 'inventada')).rejects.toThrow(/subtemática/)
   })
 
-  it('team and base: only the ones of that carrera', async () => {
+  it('base: only the ones of that carrera', async () => {
     const a = await create()
     const b = await create()
-    const ta = await addTeam(a.id, 'Grupo A')
-    const tb = await addTeam(b.id, 'Grupo B')
     const ba = await addBase(a.id, 'Base A')
     const bb = await addBase(b.id, 'Base B')
-    await put(a.id, 'team', ta)
     await put(a.id, 'base', ba)
-    await expect(put(a.id, 'team', tb)).rejects.toThrow(/un grupo de esa carrera/)
     await expect(put(a.id, 'base', bb)).rejects.toThrow(/una base de esa carrera/)
-    await expect(put(a.id, 'team', ba)).rejects.toThrow() // a base id is not a group
+    await expect(put(a.id, 'base', 'no-es-una-base')).rejects.toThrow()
+  })
+
+  it('groups carry their insignia, not a seal: there is no seal kind for them (0041)', async () => {
+    const a = await create()
+    const ta = await addTeam(a.id, 'Grupo A')
+    await expect(put(a.id, 'team', ta)).rejects.toThrow()
   })
 
   it('a seal always has a carrera (inducción)', async () => {
@@ -78,20 +80,17 @@ describe('a seal can only go on an element of its own carrera (0040)', () => {
 })
 
 describe('a seal goes with its element', () => {
-  it('removing a group, a base or a committee from the carrera removes its seal, and nobody else loses theirs', async () => {
+  it('removing a base or a committee from the carrera removes its seal, and nobody else loses theirs', async () => {
     const e = await create()
-    const t1 = await addTeam(e.id, 'Uno')
-    const t2 = await addTeam(e.id, 'Dos')
     const b1 = await addBase(e.id, 'Base Uno')
-    await put(e.id, 'team', t1, 'hexagon', '#111111')
-    await put(e.id, 'team', t2, 'hexagon', '#222222')
-    await put(e.id, 'base', b1)
+    const b2 = await addBase(e.id, 'Base Dos')
+    await put(e.id, 'base', b1, 'hexagon', '#111111')
+    await put(e.id, 'base', b2, 'hexagon', '#222222')
     await put(e.id, 'committee', 'caos')
-    await db.sql(`delete from public.teams where id = $1`, [t1])
     await db.sql(`delete from public.bases where id = $1`, [b1])
     await db.sql(`delete from public.event_committees where event_id = $1 and committee_key = 'caos'`, [e.id])
-    const left = await db.sql<{ kind: string; ref: string }>(`select kind, ref from public.event_seals where event_id = $1 and kind in ('team', 'base', 'committee')`, [e.id])
-    expect(left).toEqual([{ kind: 'team', ref: t2 }])
+    const left = await db.sql<{ kind: string; ref: string }>(`select kind, ref from public.event_seals where event_id = $1 and kind in ('base', 'committee')`, [e.id])
+    expect(left).toEqual([{ kind: 'base', ref: b2 }])
   })
 })
 
