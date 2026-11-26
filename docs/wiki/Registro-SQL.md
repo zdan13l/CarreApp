@@ -56,6 +56,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0041 | [`0041_sin_sellos_de_grupo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0041_sin_sellos_de_grupo.sql) | 2026-11-25 | Los grupos no tienen sello: los representa su insignia |
 | 0042 | [`0042_cancion_del_pasaporte.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0042_cancion_del_pasaporte.sql) | 2026-11-26 | La canción de cada persona en su pasaporte (un fragmento de 30 s de Apple Music); reemplaza al símbolo personal |
 | 0043 | [`0043_carrera_de_la_persona.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0043_carrera_de_la_persona.sql) | 2026-11-26 | La carrera universitaria de cada persona y el ingreso que sale solo de su generación |
+| 0044 | [`0044_inducciones_y_doble_programa.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0044_inducciones_y_doble_programa.sql) | pendiente | Cuántas inducciones lleva cada persona, el perfil deshabilitado en una inducción y el doble programa |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -651,6 +652,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/passport-career-0043.test.ts` (el coordi la pone y la cambia, nadie edita la suya, nombre de 2 a 80 letras, el ingreso sigue a la generación al crear y al cambiarla, la carrera de las personas existentes sale de su última participación).
 
 **Cómo revertir** `drop trigger passports_joined_from_generation on public.passports; drop function public.passports_joined_from_generation(); alter table public.passports drop column career;`
+
+## 0044 — Inducciones de cada persona, deshabilitado por inducción y doble programa
+
+**Qué cambia** `passport_records.disabled` (por defecto `false`): la persona está deshabilitada en ESA inducción (no puede estar presente); un disparador (`passport_records_clear`, que corre antes de `passport_records_validate`) la suelta de su grupo y de su base mientras esté deshabilitada. La vista `passport_inductions` (con `security_invoker`, así mandan las políticas de `passport_records`) cuenta en cuántos semestres tiene cada persona un registro que NO está deshabilitado: esa es la cantidad de inducciones que lleva, sube sola cuando entra a una nueva y no se escribe a mano. `passports.second_career` (2 a 80 letras): la otra carrera de quien hace doble programa.
+
+**Por qué** El pasaporte muestra cuántas inducciones lleva la persona y no cuenta aquellas en las que estuvo deshabilitada; el doble programa pide una segunda carrera (y su medalla) en el perfil. La regla vive en la base de datos y no en cada pantalla.
+
+**Verificación** `tests/db/passport-inductions-0044.test.ts` (sube con cada inducción, la deshabilitada no cuenta y vuelve a contar al habilitarla, cada quien ve la suya y el coordi las de todos, solo el coordi deshabilita, deshabilitar suelta el grupo y no deja volver a ponerlo, la otra carrera es un nombre real y nadie edita la suya). La app abre antes de aplicarla (lee estas columnas y la vista aparte) y avisa que falta.
+
+**Cómo revertir** `drop view public.passport_inductions; drop trigger passport_records_clear on public.passport_records; drop function public.passport_records_clear_when_disabled(); alter table public.passport_records drop column disabled; alter table public.passports drop column second_career;`
 
 ## Plantilla para nuevos registros
 
