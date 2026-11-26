@@ -2,6 +2,14 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Inductores (global) renovado (2026-11-26, migración 0043, pendiente de aplicar)
+- **Solo aquí se registran inductores.** La página abre con la lista y una cajita «¿Qué es un inductor?»; sin textos que explican la pantalla. Dos botones grandes abren **«Registrar inductor/a nuevo»** (nombre, **carrera** del catálogo, **generación** obligatoria, apodo y la **canción** que se busca y se escucha ahí mismo) y **«Carga masiva con Excel»**.
+- **El ingreso se llena solo** con la generación (Barbies → 2630): no se escribe. Si la generación no existe, un botón lleva a Generaciones. La carrera de la persona se guarda en su pasaporte (`passports.career`): al agregarla a una carrera se usa esa.
+- **Carga masiva unificada:** una plantilla de ayuda (Nombre, Carrera, Generación, Apodo y la pregunta de la canción tal cual llega del formulario), una generación por defecto para quien no la trae, vista previa por persona (carrera y generación se corrigen ahí), búsqueda de canciones en Apple Music (espaciada) que el coordi **escucha antes de guardar**, y el Excel con usuarios y contraseñas al final. Quien ya estaba registrado solo recibe la canción. Se quitó el Excel de dentro de cada carrera y la tarjeta «Canciones desde un Excel».
+- **Editar perfil** en cada fila: nombre, carrera, generación, apodo, canción y foto, con un solo «Guardar cambios». Antes no se podía editar el nombre ni la carrera.
+- **«Todos los inductores»** con buscador (cada palabra tiene que empezar una palabra del nombre, apodo, carrera o @: «ana» ya no encuentra a Mariana) y **filtros en chips** que se pueden combinar: de una carrera se suman (Sistemas o Civil), entre grupos se cruzan (los ancestros de Sistemas). Se quitó «Sin ninguna carrera». El buscador ya no se ilumina doble al enfocarlo.
+- **Pruebas:** `tests/db/passport-career-0043.test.ts`, `tests/unit/inductors.test.ts` y los estáticos de `admin-modes`, `generations` y `passports`.
+
 ## La canción del pasaporte (2026-11-26, migración 0042, aplicada)
 - **Un fragmento de 30 s de la canción de cada inductor** (Apple Music / iTunes: búsqueda pública, sin cuentas ni claves) en la página de identidad del pasaporte, con **pausa**, **volumen** (donde el teléfono lo permite; en un iPhone mandan los botones del teléfono) y el enlace «Escúchala completa». Empieza al **abrir la portada** del pasaporte (un toque, que es lo que el navegador exige para dar sonido), se repite y se detiene al salir del pasaporte o al bloquear el teléfono.
 - **El símbolo personal se quitó** (pasaporte, PDF, Inductores y `lib/symbols.ts`); sus columnas quedan en la base de datos sin usarse. El PDF muestra el título y el artista.

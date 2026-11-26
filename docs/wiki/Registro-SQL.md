@@ -55,6 +55,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0040 | [`0040_taller_de_sellos.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0040_taller_de_sellos.sql) | 2026-11-25 | Cada sello solo puede ir en un elemento de su carrera y se va con él; el taller de sellos es el único lugar donde se crean |
 | 0041 | [`0041_sin_sellos_de_grupo.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0041_sin_sellos_de_grupo.sql) | 2026-11-25 | Los grupos no tienen sello: los representa su insignia |
 | 0042 | [`0042_cancion_del_pasaporte.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0042_cancion_del_pasaporte.sql) | 2026-11-26 | La canción de cada persona en su pasaporte (un fragmento de 30 s de Apple Music); reemplaza al símbolo personal |
+| 0043 | [`0043_carrera_de_la_persona.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0043_carrera_de_la_persona.sql) | pendiente | La carrera universitaria de cada persona y el ingreso que sale solo de su generación |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -640,6 +641,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/passport-song-0042.test.ts` (el coordi la pone y la quita, nadie edita la suya ni la de otro, solo datos y direcciones de Apple, título y artista obligatorios).
 
 **Cómo revertir** `drop trigger passports_song_valid on public.passports; drop function public.passports_song_valid(); alter table public.passports drop column song;`
+
+## 0043 — La carrera de la persona y el ingreso por generación
+
+**Qué cambia** `passports.career` (texto de 2 a 80 letras): la carrera universitaria de la persona (Sistemas, Civil…), una sola para toda su vida en la inducción; se pone al registrarla en Administración global → Inductores y es la que se usa cuando entra a una carrera (`passport_records.career` sigue guardando la de cada semestre). Las personas que ya existían la reciben de su participación más reciente. El disparador `passports_joined_from_generation` llena `joined_term` con el semestre de la generación (Barbies → 2630; con dos generaciones, el de la primera); una generación sin semestre (Textiles) deja el ingreso como estaba.
+
+**Por qué** La carrera y el ingreso se ingresan una sola vez, al registrar al inductor: toda persona pertenece a una generación y de ella sale su ingreso, así no se escribe dos veces ni queda inconsistente.
+
+**Verificación** `tests/db/passport-career-0043.test.ts` (el coordi la pone y la cambia, nadie edita la suya, nombre de 2 a 80 letras, el ingreso sigue a la generación al crear y al cambiarla, la carrera de las personas existentes sale de su última participación).
+
+**Cómo revertir** `drop trigger passports_joined_from_generation on public.passports; drop function public.passports_joined_from_generation(); alter table public.passports drop column career;`
 
 ## Plantilla para nuevos registros
 
