@@ -2,6 +2,10 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## La ñ en el @ y el campo «Otra carrera» (2026-11-26, migración 0046 pendiente)
+- **La ñ:** el @ de un usuario puede llevar ñ (muñoz). Al sugerir el @ desde el nombre, en el Excel y en el editor la ñ se conserva (las demás tildes se quitan). El correo interno de acceso sigue siendo ASCII: la ñ viaja como «+». Hay que aplicar la 0046 para que la base la acepte.
+- **Otra carrera:** el campo ya no abre una segunda caja debajo: al elegir «Otra, que no está en la lista…» el selector se vuelve la caja para escribir (de una sola línea) con un botón «Lista» para volver.
+
 ## Inducciones previas y entrada automática (2026-11-26, migración 0045, aplicada)
 - **Inducciones previas:** cada inductor tiene el campo **Inducciones que ya lleva** (`passports.prior_inductions`, de 0 a 40) en el registro de uno nuevo, en el editor de perfil y en el Excel (columna «Inducciones previas (opcional)»; vacío es 0). Un inductor nuevo empieza en 0; uno veterano se registra con 3, 4 u 8 y queda fijo. Lo que lleva = ese número + las carreras en que participa sin estar deshabilitado, así sube solo una por cada carrera (en el pasaporte, el PDF y la lista). El editor muestra el total de hoy al lado del campo.
 - **Otra carrera, cualquiera:** el catálogo solo tiene las ingenierías, así que el selector de «Otra carrera» no dejaba poner Derecho, Medicina… Ahora tiene la opción **Otra, que no está en la lista…** y se escribe el nombre (2 a 80 letras); en el Excel también se acepta tal como viene. Una carrera que no es ingeniería lleva la medalla genérica.

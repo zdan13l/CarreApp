@@ -58,6 +58,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0043 | [`0043_carrera_de_la_persona.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0043_carrera_de_la_persona.sql) | 2026-11-26 | La carrera universitaria de cada persona y el ingreso que sale solo de su generación |
 | 0044 | [`0044_inducciones_y_doble_programa.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0044_inducciones_y_doble_programa.sql) | 2026-11-26 | Cuántas inducciones lleva cada persona, el perfil deshabilitado en una inducción y el doble programa |
 | 0045 | [`0045_inducciones_previas_y_entrada_automatica.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0045_inducciones_previas_y_entrada_automatica.sql) | 2026-11-26 | Las inducciones que cada persona ya llevaba y la entrada automática de los inductores activos a cada carrera nueva |
+| 0046 | [`0046_enie_en_el_usuario.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0046_enie_en_el_usuario.sql) | pendiente | La ñ en el usuario (@) |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -673,6 +674,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/inducciones-previas-0045.test.ts` (un inductor nuevo empieza en 0 y un veterano con su número; suma una por carrera y la deshabilitada no cuenta; el número queda fijo y solo el coordi lo cambia, entre 0 y 40; cada quien ve el suyo; crear una carrera mete como corredores a los activos con la cultura de su carrera en esa carrera; ancestros, deshabilitados, sin carrera o con una carrera sin subtemática quedan fuera; la suma manual no repite ni pisa lo que el coordi cambió; solo el coordi crea carreras y suma gente). La app abre antes de aplicarla (lee la columna aparte) y avisa que falta.
 
 **Cómo revertir** `create or replace function public.create_event(...)` con el cuerpo de la 0037 (sin la línea `perform public.enroll_active_inductors(e);`); `drop function public.enroll_active_inductors(uuid); drop function public.career_culture(text, text);` la vista como en la 0044 (`select pr.passport_id, count(distinct pr.term_id)::int as inductions from public.passport_records pr where not pr.disabled group by pr.passport_id`) y `alter table public.passports drop column prior_inductions;`
+
+## 0046 — La ñ en el usuario (@)
+
+**Qué cambia** `profiles.username` y `passports.username` aceptan la ñ: de 3 a 30 caracteres entre a-z, ñ, 0-9, punto, guion y guion bajo (muñoz, niño.peña). El correo interno de acceso sigue siendo ASCII: la ñ viaja en él como «+» (`mu+oz@carreapp.test`), que ningún usuario puede llevar, así que nunca se confunde con otro. La app (`lib/username.ts`) y el servidor (`api/users.ts`, `api/account.ts`) hacen esa conversión; la base de datos guarda el usuario tal como se escribe.
+
+**Por qué** Muchos apellidos y nombres llevan ñ (Muñoz, Peña, Niño) y el @ sugerido los escribía sin ella.
+
+**Verificación** `tests/db/enie-0046.test.ts` (un pasaporte y un login con ñ, el @ sigue siendo único, lo que no es letra del alfabeto, número, punto, guion o guion bajo se rechaza), `tests/unit/lib.test.ts`, `tests/unit/passports.test.ts` y `tests/api/users.test.ts` (la ñ se sugiere y se conserva, viaja como «+» en el correo y vuelve al escribir ese correo, la ñ escrita como n + tilde es la misma).
+
+**Cómo revertir** Solo si ningún usuario tiene ñ: `alter table public.profiles drop constraint profiles_username_check; alter table public.profiles add constraint profiles_username_check check (username ~ '^[a-z0-9._-]{3,30}$');` y lo mismo con `passports`.
 
 ## Plantilla para nuevos registros
 
