@@ -61,12 +61,14 @@ export interface Filters {
   careers: string[]
   states: PersonState[]
   roles: string[]
+  entries: string[] // the induction they entered (2630…)
 }
-export const NO_FILTERS: Filters = { careers: [], states: [], roles: [] }
-export const hasFilters = (f: Filters) => f.careers.length + f.states.length + f.roles.length > 0
+export const NO_FILTERS: Filters = { careers: [], states: [], roles: [], entries: [] }
+export const hasFilters = (f: Filters) => f.careers.length + f.states.length + f.roles.length + f.entries.length > 0
 
 /** Inside a group the chosen ones add up (Sistemas OR Civil); between groups they narrow down (ancestors AND Sistemas). */
-export function passesFilters(f: Filters, person: { state: PersonState; career: string | null; role?: string | null }): boolean {
+export function passesFilters(f: Filters, person: { state: PersonState; career: string | null; role?: string | null; entry?: string | null }): boolean {
+  if (f.entries.length && !(person.entry && f.entries.includes(person.entry))) return false
   if (f.states.length && !f.states.includes(person.state)) return false
   if (f.careers.length && !(person.career && f.careers.includes(person.career))) return false
   if (f.roles.length && !(person.role && f.roles.includes(person.role))) return false
@@ -141,6 +143,7 @@ export function parseInductors(tables: string[][][], ctx: InductorsContext): Ind
     } else generation = ctx.defaultGeneration
     const nickname = cell(r, iNick)
     if (nickname.length > 24) errors.push('El apodo es muy largo (máximo 24 letras).')
+    if (!nickname && !knownUser) errors.push('Falta el apodo.')
     if (seen.has(nameKey(fullName))) errors.push('Esta persona está repetida en el archivo.')
     seen.add(nameKey(fullName))
     let username = knownUser ?? ''
@@ -216,6 +219,7 @@ export interface IdentityPatch {
   ancestor_at?: string | null
   disable_at?: string | null
   full_name?: string
+  username?: string // changes the login too: it goes through the server (renameUser)
   career?: string | null
   generation?: string | null
   joined_term?: string | null
@@ -224,8 +228,10 @@ export interface IdentityPatch {
 }
 
 /** What changed between a person and the profile the coordi edited. A new generation brings its entry with it. Empty when nothing changed. */
-export function profileChanges(p: PassportPerson, career: string | null, draft: { fullName: string; career: string; generation: string; nickname: string; song: PassportSong | null }): IdentityPatch {
+export function profileChanges(p: PassportPerson, career: string | null, draft: { fullName: string; username: string; career: string; generation: string; nickname: string; song: PassportSong | null }): IdentityPatch {
   const patch: IdentityPatch = {}
+  const user = draft.username.trim().toLowerCase().replace(/^@/, '')
+  if (user && user !== p.username) patch.username = user
   const name = draft.fullName.trim().replace(/\s+/g, ' ')
   if (name && name !== p.full_name) patch.full_name = name
   if ((draft.career || null) !== (career ?? null)) patch.career = draft.career || null

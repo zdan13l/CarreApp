@@ -60,7 +60,7 @@ import { COMMITTEES } from '../lib/committees'
 import MemberPage from '../components/MemberPage'
 import type { MemberPassportData } from '../components/MemberPassport'
 import { PersonItem, type PersonRow } from './admin/Inductores'
-import FilterChips from '../components/FilterChips'
+import FilterBar from '../components/FilterBar'
 import GenerationPicker from '../components/GenerationPicker'
 import InductorsBulk from '../components/InductorsBulk'
 import NewInductorForm from '../components/NewInductorForm'
@@ -338,12 +338,16 @@ export default function Preview() {
           <div className="title-row"><h1>Inductores</h1></div>
           <details className="card info-box" open={query.has('info')}>
             <summary>¿Qué es un inductor?</summary>
-            <p>Es una persona del equipo de la inducción: corre con un grupo, atiende una base o coordina. Cada inductor tiene su usuario y un pasaporte personal que lo acompaña toda su vida en la inducción, con su carrera, su generación y su canción.</p>
-            <p>Cuando ya no está en la inducción pasa a ser <strong>ancestro</strong>: su perfil sigue abierto un tiempo y después se deshabilita.</p>
+            <blockquote>
+              <p>Ser inductor es abrirle la puerta a alguien que llega con ilusión y con susto, y hacer que se sienta en casa desde el primer día.</p>
+              <p>No se trata de saber más, sino de acompañar: escuchar, orientar, esperar a quien se queda atrás y celebrar con quien llega.</p>
+              <p>Es devolver, sirviendo, lo que alguna vez nos dieron a nosotros.</p>
+              <footer>Amar y servir</footer>
+            </blockquote>
           </details>
           <div className="inductor-actions" role="group" aria-label="Agregar inductores">
-            <button type="button" className={`action-tab${query.get('panel') === 'new' ? ' on' : ''}`}><UserPlus size={20} aria-hidden="true" /><span><strong>Registrar inductor/a nuevo</strong><small>De a uno, con su canción</small></span></button>
-            <button type="button" className={`action-tab${query.get('panel') === 'bulk' ? ' on' : ''}`}><FileSpreadsheet size={20} aria-hidden="true" /><span><strong>Carga masiva con Excel</strong><small>Muchos a la vez, con plantilla</small></span></button>
+            <button type="button" className={`action-tab${query.get('panel') === 'new' ? ' on' : ''}`}><UserPlus size={20} aria-hidden="true" /><span><strong>Registrar inductor/a nuevo</strong></span></button>
+            <button type="button" className={`action-tab${query.get('panel') === 'bulk' ? ' on' : ''}`}><FileSpreadsheet size={20} aria-hidden="true" /><span><strong>Carga masiva con Excel</strong></span></button>
           </div>
           {query.get('panel') === 'new' && (
             <section className="card panel-card">
@@ -359,17 +363,19 @@ export default function Preview() {
           )}
           <section className="card people-card">
             <div className="people-head"><h2 className="grow">Todos los inductores</h2><span className="badge">{samplePeople.length} inductores</span></div>
-            <label className="search"><Search size={16} aria-hidden="true" /><input defaultValue={query.get('q') ?? ''} placeholder="Buscar inductor, carrera o @" aria-label="Buscar" /></label>
-            <FilterChips
+            <FilterBar
               groups={[
-                { id: 'career', label: 'Carrera', options: [{ value: 'Sistemas', label: 'Sistemas', count: 2 }, { value: 'Mecatrónica', label: 'Mecatrónica', count: 1 }, { value: 'Civil', label: 'Civil', count: 1 }], selected: query.has('filtro') ? ['Sistemas'] : [], onChange: noop },
+                { id: 'career', label: 'Carrera', options: [{ value: 'Sistemas', label: 'Sistemas', count: 2 }, { value: 'Mecatrónica', label: 'Mecatrónica', count: 1 }, { value: 'Civil', label: 'Civil', count: 1 }], selected: query.has('filtro') ? ['Sistemas', 'Civil'] : [], onChange: noop },
+                { id: 'entry', label: 'Inducción', options: [{ value: '2710', label: '2710 · Minichips', count: 2 }, { value: '2630', label: '2630 · Barbies', count: 1 }, { value: '2610', label: '2610 · Peluches', count: 1 }], selected: query.has('filtro') ? ['2630'] : [], onChange: noop },
                 { id: 'state', label: 'Estado', options: [{ value: 'active', label: 'Activos', count: 3 }, { value: 'ancestor', label: 'Ancestros', count: 1 }], selected: [], onChange: noop },
               ]}
               onClear={noop}
-            />
+            >
+              <label className="search"><Search size={16} aria-hidden="true" /><input defaultValue={query.get('q') ?? ''} placeholder="Buscar inductor, carrera o @" aria-label="Buscar" /></label>
+            </FilterBar>
             <ul className="list people">
               {samplePeople.map((p, i) => (
-                <PersonItem key={p.passport.id} person={p} themeKey="mitologias" career={p.passport.career} careers={['Bioingeniería', 'Ingeniería Civil', 'Ingeniería de Sistemas', 'Mecatrónica']} participation={i === 0 ? '2710, 2730' : undefined} startEditing={query.has('editar') && i === 0} teams={[{ id: 'g1', label: 'Dioses Nórdicos (1/2)' }]} bases={[{ id: 'b1', label: 'Atrio' }]} busy={false} onRole={noop} onLink={noop} onCulture={noop} onCommittee={noop} onLead={noop} onExtra={noop} onIdentity={noop} onPhoto={noop} onReset={noop} onDelete={noop} onAncestor={noop} onReactivate={noop} onDisable={noop} />
+                <PersonItem key={p.passport.id} person={p} themeKey="mitologias" career={p.passport.career} careers={['Bioingeniería', 'Ingeniería Civil', 'Ingeniería de Sistemas', 'Mecatrónica']} usernames={new Set(['camila.rojas'])} startEditing={query.has('editar') && i === 0} teams={[{ id: 'g1', label: 'Dioses Nórdicos (1/2)' }]} bases={[{ id: 'b1', label: 'Atrio' }]} busy={false} onRole={noop} onLink={noop} onCulture={noop} onCommittee={noop} onLead={noop} onExtra={noop} onIdentity={noop} onPhoto={noop} onReset={noop} onDelete={noop} onAncestor={noop} onReactivate={noop} onDisable={noop} />
               ))}
             </ul>
           </section>

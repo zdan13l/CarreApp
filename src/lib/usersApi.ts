@@ -25,4 +25,6 @@ export const createPassportUser = (u: { username: string; password: string; full
   call('POST', { ...u, role: 'member' })
 export const resetPassword = (userId: string, password: string) =>
   call('PATCH', { user_id: userId, password })
+// The coordi changes the @ of a person: the login follows it (the server changes both, and undoes the first if the second fails).
+export const renameUser = (userId: string, username: string) => call('PATCH', { user_id: userId, username })
 export const deleteUser = (userId: string) => call('DELETE', { user_id: userId })

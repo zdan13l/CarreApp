@@ -2,7 +2,7 @@ import PageTitle from './PageTitle'
 import { Copy, FileSpreadsheet, GraduationCap, KeyRound, Music, Pencil, RotateCcw, Search, Trash2, UserPlus, UserX } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Avatar from '../../components/Avatar'
-import FilterChips, { type ChipGroup } from '../../components/FilterChips'
+import FilterBar, { type ChipGroup } from '../../components/FilterBar'
 import InductorsBulk from '../../components/InductorsBulk'
 import NewInductorForm from '../../components/NewInductorForm'
 import PersonEditor from '../../components/PersonEditor'
@@ -39,11 +39,11 @@ import {
 import { deletePhoto, uploadPhoto } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import { COMMITTEES } from '../../lib/committees'
-import { generationsOf } from '../../lib/seals'
+import { GENERATIONS, generationsOf } from '../../lib/seals'
 import { useCatalogVersion } from '../../lib/catalogStore'
 import type { PassportSong } from '../../lib/songs'
 import { cultureOf, themeOf, type CultureKey } from '../../lib/themes'
-import { deleteUser, resetPassword } from '../../lib/usersApi'
+import { deleteUser, renameUser, resetPassword } from '../../lib/usersApi'
 import { errMsg } from './AdminContext'
 
 export interface PersonRow {
@@ -81,10 +81,10 @@ export function PersonItem({
   onReactivate,
   onDisable,
   view = 'global',
-  participation,
   onRemove,
   career,
   careers = [],
+  usernames,
   startEditing = false,
 }: {
   person: PersonRow
@@ -109,10 +109,10 @@ export function PersonItem({
   //   'global'  (Administración global → Inductores): the PERSON: profile (name, career, generation, nickname, song, photo), password, ancestor, delete
   //   'carrera' (inside a carrera): their PARTICIPATION in that edition: role, culture, committees, group or base, and removing them from it
   view?: 'global' | 'carrera'
-  participation?: string // global: the carreras they take part in
   onRemove?: () => void // carrera: take them out of this edition (the person stays in the system)
   career?: string | null // the career of the person (the one of their passport, or of their latest participation)
   careers?: string[] // the careers of the catalog, to choose one when editing
+  usernames?: Set<string> // every @ in use, so editing one cannot repeat it
   startEditing?: boolean
 }) {
   const { passport: p, record: r } = person
@@ -154,7 +154,6 @@ export function PersonItem({
             <Audition song={p.song} />
           </span>
         )}
-        {view === 'global' && participation && <small className="muted">En: {participation}</small>}
         {view === 'carrera' &&
           (r ? (
             <span className="person-edit">
@@ -245,7 +244,7 @@ export function PersonItem({
       )}
       {view === 'global' && editing && (
         <div className="person-editor-slot">
-          <PersonEditor person={p} career={shownCareer} careers={careers} busy={busy} error={editError} onSave={(patch) => void save(patch)} onPhoto={onPhoto} onClose={() => { setEditing(false); setEditError(null) }} />
+          <PersonEditor person={p} career={shownCareer} careers={careers} usernames={usernames} busy={busy} error={editError} onSave={(patch) => void save(patch)} onPhoto={onPhoto} onClose={() => { setEditing(false); setEditError(null) }} />
         </div>
       )}
     </li>
@@ -279,7 +278,6 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
   const [filters, setFilters] = useState<Filters>(NO_FILTERS)
   const [search, setSearch] = useState('')
   const [careerNames, setCareerNames] = useState<string[]>([])
-  const [participation, setParticipation] = useState<Map<string, string>>(new Map()) // global: person -> the carreras they take part in
   const [latest, setLatest] = useState<Map<string, string>>(new Map()) // person -> the career of their latest participation (before 0043 it is all there is)
   const [joinId, setJoinId] = useState('')
   const isCarrera = Boolean(fixedTermId)
@@ -336,11 +334,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     setTermEvents(events.map((e) => e.name))
     setTeams(events.flatMap((e) => [...e.teams].sort((a, b) => a.sort_order - b.sort_order).map((x) => ({ id: x.id, name: x.name, event: e.name }))))
     setBases(events.flatMap((e) => [...e.bases].sort((a, b) => a.sort_order - b.sort_order).map((x) => ({ id: x.id, name: x.name, event: e.name }))))
-    const all = await supabase.from('passport_records').select('passport_id, term_id, career, created_at').order('created_at')
-    const termName = new Map(list.map((x) => [x.id, x.name]))
-    const part = new Map<string, string[]>()
-    for (const x of all.data ?? []) part.set(x.passport_id as string, [...(part.get(x.passport_id as string) ?? []), termName.get(x.term_id as string) ?? '—'])
-    setParticipation(new Map([...part].map(([k, v]) => [k, v.join(', ')])))
+    const all = await supabase.from('passport_records').select('passport_id, career, created_at').order('created_at')
     setLatest(latestCareers((all.data ?? []) as { passport_id: string; career: string }[]))
     const cn = await supabase.from('careers').select('name').order('name')
     setCareerNames((cn.data ?? []).map((x) => x.name as string))
@@ -411,7 +405,19 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     if (Object.keys(patch).length === 0) return null
     setBusy(true)
     try {
-      const { error: err } = await supabase.from('passports').update(patch).eq('id', person.passport.id)
+      const { username, ...rest } = patch
+      if (username) {
+        try {
+          await renameUser(person.passport.id, username) // the login follows the @: only the server can change both
+        } catch (e) {
+          return errMsg(e)
+        }
+      }
+      if (Object.keys(rest).length === 0) {
+        await load()
+        return null
+      }
+      const { error: err } = await supabase.from('passports').update(rest).eq('id', person.passport.id)
       if (err) return /career/i.test(err.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /song/i.test(err.message) && missingColumn(err) ? 'Falta aplicar la migración 0042 (la canción).' : /generaci/i.test(err.message) ? err.message : 'No se pudo guardar el cambio.'
       await load()
       return null
@@ -500,14 +506,16 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
 
   // the list: inside a carrera only its participants; filters add up inside a group and narrow down between groups
   const scope = people.filter((x) => !isCarrera || x.record)
-  const shown = scope.filter((x) => passesFilters(filters, { state: stateOf(x), career: careerOf(x), role: x.record?.role }) && matchesSearch(x.passport, careerOf(x), search))
+  const shown = scope.filter((x) => passesFilters(filters, { state: stateOf(x), career: careerOf(x), role: x.record?.role, entry: x.passport.joined_term }) && matchesSearch(x.passport, careerOf(x), search))
   const count = (test: (x: PersonRow) => boolean) => scope.filter(test).length
   const careersHere = [...new Set(scope.map(careerOf).filter((c): c is string => Boolean(c)))].sort((a, b) => a.localeCompare(b, 'es'))
+  const entries = [...new Set(scope.map((x) => x.passport.joined_term).filter((e): e is string => Boolean(e)))].sort().reverse() // the newest induction first
   const groups: ChipGroup[] = [
     ...(isCarrera
       ? [{ id: 'role', label: 'Rol', options: PASSPORT_ROLES.map((x) => ({ value: x, label: PASSPORT_ROLE_LABEL[x], count: count((p) => p.record?.role === x) })).filter((o) => o.count > 0), selected: filters.roles, onChange: (roles: string[]) => setFilters({ ...filters, roles }) }]
       : []),
     { id: 'career', label: 'Carrera', options: careersHere.map((c) => ({ value: c, label: shortCareer(c), count: count((p) => careerOf(p) === c) })), selected: filters.careers, onChange: (careersSel) => setFilters({ ...filters, careers: careersSel }) },
+    ...(isCarrera ? [] : [{ id: 'entry', label: 'Inducción', options: entries.map((e) => ({ value: e, label: [e, GENERATIONS.find((g) => g.term === e)?.name].filter(Boolean).join(' · '), count: count((p) => p.passport.joined_term === e) })), selected: filters.entries, onChange: (entriesSel: string[]) => setFilters({ ...filters, entries: entriesSel }) }]),
     ...(isCarrera
       ? []
       : [{ id: 'state', label: 'Estado', options: (['active', 'ancestor', 'disabled'] as PersonState[]).map((s) => ({ value: s, label: STATE_LABEL[s], count: count((p) => stateOf(p) === s) })).filter((o) => o.count > 0), selected: filters.states, onChange: (states: string[]) => setFilters({ ...filters, states: states as PersonState[] }) }]),
@@ -537,8 +545,12 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
       {!isCarrera && (
         <details className="card info-box">
           <summary>¿Qué es un inductor?</summary>
-          <p>Es una persona del equipo de la inducción: corre con un grupo, atiende una base o coordina. Cada inductor tiene su usuario y un pasaporte personal que lo acompaña toda su vida en la inducción, con su carrera, su generación y su canción.</p>
-          <p>Cuando ya no está en la inducción pasa a ser <strong>ancestro</strong>: su perfil sigue abierto un tiempo y después se deshabilita.</p>
+          <blockquote>
+            <p>Ser inductor es abrirle la puerta a alguien que llega con ilusión y con susto, y hacer que se sienta en casa desde el primer día.</p>
+            <p>No se trata de saber más, sino de acompañar: escuchar, orientar, esperar a quien se queda atrás y celebrar con quien llega.</p>
+            <p>Es devolver, sirviendo, lo que alguna vez nos dieron a nosotros.</p>
+            <footer>Amar y servir</footer>
+          </blockquote>
         </details>
       )}
       {error && <p className="error" role="alert">{error}</p>}
@@ -597,11 +609,11 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
         <div className="inductor-actions" role="group" aria-label="Agregar inductores">
           <button type="button" className={`action-tab${panel === 'new' ? ' on' : ''}`} aria-expanded={panel === 'new'} onClick={() => setPanel(panel === 'new' ? null : 'new')}>
             <UserPlus size={20} aria-hidden="true" />
-            <span><strong>Registrar inductor/a nuevo</strong><small>De a uno, con su canción</small></span>
+            <span><strong>Registrar inductor/a nuevo</strong></span>
           </button>
           <button type="button" className={`action-tab${panel === 'bulk' ? ' on' : ''}`} aria-expanded={panel === 'bulk'} onClick={() => setPanel(panel === 'bulk' ? null : 'bulk')}>
             <FileSpreadsheet size={20} aria-hidden="true" />
-            <span><strong>Carga masiva con Excel</strong><small>Muchos a la vez, con plantilla</small></span>
+            <span><strong>Carga masiva con Excel</strong></span>
           </button>
         </div>
       )}
@@ -667,11 +679,12 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
             <h2 className="grow">{isCarrera ? `Participan en ${term?.name ?? 'esta carrera'}` : 'Todos los inductores'}</h2>
             <span className="badge">{hasFilters(filters) || search.trim() ? `${shown.length} de ${scope.length}` : plural(scope.length, 'inductor', 'inductores')}</span>
           </div>
-          <label className="search">
-            <Search size={16} aria-hidden="true" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar inductor, carrera o @" aria-label="Buscar" autoComplete="off" />
-          </label>
-          <FilterChips groups={groups} onClear={() => setFilters(NO_FILTERS)} />
+          <FilterBar groups={groups} onClear={() => setFilters(NO_FILTERS)}>
+            <label className="search">
+              <Search size={16} aria-hidden="true" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar inductor, carrera o @" aria-label="Buscar" autoComplete="off" />
+            </label>
+          </FilterBar>
           {isCarrera && (loose > 0 || alone > 0) && (
             <p className="muted">
               {loose > 0 && `${plural(loose, 'corredor sin grupo', 'corredores sin grupo')}. `}
@@ -690,7 +703,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
                   person={x}
                   themeKey={term?.theme ?? 'mitologias'}
                   view={isCarrera ? 'carrera' : 'global'}
-                  participation={participation.get(x.passport.id)}
+                  usernames={usernames}
                   career={careerOf(x)}
                   careers={careerNames}
                   onRemove={x.record ? () => void onLeave(x.passport, x.record!.id) : undefined}

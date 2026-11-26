@@ -102,6 +102,13 @@ describe('the filters of the list', () => {
   it('somebody without a career never passes a career filter', () => {
     expect(passesFilters({ ...NO_FILTERS, careers: ['Ingeniería Civil'] }, { state: 'active', career: null })).toBe(false)
   })
+  it('the induction they entered is a filter of its own', () => {
+    const f = { ...NO_FILTERS, entries: ['2630', '2710'] }
+    expect(passesFilters(f, { ...sistemasActive, entry: '2630' })).toBe(true)
+    expect(passesFilters(f, { ...sistemasActive, entry: '2610' })).toBe(false)
+    expect(passesFilters(f, sistemasActive)).toBe(false)
+    expect(passesFilters({ ...f, states: ['ancestor' as const] }, { ...sistemasAncestor, entry: '2630' })).toBe(true)
+  })
   it('inside a carrera the role filters too', () => {
     expect(passesFilters({ ...NO_FILTERS, roles: ['base'] }, sistemasActive)).toBe(false)
     expect(passesFilters({ ...NO_FILTERS, roles: ['runner', 'base'] }, sistemasActive)).toBe(true)
@@ -116,50 +123,57 @@ describe('the Excel of a whole induction', () => {
     const rows = parseInductors(
       table(
         ['Camila Andrea Rojas Prieto', 'Ingeniería de Sistemas', 'barbies', 'Cami', 'Mujeriego - Ryan Castro'],
-        ['Diego Alonso Rivas Torres', 'Mecatrónica', 'Minichips', '', ''],
+        ['Diego Alonso Rivas Torres', 'Mecatrónica', 'Minichips', 'Apodo', ''],
       ),
       ctx(),
     )
     expect(rows.map((r) => [r.username, r.career, r.generation, r.nickname, r.songWritten])).toEqual([
       ['camila.rojas', 'Ingeniería de Sistemas', 'Barbies', 'Cami', 'Mujeriego - Ryan Castro'],
-      ['diego.rivas', 'Mecatrónica', 'Minichips', '', ''],
+      ['diego.rivas', 'Mecatrónica', 'Minichips', 'Apodo', ''],
     ])
     expect(rows.every((r) => rowProblem(r) === null && !r.existing)).toBe(true)
   })
 
   it('the career is matched to the catalog («Civil» is Ingeniería Civil); one that is not there waits for the coordi to choose', () => {
-    const rows = parseInductors(table(['Ana Gómez', 'Civil', 'Barbies', '', ''], ['Luis Ruiz', 'Ingeniería Ambiental', 'Barbies', '', '']), ctx())
+    const rows = parseInductors(table(['Ana Gómez', 'Civil', 'Barbies', 'Apodo', ''], ['Luis Ruiz', 'Ingeniería Ambiental', 'Barbies', 'Apodo', '']), ctx())
     expect(rows[0].career).toBe('Ingeniería Civil')
     expect(rows[1].career).toBeNull()
     expect(rowProblem(rows[1])).toMatch(/carrera/i)
   })
 
   it('a person without generation takes the default one, and without default waits for the coordi', () => {
-    const [a] = parseInductors(table(['Ana Gómez', 'Civil', '', '', '']), ctx({ defaultGeneration: 'Minichips' }))
+    const [a] = parseInductors(table(['Ana Gómez', 'Civil', '', 'Apodo', '']), ctx({ defaultGeneration: 'Minichips' }))
     expect(a.generation).toBe('Minichips')
-    const [b] = parseInductors(table(['Ana Gómez', 'Civil', '', '', '']), ctx())
+    const [b] = parseInductors(table(['Ana Gómez', 'Civil', '', 'Apodo', '']), ctx())
     expect(b.generation).toBe('')
     expect(rowProblem(b)).toMatch(/generaci/i)
   })
 
   it('a generation that does not exist is explained with the ones that do', () => {
-    const [r] = parseInductors(table(['Ana Gómez', 'Civil', 'Inventada', '', '']), ctx())
+    const [r] = parseInductors(table(['Ana Gómez', 'Civil', 'Inventada', 'Apodo', '']), ctx())
     expect(r.errors.join(' ')).toMatch(/generación «Inventada» no existe \(Champiñones, Peluches, Barbies, Minichips, Textiles\)/)
   })
 
   it('explains what is wrong instead of guessing: repeated people, long nicknames', () => {
-    const rows = parseInductors(table(['Pedro Pérez Ruiz', 'Civil', 'Barbies', '', ''], ['pedro  pérez ruiz', 'Civil', 'Barbies', '', ''], ['Zoe Vega', 'Civil', 'Barbies', 'n'.repeat(25), '']), ctx())
+    const rows = parseInductors(table(['Pedro Pérez Ruiz', 'Civil', 'Barbies', 'Apodo', ''], ['pedro  pérez ruiz', 'Civil', 'Barbies', 'Apodo', ''], ['Zoe Vega', 'Civil', 'Barbies', 'n'.repeat(25), '']), ctx())
     expect(rows[0].errors).toEqual([])
     expect(rows[1].errors.join()).toMatch(/repetida/)
     expect(rows[2].errors.join()).toMatch(/apodo es muy largo/)
   })
 
   it('finds the table by its titles wherever it is, and skips empty lines; the form of the induction (name and song, no generation) also loads', () => {
-    const rows = parseInductors([[['Ficha']], [['', ''], ['Carrera', 'Nombre'], ['Civil', 'Ana Gómez'], ['', '']], [['ID', 'Nombre', '¿Qué canción sonaría?'], ['1', 'Eva Paz', 'Comernos']]], ctx())
+    const rows = parseInductors([[['Ficha']], [['Apodo', ''], ['Carrera', 'Nombre'], ['Civil', 'Ana Gómez'], ['Apodo', '']], [['ID', 'Nombre', '¿Qué canción sonaría?'], ['1', 'Eva Paz', 'Comernos']]], ctx())
     expect(rows.map((r) => r.fullName)).toEqual(['Ana Gómez'])
     expect(inductorsTable([[['ID', 'Nombre', '¿Qué canción sonaría?'], ['1', 'Eva Paz', 'Comernos']]])).not.toBeNull()
     const form = parseInductors([[['ID', 'Name', 'Nombre', 'Carrera', '¿Qué canción sonaría cada vez que entraras a un lugar?'], ['1', 'cuenta@x', 'Eva Paz', 'Redes', 'Comernos - bad gyal']]], ctx({ careers: [] }))
     expect(form[0]).toMatchObject({ fullName: 'Eva Paz', career: 'Redes', songWritten: 'Comernos - bad gyal' })
+  })
+
+  it('the nickname is required for a new person, and not for one already registered', () => {
+    const [a, b] = parseInductors(table(['Ana Gómez', 'Civil', 'Barbies', '', ''], ['Eva Paz', '', '', '', 'Comernos']), ctx({ known: new Map([['eva paz', 'eva.paz']]) }))
+    expect(a.errors).toContain('Falta el apodo.')
+    expect(rowProblem(a)).toBe('Falta el apodo.')
+    expect(rowProblem(b)).toBeNull()
   })
 
   it('does not load a table without the columns, or without people', () => {
@@ -169,7 +183,7 @@ describe('the Excel of a whole induction', () => {
 
   it('a person already registered keeps their @ and only needs a song; another person never takes it', () => {
     const c = ctx({ usernames: new Set(['ana.gomez']), known: new Map([['ana gomez', 'ana.gomez']]) })
-    const rows = parseInductors(table(['Ana Gómez', '', '', '', 'Comernos'], ['Ana Gómez Ruiz', 'Civil', 'Barbies', '', '']), c)
+    const rows = parseInductors(table(['Ana Gómez', '', '', '', 'Comernos'], ['Ana Gómez Ruiz', 'Civil', 'Barbies', 'Apodo', '']), c)
     expect(rows[0]).toMatchObject({ existing: true, username: 'ana.gomez' })
     expect(rowProblem(rows[0])).toBeNull() // no career or generation needed
     expect(rows[1].existing).toBe(false)
@@ -209,13 +223,14 @@ describe('the Excel that goes out and the template', () => {
     const parsed = parseInductors([rows], { careers: CAREERS, usernames: new Set(), known: new Map(), defaultGeneration: '' })
     expect(parsed).toHaveLength(3)
     expect(parsed.every((r) => rowProblem(r) === null)).toBe(true)
+    expect(parsed.map((r) => [r.username, r.nickname])).toEqual([['ana.perez', 'Anita'], ['luis.ruiz', 'Lucho'], ['camila.torres', 'Cami']])
     expect(parsed[0].songWritten).toBe('Mujeriego - Ryan Castro')
   })
 })
 
 describe('what changed in a profile', () => {
   const ana = person({ career: 'Ingeniería Civil', generation: 'Barbies', joined_term: '2630', nickname: 'Anita' })
-  const same = { fullName: 'Ana Pardo Ruiz', career: 'Ingeniería Civil', generation: 'Barbies', nickname: 'Anita', song: null }
+  const same = { fullName: 'Ana Pardo Ruiz', username: 'ana.ruiz', career: 'Ingeniería Civil', generation: 'Barbies', nickname: 'Anita', song: null }
   it('nothing changed, nothing to save', () => {
     expect(profileChanges(ana, 'Ingeniería Civil', same)).toEqual({})
   })
@@ -226,6 +241,10 @@ describe('what changed in a profile', () => {
   it('saves only what was touched: name (cleaned), career, nickname, song', () => {
     const song = { title: 'Mujeriego', artist: 'Ryan Castro', preview: 'https://audio-ssl.itunes.apple.com/a.m4a' }
     expect(profileChanges(ana, 'Ingeniería Civil', { ...same, fullName: '  Ana  María Pardo ', career: 'Mecatrónica', nickname: '', song })).toEqual({ full_name: 'Ana María Pardo', career: 'Mecatrónica', nickname: null, song })
+  })
+  it('a new @ is saved apart (the login follows it); the same one is not a change', () => {
+    expect(profileChanges(ana, 'Ingeniería Civil', { ...same, username: ' @Ana.Nueva ' })).toEqual({ username: 'ana.nueva' })
+    expect(profileChanges(ana, 'Ingeniería Civil', { ...same, username: 'ana.ruiz' })).toEqual({})
   })
   it('a person that had no career before 0043 gets the one the coordi picks', () => {
     expect(profileChanges(person({ generation: 'Barbies' }), null, { ...same, nickname: '' })).toEqual({ career: 'Ingeniería Civil' })

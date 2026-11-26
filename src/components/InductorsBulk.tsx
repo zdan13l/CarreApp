@@ -6,6 +6,7 @@ import { GENERATIONS } from '../lib/seals'
 import { appleTrack, findSongs, looksRight, sleep, SEARCH_GAP_MS, type PassportSong } from '../lib/songs'
 import { supabase } from '../lib/supabase'
 import { errMsg } from '../pages/admin/AdminContext'
+import AddLink from './AddLink'
 import GenerationPicker from './GenerationPicker'
 import { Audition } from './SongCell'
 
@@ -146,15 +147,15 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
     <div className="bulk-inductors">
       <ol className="bulk-steps">
         <li>
-          <strong>Descarga la plantilla.</strong> Lleva las columnas <em>Nombre</em>, <em>Carrera</em>, <em>Generación</em>, <em>Apodo</em> y la <em>canción</em> (la pregunta del formulario, tal cual llega). Borra las filas de ejemplo.
-          <div className="row"><button type="button" className="ghost" onClick={async () => downloadBlob(await templateWorkbook(careers, generationNames), 'plantilla-inductores.xlsx')}><FileSpreadsheet size={18} aria-hidden="true" /> Descargar plantilla</button></div>
+          <strong>Descargar plantilla</strong>
+          <div className="row"><button type="button" className="ghost" onClick={async () => downloadBlob(await templateWorkbook(careers, generationNames), 'plantilla-inductores.xlsx')}><FileSpreadsheet size={18} aria-hidden="true" /> Plantilla de inductores</button></div>
         </li>
         <li>
-          <strong>Generación de quienes no la traen.</strong> Todo inductor entra en una generación; si el archivo no la dice, se usa esta.
-          <div className="row"><GenerationPicker value={generation} label="Generación para quienes no la traen" onChange={setGeneration} disabled={busy} /></div>
+          <strong>Generación de quienes no la traen</strong>
+          <div className="row"><GenerationPicker value={generation} label="Generación para quienes no la traen" onChange={setGeneration} disabled={busy} /><AddLink to="/admin/generaciones">Crear generación</AddLink></div>
         </li>
         <li>
-          <strong>Sube el archivo</strong> (.xlsx, .csv o .docx). Las canciones se buscan en Apple Music y tú las escuchas antes de guardarlas.
+          <strong>Sube el archivo</strong>
           <div className="row">
             <label className={`btn-like${busy ? ' disabled' : ''}`}>
               <Upload size={18} aria-hidden="true" /> {rows ? 'Cambiar archivo' : 'Elegir archivo'}
@@ -189,7 +190,6 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
                   <span className="bulk-who">
                     <strong>{r.fullName}</strong>
                     <small className="muted mono">@{r.username}</small>
-                    {r.nickname && <small className="muted">Apodo «{r.nickname}»</small>}
                     {r.errors.length ? <span className="badge warn-tone">{r.errors[0]}</span> : r.existing ? <span className="badge">Ya registrado · solo la canción</span> : problem ? <span className="badge warn-tone">{problem}</span> : <span className="badge ok">Nuevo</span>}
                   </span>
                   {!r.existing && (
@@ -198,6 +198,7 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
                         <option value="">{r.careerWritten ? `Elegir (decía «${r.careerWritten}»)` : 'Elegir carrera…'}</option>
                         {careers.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
+                      <input value={r.nickname} maxLength={24} placeholder="Apodo" aria-label={`Apodo de ${r.fullName}`} onChange={(e) => patch(r.line, { nickname: e.target.value, errors: r.errors.filter((x) => !/apodo/i.test(x)).concat(e.target.value.trim() ? [] : ['Falta el apodo.']) })} />
                       <GenerationPicker key={`${r.line}-${r.generation}`} value={r.generation} label={`Generación de ${r.fullName}`} onChange={(g) => patch(r.line, { generation: g, errors: r.errors.filter((x) => !/generación/i.test(x)) })} />
                     </span>
                   )}

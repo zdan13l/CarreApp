@@ -176,16 +176,16 @@ export function templateData(careers: string[], generations: string[]) {
   const career = (i: number) => careers[i] ?? careers[0] ?? 'Ingeniería de Sistemas'
   const generation = generations[0] ?? 'Minichips'
   return [
-    ['Nombre', 'Carrera', 'Generación', 'Apodo (opcional)', SONG_COLUMN].map(head),
-    ['Ana María Pérez Gómez', career(0), generation, 'Anita', 'Mujeriego - Ryan Castro'],
-    ['Luis Fernando Ruiz', career(1), generation, '', 'https://music.apple.com/us/song/comernos/1804988448'],
-    ['Camila Torres Vega', career(2), generations[1] ?? generation, '', ''],
+    ['Nombre', 'Usuario (@)', 'Carrera', 'Generación', 'Apodo', SONG_COLUMN].map(head),
+    ['Ana María Pérez Gómez', 'ana.perez', career(0), generation, 'Anita', 'Mujeriego - Ryan Castro'],
+    ['Luis Fernando Ruiz', 'luis.ruiz', career(1), generation, 'Lucho', 'https://music.apple.com/us/song/comernos/1804988448'],
+    ['Camila Torres Vega', 'camila.torres', career(2), generations[1] ?? generation, 'Cami', ''],
   ]
 }
 
 export async function templateWorkbook(careers: string[], generations: string[]): Promise<Blob> {
   const { default: writeXlsxFile } = await import('write-excel-file/browser')
-  return writeXlsxFile(templateData(careers, generations), { sheet: 'Inductores', columns: [{ width: 36 }, { width: 30 }, { width: 18 }, { width: 18 }, { width: 52 }], stickyRowsCount: 1 }).toBlob()
+  return writeXlsxFile(templateData(careers, generations), { sheet: 'Inductores', columns: [{ width: 36 }, { width: 22 }, { width: 30 }, { width: 18 }, { width: 18 }, { width: 52 }], stickyRowsCount: 1 }).toBlob()
 }
 
 export function downloadBlob(blob: Blob, fileName: string) {
