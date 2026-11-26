@@ -1,7 +1,7 @@
 import { Music, Pause, Play, Search, X } from 'lucide-react'
 import { useState } from 'react'
 import { toggleSong, useSongPlayer } from '../lib/songPlayer'
-import { cleanSongQuery, searchSongs, type PassportSong } from '../lib/songs'
+import { findSongs, type PassportSong } from '../lib/songs'
 
 // The play button to listen to a preview before choosing it
 export function Audition({ song }: { song: PassportSong }) {
@@ -26,9 +26,9 @@ export default function SongCell({ song, name, disabled, onChange }: { song: Pas
     setBusy(true)
     setError(null)
     try {
-      const found = await searchSongs(cleanSongQuery(term) || term, 6)
+      const found = await findSongs(term, 6)
       setResults(found)
-      if (found.length === 0) setError('No encontré esa canción: prueba con el título y el artista.')
+      if (found.length === 0) setError('No encontré esa canción: prueba con el título y el artista, o pega el enlace de Apple Music.')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo buscar.')
     } finally {
@@ -52,7 +52,7 @@ export default function SongCell({ song, name, disabled, onChange }: { song: Pas
       {open && (
         <span className="song-search">
           <form onSubmit={(e) => { e.preventDefault(); void search() }}>
-            <input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Título y artista" aria-label={`Buscar la canción de ${name}`} maxLength={120} />
+            <input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Título y artista, o el enlace de Apple Music" aria-label={`Buscar la canción de ${name}`} maxLength={120} />
             <button disabled={busy || !term.trim()}><Search size={16} aria-hidden="true" /> {busy ? 'Buscando…' : 'Buscar'}</button>
           </form>
           {error && <span className="error">{error}</span>}

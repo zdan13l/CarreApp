@@ -1,6 +1,6 @@
 // The songs of the passports: the search term cleaned from what people wrote in a form, the proposal check, the form reader and the catalogue result.
 import { describe, expect, it } from 'vitest'
-import { cleanSongQuery, isSongLink, looksRight, parseSongRows, toSong, type PassportSong } from '../../src/lib/songs'
+import { appleTrack, cleanSongQuery, isSongLink, looksRight, parseSongRows, toSong, type PassportSong } from '../../src/lib/songs'
 
 const song = (title: string, artist = 'Alguien'): PassportSong => ({ title, artist, preview: 'https://audio-ssl.itunes.apple.com/a.m4a' })
 
@@ -60,5 +60,19 @@ describe('the song of the catalogue', () => {
     const ok = toSong({ trackId: 7, trackName: 'Mujeriego', artistName: 'Ryan Castro', previewUrl: 'https://audio-ssl.itunes.apple.com/a.m4a', artworkUrl100: 'https://is1-ssl.mzstatic.com/c.jpg', trackViewUrl: 'https://music.apple.com/x' })
     expect(ok).toEqual({ id: 7, title: 'Mujeriego', artist: 'Ryan Castro', preview: 'https://audio-ssl.itunes.apple.com/a.m4a', cover: 'https://is1-ssl.mzstatic.com/c.jpg', url: 'https://music.apple.com/x' })
     expect(toSong({ trackName: 'Sin audio', artistName: 'X' })).toBeNull()
+  })
+})
+
+describe('a link of Apple Music finds that exact song', () => {
+  it('reads the track and the store from a song page and from an album page with ?i=', () => {
+    expect(appleTrack('https://music.apple.com/us/song/comernos/1804988448?l=es-MX')).toEqual({ id: '1804988448', country: 'US' })
+    expect(appleTrack('  https://music.apple.com/co/album/mujeriego/1600575035?i=1600575365&uo=4 ')).toEqual({ id: '1600575365', country: 'CO' })
+    expect(appleTrack('mira esta https://music.apple.com/es/song/x/42 que me gusta')).toEqual({ id: '42', country: 'ES' })
+  })
+  it('ignores what is not a song of Apple Music (an album, another service, plain text)', () => {
+    expect(appleTrack('https://music.apple.com/us/album/algo/1600575035')).toBeNull()
+    expect(appleTrack('https://open.spotify.com/track/2K9vpqu9')).toBeNull()
+    expect(appleTrack('https://evil.example.com/song/x/123')).toBeNull()
+    expect(appleTrack('Mujeriego')).toBeNull()
   })
 })

@@ -1,7 +1,7 @@
 import { FileSpreadsheet, Search, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { nameKey, readTablesFromFile } from '../lib/bulk'
-import { cleanSongQuery, isSongLink, looksRight, parseSongRows, searchSongs, sleep, SEARCH_GAP_MS, type PassportSong } from '../lib/songs'
+import { appleTrack, cleanSongQuery, findSongs, isSongLink, looksRight, parseSongRows, sleep, SEARCH_GAP_MS, type PassportSong } from '../lib/songs'
 import { Audition } from './SongCell'
 
 interface Person {
@@ -47,7 +47,7 @@ export default function SongsFromExcel({ people, onApply }: { people: Person[]; 
         answers.map((a) => {
           const found = byName.get(nameKey(a.name)) ?? []
           const person = found.length === 1 ? found[0] : null
-          const state: Row['state'] = !person ? 'unknown' : isSongLink(a.wrote) ? 'link' : 'pending'
+          const state: Row['state'] = !person ? 'unknown' : isSongLink(a.wrote) && !appleTrack(a.wrote) ? 'link' : 'pending'
           return { ...a, query: cleanSongQuery(a.wrote), person, state, options: [], pick: 0, use: false }
         }),
       )
@@ -67,8 +67,8 @@ export default function SongsFromExcel({ people, onApply }: { people: Person[]; 
       if (row.state !== 'pending' && row.state !== 'error') continue
       setRows((all) => all.map((r) => (r.line === row.line ? { ...r, state: 'searching' } : r)))
       try {
-        const options = await searchSongs(row.query || row.wrote, 5)
-        const right = options[0] ? looksRight(row.wrote, options[0]) : false
+        const options = await findSongs(row.wrote, 5)
+        const right = options[0] ? Boolean(appleTrack(row.wrote)) || looksRight(row.wrote, options[0]) : false
         setRows((all) => all.map((r) => (r.line === row.line ? { ...r, state: options.length ? 'found' : 'none', options, pick: 0, use: right && !r.person?.song } : r)))
       } catch (e) {
         setRows((all) => all.map((r) => (r.line === row.line ? { ...r, state: 'error' } : r)))
@@ -120,7 +120,7 @@ export default function SongsFromExcel({ people, onApply }: { people: Person[]; 
               <li key={r.line} className={`song-row ${r.state}`}>
                 <span className="song-who"><strong>{r.name}</strong><small className="muted">escribió: «{r.wrote}»</small></span>
                 {r.state === 'unknown' && <small className="muted">No está registrado en Inductores.</small>}
-                {r.state === 'link' && <small className="muted">Escribió un enlace: búscala a mano en su fila.</small>}
+                {r.state === 'link' && <small className="muted">Escribió un enlace que no es de Apple Music: búscala a mano en su fila.</small>}
                 {r.state === 'pending' && <small className="muted">Por buscar</small>}
                 {r.state === 'searching' && <small className="muted">Buscando…</small>}
                 {r.state === 'none' && <small className="muted">Sin resultados: búscala a mano.</small>}
