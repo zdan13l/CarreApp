@@ -31,7 +31,9 @@ import { supabase } from '../../lib/supabase'
 import { COMMITTEES, committeeOf } from '../../lib/committees'
 import { GENERATIONS, generationsOf } from '../../lib/seals'
 import { useCatalogVersion } from '../../lib/catalogStore'
-import { SYMBOLS } from '../../lib/symbols'
+import SongCell from '../../components/SongCell'
+import SongsFromExcel from '../../components/SongsFromExcel'
+import type { PassportSong } from '../../lib/songs'
 import { cultureOf, themeOf, type CultureKey } from '../../lib/themes'
 import { createPassportUser, deleteUser, resetPassword } from '../../lib/usersApi'
 import { errMsg } from './AdminContext'
@@ -116,7 +118,7 @@ export function PersonItem({
   onCommittee: (committee: string | null) => void
   onLead: (lead: boolean) => void
   onExtra: (committee: string, to: 'off' | 'member' | 'lead') => void
-  onIdentity: (patch: { generation?: string | null; joined_term?: string | null; nickname?: string | null; symbol?: string | null; symbol_label?: string | null }) => void
+  onIdentity: (patch: { generation?: string | null; joined_term?: string | null; nickname?: string | null; song?: PassportSong | null }) => void
   onPhoto: (file: File) => void
   onReset: () => void
   onDelete: () => void
@@ -124,7 +126,7 @@ export function PersonItem({
   onReactivate?: () => void
   onDisable?: () => void
   // the same person is shown in two places and each one edits only what is its own:
-  //   'global'  (Administración global → Inductores): the PERSON: photo, @, password, nickname, symbol, generation, ancestor, delete
+  //   'global'  (Administración global → Inductores): the PERSON: photo, @, password, nickname, song, generation, ancestor, delete
   //   'carrera' (inside a carrera): their PARTICIPATION in that edition: role, culture, committees, group or base, and removing them from it
   view?: 'global' | 'carrera'
   participation?: string // global: the carreras they take part in
@@ -209,13 +211,7 @@ export function PersonItem({
           <GenerationPicker key={p.generation ?? ''} value={p.generation} label={`Generación de ${p.full_name}`} disabled={busy} onChange={(v) => v !== (p.generation ?? '') && onIdentity({ generation: v || null })} />
           <input defaultValue={p.joined_term ?? ''} maxLength={20} placeholder="Ingresó (2024-2)" aria-label={`Ingreso a inducción de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.joined_term ?? '') && onIdentity({ joined_term: e.target.value.trim() || null })} />
           <input defaultValue={p.nickname ?? ''} maxLength={24} placeholder="Apodo" aria-label={`Apodo de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.nickname ?? '') && onIdentity({ nickname: e.target.value.trim() || null })} />
-          <select value={p.symbol ?? ''} disabled={busy} onChange={(e) => onIdentity({ symbol: e.target.value || null })} aria-label={`Símbolo de ${p.full_name}`}>
-            <option value="">Sin símbolo</option>
-            {SYMBOLS.map((s) => (
-              <option key={s.key} value={s.key}>{s.name}</option>
-            ))}
-          </select>
-          <input defaultValue={p.symbol_label ?? ''} maxLength={24} placeholder="Nombre del símbolo" aria-label={`Nombre del símbolo de ${p.full_name}`} disabled={busy} onBlur={(e) => e.target.value.trim() !== (p.symbol_label ?? '') && onIdentity({ symbol_label: e.target.value.trim() || null })} />
+          <SongCell song={p.song} name={p.full_name} disabled={busy} onChange={(song) => onIdentity({ song })} />
         </span>
         )}
       </span>
@@ -398,7 +394,9 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
       supabase.from('events').select('id, name').is('term_id', null).order('created_at', { ascending: false }),
     ])
     if (p.error || r.error || ev.error) setError('No se pudo cargar la lista.')
-    setPassports((p.data ?? []) as unknown as PassportPerson[])
+    const songs = await supabase.from('passports').select('id, song') // migration 0042: apart, so the list opens without it
+    const songOf = new Map(((songs.error ? [] : songs.data) ?? []).map((x) => [x.id as string, (x.song ?? null) as PassportSong | null]))
+    setPassports(((p.data ?? []) as unknown as PassportPerson[]).map((x) => ({ ...x, song: songOf.get(x.id) ?? null })))
     setRecords((r.data ?? []) as unknown as PassportRecordRow[])
     type Ev = { id: string; name: string; teams: { id: string; name: string; sort_order: number }[]; bases: { id: string; name: string; sort_order: number }[] }
     const events = (ev.data ?? []) as unknown as Ev[]
@@ -561,7 +559,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
       if (err) throw new Error(/dos personas/.test(err.message) ? 'Un grupo tiene como máximo dos personas.' : /otro semestre/.test(err.message) ? err.message : missingColumn(err) ? 'Falta aplicar la migración 0024 (o la 0027 para los comités extra).' : failMessage)
     })
   }
-  function updateIdentity(person: PersonRow, patch: { status?: 'active' | 'ancestor' | 'disabled'; ancestor_at?: string | null; disable_at?: string | null; generation?: string | null; joined_term?: string | null; nickname?: string | null; symbol?: string | null; symbol_label?: string | null }) {
+  function updateIdentity(person: PersonRow, patch: { status?: 'active' | 'ancestor' | 'disabled'; ancestor_at?: string | null; disable_at?: string | null; generation?: string | null; joined_term?: string | null; nickname?: string | null; song?: PassportSong | null }) {
     if (!supabase) return
     void run(async () => {
       const { error: err } = await supabase!.from('passports').update(patch).eq('id', person.passport.id)
@@ -798,6 +796,21 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
           </div>
           <div className="row"><button disabled={busy}><UserPlus size={18} aria-hidden="true" /> Registrar persona</button></div>
         </form>
+      )}
+
+      {!isCarrera && (
+        <SongsFromExcel
+          people={passports}
+          onApply={async (items) => {
+            if (!supabase) return 'Supabase no está configurado.'
+            for (const it of items) {
+              const { error: err } = await supabase.from('passports').update({ song: it.song }).eq('id', it.id)
+              if (err) return /song|migraci/i.test(err.message) ? 'Falta aplicar la migración 0042.' : 'No se pudo guardar una de las canciones.'
+            }
+            await load()
+            return null
+          }}
+        />
       )}
 
       {isCarrera && term && (

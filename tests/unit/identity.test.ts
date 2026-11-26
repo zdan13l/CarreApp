@@ -1,4 +1,4 @@
-// The identity of the personal passport: committees and their stamps, the culture mark, generation, entry, nickname and symbol.
+// The identity of the personal passport: committees and their stamps, the culture mark, generation, entry and nickname.
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
@@ -6,10 +6,9 @@ import CommitteeSeal from '../../src/components/CommitteeSeal'
 import CultureEmblem from '../../src/components/CultureEmblem'
 import CareerEmblem, { careerKey } from '../../src/components/CareerEmblem'
 import { BLANK_PAGES, committeeWords, MIN_VISA_PAGES, pageSpecsOf, photoSealOf, visaPagesFor, type MemberPassportData, type MemberRecord } from '../../src/components/MemberPassport'
-import { PhotoSeal, splitWords, SymbolBadge, TextSeal } from '../../src/components/Seals'
+import { PhotoSeal, splitWords, TextSeal } from '../../src/components/Seals'
 import { COMMITTEES, committeeOf } from '../../src/lib/committees'
 import { parsePeople } from '../../src/lib/passports'
-import { SYMBOLS, symbolOf } from '../../src/lib/symbols'
 
 const html = (el: Parameters<typeof renderToStaticMarkup>[0]) => renderToStaticMarkup(el)
 
@@ -182,24 +181,6 @@ describe('text seals (generation, entry)', () => {
     const svg = html(createElement(TextSeal, { center: 'Generación 7', top: 'Generación', bottom: 'Inducción Javeriana' }))
     expect(svg).toContain('>7<')
     expect(svg).toContain('GENERACIÓN') // on the ring
-  })
-})
-
-describe('the personal symbol', () => {
-  it('is picked from a list of icons, with keys the database accepts, no repeats and no emojis', () => {
-    expect(SYMBOLS.length).toBeGreaterThanOrEqual(30)
-    expect(new Set(SYMBOLS.map((s) => s.key)).size).toBe(SYMBOLS.length)
-    for (const s of SYMBOLS) {
-      expect(s.key).toMatch(/^[a-z0-9-]{2,24}$/)
-      expect(s.name).not.toMatch(/\p{Extended_Pictographic}/u)
-    }
-    expect(symbolOf('cat')?.name).toBe('Gato')
-    expect(symbolOf('no-existe')).toBeNull()
-  })
-  it('shows its name, or the name the person gave it, or says there is none', () => {
-    expect(html(createElement(SymbolBadge, { symbol: 'cat' }))).toContain('Gato')
-    expect(html(createElement(SymbolBadge, { symbol: 'cat', label: 'Gato blanco' }))).toContain('Gato blanco')
-    expect(html(createElement(SymbolBadge, { symbol: null }))).toContain('Sin símbolo')
   })
 })
 

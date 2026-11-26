@@ -70,6 +70,10 @@ export default function MemberHome() {
     }
     setFailed(false)
     const person = p.data as unknown as PassportPerson | null
+    if (person) {
+      const songRead = await sb.from('passports').select('song').eq('id', userId).maybeSingle() // migration 0042: without it the passport has no song, nothing else changes
+      person.song = songRead.error ? null : ((songRead.data as { song?: PassportPerson['song'] } | null)?.song ?? null)
+    }
     if (!person) {
       setLoading(false)
       return

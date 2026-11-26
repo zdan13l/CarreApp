@@ -62,6 +62,16 @@ import type { MemberPassportData } from '../components/MemberPassport'
 import { GenerationPicker, PersonItem, UploadPreview, type PersonRow } from './admin/Inductores'
 import type { PassportRole, PassportStampRow, PersonIn } from '../lib/passports'
 
+// a real preview from the catalogue, only for this screen of the design preview
+const SAMPLE_SONG = {
+  id: 1600575365,
+  title: 'Mujeriego',
+  artist: 'Ryan Castro',
+  preview: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/4b/ff/c2/4bffc253-aeac-7720-6efb-e1e6478cd73b/mzaf_2682995031984083368.plus.aac.p.m4a',
+  cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/29/73/62/297362c0-f0ff-1462-ef63-24ede5d642f9/886449817276.jpg/100x100bb.jpg',
+  url: 'https://music.apple.com/co/album/mujeriego/1600575035?i=1600575365&uo=4',
+}
+
 const user = { full_name: 'Daniel Rodríguez', username: 'daniel' }
 const names = ['Dioses Griegos', 'Dioses Nórdicos', 'Samuráis', 'Guerreros Aztecas']
 const standings: StandingRow[] = names.map((name, i) => ({ team_id: `t${i}`, name, photo_path: null, points: [7, 5, 5, 2][i] }))
@@ -179,7 +189,7 @@ function memberData(role: PassportRole, culture: string, career: string, query: 
   if (role === 'coordinator') stamps.push(mStamp('rec1', 'coordinated', '', 0, 'Carrera 2026-1'))
   else stamps.push(mStamp('rec1', 'hosted', 'Mirador', 1, 'Carrera 2026-1'), mStamp('rec1', 'hosted', 'Mirador', 2, 'Carrera 2026-1'))
   return {
-    person: { id: 'p1', username: 'daniel.rodriguez', full_name: 'Daniel Arturo Rodríguez Peña', photo_path: null, nickname: 'Dani', symbol: 'cat', symbol_label: 'Gato blanco', generation: query.has('sin') ? null : query.get('gen') ?? 'Peluches', joined_term: query.has('sin') ? null : '2024-2' },
+    person: { id: 'p1', username: 'daniel.rodriguez', full_name: 'Daniel Arturo Rodríguez Peña', photo_path: null, nickname: 'Dani', song: SAMPLE_SONG, generation: query.has('sin') ? null : query.get('gen') ?? 'Peluches', joined_term: query.has('sin') ? null : '2024-2' },
     records: [rec, old],
     stamps,
     context: [{ record_id: 'rec2', team_id: 'tm', team_name: 'Dioses Nórdicos', team_photo_path: '/campus-800.jpg', partners: ['Sara Lucía Montes'], base_id: 'bs', base_name: 'Atrio', base_photo_path: '/campus-800.jpg', event_id: 'ev', event_name: 'Carrera 2710', event_active: true }],

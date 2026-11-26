@@ -91,7 +91,7 @@ describe('the pages of the passport', () => {
   const term = (name: string, theme = 'mitologias', welcome: string | null = 'Gracias por darle vida a la inducción') => ({ id: `t${name}`, name, theme, is_current: true, welcome })
   const record = (role: 'runner' | 'base' | 'coordinator', extra = {}, name = '2710') => ({ id: `r${name}`, passport_id: 'p', term_id: `t${name}`, role, career: 'Ingeniería de Sistemas', culture: 'nordica', team_id: null, base_id: null, committee: 'caos', committee_lead: false, term: term(name), ...extra })
   const data = (role: 'runner' | 'base' | 'coordinator' = 'runner', person = {}, stamps: MemberPassportData['stamps'] = [], extra = {}): MemberPassportData => ({
-    person: { id: 'p', username: 'ana.gomez', full_name: 'Ana María Gómez Ruiz', photo_path: null, nickname: 'Anita', symbol: 'cat', symbol_label: 'Gato blanco', generation: 'Generación 7', joined_term: '2024-2', ...person },
+    person: { id: 'p', username: 'ana.gomez', full_name: 'Ana María Gómez Ruiz', photo_path: null, nickname: 'Anita', song: { title: 'Mujeriego', artist: 'Ryan Castro', preview: 'https://audio-ssl.itunes.apple.com/a.m4a' }, generation: 'Generación 7', joined_term: '2024-2', ...person },
     records: [record(role, extra)],
     stamps,
     context: [{ record_id: 'r2710', team_id: 't', team_name: 'Dioses Nórdicos', team_photo_path: 'teams/a.jpg', partners: ['Sofía'], base_id: 'b', base_name: 'Atrio', base_photo_path: 'bases/a.jpg', event_id: null, event_name: null, event_active: false }],
@@ -120,7 +120,7 @@ describe('the pages of the passport', () => {
     expect(dni).toContain('Generación 7')
     expect(dni).toContain('2024-2')
     expect(dni).toContain('«Anita»')
-    expect(dni).toContain('Gato blanco')
+    expect(dni).toContain('Mujeriego') // the song replaced the symbol
     expect(dni).toContain('@ana.gomez')
     expect(dni).toMatch(/PUJ-\d{6}/)
   })
@@ -168,10 +168,17 @@ describe('the pages of the passport', () => {
     expect(pages(data('runner', {}, Array.from({ length: 20 }, (_, i) => stamp(i + 1)))).length).toBe(10) // 21 visas: four pages
   })
 
-  it('never write what is not there: no nickname, symbol, generation or entry says so', () => {
-    const dni = pages(data('runner', { nickname: null, symbol: null, symbol_label: null, generation: null, joined_term: null }))[1]
+  it('writes the title and the artist of the song of the person on the identity page', () => {
+    const dni = pages(data('runner'))[1]
+    expect(dni).toContain('CANCIÓN')
+    expect(dni).toContain('Mujeriego')
+    expect(dni).toContain('Ryan Castro')
+  })
+
+  it('never write what is not there: no nickname, song, generation or entry says so', () => {
+    const dni = pages(data('runner', { nickname: null, song: null, generation: null, joined_term: null }))[1]
     expect(dni).toContain('Sin apodo')
-    expect(dni).toContain('Sin símbolo')
+    expect(dni).toContain('Sin canción')
     expect(dni).toContain('Por definir')
   })
 

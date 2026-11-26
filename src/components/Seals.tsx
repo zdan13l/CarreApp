@@ -3,13 +3,11 @@ import EventSealView from './EventSealView'
 import { imageUrl } from '../lib/eventSeals'
 import { eventOfTheme, sealOverride } from '../lib/eventSealStore'
 import { cultureOf, type CultureKey } from '../lib/themes'
-import { symbolOf } from '../lib/symbols'
 import { CultureIcon } from './CultureEmblem'
 
 // The round stamps of the personal passport that are not the stamp of a base or of a committee:
 //   CultureSeal  "this is the culture you got" (a drawing of the place of the culture on the rings)
 //   TextSeal     a ring with a word in the middle (the entry to the induction, the generation…)
-//   SymbolBadge  the personal symbol of each inductor (an icon picked from a list, with its name)
 // One ink (`color`, the culture's) with the paper colour (--seal-paper) for the cut-outs; worn like a rubber stamp.
 function hash(text: string): number {
   let h = 2166136261
@@ -92,19 +90,6 @@ export function TextSeal({ center, top, bottom, size = 108, tilt = 3, culture }:
         </text>
       )}
     </SealFrame>
-  )
-}
-
-/** The personal symbol: a round badge with the icon, and its name under it. */
-export function SymbolBadge({ symbol, label, size = 64, showLabel = true }: { symbol?: string | null; label?: string | null; size?: number; showLabel?: boolean }) {
-  const s = symbolOf(symbol)
-  return (
-    <span className="symbol-badge">
-      <span className={`symbol-disc${s ? '' : ' empty'}`} style={{ width: size, height: size }} aria-hidden="true">
-        {s ? <s.Icon size={size * 0.52} strokeWidth={1.8} /> : <span>?</span>}
-      </span>
-      {showLabel && <small>{label?.trim() || s?.name || 'Sin símbolo'}</small>}
-    </span>
   )
 }
 

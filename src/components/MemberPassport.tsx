@@ -28,11 +28,13 @@ import CommitteeSeal from './CommitteeSeal'
 import { eventOfTerm } from '../lib/eventSealStore'
 import CultureEmblem, { CultureOrnament } from './CultureEmblem'
 import Mrz from './Mrz'
-import { CultureSeal, PhotoSeal, SymbolBadge, TextSeal } from './Seals'
+import { CultureSeal, PhotoSeal, TextSeal } from './Seals'
+import SongPlayer from './SongPlayer'
+import { playSong, stopSong } from '../lib/songPlayer'
 import Stamp from './Stamp'
 
 // The passport of an inductor is the passport of THEIR LIFE IN THE INDUCTION, so it is built in two layers:
-//   general   the cover and the identity page (the DNI): name, photo, nickname, symbol, career and its mark, entry and generation.
+//   general   the cover and the identity page (the DNI): name, photo, nickname, song, career and its mark, entry and generation.
 //             Nothing of any theme, committee, role or partner is there: it is the same for ever.
 //   by induction   for every induction they take part in, in its own theme: the page of the induction ("Inducción 2710 · Temática
 //             Mitologías", the words of the coordinators, the culture that was assigned), the page of the committee (its words and stamp,
@@ -137,6 +139,7 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
   const [page, setPage] = useState(startPage)
   const [dir, setDir] = useState<'next' | 'prev'>('next')
   const [zoom, setZoom] = useState<ReactNode | null>(null)
+  useEffect(() => () => stopSong(), []) // the song stops when the passport is closed
   const swipe = useRef<number | null>(null)
   useScrollLock(zoom !== null)
 
@@ -189,9 +192,9 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
             <div className="member-alias">
               <p className="alias-label mono">Apodo</p>
               {person.nickname?.trim() ? <p className="alias-name">«{person.nickname.trim()}»</p> : <p className="alias-name empty">Sin apodo</p>}
-              <SymbolBadge symbol={person.symbol} label={person.symbol_label} size={56} />
             </div>
           </div>
+          <SongPlayer song={person.song} />
           <dl className="member-grid">
             <div className="wide"><dt>Carrera</dt><dd>{career || '—'}</dd></div>
             <div><dt>Ingresó a inducción</dt><dd>{joined || 'Por definir'}</dd></div>
@@ -404,7 +407,7 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
       </nav>
 
       {phase !== 'open' && (
-        <button type="button" className={`cover${phase === 'opening' ? ' opening' : ''}`} onClick={() => setPhase('opening')} aria-label="Abrir el pasaporte">
+        <button type="button" className={`cover${phase === 'opening' ? ' opening' : ''}`} onClick={() => { if (person.song) void playSong(person.song.preview); setPhase('opening') }} aria-label="Abrir el pasaporte">
           <span className="cover-inner member-cover">
             <span className="cover-corner tl" aria-hidden="true" />
             <span className="cover-corner tr" aria-hidden="true" />

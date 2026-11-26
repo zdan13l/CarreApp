@@ -2,6 +2,7 @@
 // (the @ and the password of every person). Pure functions where possible: the screen shows a preview before anything is created.
 import { readTablesFromFile } from './bulk'
 import { COMMITTEES } from './committees'
+import type { PassportSong } from './songs'
 import { generatePassword } from './password'
 import { GENERATIONS, generationsOf } from './seals'
 import { cultureOf, themeOf, type CultureKey } from './themes'
@@ -32,10 +33,9 @@ export interface PassportPerson {
   username: string
   full_name: string
   photo_path: string | null
-  // migration 0024: the coordinator sets generation and entry; each person sets nickname and symbol
+  // migration 0024: the coordinator sets generation, entry and nickname
   nickname?: string | null
-  symbol?: string | null
-  symbol_label?: string | null
+  song?: PassportSong | null // migration 0042: the song that characterises the person (a 30 s preview), read apart so the passport opens without it
   generation?: string | null
   joined_term?: string | null
   // migration 0035: an ancestor (left the induction) keeps their passport until `disable_at`, then it is disabled
@@ -45,7 +45,7 @@ export interface PassportPerson {
 }
 
 /** The columns of the passport, with and without the ones of migration 0024 (the app keeps working until it is applied). */
-export const PERSON_COLUMNS = 'id, username, full_name, photo_path, nickname, symbol, symbol_label, generation, joined_term, status, ancestor_at, disable_at'
+export const PERSON_COLUMNS = 'id, username, full_name, photo_path, nickname, generation, joined_term, status, ancestor_at, disable_at'
 export const PERSON_COLUMNS_BASE = 'id, username, full_name, photo_path'
 export const RECORD_COLUMNS = 'id, passport_id, term_id, role, career, culture, team_id, base_id, committee, committee_lead, extra_committees, extra_leads'
 /** The columns before migration 0027 (the extra committees). */

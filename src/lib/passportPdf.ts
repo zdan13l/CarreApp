@@ -12,7 +12,6 @@ import { personNumber, PASSPORT_ROLE_LONG } from './passports'
 import { jpegPdf } from './pdf'
 import { mrzText, stampLook, stampTime } from './stamp'
 import { photoUrl } from './storage'
-import { symbolOf } from './symbols'
 import { cultureOf, themeOf } from './themes'
 import CareerEmblem, { careerKey } from '../components/CareerEmblem'
 import Insignia from '../components/Insignia'
@@ -226,8 +225,6 @@ function identity(ctx: PageContext, no: number, total: number): string {
   const career = records[0]?.career ?? ''
   const ink = INKS[1]
   const { piece } = pieces(ctx)
-  const symbol = symbolOf(person.symbol)
-  const SymbolIcon = symbol?.Icon
   const nameLines = wrap(person.full_name.toUpperCase(), 24)
   const generation = person.generation?.trim()
   const joined = person.joined_term?.trim()
@@ -262,9 +259,7 @@ function identity(ctx: PageContext, no: number, total: number): string {
     ${photo}<rect x="56" y="160" width="150" height="190" rx="14" fill="none" stroke="${ink}" stroke-width="4"/>
     ${text(242, 184, 'APODO', { size: 10, mono: true, spacing: 2.4, fill: FAINT })}
     ${person.nickname?.trim() ? lines(242, 222, wrap(`«${person.nickname.trim()}»`, 15).slice(0, 2), 36, { size: 34, weight: 800, fill: ink, stretch: true }) : text(242, 216, 'Sin apodo', { size: 20, fill: FAINT })}
-    <circle cx="272" cy="300" r="30" fill="#eef1f8" stroke="${ink}" stroke-width="2.4"/>
-    ${SymbolIcon ? `<g style="color:${ink}">${place(svgOf(ctx.render(createElement(SymbolIcon, { size: 30, strokeWidth: 1.8 }))), 99, 257, 285, 30, 30)}</g>` : text(272, 308, '?', { size: 24, fill: FAINT, anchor: 'middle' })}
-    ${text(318, 304, symbol ? person.symbol_label?.trim() || symbol.name : 'Sin símbolo', { size: 15, fill: MUTED })}
+    ${person.song ? `${text(242, 266, 'CANCIÓN', { size: 10, mono: true, spacing: 2.4, fill: FAINT })}${lines(242, 292, wrap(person.song.title, 24).slice(0, 2), 21, { size: 17, weight: 800, fill: INK })}${text(242, 336, person.song.artist.slice(0, 40), { size: 13, fill: MUTED })}` : text(242, 290, 'Sin canción', { size: 15, fill: FAINT })}
     ${grid}
     ${genSeal ? piece(createElement(GenerationSeals, { generation: genSeal.name, size: 150 }), 86, 566, 150, 150, -3, ink, PAPER) + text(161, 740, 'GENERACIÓN', { size: 9.5, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' }) : slot(86, 'Generación', generation, 'Generación', 'Inducción Javeriana', -3)}${slot(364, 'Ingresó a inducción', joined, 'Ingresó a inducción', 'Pontificia Universidad Javeriana', 4)}`
   return page(ctx, { culture: 'general', mrz: mrzOf(person.full_name, `PUJ<<${careerKey(career).toUpperCase()}<<${personNumber(person.id).slice(4)}`) }, body, no, total, ink)

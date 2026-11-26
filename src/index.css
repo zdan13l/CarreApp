@@ -2633,3 +2633,34 @@ html:has(.tower), body:has(.tower) { background: #fff url(/login-pattern.svg) 0 
 .insignia-story p strong { color: var(--text); font-weight: 700; }
 .insignia-story .claver { padding-top: .8rem; border-top: 1px dashed var(--border-strong); }
 .career-slot button.slot-btn { cursor: pointer; }
+
+/* La canción de cada persona: en el pasaporte y en la lista de Inductores */
+.song-player { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .55rem .8rem; margin: 0 0 1rem; padding: .7rem .8rem; background: color-mix(in srgb, var(--surface) 88%, transparent); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: inset 0 3px 0 0 var(--pass-gold); }
+.song-cover { display: grid; place-items: center; width: 56px; height: 56px; object-fit: cover; color: var(--text-faint); background: var(--surface-3); border-radius: 10px; }
+.song-info { display: grid; min-width: 0; line-height: 1.25; }
+.song-info strong, .song-info span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.song-info span { color: var(--text-muted); font-size: .875rem; }
+.song-label { color: var(--text-faint); font: 700 .75rem/1.2 ui-monospace, 'SF Mono', Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; }
+button.song-play { display: grid; place-items: center; width: 46px; height: 46px; min-height: 0; padding: 0; color: #fff; background: var(--pass-navy); background-image: none; border-radius: 50%; }
+button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
+.song-volume { grid-column: 1 / -1; display: flex; align-items: center; gap: .5rem; color: var(--text-muted); }
+.song-volume input { flex: 1; accent-color: var(--pass-navy); }
+.song-note { grid-column: 1 / -1; margin: 0; color: var(--text-faint); font-size: .8125rem; }
+.song-note a { color: var(--text); font-weight: 600; }
+.song-empty { margin: 0 0 1rem; color: var(--text-faint); font-size: .9rem; }
+.song-cell { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; width: 100%; }
+.song-current { display: flex; align-items: center; gap: .4rem; min-width: 0; }
+.song-current img, .song-results img, .song-choice img { flex: none; object-fit: cover; border-radius: 6px; }
+.song-search { flex-basis: 100%; display: grid; gap: .4rem; padding: .5rem; background: var(--surface-2); border-radius: var(--radius-sm); }
+.song-search form { display: flex; gap: .4rem; }
+.song-search form input { flex: 1; min-width: 0; }
+.song-results { list-style: none; display: grid; gap: .3rem; margin: 0; padding: 0; }
+.song-results li { display: flex; align-items: center; gap: .5rem; }
+.songs-excel summary { display: flex; align-items: center; gap: .5rem; cursor: pointer; font-weight: 700; }
+.song-review { list-style: none; display: grid; gap: .4rem; margin: .8rem 0 0; padding: 0; }
+.song-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: .5rem .8rem; align-items: center; padding: .55rem .65rem; background: var(--surface-2); border-radius: var(--radius-sm); }
+.song-who { display: grid; min-width: 0; }
+.song-who small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.song-choice { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; min-width: 0; }
+.song-choice select { max-width: 100%; }
+@media (max-width: 700px) { .song-row { grid-template-columns: 1fr; } }
