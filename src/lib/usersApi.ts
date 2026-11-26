@@ -1,16 +1,8 @@
-import { supabase } from './supabase'
+import { apiFetch } from './apiFetch'
 import type { UserRole } from '../types'
 
 async function call(method: 'POST' | 'PATCH' | 'DELETE', body: object): Promise<{ id?: string }> {
-  if (!supabase) throw new Error('Supabase no está configurado.')
-  const { data } = await supabase.auth.getSession()
-  const token = data.session?.access_token
-  if (!token) throw new Error('Sesión expirada. Vuelve a entrar.')
-  const res = await fetch('/api/users', {
-    method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify(body),
-  })
+  const res = await apiFetch('/api/users', { method, body })
   if (!res.ok) {
     const payload = await res.json().catch(() => ({}))
     throw new Error(payload.error ?? 'No se pudo completar la acción.')
