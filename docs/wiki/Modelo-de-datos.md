@@ -158,6 +158,8 @@ erDiagram
 
 **Inducciones y doble programa (0044):** `passport_records.disabled` marca a la persona como deshabilitada en esa inducción (queda sin grupo ni base); la vista `passport_inductions` cuenta cuántos semestres tiene cada persona sin estar deshabilitada (es lo que lleva el pasaporte). `passports.second_career` guarda la otra carrera del doble programa (la primera sigue en `passports.career`).
 
+**Inducciones previas y entrada automática (0045):** `passports.prior_inductions` (0 a 40, fija, solo el coordi) son las inducciones de antes de CarreApp y la vista `passport_inductions` suma a ese número los semestres con registro no deshabilitado. `create_event()` llama a `enroll_active_inductors()`, que crea el registro (corredor, carrera de la persona, subtemática de su carrera en la temática de esa carrera según `career_culture()`) de cada inductor activo.
+
 **Canción (0042):** `passports.song` (jsonb) guarda el fragmento de 30 s que caracteriza a la persona (título, artista, audio, carátula y enlace, todo de Apple Music; un disparador lo valida). Reemplaza al símbolo personal (`symbol`, `symbol_label`, sin uso).
 
 **Sellos de una carrera (0040):** `event_seals` (kind, ref, forma, color, imagen) siempre pertenece a una carrera y solo puede ir en un elemento de ella (`event_seals_valid_ref`); se borra con su elemento. Los sellos de generación son globales (`generations`).
