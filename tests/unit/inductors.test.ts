@@ -8,13 +8,16 @@ import {
   inductionsLabel,
   inductorsTable,
   latestCareers,
+  MAX_PRIOR_INDUCTIONS,
   matchCareer,
   matchesSearch,
   NO_FILTERS,
   parseInductors,
   passesFilters,
+  priorOf,
   profileChanges,
   rowProblem,
+  secondCareerProblem,
   shortCareer,
   songSearchOf,
   type InductorsContext,
@@ -229,6 +232,7 @@ describe('the Excel that goes out and the template', () => {
     expect(parsed.map((r) => [r.username, r.nickname])).toEqual([['ana.perez', 'Anita'], ['luis.ruiz', 'Lucho'], ['camila.torres', 'Cami']])
     expect(parsed[0].songWritten).toBe('Mujeriego - Ryan Castro')
     expect(parsed.map((r) => r.secondCareer)).toEqual([null, null, 'Mecatrónica']) // the third example is a double program
+    expect(parsed.map((r) => r.prior)).toEqual([0, 3, 8]) // and the examples show the inductions already had
   })
 })
 
@@ -249,12 +253,65 @@ describe('the other career of a double program', () => {
     expect(a.secondCareer).toBe('Ingeniería de Sistemas')
     expect(rowProblem(a)).toBeNull()
   })
-  it('one that is not in the catalog has to be chosen or removed, and it cannot be the same as the first', () => {
+  it('one that is not in the catalog (Derecho, Medicina…) is kept as written: the catalog only holds the engineerings', () => {
     const [a] = load(['Ana Gómez', 'Civil', 'Medicina Veterinaria', 'Barbies', 'Anita'])
-    expect(a.secondCareer).toBeNull()
-    expect(rowProblem(a)).toMatch(/Medicina Veterinaria/)
+    expect(a.secondCareer).toBe('Medicina Veterinaria')
+    expect(rowProblem(a)).toBeNull()
+  })
+  it('it cannot be the same as the first, and it has from 2 to 80 letters', () => {
     const [b] = load(['Ana Gómez', 'Civil', 'Civil', 'Barbies', 'Anita'])
     expect(rowProblem(b)).toMatch(/la misma/)
+    expect(secondCareerProblem('D')).toMatch(/2 a 80/)
+    expect(secondCareerProblem('x'.repeat(81))).toMatch(/2 a 80/)
+    expect(secondCareerProblem('Derecho')).toBeNull()
+    expect(secondCareerProblem('  ')).toBeNull()
+    expect(secondCareerProblem(null)).toBeNull()
+  })
+  it('the profile editor saves it as written, trimmed', () => {
+    const ana = person({ career: 'Ingeniería Civil', generation: 'Barbies', joined_term: '2630', nickname: 'Anita' })
+    const same = { fullName: 'Ana Pardo Ruiz', username: 'ana.ruiz', career: 'Ingeniería Civil', generation: 'Barbies', nickname: 'Anita', song: null }
+    expect(profileChanges(ana, 'Ingeniería Civil', { ...same, secondCareer: '  Medicina   Veterinaria ' })).toEqual({ second_career: 'Medicina Veterinaria' })
+  })
+})
+
+describe('the inductions a person already had (0045)', () => {
+  const head = ['Nombre', 'Carrera', 'Generación', 'Apodo', 'Inducciones previas (opcional)']
+  const load = (...rows: string[][]) => parseInductors([[head, ...rows]], { careers: CAREERS, usernames: new Set(), known: new Map(), defaultGeneration: '' })
+  it('the Excel brings them in a column of their own; empty is 0, so a new inductor starts at 0', () => {
+    const [a, b, c] = load(['Ana Gómez', 'Civil', 'Barbies', 'Anita', '4'], ['Luis Ruiz', 'Civil', 'Barbies', 'Lucho', ''], ['Eva Mora', 'Civil', 'Barbies', 'Eva', '8'])
+    expect([a.prior, b.prior, c.prior]).toEqual([4, 0, 8])
+    expect([a, b, c].map(rowProblem)).toEqual([null, null, null])
+  })
+  it('the column can also be called «Inducciones»', () => {
+    const [a] = parseInductors([[['Nombre', 'Carrera', 'Generación', 'Apodo', 'Inducciones'], ['Ana Gómez', 'Civil', 'Barbies', 'Anita', '3']]], { careers: CAREERS, usernames: new Set(), known: new Map(), defaultGeneration: '' })
+    expect(a.prior).toBe(3)
+  })
+  it('a text, a negative or an absurd number is a problem of the row, not a silent 0', () => {
+    for (const bad of ['muchas', '-2', '3.5', '99']) {
+      const [a] = load(['Ana Gómez', 'Civil', 'Barbies', 'Anita', bad])
+      expect(rowProblem(a)).toMatch(/inducciones previas/)
+      expect(a.prior).toBe(0)
+    }
+  })
+  it('a field of the forms accepts a whole number from 0 to the maximum, and an empty one is 0', () => {
+    expect(priorOf('')).toBe(0)
+    expect(priorOf(' 8 ')).toBe(8)
+    expect(priorOf(String(MAX_PRIOR_INDUCTIONS))).toBe(MAX_PRIOR_INDUCTIONS)
+    expect(priorOf(String(MAX_PRIOR_INDUCTIONS + 1))).toBeNull()
+    expect(priorOf('-1')).toBeNull()
+    expect(priorOf('2.5')).toBeNull()
+    expect(priorOf('x')).toBeNull()
+  })
+  it('the profile editor saves it only when it changed', () => {
+    const veteran = person({ career: 'Ingeniería Civil', generation: 'Barbies', joined_term: '2630', nickname: 'Anita', prior_inductions: 3 })
+    const same = { fullName: 'Ana Pardo Ruiz', username: 'ana.ruiz', career: 'Ingeniería Civil', generation: 'Barbies', nickname: 'Anita', song: null }
+    expect(profileChanges(veteran, 'Ingeniería Civil', { ...same, priorInductions: 3 })).toEqual({})
+    expect(profileChanges(veteran, 'Ingeniería Civil', { ...same, priorInductions: 8 })).toEqual({ prior_inductions: 8 })
+    expect(profileChanges(person({ career: 'Ingeniería Civil', generation: 'Barbies', joined_term: '2630', nickname: 'Anita' }), 'Ingeniería Civil', { ...same, priorInductions: 0 })).toEqual({})
+  })
+  it('the template of the Excel has the column and its examples load as they are', () => {
+    const rows = templateData(CAREERS, ['Minichips', 'Barbies']).map((r) => r.map((c) => (typeof c === 'string' ? c : c.value)))
+    expect(rows[0]).toContain('Inducciones previas (opcional)')
   })
 })
 

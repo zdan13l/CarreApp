@@ -91,7 +91,8 @@ export interface InductorIn {
   careerWritten: string
   career: string | null // the one of the catalog (null: the coordi has to choose)
   secondWritten: string // the other career of a double program, as written ('' = none)
-  secondCareer: string | null // the one of the catalog; null with secondWritten set means it is not in the catalog
+  secondCareer: string | null // the one of the catalog, or the one written when it is not an engineering of the catalog
+  prior: number // the inductions they already had before CarreApp (0 when the cell is empty)
   generation: string // exact names of the catalog, « / »-joined ('' = the coordi has to choose)
   nickname: string
   songWritten: string
@@ -127,6 +128,7 @@ export function parseInductors(tables: string[][][], ctx: InductorsContext): Ind
   const [iName, iCareer, iGen, iNick, iUser] = [at('nombre'), at('carrera'), at('generacion'), at('apodo'), at('usuario')]
   const iSecond = heads.findIndex((h) => h === 'otra carrera' || h === 'segunda carrera' || h === 'doble programa')
   const iSong = heads.findIndex((h) => h.includes('cancion'))
+  const iPrior = heads.findIndex((h) => h === 'inducciones previas' || h === 'inducciones' || h === 'inducciones que lleva' || h === 'inducciones que ya lleva')
   const cell = (r: string[], i: number) => (i >= 0 ? String(r[i] ?? '').replace(/\s+/g, ' ').trim() : '')
   const taken = new Set(ctx.usernames)
   const seen = new Set<string>()
@@ -139,7 +141,12 @@ export function parseInductors(tables: string[][][], ctx: InductorsContext): Ind
     const careerWritten = cell(r, iCareer)
     const career = ctx.careers.length ? matchCareer(careerWritten, ctx.careers) : careerWritten || null
     const secondWritten = cell(r, iSecond)
-    const secondCareer = !secondWritten ? null : ctx.careers.length ? matchCareer(secondWritten, ctx.careers) : secondWritten
+    // the other career may be any: one of the catalog is matched, and one that is not (Derecho, Medicina…) is kept as written
+    const secondCareer = !secondWritten ? null : (ctx.careers.length ? matchCareer(secondWritten, ctx.careers) : null) ?? secondWritten
+    const priorWritten = cell(r, iPrior)
+    const priorRead = priorOf(priorWritten)
+    if (priorRead === null) errors.push(`Las inducciones previas deben ser un número de 0 a ${MAX_PRIOR_INDUCTIONS} (decía «${priorWritten}»).`)
+    const prior = priorRead ?? 0
     let generation = cell(r, iGen)
     if (generation) {
       const parts = generation.split(/[/,+]/).map((x) => x.trim()).filter(Boolean)
@@ -162,7 +169,7 @@ export function parseInductors(tables: string[][][], ctx: InductorsContext): Ind
         username = wanted
       } else username = passportUsername(fullName, taken)
     }
-    out.push({ line: i + 2, fullName, careerWritten, career, secondWritten, secondCareer, generation, nickname, songWritten: cell(r, iSong), username, existing: Boolean(knownUser), errors })
+    out.push({ line: i + 2, fullName, careerWritten, career, secondWritten, secondCareer, prior, generation, nickname, songWritten: cell(r, iSong), username, existing: Boolean(knownUser), errors })
   })
   if (out.length === 0) throw new Error('La tabla no tiene personas.')
   return out
@@ -177,10 +184,18 @@ export function rowProblem(r: InductorIn): string | null {
   if (r.errors.length) return r.errors[0]
   if (r.existing) return null
   if (!r.career) return 'Elige la carrera.'
-  if (r.secondWritten && !r.secondCareer) return `La otra carrera «${r.secondWritten}» no está: elígela o quítala.`
+  const secondProblem = secondCareerProblem(r.secondCareer)
+  if (secondProblem) return secondProblem
   if (r.secondCareer && r.secondCareer === r.career) return 'La otra carrera es la misma que la primera.'
   if (!r.generation) return 'Elige la generación.'
   return null
+}
+
+/** Why the written other career cannot be saved (null = fine or none): the database wants 2 to 80 letters. */
+export function secondCareerProblem(text: string | null | undefined): string | null {
+  const t = (text ?? '').trim()
+  if (!t) return null
+  return t.length < 2 || t.length > 80 ? 'La otra carrera debe tener de 2 a 80 letras.' : null
 }
 
 /** The song text of a row as something that can be searched: empty when they wrote none or a link that is not Apple Music (the coordi searches it by hand). */
@@ -192,6 +207,7 @@ export interface NewInductor {
   fullName: string
   career: string
   secondCareer?: string | null // the other career of a double program
+  priorInductions?: number // the inductions they already had; from there the carreras they join add one each
   generation: string
   nickname?: string
   song?: PassportSong | null
@@ -209,6 +225,7 @@ export async function createInductor(input: NewInductor, usernames: Set<string>)
   const data = {
     career: input.career,
     ...(input.secondCareer ? { second_career: input.secondCareer } : {}),
+    ...(input.priorInductions ? { prior_inductions: input.priorInductions } : {}),
     generation: input.generation,
     ...(entry ? { joined_term: entry } : {}),
     ...(input.nickname ? { nickname: input.nickname } : {}),
@@ -217,7 +234,7 @@ export async function createInductor(input: NewInductor, usernames: Set<string>)
   const { error } = await supabase.from('passports').update(data).eq('id', id)
   if (error) {
     await deleteUser(id).catch(() => undefined)
-    throw new Error(/second_career/i.test(error.message) ? 'Falta aplicar la migración 0044 (el doble programa).' : /column .*career|schema cache/i.test(error.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /column .*song/i.test(error.message) ? 'Falta aplicar la migración 0042 (la canción).' : error.message || 'No se pudieron guardar los datos del inductor.')
+    throw new Error(/prior_inductions/i.test(error.message) ? 'Falta aplicar la migración 0045 (las inducciones previas).' : /second_career/i.test(error.message) ? 'Falta aplicar la migración 0044 (el doble programa).' : /column .*career|schema cache/i.test(error.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /column .*song/i.test(error.message) ? 'Falta aplicar la migración 0042 (la canción).' : error.message || 'No se pudieron guardar los datos del inductor.')
   }
   return { id, username, password }
 }
@@ -232,6 +249,7 @@ export interface IdentityPatch {
   username?: string // changes the login too: it goes through the server (renameUser)
   career?: string | null
   second_career?: string | null // the other career of a double program (0044)
+  prior_inductions?: number // the inductions they already had (0045)
   generation?: string | null
   joined_term?: string | null
   nickname?: string | null
@@ -239,14 +257,16 @@ export interface IdentityPatch {
 }
 
 /** What changed between a person and the profile the coordi edited. A new generation brings its entry with it. Empty when nothing changed. */
-export function profileChanges(p: PassportPerson, career: string | null, draft: { fullName: string; username: string; career: string; secondCareer?: string; generation: string; nickname: string; song: PassportSong | null }): IdentityPatch {
+export function profileChanges(p: PassportPerson, career: string | null, draft: { fullName: string; username: string; career: string; secondCareer?: string; priorInductions?: number; generation: string; nickname: string; song: PassportSong | null }): IdentityPatch {
   const patch: IdentityPatch = {}
   const user = draft.username.trim().toLowerCase().replace(/^@/, '')
   if (user && user !== p.username) patch.username = user
   const name = draft.fullName.trim().replace(/\s+/g, ' ')
   if (name && name !== p.full_name) patch.full_name = name
   if ((draft.career || null) !== (career ?? null)) patch.career = draft.career || null
-  if (draft.secondCareer !== undefined && (draft.secondCareer || null) !== (p.second_career ?? null)) patch.second_career = draft.secondCareer || null
+  const second = draft.secondCareer?.trim().replace(/\s+/g, ' ')
+  if (second !== undefined && (second || null) !== (p.second_career ?? null)) patch.second_career = second || null
+  if (draft.priorInductions !== undefined && draft.priorInductions !== (p.prior_inductions ?? 0)) patch.prior_inductions = draft.priorInductions
   if ((draft.generation || null) !== (p.generation ?? null)) {
     patch.generation = draft.generation || null
     const entry = entryOf(draft.generation)
@@ -258,6 +278,16 @@ export function profileChanges(p: PassportPerson, career: string | null, draft: 
 }
 
 // ---------- how many inductions a person has taken part in ----------
+
+/** The most inductions someone can already carry when they are registered (the database refuses more). */
+export const MAX_PRIOR_INDUCTIONS = 40
+
+/** The number typed in a field of «inducciones previas»: a whole number from 0 to 40, or null when it is not one. */
+export function priorOf(text: string): number | null {
+  const t = text.trim()
+  if (t === '') return 0
+  return /^\d{1,2}$/.test(t) && Number(t) <= MAX_PRIOR_INDUCTIONS ? Number(t) : null
+}
 
 /** «1 inducción», «3 inducciones». The count comes from the database (view passport_inductions, 0044): the inductions where their profile is not disabled. */
 export const inductionsLabel = (n: number) => `${n} ${n === 1 ? 'inducción' : 'inducciones'}`

@@ -2793,6 +2793,9 @@ a.add-link:hover { color: var(--on-gold); background: var(--gold); border-color:
 .error-note { color: var(--danger); font-weight: 600; }
 .bulk-steps .row a.add-link { margin-left: .2rem; }
 .bulk-fields input { min-height: 40px; }
+.bulk-fields .prior-field { display: grid; gap: .15rem; }
+.second-career { display: grid; gap: .4rem; min-width: 0; }
+.second-career select, .second-career input { width: 100%; }
 
 .filter-bar { display: grid; gap: .6rem; }
 .filter-row { display: flex; align-items: stretch; gap: .6rem; }

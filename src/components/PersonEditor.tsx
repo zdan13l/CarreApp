@@ -1,12 +1,13 @@
 import { Camera, CalendarCheck } from 'lucide-react'
 import { useState } from 'react'
-import { entryOf, profileChanges, type IdentityPatch } from '../lib/inductors'
+import { MAX_PRIOR_INDUCTIONS, entryOf, inductionsLabel, priorOf, profileChanges, secondCareerProblem, type IdentityPatch } from '../lib/inductors'
 import type { PassportPerson } from '../lib/passports'
 import type { PassportSong } from '../lib/songs'
 import { USERNAME_PATTERN } from '../lib/username'
 import AddLink from './AddLink'
 import Avatar from './Avatar'
 import GenerationPicker from './GenerationPicker'
+import SecondCareerField from './SecondCareerField'
 import SongCell from './SongCell'
 
 // The profile of an inductor, edited in place: name, @, career, generation (the entry follows it), nickname, song and photo.
@@ -36,14 +37,14 @@ export default function PersonEditor({
   const [username, setUsername] = useState(person.username)
   const [careerDraft, setCareerDraft] = useState(career ?? '')
   const [secondDraft, setSecondDraft] = useState(person.second_career ?? '')
+  const [priorDraft, setPriorDraft] = useState(String(person.prior_inductions ?? 0))
   const [generation, setGeneration] = useState(person.generation ?? '')
   const [nickname, setNickname] = useState(person.nickname ?? '')
   const [song, setSong] = useState<PassportSong | null>(person.song ?? null)
   const [problem, setProblem] = useState<string | null>(null)
-  const changes = profileChanges(person, career, { fullName, username, career: careerDraft, secondCareer: secondDraft, generation, nickname, song })
+  const changes = profileChanges(person, career, { fullName, username, career: careerDraft, secondCareer: secondDraft, priorInductions: priorOf(priorDraft) ?? undefined, generation, nickname, song })
   const entry = entryOf(generation)
   const options = careers.includes(careerDraft) || !careerDraft ? careers : [careerDraft, ...careers]
-  const secondOptions = careers.includes(secondDraft) || !secondDraft ? careers : [secondDraft, ...careers]
   const handle = username.trim().toLowerCase().replace(/^@/, '')
   const handleProblem = handle === person.username ? null : !USERNAME_PATTERN.test(handle) ? 'De 3 a 30 letras minúsculas, números, punto, guion o guion bajo.' : usernames?.has(handle) ? 'Ese @ ya existe.' : null
 
@@ -52,8 +53,11 @@ export default function PersonEditor({
     if (handleProblem) return setProblem(handleProblem)
     if (!nickname.trim()) return setProblem('Escribe el apodo.')
     if (!careerDraft) return setProblem('Elige la carrera.')
-    if (secondDraft && secondDraft === careerDraft) return setProblem('La otra carrera es la misma que la primera.')
+    if (secondDraft.trim() && secondDraft.trim() === careerDraft) return setProblem('La otra carrera es la misma que la primera.')
+    const secondProblem = secondCareerProblem(secondDraft)
+    if (secondProblem) return setProblem(secondProblem)
     if (!generation) return setProblem('Toda persona pertenece a una generación: elige una.')
+    if (priorOf(priorDraft) === null) return setProblem(`Las inducciones que ya llevaba son un número de 0 a ${MAX_PRIOR_INDUCTIONS}.`)
     setProblem(null)
     onSave(changes)
   }
@@ -88,16 +92,18 @@ export default function PersonEditor({
         </div>
         <div className="inline-field">
           <div className="field-head"><label htmlFor={`second-${person.id}`}>Otra carrera <small className="muted">(doble programa)</small></label></div>
-          <select id={`second-${person.id}`} value={secondDraft} onChange={(e) => setSecondDraft(e.target.value)} disabled={busy}>
-            <option value="">Ninguna</option>
-            {secondOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
+          <SecondCareerField id={`second-${person.id}`} careers={careers} value={secondDraft} disabled={busy} label={`Otra carrera de ${person.full_name}`} onChange={setSecondDraft} />
         </div>
         <div className="inline-field wide">
           <div className="field-head"><span>Generación</span><AddLink to="/admin/generaciones">Crear generación</AddLink></div>
           <GenerationPicker key={person.generation ?? ''} value={person.generation} label={`Generación de ${person.full_name}`} disabled={busy} required onChange={setGeneration} />
           {(entry || person.joined_term) && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry ?? person.joined_term}</strong></span>}
         </div>
+        <label className="inline-field wide">
+          <span>Inducciones que ya llevaba</span>
+          <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={priorDraft} onChange={(e) => setPriorDraft(e.target.value)} disabled={busy} aria-invalid={priorOf(priorDraft) === null} />
+          <small className="muted">Las de antes de CarreApp; queda fija y cada carrera en que participa suma una.{person.inductions != null && <> Hoy lleva <strong>{inductionsLabel(person.inductions)}</strong> en total.</>}</small>
+        </label>
       </div>
       <div className="form-block">
         <h3>Su canción</h3>

@@ -48,7 +48,7 @@ export default function Carreras() {
 
   async function create() {
     if (!supabase) return
-    if (!(await confirmDialog({ title: `¿Crear la carrera ${next ?? ''}?`, message: 'Empieza vacía: sin grupos, bases, cruces ni usuarios. Su temática se copia de la plantilla que elegiste y es solo suya. Nada se hereda de otras carreras.', confirmLabel: 'Crear carrera', icon: 'check' }))) return
+    if (!(await confirmDialog({ title: `¿Crear la carrera ${next ?? ''}?`, message: 'Empieza sin grupos, bases, cruces ni usuarios. Su temática se copia de la plantilla que elegiste y es solo suya. Todos los inductores activos entran solos como corredores; luego les das rol, comité, grupo o base.', confirmLabel: 'Crear carrera', icon: 'check' }))) return
     setBusy(true)
     setError(null)
     let { data, error: err } = await supabase.rpc('create_event', { p_theme: template })

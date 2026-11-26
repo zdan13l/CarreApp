@@ -1,6 +1,6 @@
 import { Download, FileSpreadsheet, Search, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { createInductor, readInductorsFile, rowProblem, songSearchOf, type InductorIn } from '../lib/inductors'
+import { MAX_PRIOR_INDUCTIONS, createInductor, priorOf, readInductorsFile, rowProblem, songSearchOf, type InductorIn } from '../lib/inductors'
 import { credentialsWorkbook, downloadBlob, nameKey, templateWorkbook, type CredentialRow, type PassportPerson } from '../lib/passports'
 import { GENERATIONS } from '../lib/seals'
 import { appleTrack, findSongs, looksRight, sleep, SEARCH_GAP_MS, type PassportSong } from '../lib/songs'
@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { errMsg } from '../pages/admin/AdminContext'
 import AddLink from './AddLink'
 import GenerationPicker from './GenerationPicker'
+import SecondCareerField from './SecondCareerField'
 import { Audition } from './SongCell'
 
 interface Row extends InductorIn {
@@ -111,7 +112,7 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
             if (err) throw new Error(/song|migraci/i.test(err.message) ? 'Falta aplicar la migración 0042.' : 'No se pudo guardar la canción.')
             out.songs++
           } else {
-            const made = await createInductor({ fullName: r.fullName, career: r.career!, secondCareer: r.secondCareer, generation: r.generation, nickname: r.nickname, song, username: r.username }, usernames)
+            const made = await createInductor({ fullName: r.fullName, career: r.career!, secondCareer: r.secondCareer, priorInductions: r.prior, generation: r.generation, nickname: r.nickname, song, username: r.username }, usernames)
             out.created++
             if (song) out.songs++
             credentials.push({ fullName: r.fullName, career: r.career!, secondCareer: r.secondCareer ?? undefined, generation: r.generation, username: made.username, password: made.password })
@@ -198,11 +199,12 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
                         <option value="">{r.careerWritten ? `Elegir (decía «${r.careerWritten}»)` : 'Elegir carrera…'}</option>
                         {careers.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
-                      <select value={r.secondCareer ?? ''} aria-label={`Otra carrera de ${r.fullName}`} onChange={(e) => patch(r.line, { secondCareer: e.target.value || null, secondWritten: '' })}>
-                        <option value="">{r.secondWritten ? `Otra carrera: elegir (decía «${r.secondWritten}»)` : 'Sin otra carrera'}</option>
-                        {careers.map((c) => <option key={c} value={c}>{c}</option>)}
-                      </select>
+                      <SecondCareerField id={`second-${r.line}`} careers={careers} value={r.secondCareer ?? ''} label={`Otra carrera de ${r.fullName}`} onChange={(c) => patch(r.line, { secondCareer: c || null })} />
                       <input value={r.nickname} maxLength={24} placeholder="Apodo" aria-label={`Apodo de ${r.fullName}`} onChange={(e) => patch(r.line, { nickname: e.target.value, errors: r.errors.filter((x) => !/apodo/i.test(x)).concat(e.target.value.trim() ? [] : ['Falta el apodo.']) })} />
+                      <label className="prior-field">
+                        <small className="muted">Inducciones que ya lleva</small>
+                        <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={r.prior} aria-label={`Inducciones que ya lleva ${r.fullName}`} onChange={(e) => patch(r.line, { prior: priorOf(e.target.value) ?? r.prior, errors: r.errors.filter((x) => !/inducciones previas/i.test(x)) })} />
+                      </label>
                       <GenerationPicker key={`${r.line}-${r.generation}`} value={r.generation} label={`Generación de ${r.fullName}`} onChange={(g) => patch(r.line, { generation: g, errors: r.errors.filter((x) => !/generación/i.test(x)) })} />
                     </span>
                   )}

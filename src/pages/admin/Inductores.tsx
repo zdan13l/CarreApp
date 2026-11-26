@@ -1,5 +1,5 @@
 import PageTitle from './PageTitle'
-import { Copy, FileSpreadsheet, GraduationCap, KeyRound, Music, Pencil, RotateCcw, Search, Trash2, UserPlus, UserX } from 'lucide-react'
+import { Copy, FileSpreadsheet, GraduationCap, KeyRound, Music, Pencil, RotateCcw, Search, Trash2, UserPlus, UserX, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Avatar from '../../components/Avatar'
 import FilterBar, { type ChipGroup } from '../../components/FilterBar'
@@ -274,6 +274,8 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
   const [records, setRecords] = useState<PassportRecordRow[]>([])
   const [teams, setTeams] = useState<{ id: string; name: string; event: string }[]>([])
   const [termEvents, setTermEvents] = useState<string[]>([]) // the Carreras of the open semester
+  const [eventId, setEventId] = useState<string | null>(null) // the newest carrera of that semester: where the active inductors are summed
+  const [notice, setNotice] = useState<string | null>(null)
   const [bases, setBases] = useState<{ id: string; name: string; event: string }[]>([])
   const [usernames, setUsernames] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
@@ -282,6 +284,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
   const [missing0025, setMissing0025] = useState(false) // the words of the induction need migration 0025
   const [missing0027, setMissing0027] = useState(false) // the extra committees need migration 0027
   const [missing0043, setMissing0043] = useState(false) // the career of each person needs migration 0043
+  const [missing0045, setMissing0045] = useState(false) // the inductions a person already had and the automatic entry need migration 0045
   const [missing0044, setMissing0044] = useState(false) // the other career, the count of inductions and the disabled profiles need migration 0044
   const [welcome, setWelcome] = useState('')
   const [committeeWords, setCommitteeWords] = useState<Record<string, string>>({})
@@ -345,17 +348,21 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     setMissing0043(Boolean(extra.error))
     if (extra.error) extra = (await supabase.from('passports').select('id, song')) as unknown as typeof extra
     const extras = new Map(((extra.error ? [] : extra.data) ?? []).map((x) => [x.id as string, x as unknown as Extra]))
+    const priors = await supabase.from('passports').select('id, prior_inductions')
+    setMissing0045(Boolean(priors.error))
+    const priorOfId = new Map(((priors.error ? [] : priors.data) ?? []).map((x) => [x.id as string, Number(x.prior_inductions) || 0]))
     const [counted, flagged] = await Promise.all([
       supabase.from('passport_inductions').select('passport_id, inductions'),
       current ? supabase.from('passport_records').select('id, disabled').eq('term_id', current) : Promise.resolve({ data: [], error: null }),
     ])
     const counts = counted.error ? null : inductionCounts((counted.data ?? []) as { passport_id: string; inductions: number }[])
     const disabledIds = new Set(flagged.error ? [] : ((flagged.data ?? []) as { id: string; disabled: boolean }[]).filter((x) => x.disabled).map((x) => x.id))
-    setPassports(((p.data ?? []) as unknown as PassportPerson[]).map((x) => ({ ...x, song: extras.get(x.id)?.song ?? null, career: extras.get(x.id)?.career ?? null, second_career: extras.get(x.id)?.second_career ?? null, inductions: counts ? (counts.get(x.id) ?? 0) : null })))
+    setPassports(((p.data ?? []) as unknown as PassportPerson[]).map((x) => ({ ...x, song: extras.get(x.id)?.song ?? null, career: extras.get(x.id)?.career ?? null, second_career: extras.get(x.id)?.second_career ?? null, prior_inductions: priors.error ? null : priorOfId.get(x.id) ?? 0, inductions: counts ? (counts.get(x.id) ?? 0) : null })))
     setRecords(((r.data ?? []) as unknown as PassportRecordRow[]).map((x) => ({ ...x, disabled: disabledIds.has(x.id) })))
     type Ev = { id: string; name: string; teams: { id: string; name: string; sort_order: number }[]; bases: { id: string; name: string; sort_order: number }[] }
     const events = (ev.data ?? []) as unknown as Ev[]
     setTermEvents(events.map((e) => e.name))
+    setEventId(events[0]?.id ?? null)
     setTeams(events.flatMap((e) => [...e.teams].sort((a, b) => a.sort_order - b.sort_order).map((x) => ({ id: x.id, name: x.name, event: e.name }))))
     setBases(events.flatMap((e) => [...e.bases].sort((a, b) => a.sort_order - b.sort_order).map((x) => ({ id: x.id, name: x.name, event: e.name }))))
     const all = await supabase.from('passport_records').select('passport_id, career, created_at').order('created_at')
@@ -442,7 +449,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
         return null
       }
       const { error: err } = await supabase.from('passports').update(rest).eq('id', person.passport.id)
-      if (err) return /second_career/i.test(err.message) ? 'Falta aplicar la migración 0044 (la otra carrera).' : /career/i.test(err.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /song/i.test(err.message) && missingColumn(err) ? 'Falta aplicar la migración 0042 (la canción).' : /generaci/i.test(err.message) ? err.message : 'No se pudo guardar el cambio.'
+      if (err) return /prior_inductions/i.test(err.message) ? 'Falta aplicar la migración 0045 (las inducciones previas).' : /second_career/i.test(err.message) ? 'Falta aplicar la migración 0044 (la otra carrera).' : /career/i.test(err.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /song/i.test(err.message) && missingColumn(err) ? 'Falta aplicar la migración 0042 (la canción).' : /generaci/i.test(err.message) ? err.message : 'No se pudo guardar el cambio.'
       await load()
       return null
     } finally {
@@ -500,6 +507,18 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
       if (err) throw new Error('No se pudo agregar a esta carrera.')
       form.reset()
       setJoinId('')
+    })
+  }
+  // every active inductor that is not in this carrera yet (people registered after it was created, or one who was taken out by mistake)
+  const missingActive = passports.filter((x) => !byPassport.has(x.id) && (x.status ?? 'active') === 'active' && Boolean(careerOfPerson(x, latest.get(x.id)))).length
+  async function onSumActive() {
+    if (!supabase || !eventId) return
+    setNotice(null)
+    await run(async () => {
+      const { data, error: err } = await supabase!.rpc('enroll_active_inductors', { p_event: eventId })
+      if (err) throw new Error(/enroll_active_inductors|function/i.test(err.message) ? 'Falta aplicar la migración 0045.' : err.message || 'No se pudo sumar a los inductores.')
+      const added = Number(data) || 0
+      setNotice(added > 0 ? `${plural(added, 'inductor entró', 'inductores entraron')} a esta carrera.` : 'No había inductores activos por sumar (sin carrera o sin subtemática para su carrera quedan fuera: agrégalos a mano).')
     })
   }
   async function onLeave(p: PassportPerson, recordId: string) {
@@ -580,9 +599,11 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
         </details>
       )}
       {error && <p className="error" role="alert">{error}</p>}
+      {notice && <p className="ok-box" role="status">{notice}</p>}
       {missing0025 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0025_passport_pages.sql</span> para las palabras de la inducción y de los comités.</p>}
       {missing0027 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0027_more_committees.sql</span> para que una persona esté en más de un comité.</p>}
       {missing0024 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0024_passport_identity.sql</span> para guardar el comité, la generación y el ingreso.</p>}
+      {missing0045 && !missing0043 && !missing0044 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0045_inducciones_previas_y_entrada_automatica.sql</span> para fijar las inducciones que ya lleva cada inductor y para que los inductores activos entren solos a cada carrera nueva.</p>}
       {missing0044 && !missing0043 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0044_inducciones_y_doble_programa.sql</span> para guardar la otra carrera, contar las inducciones y deshabilitar a alguien en una carrera.</p>}
       {missing0043 && !isCarrera && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0043_carrera_de_la_persona.sql</span> para guardar la carrera de cada inductor.</p>}
 
@@ -662,7 +683,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
       {isCarrera && term && (
         <form className="card add-person" onSubmit={(e) => { e.preventDefault(); void onJoin(e.currentTarget) }}>
           <h2>Agregar una persona a esta carrera</h2>
-          <p className="muted">Eliges entre los inductores ya registrados. ¿No está? Regístralo en Administración global → Inductores.</p>
+          <p className="muted">Al crear la carrera entraron solos los inductores activos. Aquí agregas a quien falte, o a quien se registró después. ¿No está? Regístralo en Administración global → Inductores.</p>
           <div className="grid2">
             <label className="inline-field">
               Persona
@@ -696,7 +717,10 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
               </select>
             </label>
           </div>
-          <div className="row"><button disabled={busy}><UserPlus size={18} aria-hidden="true" /> Agregar a esta carrera</button></div>
+          <div className="row">
+            <button disabled={busy}><UserPlus size={18} aria-hidden="true" /> Agregar a esta carrera</button>
+            {missingActive > 0 && eventId && <button type="button" className="ghost" disabled={busy || missing0045} onClick={() => void onSumActive()}><Users size={18} aria-hidden="true" /> Sumar a los {plural(missingActive, 'activo que falta', 'activos que faltan')}</button>}
+          </div>
         </form>
       )}
 
