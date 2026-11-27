@@ -7,6 +7,7 @@ import { USERNAME_PATTERN } from '../lib/username'
 import AddLink from './AddLink'
 import Avatar from './Avatar'
 import GenerationPicker from './GenerationPicker'
+import PhotoCropDialog from './PhotoCropDialog'
 import SecondCareerField from './SecondCareerField'
 import SongCell from './SongCell'
 
@@ -42,6 +43,7 @@ export default function PersonEditor({
   const [nickname, setNickname] = useState(person.nickname ?? '')
   const [song, setSong] = useState<PassportSong | null>(person.song ?? null)
   const [problem, setProblem] = useState<string | null>(null)
+  const [cropping, setCropping] = useState<File | null>(null) // the picture just chosen, being framed before it is uploaded
   const changes = profileChanges(person, career, { fullName, username, career: careerDraft, secondCareer: secondDraft, priorInductions: priorOf(priorDraft) ?? undefined, generation, nickname, song })
   const entry = entryOf(generation)
   const options = careers.includes(careerDraft) || !careerDraft ? careers : [careerDraft, ...careers]
@@ -63,6 +65,8 @@ export default function PersonEditor({
   }
 
   return (
+    <>
+    {cropping && <PhotoCropDialog file={cropping} title="Acomoda la foto" onCancel={() => setCropping(null)} onConfirm={(cropped) => { setCropping(null); onPhoto(cropped) }} />}
     <form className="person-editor" onSubmit={(e) => { e.preventDefault(); save() }} aria-label={`Editar el perfil de ${person.full_name}`}>
       <div className="editor-head">
         <Avatar name={fullName || person.full_name} photoPath={person.photo_path} size={56} />
@@ -72,7 +76,7 @@ export default function PersonEditor({
         <label className={`btn-like${busy ? ' disabled' : ''}`}>
           <Camera size={18} aria-hidden="true" />
           {person.photo_path ? 'Cambiar foto' : 'Agregar foto'}
-          <input type="file" accept="image/*" hidden disabled={busy} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onPhoto(f) }} />
+          <input type="file" accept="image/*" hidden disabled={busy} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) setCropping(f) }} />
         </label>
       </div>
       <div className="grid2">
@@ -114,5 +118,6 @@ export default function PersonEditor({
         <button type="button" className="ghost" disabled={busy} onClick={onClose}>Cancelar</button>
       </div>
     </form>
+    </>
   )
 }

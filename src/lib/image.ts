@@ -26,3 +26,28 @@ export async function resizeImage(file: File, maxSide = MAX_SIDE, quality = QUAL
     )
   })
 }
+
+// ---------- cropping (the profile-photo step, see components/PhotoCropDialog.tsx) ----------
+export const MAX_ZOOM = 4
+
+export interface CropView {
+  zoom: number // 1 = the picture just covers the square; more is closer
+  x: number // how far the centre of the picture is from the centre of the square, in screen pixels
+  y: number
+}
+
+/** The part of the picture that sits inside the square, in picture pixels. Pure, so it can be checked without a browser. */
+export function cropRect(image: { width: number; height: number }, square: number, view: CropView) {
+  const scale = (square / Math.min(image.width, image.height)) * view.zoom // screen pixels per picture pixel
+  const side = square / scale
+  return { sx: image.width / 2 - view.x / scale - side / 2, sy: image.height / 2 - view.y / scale - side / 2, side }
+}
+
+/** Keeps the picture covering the whole square (no empty corners) and the zoom inside its limits. */
+export function clampView(image: { width: number; height: number }, square: number, view: CropView): CropView {
+  const zoom = Math.min(MAX_ZOOM, Math.max(1, view.zoom))
+  const scale = (square / Math.min(image.width, image.height)) * zoom
+  const maxX = Math.max(0, (image.width * scale - square) / 2)
+  const maxY = Math.max(0, (image.height * scale - square) / 2)
+  return { zoom, x: Math.min(maxX, Math.max(-maxX, view.x)), y: Math.min(maxY, Math.max(-maxY, view.y)) }
+}
