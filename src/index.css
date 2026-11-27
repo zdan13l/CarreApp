@@ -133,7 +133,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; touch-action: pan-x pan-y; } /* no pinch zoom: zooming out leaves the screens undone (the photo cropper and the map handle their own gestures) */
 body {
   margin: 0;
   min-height: 100dvh;
@@ -2098,7 +2098,7 @@ button:disabled:not(.ghost):not(.tab):not(.bn-tab):not(.account-btn):not(.accoun
 
 /* Inductores (coordi) */
 .person { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
-.person-main { display: grid; gap: .2rem; min-width: 0; }
+.person-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: .2rem; min-width: 0; } /* minmax(0, …): a long song cannot push the card wider than the screen */
 .person-main small { overflow-wrap: anywhere; }
 .person-edit { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .3rem; }
 .person-edit select { width: auto; min-height: 36px; padding: .25rem .55rem; font-size: .88rem; }
@@ -2669,7 +2669,7 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 .info-box summary > svg { flex: none; color: var(--gold-ink); }
 .info-box summary::after { margin-left: auto; color: var(--text-faint); } /* the chevron is the one every details has */
 
-.inductor-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 0 0 1rem; }
+.inductor-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0; }
 .action-tab { display: flex; align-items: center; justify-content: flex-start; gap: .8rem; min-height: 64px; padding: .7rem 1rem; text-align: left; color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: var(--shadow); }
 .action-tab:hover:not(:disabled) { background: var(--surface-2); border-color: var(--text-faint); }
 .action-tab > svg { flex: none; color: var(--text-muted); }
@@ -2725,7 +2725,7 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 .person-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem .9rem; }
 .person-song { display: flex; align-items: center; gap: .4rem; width: fit-content; max-width: 100%; min-width: 0; padding: .15rem .2rem .15rem .55rem; color: var(--text-muted); background: var(--surface-2); border-radius: 999px; font-size: .8125rem; }
 .person-song > svg { flex: none; }
-.person-song .grow { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.person-song .grow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .person-song strong { color: var(--text); font-weight: 600; }
 .person-song .icon-btn { width: 30px; min-width: 30px; min-height: 30px; border: 0; }
 .person-actions { display: flex; align-items: center; gap: .3rem; }
