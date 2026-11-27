@@ -68,7 +68,7 @@
   --ink-4: #c7a6ff;
   --ink-5: #ffb862;
   /* colour of each group of careers in Carreras y temáticas (and a few more for the groups that may come) */
-  --tone-orange: #ff8a3d; --tone-yellow: #ffd23f; --tone-red: #ff6b63; --tone-green: #4ddc9a; --tone-blue: #6e9bff; --tone-purple: #c7a6ff; --tone-teal: #3fd0d0; --tone-pink: #ff8fc8;
+  --tone-orange: #ff8a1f; --tone-yellow: #ffe033; --tone-red: #ff5b57; --tone-green: #35d98a; --tone-blue: #5b8dff; --tone-purple: #c7a6ff; --tone-teal: #3fd0d0; --tone-pink: #ff8fc8;
   --bright-1: #86adff; --bright-2: #ff8f86; --bright-3: #62e3ac; --bright-4: #c7a6ff; --bright-5: #ffb862; /* the inks on a dark cover */
   --logo-ink: #eef2ff;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
@@ -125,7 +125,7 @@
   --ink-3: #1b7a52;
   --ink-4: #6a3fa0;
   --ink-5: #a85a00;
-  --tone-orange: #d9600c; --tone-yellow: #c99700; --tone-red: #c0302a; --tone-green: #1b7a52; --tone-blue: #1f49b8; --tone-purple: #6a3fa0; --tone-teal: #0f7f87; --tone-pink: #b5338a;
+  --tone-orange: #f27405; --tone-yellow: #f2c400; --tone-red: #d92b2b; --tone-green: #1e9e5a; --tone-blue: #2458d6; --tone-purple: #6a3fa0; --tone-teal: #0f7f87; --tone-pink: #b5338a;
   --bright-1: #86adff; --bright-2: #ff8f86; --bright-3: #62e3ac; --bright-4: #c7a6ff; --bright-5: #ffb862; /* the inks on a dark cover */
   --logo-ink: #013c9c;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
@@ -2888,11 +2888,11 @@ input[type='date']::-webkit-date-and-time-value { min-width: 0; text-align: left
 .catalog-add input { flex: 1 1 14rem; min-width: 0; }
 .catalog-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr)); gap: 1rem; align-items: start; }
 .catalog-groups > .card, .theme-grid > .card { margin-top: 0; }
-.group-card.tone-sistemas { --accent: var(--tone-orange); }
-.group-card.tone-biomec { --accent: var(--tone-green); }
-.group-card.tone-tronicas { --accent: var(--tone-red); }
-.group-card.tone-industrial { --accent: var(--tone-yellow); }
-.group-card.tone-civil { --accent: var(--tone-blue); }
+.group-card.tone-sistemas, .seal-row.tone-sistemas { --accent: var(--tone-orange); }
+.group-card.tone-biomec, .seal-row.tone-biomec { --accent: var(--tone-green); }
+.group-card.tone-tronicas, .seal-row.tone-tronicas { --accent: var(--tone-red); }
+.group-card.tone-industrial, .seal-row.tone-industrial { --accent: var(--tone-yellow); }
+.group-card.tone-civil, .seal-row.tone-civil { --accent: var(--tone-blue); }
 .group-card, .theme-item { --accent: var(--gold); position: relative; overflow: hidden; transition: box-shadow .2s, transform .2s; }
 .group-card::before, .theme-item::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--accent); }
 @media (hover: hover) and (pointer: fine) {

@@ -4,9 +4,11 @@ import CustomSealsManager from '../../components/CustomSealsManager'
 import ElementSeal, { sealNote } from '../../components/ElementSeal'
 import GenerationSeals from '../../components/GenerationSeal'
 import SealEditor, { type SealDesign, type SealImage } from '../../components/SealEditor'
+import GroupSeal from '../../components/GroupSeal'
 import { loadCatalog } from '../../lib/catalog'
 import { useCatalogVersion } from '../../lib/catalogStore'
 import { hslToHex } from '../../lib/color'
+import { toneOf } from '../../lib/groupTone'
 import { imageUrl, removeEventSeal, saveEventSeal, type EventSeal, type SealShape } from '../../lib/eventSeals'
 import { loadGenerationRows, resetGenerationSeal, saveGenerationSeal } from '../../lib/generations'
 import { loadElementsAndSeals, SECTIONS, sectionOf, type SealElement, type SealSection } from '../../lib/sealElements'
@@ -40,6 +42,7 @@ export default function Sellos() {
   const [elements, setElements] = useState<SealElement[]>([])
   const [seals, setSeals] = useState<EventSeal[]>([])
   const [generations, setGenerations] = useState<GenerationRow[]>([])
+  const [groups, setGroups] = useState<{ id: string; name: string; badge: { key: string; image_path: string | null } | null }[]>([])
   const [open, setOpen] = useState<string | null>(params.get('ref'))
   const [error, setError] = useState<string | null>(null)
   const [missing, setMissing] = useState(false)
@@ -53,6 +56,9 @@ export default function Sellos() {
     setEvents(rows ?? [])
     const gen = await loadGenerationRows()
     if (gen) setGenerations(gen)
+    const [g, b] = await Promise.all([supabase.from('career_groups').select('id, name').order('sort_order'), supabase.from('badges').select('key, group_id, image_path').eq('active', true)])
+    const badges = (b.error ? [] : (b.data ?? [])) as { key: string; group_id: string | null; image_path: string | null }[]
+    setGroups(((g.data ?? []) as { id: string; name: string }[]).map((x) => ({ ...x, badge: badges.find((y) => y.group_id === x.id) ?? null })))
   }, [])
   useEffect(() => {
     void loadEvents()
@@ -160,6 +166,27 @@ export default function Sellos() {
             })}
           </ul>
           <p className="muted">Para agregar una generación nueva o corregir su semestre, ve a <Link to="/admin/generaciones">Generaciones</Link>.</p>
+        </section>
+      ) : kind === 'group' ? (
+        <section className="card">
+          <h2>Grupos de carreras <span className="muted">· {groups.length}</span></h2>
+          <ul className="seal-rows">
+            {groups.map((g) => {
+              const tone = toneOf(groups, g)
+              return (
+                <li key={g.id}>
+                  <div className={`seal-row${tone.className ? ` ${tone.className}` : ''}`} style={tone.style}>
+                    <GroupSeal groupKey={g.badge?.key} imageUrl={g.badge?.image_path ? photoUrl(g.badge.image_path) : null} initial={g.name} color="var(--accent, var(--gold))" size={64} label={`Sello de ${g.name}`} />
+                    <div className="grow">
+                      <strong>{g.name}</strong>
+                      <small className="muted">{g.badge ? 'el icono central de su insignia, en el color del grupo' : 'su inicial, hasta que tenga insignia'}</small>
+                    </div>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+          <p className="muted">El sello sale de la insignia de cada grupo (crea o cambia las insignias en <Link to="/admin/insignias">Insignias</Link>) y su color es el del grupo en <Link to="/admin/programas">Carreras y temáticas</Link>.</p>
         </section>
       ) : !event ? (
         <p className="warn">Elige la inducción: el sello de {section.one === 'comité' ? 'un comité' : `${section.one === 'base' || section.one === 'temática' ? 'una' : 'un'} ${section.one}`} siempre está ligado a una carrera en especial.</p>

@@ -2,13 +2,13 @@ import { ArrowRightLeft, Check, GraduationCap, Palette, Pencil, Plus, Trash2, X 
 import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import EventSealView from '../../components/EventSealView'
-import Insignia from '../../components/Insignia'
+import GroupSeal from '../../components/GroupSeal'
 import { loadCatalog, type CareerRow, type GroupRow } from '../../lib/catalog'
-import { GROUP_MEDAL_CAREER } from '../../lib/careers'
 import { useCatalogVersion } from '../../lib/catalogStore'
 import { confirmDialog } from '../../lib/dialog'
 import { imageUrl } from '../../lib/eventSeals'
 import { photoUrl } from '../../lib/storage'
+import { toneOf } from '../../lib/groupTone'
 import { supabase } from '../../lib/supabase'
 import { loadTemplates, type TemplateUse } from '../../lib/themeUse'
 import { errMsg } from './AdminContext'
@@ -22,16 +22,6 @@ const slugTheme = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, ''
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 /** Each theme has its own ink (the same five of the stamps), in order, so the lists are told apart at a glance. */
 const accent = (i: number): CSSProperties => ({ ['--accent' as string]: `var(--ink-${(i % 5) + 1})` })
-const slugName = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')
-/** The colour of each group of careers is fixed (Sistemas orange, Biomec green, Tronicas red, Industrial yellow, Civil blue); the groups that may come take the others in turn. */
-const FIXED_TONES = ['sistemas', 'biomec', 'tronicas', 'industrial', 'civil']
-const EXTRA_TONES = ['purple', 'teal', 'pink']
-function toneOf(groups: GroupRow[], g: GroupRow): { className?: string; style?: CSSProperties } {
-  const slug = slugName(g.name)
-  if (FIXED_TONES.includes(slug)) return { className: `tone-${slug}` }
-  const n = groups.filter((x) => !FIXED_TONES.includes(slugName(x.name))).findIndex((x) => x.id === g.id)
-  return { style: { ['--accent' as string]: `var(--tone-${EXTRA_TONES[Math.max(0, n) % EXTRA_TONES.length]})` } }
-}
 
 // «Carreras y temáticas»: the two lists the rest of the app takes from.
 //  * Carreras: the engineerings of the university, in groups (today five). A career belongs to ONE group; it can be moved, renamed or added.
@@ -326,13 +316,14 @@ function GroupCard({ tone, medal, g, groups, mine, busy, onRename, onRemove, onA
   )
 }
 
-/** The medal of the group (the insignia of San Pedro Claver, only the disc, without the ribbon); a new group shows its initial until its insignia is made. */
+/** The seal of the group: the drawing in the centre of its insignia printed in the colour of the group; a new group shows its initial until its insignia is made. */
 function GroupMedal({ g, badge }: { g: GroupRow; badge?: BadgeLite }) {
   const url = badge?.image_path ? photoUrl(badge.image_path) : null
-  const drawn = badge && !url ? GROUP_MEDAL_CAREER[badge.key] : undefined
-  if (url) return <span className="group-medal"><img src={url} alt={`Insignia de ${g.name}`} /></span>
-  if (drawn) return <span className="group-medal"><Insignia career={drawn} size={56} ribbon={false} /></span>
-  return <span className="ink-seal" aria-hidden="true">{g.name.trim().charAt(0).toUpperCase()}</span>
+  return (
+    <span className="group-medal">
+      <GroupSeal groupKey={badge?.key} imageUrl={url} initial={g.name} color="var(--accent)" size={56} label={`Sello de ${g.name}`} />
+    </span>
+  )
 }
 
 // ---------- temáticas ----------
