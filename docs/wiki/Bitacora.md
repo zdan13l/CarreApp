@@ -2,7 +2,11 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
-## Carreras y temáticas (2026-11-26, migración 0048, pendiente de aplicar)
+## Carreras y temáticas, segunda vuelta (2026-11-26, migración 0049, pendiente de aplicar)
+- **Una temática se usa una sola vez** (migración 0049): al crear una carrera solo se ofrecen las temáticas libres y la base de datos rechaza una ya tomada; la lista de Temáticas dice «Libre» o «En uso · Carrera 2710». Una carrera tiene una sola temática propia.
+- **Diseño:** cada grupo y cada temática lleva una de las cinco tintas de los sellos (hilo de color arriba, sello redondo con la inicial o el icono, renglones con su borde y un brillo suave); crear un grupo o una temática va arriba, en una barra dorada; editar, mover y eliminar son iconos y guardar/cancelar son dos botones pequeños (visto dorado y cruz roja); sin el recuadro de la brújula y sin el ejemplo de Harry Potter.
+
+## Carreras y temáticas (2026-11-26, migración 0048, aplicada)
 - **La pantalla** «Grupos organizativos» pasa a llamarse **Carreras y temáticas** y se rehízo con el estilo de Inductores (pestañas que se iluminan en amarillo, tarjetas con hilo dorado, botones de cancelar en rojo). Dos vistas: **Carreras** (las carreras de ingeniería en sus cinco grupos; cada una pertenece a un solo grupo y se puede editar el nombre, mover de grupo, quitar o agregar una nueva; los grupos se pueden renombrar, agregar y borrar si están vacíos) y **Temáticas** (solo nombres: agregar, renombrar y borrar; dice cuántas carreras se crearon con cada una).
 - **Sin sellos ni culturas en el catálogo:** las subtemáticas de cada grupo y sus sellos se arman dentro de la carrera (Preparación → Temática). Una plantilla que ya traía culturas (Mitologías) las sigue copiando a cada carrera nueva como punto de partida; una temática nueva empieza sin ninguna, y la pantalla de Temática de la carrera lo explica.
 - **Crear una carrera** muestra siempre la lista de temáticas (antes solo si había más de una) y el aviso de confirmación dice cuál se eligió; sin temáticas, el botón se desactiva y manda a agregar una.

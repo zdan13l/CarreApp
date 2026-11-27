@@ -61,6 +61,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0046 | [`0046_enie_en_el_usuario.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0046_enie_en_el_usuario.sql) | 2026-11-26 | La ñ en el usuario (@) |
 | 0047 | [`0047_cumpleanos_del_pasaporte.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0047_cumpleanos_del_pasaporte.sql) | 2026-11-26 | El cumpleaños de cada persona: el código y la edad del pasaporte |
 | 0048 | [`0048_renombrar_carrera.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0048_renombrar_carrera.sql) | 2026-11-26 | Cambiar el nombre de una carrera sin dejar a nadie con el nombre viejo |
+| 0049 | [`0049_tematica_unica.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0049_tematica_unica.sql) | 2026-11-26 | La temática es única por carrera: una carrera tiene una sola y una temática solo se usa una vez |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -706,6 +707,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/renombrar-carrera-0048.test.ts` (el nombre cambia en el catálogo, en las personas que la tienen como carrera o como otra carrera y en sus registros, sin tocar a nadie más; un nombre repetido o muy corto se rechaza y no cambia nada; solo el coordi la usa). Sin aplicarla la pantalla avisa y las demás acciones siguen funcionando.
 
 **Cómo revertir** `drop function public.rename_career(uuid, text);` (los nombres ya cambiados se quedan como están).
+
+## 0049 — La temática es única por carrera
+
+**Qué cambia** `themes.term_id` pasa a ser único: una carrera tiene UNA sola temática propia (la copia de la plantilla elegida). `theme_template_user(plantilla)` devuelve qué carrera ya tomó una plantilla (null = libre; la carrera de prueba, que es permanente, no gasta ninguna) y `create_event()` la consulta antes de crear nada: una temática que ya usa una carrera no se puede elegir para otra («La temática X ya la usa la Carrera 2710: cada carrera tiene una temática propia. Agrega una temática nueva…»). Las carreras ya creadas no cambian, y borrar una plantilla no toca la copia de las carreras que ya la tomaron.
+
+**Por qué** La temática pertenece a una sola inducción (cada pasaporte guarda las páginas de cada inducción en su temática): repetirla entre carreras las confundiría. Carreras y temáticas muestra cada temática como «Libre» o «En uso · Carrera 2710» y la lista para crear una carrera solo ofrece las libres.
+
+**Verificación** `tests/db/tematica-unica-0049.test.ts` (una temática libre crea la carrera y queda tomada por ella; una ya usada no crea otra y no deja nada a medias; la carrera de prueba no gasta temáticas; una segunda copia para el mismo semestre se rechaza; borrar la plantilla no libera ni daña la copia). Los demás tests de la base crean cada carrera con su propia plantilla (`newTemplate` en `tests/db/seed.ts`). Sin aplicarla la app funciona y todas las temáticas se ven libres.
+
+**Cómo revertir** `drop index public.themes_one_per_term; drop function public.theme_template_user(text);` y `create or replace function public.create_event(...)` con el cuerpo de la 0045.
 
 ## Plantilla para nuevos registros
 
