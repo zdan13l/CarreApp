@@ -2,6 +2,12 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Pulido de Inductores: título, botones, filtro de generación y encuadre de la foto (2026-11-26, sin migración)
+- **«¿Qué es un inductor?»:** el título usa la tipografía de los demás títulos de tarjeta (condensada, grande) con un icono dorado en vez de la insignia «?».
+- **Registrar inductor/a nuevo / Carga masiva:** el que está abierto se ilumina en amarillo, como los botones principales.
+- **Filtro de generación:** se llamaba «Inducción» y filtraba por el semestre de ingreso, así que Textiles (que no tiene semestre) nunca aparecía. Ahora es «Generación», ofrece todas las del catálogo (también las que aún no tienen nadie) y quien tiene dos generaciones aparece con cualquiera de ellas.
+- **Foto de perfil:** al elegirla se abre un recuadro (`PhotoCropDialog`) para arrastrarla, acercarla (barra, rueda o pellizco) y centrar la cara; el círculo muestra lo que verá el avatar. Se guarda el cuadrado elegido y sube como cualquier foto. Por ahora solo en Editar perfil de Inductores.
+
 ## La ñ en el @ y el campo «Otra carrera» (2026-11-26, migración 0046, aplicada)
 - **La ñ:** el @ de un usuario puede llevar ñ (muñoz). Al sugerir el @ desde el nombre, en el Excel y en el editor la ñ se conserva (las demás tildes se quitan). El correo interno de acceso sigue siendo ASCII: la ñ viaja como «+». Hay que aplicar la 0046 para que la base la acepte.
 - **Otra carrera:** el campo ya no abre una segunda caja debajo: al elegir «Otra, que no está en la lista…» el selector se vuelve la caja para escribir (de una sola línea) con un botón «Lista» para volver.
