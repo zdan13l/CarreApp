@@ -107,12 +107,14 @@ describe('the filters of the list', () => {
   it('somebody without a career never passes a career filter', () => {
     expect(passesFilters({ ...NO_FILTERS, careers: ['Ingeniería Civil'] }, { state: 'active', career: null })).toBe(false)
   })
-  it('the induction they entered is a filter of its own', () => {
-    const f = { ...NO_FILTERS, entries: ['2630', '2710'] }
-    expect(passesFilters(f, { ...sistemasActive, entry: '2630' })).toBe(true)
-    expect(passesFilters(f, { ...sistemasActive, entry: '2610' })).toBe(false)
+  it('the generation is a filter of its own, and Textiles (no semester) works like the others', () => {
+    const f = { ...NO_FILTERS, generations: ['barbies', 'minichips'] }
+    expect(passesFilters(f, { ...sistemasActive, generation: 'Barbies' })).toBe(true)
+    expect(passesFilters(f, { ...sistemasActive, generation: 'Peluches' })).toBe(false)
     expect(passesFilters(f, sistemasActive)).toBe(false)
-    expect(passesFilters({ ...f, states: ['ancestor' as const] }, { ...sistemasAncestor, entry: '2630' })).toBe(true)
+    expect(passesFilters({ ...f, states: ['ancestor' as const] }, { ...sistemasAncestor, generation: 'Barbies' })).toBe(true)
+    expect(passesFilters({ ...NO_FILTERS, generations: ['textiles'] }, { ...sistemasActive, generation: 'Textiles' })).toBe(true)
+    expect(passesFilters({ ...NO_FILTERS, generations: ['peluches'] }, { ...sistemasActive, generation: 'Peluches / Barbies' })).toBe(true) // two generations: either one
   })
   it('inside a carrera the role filters too', () => {
     expect(passesFilters({ ...NO_FILTERS, roles: ['base'] }, sistemasActive)).toBe(false)

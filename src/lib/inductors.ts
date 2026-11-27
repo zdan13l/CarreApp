@@ -62,14 +62,14 @@ export interface Filters {
   careers: string[]
   states: PersonState[]
   roles: string[]
-  entries: string[] // the induction they entered (2630…)
+  generations: string[] // the keys of the generations (peluches, textiles…): somebody with two generations passes with either
 }
-export const NO_FILTERS: Filters = { careers: [], states: [], roles: [], entries: [] }
-export const hasFilters = (f: Filters) => f.careers.length + f.states.length + f.roles.length + f.entries.length > 0
+export const NO_FILTERS: Filters = { careers: [], states: [], roles: [], generations: [] }
+export const hasFilters = (f: Filters) => f.careers.length + f.states.length + f.roles.length + f.generations.length > 0
 
 /** Inside a group the chosen ones add up (Sistemas OR Civil); between groups they narrow down (ancestors AND Sistemas). */
-export function passesFilters(f: Filters, person: { state: PersonState; career: string | null; role?: string | null; entry?: string | null }): boolean {
-  if (f.entries.length && !(person.entry && f.entries.includes(person.entry))) return false
+export function passesFilters(f: Filters, person: { state: PersonState; career: string | null; role?: string | null; generation?: string | null }): boolean {
+  if (f.generations.length && !generationsOf(person.generation).some((g) => f.generations.includes(g.key))) return false
   if (f.states.length && !f.states.includes(person.state)) return false
   if (f.careers.length && !(person.career && f.careers.includes(person.career))) return false
   if (f.roles.length && !(person.role && f.roles.includes(person.role))) return false
