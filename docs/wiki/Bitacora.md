@@ -2,6 +2,13 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Carreras y temáticas: medalla, colores y sello de la temática (2026-11-27, sin migración)
+- **Cada grupo de carreras** muestra su insignia (la cruz de San Pedro Claver, solo el disco, sin la cinta; la imagen subida en Insignias si la hay) en lugar de la inicial. Un grupo nuevo conserva su inicial hasta que se hace su insignia.
+- **Colores fijos:** Sistemas naranja, Biomec verde, Tronicas rojo, Industrial amarillo y Civil azul (hilo de la tarjeta, borde de cada carrera); los grupos que lleguen toman morado, turquesa y rosa por turnos. Los colores son tokens (`--tone-*`) definidos en claro y oscuro.
+- **Sin el brillo difuminado** en las esquinas de las tarjetas.
+- **Cada temática** muestra al lado el sello que la carrera que la usa le hizo en el taller (`loadTemplates` lo busca: la copia de la plantilla, su carrera y su sello de tipo temática); mientras no exista, su inicial.
+- **Recuerdos (pendiente, se hace dentro de cada carrera):** por temática habrá un apartado para subir, al finalizar la inducción, una foto de todos los inductores de ingeniería y una por grupo de carreras; luego saldrán en un álbum del pasaporte. No se necesitan para iniciar la carrera.
+
 ## Carreras y temáticas, segunda vuelta (2026-11-26, migración 0049, pendiente de aplicar)
 - **Una temática se usa una sola vez** (migración 0049): al crear una carrera solo se ofrecen las temáticas libres y la base de datos rechaza una ya tomada; la lista de Temáticas dice «Libre» o «En uso · Carrera 2710». Una carrera tiene una sola temática propia.
 - **Diseño:** cada grupo y cada temática lleva una de las cinco tintas de los sellos (hilo de color arriba, sello redondo con la inicial o el icono, renglones con su borde y un brillo suave); crear un grupo o una temática va arriba, en una barra dorada; editar, mover y eliminar son iconos y guardar/cancelar son dos botones pequeños (visto dorado y cruz roja); sin el recuadro de la brújula y sin el ejemplo de Harry Potter.
