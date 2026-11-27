@@ -2,6 +2,12 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Retoques de Inductores en el celular (2026-11-26, sin migración)
+- **Celular:** la canción larga ya no desborda la tarjeta (se corta con «…»); no se puede alejar con los dedos (el zoom hacia afuera desacomodaba las pantallas).
+- **Textos:** pistas de los botones «Ancestro», «Nueva contraseña» y «Deshabilitar»; mensajes más cortos al marcar ancestro (con el apodo y la fecha), deshabilitar, retirar y sin mensaje al cambiar la contraseña; el recuadro de la foto sin la explicación.
+- **Registro:** el formulario de un inductor nuevo ya no pregunta las inducciones que ya lleva (empieza en 0); se sigue pudiendo cambiar en Editar perfil y en la carga masiva.
+- **Botones que abortan** (Cancelar del editor, de la foto y de la carga masiva, Parar, Cerrar de las credenciales): en rojo como el de la ubicación de la base. La tarjeta de la contraseña nueva ya no se pega a los botones de registrar.
+
 ## Pulido de Inductores: título, botones, filtro de generación y encuadre de la foto (2026-11-26, sin migración)
 - **«¿Qué es un inductor?»:** el título usa la tipografía de los demás títulos de tarjeta (condensada, grande) con un icono dorado en vez de la insignia «?».
 - **Registrar inductor/a nuevo / Carga masiva:** el que está abierto se ilumina en amarillo, como los botones principales.
