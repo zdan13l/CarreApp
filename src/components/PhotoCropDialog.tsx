@@ -138,7 +138,6 @@ export default function PhotoCropDialog({ file, title = 'Acomoda la foto', onCan
     <div className="dialog-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onCancel()}>
       <div className="dialog crop-dialog" role="dialog" aria-modal="true" aria-label={title}>
         <h2>{title}</h2>
-        <p className="dialog-message">Arrastra la foto y acércala hasta que la cara quede en el centro. El círculo es lo que se ve en el perfil.</p>
         <div
           ref={frame}
           className="crop-frame"
@@ -169,7 +168,7 @@ export default function PhotoCropDialog({ file, title = 'Acomoda la foto', onCan
         {failed && <p className="error" role="alert">{failed}</p>}
         <div className="dialog-actions">
           <button type="button" disabled={!size || working} onClick={() => void confirm()}><Check size={18} aria-hidden="true" /> {working ? 'Procesando…' : 'Usar esta foto'}</button>
-          <button type="button" className="ghost" disabled={working} onClick={onCancel}>Cancelar</button>
+          <button type="button" className="btn-danger" disabled={working} onClick={onCancel}>Cancelar</button>
         </div>
       </div>
     </div>,

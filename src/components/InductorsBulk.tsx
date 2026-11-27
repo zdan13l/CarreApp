@@ -179,7 +179,7 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
             <button type="button" className="ghost" disabled={searching || busy || todo.length === 0} onClick={() => void searchAll()}>
               <Search size={16} aria-hidden="true" /> {searching ? `Buscando… ${done}/${done + todo.length}` : todo.length ? `Buscar ${plural(todo.length, 'canción', 'canciones')} (unos ${minutes} min)` : 'Canciones buscadas'}
             </button>
-            {searching && <button type="button" className="ghost" onClick={() => { stop.current = true }}>Parar</button>}
+            {searching && <button type="button" className="btn-danger" onClick={() => { stop.current = true }}>Parar</button>}
           </div>
 
           <ul className="bulk-rows">
@@ -237,7 +237,7 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
             <button type="button" disabled={busy || searching || (fresh.length === 0 && existingSongs.length === 0)} onClick={() => void create()}>
               {busy ? creating : fresh.length ? `Crear ${plural(fresh.length, 'inductor', 'inductores')} y descargar las contraseñas` : `Guardar ${plural(existingSongs.length, 'canción', 'canciones')}`}
             </button>
-            <button type="button" className="ghost" disabled={busy} onClick={() => { setRows(null); setFileName('') }}>Cancelar</button>
+            <button type="button" className="btn-danger" disabled={busy} onClick={() => { setRows(null); setFileName('') }}>Cancelar</button>
           </div>
         </>
       )}

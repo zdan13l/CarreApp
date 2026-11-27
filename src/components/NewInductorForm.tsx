@@ -1,6 +1,6 @@
 import { CalendarCheck, Music, UserPlus } from 'lucide-react'
 import { useState } from 'react'
-import { MAX_PRIOR_INDUCTIONS, createInductor, entryOf, priorOf, secondCareerProblem } from '../lib/inductors'
+import { createInductor, entryOf, secondCareerProblem } from '../lib/inductors'
 import { nameKey, passportUsername, type PassportPerson } from '../lib/passports'
 import type { PassportSong } from '../lib/songs'
 import { USERNAME_PATTERN } from '../lib/username'
@@ -60,12 +60,10 @@ export default function NewInductorForm({
     if (secondProblem) return onError(secondProblem)
     if (!nickname) return onError('Escribe el apodo.')
     if (!generation) return onError('Elige la generación: toda persona entra en una.')
-    const priorInductions = priorOf(String(f.get('prior') ?? ''))
-    if (priorInductions === null) return onError(`Las inducciones que ya lleva son un número de 0 a ${MAX_PRIOR_INDUCTIONS}.`)
     const known = people.find((x) => nameKey(x.full_name) === nameKey(fullName))
     if (known) return onError(`${known.full_name} ya existe (@${known.username}). Agrégala a una carrera desde la pestaña Inductores de esa carrera.`)
     await run(async () => {
-      const made = await createInductor({ fullName, career, secondCareer: second || null, priorInductions, generation, nickname, song, username: handle }, usernames)
+      const made = await createInductor({ fullName, career, secondCareer: second || null, generation, nickname, song, username: handle }, usernames)
       setRound((n) => n + 1)
       setName('')
       setUsername('')
@@ -109,10 +107,6 @@ export default function NewInductorForm({
             <GenerationPicker value="" name="generation" label="Generación" disabled={busy} required onChange={setGeneration} />
             {entry && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry}</strong></span>}
           </div>
-          <label className="inline-field wide">
-            <span>Inducciones que ya lleva</span>
-            <input name="prior" type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} defaultValue={0} autoComplete="off" />
-          </label>
         </div>
       </div>
       <div className="form-block">

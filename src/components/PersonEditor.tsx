@@ -115,7 +115,7 @@ export default function PersonEditor({
       {(problem || error) && <p className="error" role="alert">{problem ?? error}</p>}
       <div className="row form-actions">
         <button disabled={busy || Object.keys(changes).length === 0}>{busy ? 'Guardando…' : 'Guardar cambios'}</button>
-        <button type="button" className="ghost" disabled={busy} onClick={onClose}>Cancelar</button>
+        <button type="button" className="btn-danger" disabled={busy} onClick={onClose}>Cancelar</button>
       </div>
     </form>
     </>
