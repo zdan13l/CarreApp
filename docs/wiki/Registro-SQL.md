@@ -59,6 +59,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0044 | [`0044_inducciones_y_doble_programa.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0044_inducciones_y_doble_programa.sql) | 2026-11-26 | Cuántas inducciones lleva cada persona, el perfil deshabilitado en una inducción y el doble programa |
 | 0045 | [`0045_inducciones_previas_y_entrada_automatica.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0045_inducciones_previas_y_entrada_automatica.sql) | 2026-11-26 | Las inducciones que cada persona ya llevaba y la entrada automática de los inductores activos a cada carrera nueva |
 | 0046 | [`0046_enie_en_el_usuario.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0046_enie_en_el_usuario.sql) | 2026-11-26 | La ñ en el usuario (@) |
+| 0047 | [`0047_cumpleanos_del_pasaporte.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0047_cumpleanos_del_pasaporte.sql) | 2026-11-26 | El cumpleaños de cada persona: el código y la edad del pasaporte |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -684,6 +685,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/enie-0046.test.ts` (un pasaporte y un login con ñ, el @ sigue siendo único, lo que no es letra del alfabeto, número, punto, guion o guion bajo se rechaza), `tests/unit/lib.test.ts`, `tests/unit/passports.test.ts` y `tests/api/users.test.ts` (la ñ se sugiere y se conserva, viaja como «+» en el correo y vuelve al escribir ese correo, la ñ escrita como n + tilde es la misma).
 
 **Cómo revertir** Solo si ningún usuario tiene ñ: `alter table public.profiles drop constraint profiles_username_check; alter table public.profiles add constraint profiles_username_check check (username ~ '^[a-z0-9._-]{3,30}$');` y lo mismo con `passports`.
+
+## 0047 — El cumpleaños del pasaporte
+
+**Qué cambia** `passports.birth_date` (fecha, opcional, entre 1900 y 2100). De ella salen el código del pasaporte (`PUJ-DDMMAAAA`, por ejemplo `PUJ-15032005`) y la edad que muestra la página de identidad; sin fecha el pasaporte conserva el número de antes. Solo el coordi la escribe (en el registro, en Editar perfil o en la columna «Cumpleaños» del Excel); nadie edita su propio pasaporte.
+
+**Por qué** El número del pasaporte era decorativo y sin sentido; con el cumpleaños pasa a ser un código que la persona reconoce como suyo, y la edad completa la página de identidad.
+
+**Verificación** `tests/db/cumpleanos-0047.test.ts` (la fecha se guarda y se lee, queda vacía por defecto, se rechazan fechas imposibles, cada quien lee la suya y nadie la cambia en su propio pasaporte) y `tests/unit/birthday.test.ts` (el código, la edad, las fechas que se aceptan). La app abre antes de aplicarla (lee la columna aparte) y avisa que falta.
+
+**Cómo revertir** `alter table public.passports drop column birth_date;`
 
 ## Plantilla para nuevos registros
 

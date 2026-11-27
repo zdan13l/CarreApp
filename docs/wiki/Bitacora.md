@@ -2,6 +2,11 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## El cumpleaños del pasaporte y los ajustes de formularios (2026-11-26, migración 0047, pendiente de aplicar)
+- **Cumpleaños:** `passports.birth_date`. El número del pasaporte pasa a ser `PUJ-DDMMAAAA` con esa fecha (sin fecha conserva el de antes) y la página de identidad (en pantalla y en el PDF) muestra la **Edad**; en Inductores no se muestra la edad. Se escribe en un campo «Código (cumple)» del registro, de Editar perfil y de la carga masiva (columna «Cumpleaños», acepta 15/03/2005, 2005-03-15 y celdas de fecha de Excel).
+- **Editar perfil**, en cuatro filas: nombre | inducciones que ya llevaba; generación | código (cumple); usuario | apodo; carrera | otra carrera. **Registrar inductor**, en tres: nombre | generación | código (cumple); usuario | apodo; carrera | otra carrera.
+- **Ancestro:** el texto queda «Gracias por todo lo que diste a la inducción, este perfil queda solo para visualizarse.» con un detalle dorado más fino (borde y degradado suaves, la pluma en un aro dorado y un rombo al final), y la etiqueta «Ancestro» ya no queda pegada al nombre.
+
 ## Ancestros y deshabilitados solo para verse, editor más compacto y barra lateral estable (2026-11-26, sin migración)
 - **Ancestros y deshabilitados:** ya no se pueden editar (no hay «Editar perfil»; se reactivan primero). El ancestro lleva un detalle suave: foto con aro dorado y en gris, y una nota con hilo dorado y una pluma («Gracias por todo lo que dio a la inducción»). El deshabilitado, una nota gris con candado.
 - **Editar perfil:** el nombre completo, la generación y las inducciones que ya llevaba comparten una sola línea (en el celular van una debajo de otra).
