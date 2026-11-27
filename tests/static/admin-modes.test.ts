@@ -126,7 +126,7 @@ describe('nothing is entered twice in the panel', () => {
     expect(src).toMatch(/\{isCarrera && term && \(\s*<form className="card add-person" onSubmit=\{\(e\) => \{ e\.preventDefault\(\); void onJoin/) // inside a carrera they only join
     expect(src).not.toMatch(/createPassportUser\(/) // the page never creates a login: the form and the Excel do, through createInductor
     expect(src).toMatch(/view\?: 'global' \| 'carrera'/)
-    expect(src).toMatch(/\{view === 'global' && editing && \(\s*<div className="person-editor-slot">/) // the profile is edited only globally
+    expect(src).toMatch(/\{view === 'global' && editing && !locked && \(\s*<div className="person-editor-slot">/) // the profile is edited only globally, and not while an ancestor or disabled
     const makers = ['src/pages', 'src/components'].flatMap((d) => fs.readdirSync(rootPath(d), { recursive: true }).map(String).filter((f) => /\.tsx?$/.test(f)).map((f) => `${d}/${f}`)).filter((f) => /createInductor\(|createPassportUser\(/.test(read(f)))
     expect(makers.sort()).toEqual(['src/components/InductorsBulk.tsx', 'src/components/NewInductorForm.tsx'])
     expect(read('src/lib/inductors.ts').match(/createPassportUser\(/g)?.length).toBe(1) // and only one place calls the server

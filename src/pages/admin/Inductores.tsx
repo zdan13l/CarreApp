@@ -1,5 +1,5 @@
 import PageTitle from './PageTitle'
-import { Copy, FileSpreadsheet, GraduationCap, HeartHandshake, KeyRound, Music, Pencil, RotateCcw, Search, Trash2, UserPlus, UserX, Users } from 'lucide-react'
+import { Copy, Feather, FileSpreadsheet, GraduationCap, HeartHandshake, Lock, KeyRound, Music, Pencil, RotateCcw, Search, Trash2, UserPlus, UserX, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Avatar from '../../components/Avatar'
 import FilterBar, { type ChipGroup } from '../../components/FilterBar'
@@ -120,9 +120,10 @@ export function PersonItem({
   startEditing?: boolean
 }) {
   const { passport: p, record: r } = person
-  const [editing, setEditing] = useState(startEditing)
-  const [editError, setEditError] = useState<string | null>(null)
   const status = p.status ?? 'active'
+  const locked = status !== 'active' // an ancestor or a disabled profile is not edited: it is reactivated first
+  const [editing, setEditing] = useState(startEditing && !locked)
+  const [editError, setEditError] = useState<string | null>(null)
   const theme = themeOf(themeKey)
   const culture = r ? cultureOf(themeKey, r.culture) : null
   const generations = generationsOf(p.generation).map((g) => g.name).join(' / ') || (p.generation ? `${p.generation} (sin elegir)` : '')
@@ -158,6 +159,18 @@ export function PersonItem({
             <Music size={14} aria-hidden="true" />
             <span className="grow"><strong>{p.song.title}</strong> <small className="muted">{p.song.artist}</small></span>
             <Audition song={p.song} />
+          </span>
+        )}
+        {view === 'global' && status === 'ancestor' && (
+          <span className="farewell">
+            <Feather size={15} aria-hidden="true" />
+            <span>Gracias por todo lo que dio a la inducción. Su perfil queda solo para verse.</span>
+          </span>
+        )}
+        {view === 'global' && status === 'disabled' && (
+          <span className="farewell off">
+            <Lock size={14} aria-hidden="true" />
+            <span>Perfil deshabilitado: solo se puede ver. Reactívalo para editarlo.</span>
           </span>
         )}
         {view === 'carrera' &&
@@ -219,9 +232,11 @@ export function PersonItem({
       </span>
       {view === 'global' && (
         <span className="person-actions">
-          <button type="button" className={`ghost${editing ? ' danger' : ''}`} disabled={busy} aria-expanded={editing} onClick={() => { setEditing(!editing); setEditError(null) }}>
-            <Pencil size={16} aria-hidden="true" /> {editing ? 'Cerrar' : 'Editar perfil'}
-          </button>
+          {!locked && (
+            <button type="button" className={`ghost${editing ? ' danger' : ''}`} disabled={busy} aria-expanded={editing} onClick={() => { setEditing(!editing); setEditError(null) }}>
+              <Pencil size={16} aria-hidden="true" /> {editing ? 'Cerrar' : 'Editar perfil'}
+            </button>
+          )}
           {status === 'active' && onAncestor && (
             <button className="ghost icon-btn" disabled={busy} onClick={onAncestor} aria-label={`Marcar a ${p.full_name} como ancestro`} title="Ancestro">
               <GraduationCap size={18} />
@@ -255,7 +270,7 @@ export function PersonItem({
           {onRemove && <button className="ghost danger" disabled={busy} onClick={onRemove} title="Quitarlo de esta carrera (la persona sigue en el sistema)">Quitar de la carrera</button>}
         </span>
       )}
-      {view === 'global' && editing && (
+      {view === 'global' && editing && !locked && (
         <div className="person-editor-slot">
           <PersonEditor person={p} career={shownCareer} careers={careers} usernames={usernames} busy={busy} error={editError} onSave={(patch) => void save(patch)} onPhoto={onPhoto} onClose={() => { setEditing(false); setEditError(null) }} />
         </div>
