@@ -67,6 +67,8 @@
   --ink-3: #62e3ac;
   --ink-4: #c7a6ff;
   --ink-5: #ffb862;
+  /* colour of each group of careers in Carreras y temáticas (and a few more for the groups that may come) */
+  --tone-orange: #ff8a3d; --tone-yellow: #ffd23f; --tone-red: #ff6b63; --tone-green: #4ddc9a; --tone-blue: #6e9bff; --tone-purple: #c7a6ff; --tone-teal: #3fd0d0; --tone-pink: #ff8fc8;
   --bright-1: #86adff; --bright-2: #ff8f86; --bright-3: #62e3ac; --bright-4: #c7a6ff; --bright-5: #ffb862; /* the inks on a dark cover */
   --logo-ink: #eef2ff;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
@@ -123,6 +125,7 @@
   --ink-3: #1b7a52;
   --ink-4: #6a3fa0;
   --ink-5: #a85a00;
+  --tone-orange: #d9600c; --tone-yellow: #c99700; --tone-red: #c0302a; --tone-green: #1b7a52; --tone-blue: #1f49b8; --tone-purple: #6a3fa0; --tone-teal: #0f7f87; --tone-pink: #b5338a;
   --bright-1: #86adff; --bright-2: #ff8f86; --bright-3: #62e3ac; --bright-4: #c7a6ff; --bright-5: #ffb862; /* the inks on a dark cover */
   --logo-ink: #013c9c;
   --foil: linear-gradient(110deg, #a47c28 0%, #f7de8f 36%, #b98b30 58%, #f4d575 100%);
@@ -2885,16 +2888,23 @@ input[type='date']::-webkit-date-and-time-value { min-width: 0; text-align: left
 .catalog-add input { flex: 1 1 14rem; min-width: 0; }
 .catalog-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr)); gap: 1rem; align-items: start; }
 .catalog-groups > .card, .theme-grid > .card { margin-top: 0; }
+.group-card.tone-sistemas { --accent: var(--tone-orange); }
+.group-card.tone-biomec { --accent: var(--tone-green); }
+.group-card.tone-tronicas { --accent: var(--tone-red); }
+.group-card.tone-industrial { --accent: var(--tone-yellow); }
+.group-card.tone-civil { --accent: var(--tone-blue); }
 .group-card, .theme-item { --accent: var(--gold); position: relative; overflow: hidden; transition: box-shadow .2s, transform .2s; }
 .group-card::before, .theme-item::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--accent); }
-.group-card::after { content: ''; position: absolute; top: -34px; right: -34px; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%); pointer-events: none; }
 @media (hover: hover) and (pointer: fine) {
-  .group-card:hover, .theme-item:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -18px color-mix(in srgb, var(--accent) 55%, transparent), var(--shadow); }
+  .group-card:hover, .theme-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-pop); }
 }
 .group-card { display: grid; gap: .8rem; padding-top: 1.35rem; }
 .group-card > * { margin-top: 0; margin-bottom: 0; }
 .group-card-head { position: relative; z-index: 1; display: flex; align-items: center; gap: .7rem; min-height: 48px; padding-bottom: .75rem; border-bottom: 1px dashed var(--border-strong); }
 .ink-seal { flex: none; display: grid; place-items: center; width: 46px; height: 46px; color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); border: 2px solid var(--accent); border-radius: 50%; box-shadow: inset 0 0 0 3px var(--surface), inset 0 0 0 4.5px color-mix(in srgb, var(--accent) 45%, transparent); font-size: 1.5rem; font-stretch: 76%; font-weight: 800; line-height: 1; transform: rotate(-7deg); }
+.group-medal { flex: none; display: grid; place-items: center; width: 56px; height: 56px; }
+.group-medal img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+.theme-seal { flex: none; display: grid; place-items: center; width: 52px; height: 52px; color: var(--accent); }
 .group-title { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .6rem; min-width: 0; }
 .group-title h2 { margin: 0; overflow-wrap: anywhere; }
 .group-title .badge { color: var(--text-muted); background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); }

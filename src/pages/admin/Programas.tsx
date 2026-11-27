@@ -1,20 +1,37 @@
 import { ArrowRightLeft, Check, GraduationCap, Palette, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import EventSealView from '../../components/EventSealView'
+import Insignia from '../../components/Insignia'
 import { loadCatalog, type CareerRow, type GroupRow } from '../../lib/catalog'
+import { GROUP_MEDAL_CAREER } from '../../lib/careers'
 import { useCatalogVersion } from '../../lib/catalogStore'
 import { confirmDialog } from '../../lib/dialog'
+import { imageUrl } from '../../lib/eventSeals'
+import { photoUrl } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
 import { loadTemplates, type TemplateUse } from '../../lib/themeUse'
 import { errMsg } from './AdminContext'
 import PageTitle from './PageTitle'
 
 export type ThemeItem = TemplateUse
+/** The insignia (medal) of a group of careers, as the global Insignias page keeps it. */
+export interface BadgeLite { key: string; group_id: string | null; image_path: string | null; active: boolean }
 
 const slugTheme = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
-/** Each group and each theme has its own ink (the same five of the stamps), in order, so the lists are told apart at a glance. */
+/** Each theme has its own ink (the same five of the stamps), in order, so the lists are told apart at a glance. */
 const accent = (i: number): CSSProperties => ({ ['--accent' as string]: `var(--ink-${(i % 5) + 1})` })
+const slugName = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')
+/** The colour of each group of careers is fixed (Sistemas orange, Biomec green, Tronicas red, Industrial yellow, Civil blue); the groups that may come take the others in turn. */
+const FIXED_TONES = ['sistemas', 'biomec', 'tronicas', 'industrial', 'civil']
+const EXTRA_TONES = ['purple', 'teal', 'pink']
+function toneOf(groups: GroupRow[], g: GroupRow): { className?: string; style?: CSSProperties } {
+  const slug = slugName(g.name)
+  if (FIXED_TONES.includes(slug)) return { className: `tone-${slug}` }
+  const n = groups.filter((x) => !FIXED_TONES.includes(slugName(x.name))).findIndex((x) => x.id === g.id)
+  return { style: { ['--accent' as string]: `var(--tone-${EXTRA_TONES[Math.max(0, n) % EXTRA_TONES.length]})` } }
+}
 
 // «Carreras y temáticas»: the two lists the rest of the app takes from.
 //  * Carreras: the engineerings of the university, in groups (today five). A career belongs to ONE group; it can be moved, renamed or added.
@@ -25,6 +42,7 @@ export default function Programas() {
   const [groups, setGroups] = useState<GroupRow[]>([])
   const [careers, setCareers] = useState<CareerRow[]>([])
   const [themes, setThemes] = useState<ThemeItem[]>([])
+  const [badges, setBadges] = useState<BadgeLite[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [params, setParams] = useSearchParams()
@@ -32,15 +50,17 @@ export default function Programas() {
 
   const load = useCallback(async () => {
     if (!supabase) return
-    const [g, c, t] = await Promise.all([
+    const [g, c, t, b] = await Promise.all([
       supabase.from('career_groups').select('id, name, sort_order').order('sort_order'),
       supabase.from('careers').select('id, name, group_id').order('name'),
       loadTemplates(),
+      supabase.from('badges').select('key, group_id, image_path, active'),
     ])
     if (g.error) return setError('Falta aplicar la migración 0035.')
     setGroups((g.data ?? []) as GroupRow[])
     setCareers((c.data ?? []) as CareerRow[])
     setThemes(t ?? [])
+    setBadges(b.error ? [] : ((b.data ?? []) as BadgeLite[]))
     await loadCatalog()
   }, [])
   useEffect(() => {
@@ -69,6 +89,7 @@ export default function Programas() {
       groups={groups}
       careers={careers}
       themes={themes}
+      badges={badges}
       busy={busy}
       error={error}
       tab={tab}
@@ -115,6 +136,7 @@ interface ViewProps {
   groups: GroupRow[]
   careers: CareerRow[]
   themes: ThemeItem[]
+  badges: BadgeLite[]
   busy: boolean
   error: string | null
   tab: 'careers' | 'themes'
@@ -166,7 +188,7 @@ function EditButtons({ busy, disabled, save, cancel, onCancel }: { busy: boolean
 
 // ---------- carreras ----------
 
-function CareersTab({ groups, careers, busy, onAddGroup, onRenameGroup, onRemoveGroup, onAddCareer, onRenameCareer, onMoveCareer, onRemoveCareer }: ViewProps) {
+function CareersTab({ groups, careers, badges, busy, onAddGroup, onRenameGroup, onRemoveGroup, onAddCareer, onRenameCareer, onMoveCareer, onRemoveCareer }: ViewProps) {
   const [newGroup, setNewGroup] = useState('')
   const submitGroup = (e: FormEvent) => {
     e.preventDefault()
@@ -181,8 +203,8 @@ function CareersTab({ groups, careers, busy, onAddGroup, onRenameGroup, onRemove
         <button disabled={busy || !newGroup.trim()}><Plus size={18} aria-hidden="true" /> Agregar grupo</button>
       </form>
       <div className="catalog-groups">
-        {groups.map((g, i) => (
-          <GroupCard key={g.id} index={i} g={g} groups={groups} mine={careers.filter((c) => c.group_id === g.id)} busy={busy} onRename={onRenameGroup} onRemove={onRemoveGroup} onAddCareer={onAddCareer} onRenameCareer={onRenameCareer} onMoveCareer={onMoveCareer} onRemoveCareer={onRemoveCareer} />
+        {groups.map((g) => (
+          <GroupCard key={g.id} tone={toneOf(groups, g)} medal={badges.find((b) => b.group_id === g.id && b.active)} g={g} groups={groups} mine={careers.filter((c) => c.group_id === g.id)} busy={busy} onRename={onRenameGroup} onRemove={onRemoveGroup} onAddCareer={onAddCareer} onRenameCareer={onRenameCareer} onMoveCareer={onMoveCareer} onRemoveCareer={onRemoveCareer} />
         ))}
       </div>
     </>
@@ -192,7 +214,8 @@ function CareersTab({ groups, careers, busy, onAddGroup, onRenameGroup, onRemove
 type Editing = { id: string; mode: 'rename' | 'move' } | null
 
 interface CardProps {
-  index: number
+  tone: { className?: string; style?: CSSProperties }
+  medal?: BadgeLite
   g: GroupRow
   groups: GroupRow[]
   mine: CareerRow[]
@@ -205,7 +228,7 @@ interface CardProps {
   onRemoveCareer: ViewProps['onRemoveCareer']
 }
 
-function GroupCard({ index, g, groups, mine, busy, onRename, onRemove, onAddCareer, onRenameCareer, onMoveCareer, onRemoveCareer }: CardProps) {
+function GroupCard({ tone, medal, g, groups, mine, busy, onRename, onRemove, onAddCareer, onRenameCareer, onMoveCareer, onRemoveCareer }: CardProps) {
   const [renaming, setRenaming] = useState(false)
   const [name, setName] = useState(g.name)
   const [editing, setEditing] = useState<Editing>(null)
@@ -241,9 +264,9 @@ function GroupCard({ index, g, groups, mine, busy, onRename, onRemove, onAddCare
   }
 
   return (
-    <section className="card group-card" style={accent(index)}>
+    <section className={`card group-card${tone.className ? ` ${tone.className}` : ''}`} style={tone.style}>
       <header className="group-card-head">
-        <span className="ink-seal" aria-hidden="true">{g.name.trim().charAt(0).toUpperCase()}</span>
+        <GroupMedal g={g} badge={medal} />
         {renaming ? (
           <form className="row-edit grow" onSubmit={saveGroup}>
             <input value={name} maxLength={40} autoFocus onChange={(e) => setName(e.target.value)} aria-label={`Nombre del grupo ${g.name}`} />
@@ -303,6 +326,15 @@ function GroupCard({ index, g, groups, mine, busy, onRename, onRemove, onAddCare
   )
 }
 
+/** The medal of the group (the insignia of San Pedro Claver, only the disc, without the ribbon); a new group shows its initial until its insignia is made. */
+function GroupMedal({ g, badge }: { g: GroupRow; badge?: BadgeLite }) {
+  const url = badge?.image_path ? photoUrl(badge.image_path) : null
+  const drawn = badge && !url ? GROUP_MEDAL_CAREER[badge.key] : undefined
+  if (url) return <span className="group-medal"><img src={url} alt={`Insignia de ${g.name}`} /></span>
+  if (drawn) return <span className="group-medal"><Insignia career={drawn} size={56} ribbon={false} /></span>
+  return <span className="ink-seal" aria-hidden="true">{g.name.trim().charAt(0).toUpperCase()}</span>
+}
+
 // ---------- temáticas ----------
 
 function ThemesTab({ themes, busy, onAddTheme, onRenameTheme, onRemoveTheme }: ViewProps) {
@@ -324,7 +356,11 @@ function ThemesTab({ themes, busy, onAddTheme, onRenameTheme, onRemoveTheme }: V
       <ul className="theme-grid">
         {themes.map((t, i) => (
           <li key={t.key} className={`card theme-item${editing === t.key ? ' is-editing' : ''}${t.usedBy ? ' taken' : ''}`} style={accent(i)}>
-            <span className="ink-seal" aria-hidden="true"><Palette size={20} /></span>
+            {t.seal ? (
+              <span className="theme-seal"><EventSealView shape={t.seal.shape} color={t.seal.color} imageUrl={imageUrl(t.seal.image_path)} initial={t.name} size={52} label={`Sello de ${t.name}`} /></span>
+            ) : (
+              <span className="ink-seal" aria-hidden="true">{t.name.trim().charAt(0).toUpperCase()}</span>
+            )}
             {editing === t.key ? (
               <form className="row-edit grow" onSubmit={(e) => { e.preventDefault(); if (draft.trim() && draft.trim() !== t.name) onRenameTheme(t, draft.trim()); setEditing(null) }}>
                 <input value={draft} maxLength={40} autoFocus onChange={(e) => setDraft(e.target.value)} aria-label={`Nombre de la temática ${t.name}`} />

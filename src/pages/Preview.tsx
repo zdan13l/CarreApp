@@ -752,7 +752,7 @@ export default function Preview() {
 
   if (screen === 'programas') {
     const query = new URLSearchParams(window.location.search)
-    const groups = [{ id: 'g1', name: 'Tronicas', sort_order: 1 }, { id: 'g2', name: 'Sistemas', sort_order: 2 }, { id: 'g3', name: 'Industrial', sort_order: 3 }, { id: 'g4', name: 'Biomec', sort_order: 4 }, { id: 'g5', name: 'Civil', sort_order: 5 }]
+    const groups = [{ id: 'g1', name: 'Tronicas', sort_order: 1 }, { id: 'g2', name: 'Sistemas', sort_order: 2 }, { id: 'g3', name: 'Industrial', sort_order: 3 }, { id: 'g4', name: 'Biomec', sort_order: 4 }, { id: 'g5', name: 'Civil', sort_order: 5 }, { id: 'g6', name: 'Arquitectura', sort_order: 6 }]
     const careers = [['Electrónica', 'g1'], ['Mecatrónica', 'g1'], ['Redes', 'g1'], ['Sistemas', 'g2'], ['Industrial', 'g3'], ['Bioingeniería', 'g4'], ['Mecánica', 'g4'], ['Civil', 'g5']].map(([name, group_id], i) => ({ id: `c${i}`, name, group_id }))
     return (
       <div className="admin tower">
@@ -762,7 +762,8 @@ export default function Preview() {
           <ProgramasView
             groups={groups}
             careers={careers}
-            themes={[{ key: 'mitologias', name: 'Mitologías', usedBy: 'Carrera 2710' }, { key: 'harry', name: 'Casas de Harry Potter', usedBy: null }, { key: 'zodiaco', name: 'Zodiaco', usedBy: null }]}
+            themes={[{ key: 'mitologias', name: 'Mitologías', usedBy: 'Carrera 2710', seal: { id: 's', event_id: 'e1', kind: 'theme', ref: 'c2710', shape: 'shield', color: 'var(--ink-4)', image_path: null } }, { key: 'harry', name: 'Casas de Harry Potter', usedBy: null, seal: null }, { key: 'zodiaco', name: 'Zodiaco', usedBy: null, seal: null }]}
+            badges={[{ key: 'tronicas', group_id: 'g1', image_path: null, active: true }, { key: 'sistemas', group_id: 'g2', image_path: null, active: true }, { key: 'industrial', group_id: 'g3', image_path: null, active: true }, { key: 'biomec', group_id: 'g4', image_path: null, active: true }, { key: 'civil', group_id: 'g5', image_path: null, active: true }]}
             busy={false}
             error={null}
             tab={query.get('vista') === 'tematicas' ? 'themes' : 'careers'}
