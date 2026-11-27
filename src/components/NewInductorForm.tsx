@@ -93,7 +93,7 @@ export default function NewInductorForm({
               <GenerationPicker value="" name="generation" label="Generación" disabled={busy} required onChange={setGeneration} />
               {entry && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry}</strong></span>}
             </div>
-            <BirthdayField value={birth} onChange={setBirth} disabled={busy} label="Código (cumple)" />
+            <BirthdayField value={birth} onChange={setBirth} disabled={busy} label="Código (cumple)" showCode={false} />
           </div>
           <label className="inline-field">
             <span>Usuario (@)</span>

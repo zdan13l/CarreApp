@@ -202,8 +202,8 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
                       <SecondCareerField id={`second-${r.line}`} careers={careers} value={r.secondCareer ?? ''} label={`Otra carrera de ${r.fullName}`} onChange={(c) => patch(r.line, { secondCareer: c || null })} />
                       <input value={r.nickname} maxLength={24} placeholder="Apodo" aria-label={`Apodo de ${r.fullName}`} onChange={(e) => patch(r.line, { nickname: e.target.value, errors: r.errors.filter((x) => !/apodo/i.test(x)).concat(e.target.value.trim() ? [] : ['Falta el apodo.']) })} />
                       <label className="prior-field">
-                        <small className="muted">Inducciones que ya lleva</small>
-                        <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={r.prior} aria-label={`Inducciones que ya lleva ${r.fullName}`} onChange={(e) => patch(r.line, { prior: priorOf(e.target.value) ?? r.prior, errors: r.errors.filter((x) => !/inducciones previas/i.test(x)) })} />
+                        <small className="muted">Inducciones</small>
+                        <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={r.prior} aria-label={`Inducciones de ${r.fullName}`} onChange={(e) => patch(r.line, { prior: priorOf(e.target.value) ?? r.prior, errors: r.errors.filter((x) => !/inducciones previas/i.test(x)) })} />
                       </label>
                       <label className="prior-field">
                         <small className="muted">Código (cumple)</small>

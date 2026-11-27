@@ -87,7 +87,7 @@ export default function PersonEditor({
       <div className="grid2">
         <label className="inline-field"><span>Nombre completo</span><input value={fullName} onChange={(e) => setFullName(e.target.value)} minLength={3} maxLength={80} required disabled={busy} /></label>
         <label className="inline-field">
-          <span>Inducciones que ya llevaba</span>
+          <span>Inducciones</span>
           <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={priorDraft} onChange={(e) => setPriorDraft(e.target.value)} disabled={busy} aria-invalid={priorOf(priorDraft) === null} />
         </label>
         <div className="inline-field">
