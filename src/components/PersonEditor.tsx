@@ -80,7 +80,18 @@ export default function PersonEditor({
         </label>
       </div>
       <div className="grid2">
-        <label className="inline-field wide"><span>Nombre completo</span><input value={fullName} onChange={(e) => setFullName(e.target.value)} minLength={3} maxLength={80} required disabled={busy} /></label>
+        <div className="identity-row">
+          <label className="inline-field"><span>Nombre completo</span><input value={fullName} onChange={(e) => setFullName(e.target.value)} minLength={3} maxLength={80} required disabled={busy} /></label>
+          <div className="inline-field">
+            <div className="field-head"><span>Generación</span><AddLink to="/admin/generaciones">Crear generación</AddLink></div>
+            <GenerationPicker key={person.generation ?? ''} value={person.generation} label={`Generación de ${person.full_name}`} disabled={busy} required onChange={setGeneration} />
+            {(entry || person.joined_term) && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry ?? person.joined_term}</strong></span>}
+          </div>
+          <label className="inline-field">
+            <span>Inducciones que ya llevaba</span>
+            <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={priorDraft} onChange={(e) => setPriorDraft(e.target.value)} disabled={busy} aria-invalid={priorOf(priorDraft) === null} />
+          </label>
+        </div>
         <label className="inline-field">
           <span>Usuario (@)</span>
           <input value={username} onChange={(e) => setUsername(e.target.value.normalize('NFC').toLowerCase())} maxLength={31} required disabled={busy} autoCapitalize="none" spellCheck={false} aria-invalid={Boolean(handleProblem)} />
@@ -98,15 +109,6 @@ export default function PersonEditor({
           <div className="field-head"><label htmlFor={`second-${person.id}`}>Otra carrera <small className="muted">(doble programa)</small></label></div>
           <SecondCareerField id={`second-${person.id}`} careers={careers} value={secondDraft} disabled={busy} label={`Otra carrera de ${person.full_name}`} onChange={setSecondDraft} />
         </div>
-        <div className="inline-field wide">
-          <div className="field-head"><span>Generación</span><AddLink to="/admin/generaciones">Crear generación</AddLink></div>
-          <GenerationPicker key={person.generation ?? ''} value={person.generation} label={`Generación de ${person.full_name}`} disabled={busy} required onChange={setGeneration} />
-          {(entry || person.joined_term) && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry ?? person.joined_term}</strong></span>}
-        </div>
-        <label className="inline-field wide">
-          <span>Inducciones que ya llevaba</span>
-          <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={priorDraft} onChange={(e) => setPriorDraft(e.target.value)} disabled={busy} aria-invalid={priorOf(priorDraft) === null} />
-        </label>
       </div>
       <div className="form-block">
         <h3>Su canción</h3>

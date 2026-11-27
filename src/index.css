@@ -2690,6 +2690,8 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 .new-inductor .grid2, .person-editor .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1rem; }
 .new-inductor .inline-field, .person-editor .inline-field { margin: 0; align-content: start; }
 .inline-field.wide { grid-column: 1 / -1; }
+/* in the profile editor the full name, the generation and the inductions they already had share one line */
+.person-editor .identity-row { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr) minmax(0, .8fr); gap: .75rem 1rem; align-items: start; }
 .inline-field small { font-weight: 500; }
 .gen-picker { display: flex; flex-wrap: wrap; gap: .5rem; }
 .gen-picker select { flex: 1 1 13rem; width: auto; }
@@ -2734,7 +2736,13 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 .person-actions .icon-btn:hover:not(:disabled) { border-color: var(--border-strong); }
 .person-actions .pressed { background: var(--surface-3); border-color: var(--text-faint); }
 .list.people > li.person.is-ancestor > .person-main > strong { color: var(--text-muted); }
-.list.people > li.person.is-disabled { opacity: .7; }
+.list.people > li.person.is-disabled { opacity: .78; }
+/* an ancestor: someone who already left the induction; a soft goodbye instead of a form (gold thread, a feather, a gold ring on the picture) */
+.list.people > li.person.is-ancestor > .avatar { filter: grayscale(.55); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--gold); }
+.farewell { display: flex; align-items: center; gap: .5rem; width: fit-content; max-width: 100%; margin-top: .15rem; padding: .4rem .75rem .4rem .6rem; color: var(--text); background: color-mix(in srgb, var(--gold) 13%, transparent); border-left: 3px solid var(--gold); border-radius: 4px var(--radius-sm) var(--radius-sm) 4px; font-size: .8125rem; font-weight: 600; line-height: 1.35; }
+.farewell > svg { flex: none; color: var(--gold-ink); }
+.farewell.off { color: var(--text-muted); background: var(--surface-2); border-left-color: var(--text-faint); }
+.farewell.off > svg { color: var(--text-faint); }
 .person-editor-slot { grid-column: 1 / -1; margin-top: .4rem; }
 .person-editor { display: grid; gap: 1rem; padding: 1.1rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); }
 .editor-head { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
@@ -2767,7 +2775,7 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 
 @media (max-width: 700px) {
   .inductor-actions { grid-template-columns: 1fr; }
-  .new-inductor .grid2, .person-editor .grid2 { grid-template-columns: 1fr; }
+  .new-inductor .grid2, .person-editor .grid2, .person-editor .identity-row { grid-template-columns: 1fr; }
   .list.people > li.person { grid-template-columns: auto minmax(0, 1fr); }
   .person-actions { grid-column: 1 / -1; flex-wrap: wrap; justify-content: flex-start; }
   .bulk-row { grid-template-columns: 1fr; }
