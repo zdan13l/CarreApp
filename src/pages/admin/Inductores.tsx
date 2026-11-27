@@ -1,5 +1,5 @@
 import PageTitle from './PageTitle'
-import { Copy, FileSpreadsheet, GraduationCap, KeyRound, Music, Pencil, RotateCcw, Search, Trash2, UserPlus, UserX, Users } from 'lucide-react'
+import { Copy, FileSpreadsheet, GraduationCap, HeartHandshake, KeyRound, Music, Pencil, RotateCcw, Search, Trash2, UserPlus, UserX, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Avatar from '../../components/Avatar'
 import FilterBar, { type ChipGroup } from '../../components/FilterBar'
@@ -551,16 +551,16 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
 
   // the list: inside a carrera only its participants; filters add up inside a group and narrow down between groups
   const scope = people.filter((x) => !isCarrera || x.record)
-  const shown = scope.filter((x) => passesFilters(filters, { state: stateOf(x), career: careerOf(x), role: x.record?.role, entry: x.passport.joined_term }) && matchesSearch(x.passport, careerOf(x), search))
+  const shown = scope.filter((x) => passesFilters(filters, { state: stateOf(x), career: careerOf(x), role: x.record?.role, generation: x.passport.generation }) && matchesSearch(x.passport, careerOf(x), search))
   const count = (test: (x: PersonRow) => boolean) => scope.filter(test).length
   const careersHere = [...new Set(scope.map(careerOf).filter((c): c is string => Boolean(c)))].sort((a, b) => a.localeCompare(b, 'es'))
-  const entries = [...new Set(scope.map((x) => x.passport.joined_term).filter((e): e is string => Boolean(e)))].sort().reverse() // the newest induction first
   const groups: ChipGroup[] = [
     ...(isCarrera
       ? [{ id: 'role', label: 'Rol', options: PASSPORT_ROLES.map((x) => ({ value: x, label: PASSPORT_ROLE_LABEL[x], count: count((p) => p.record?.role === x) })).filter((o) => o.count > 0), selected: filters.roles, onChange: (roles: string[]) => setFilters({ ...filters, roles }) }]
       : []),
     { id: 'career', label: 'Carrera', options: careersHere.map((c) => ({ value: c, label: shortCareer(c), count: count((p) => careerOf(p) === c) })), selected: filters.careers, onChange: (careersSel) => setFilters({ ...filters, careers: careersSel }) },
-    ...(isCarrera ? [] : [{ id: 'entry', label: 'Inducción', options: entries.map((e) => ({ value: e, label: [e, GENERATIONS.find((g) => g.term === e)?.name].filter(Boolean).join(' · '), count: count((p) => p.passport.joined_term === e) })), selected: filters.entries, onChange: (entriesSel: string[]) => setFilters({ ...filters, entries: entriesSel }) }]),
+    // every generation of the catalog is offered (also the ones nobody has yet, like Textiles, which has no semester), newest first
+    ...(isCarrera ? [] : [{ id: 'generation', label: 'Generación', options: [...GENERATIONS].reverse().map((g) => ({ value: g.key, label: g.name, count: count((p) => generationsOf(p.passport.generation).some((x) => x.key === g.key)) })), selected: filters.generations, onChange: (generationsSel: string[]) => setFilters({ ...filters, generations: generationsSel }) }]),
     ...(isCarrera
       ? []
       : [{ id: 'state', label: 'Estado', options: (['active', 'ancestor', 'disabled'] as PersonState[]).map((s) => ({ value: s, label: STATE_LABEL[s], count: count((p) => stateOf(p) === s) })).filter((o) => o.count > 0), selected: filters.states, onChange: (states: string[]) => setFilters({ ...filters, states: states as PersonState[] }) }]),
@@ -589,7 +589,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
       )}
       {!isCarrera && (
         <details className="card info-box">
-          <summary>¿Qué es un inductor?</summary>
+          <summary><HeartHandshake size={24} aria-hidden="true" /><span>¿Qué es un inductor?</span></summary>
           <blockquote>
             <p>Ser inductor es abrirle la puerta a alguien que llega con ilusión y con susto, y hacer que se sienta en casa desde el primer día.</p>
             <p>No se trata de saber más, sino de acompañar: escuchar, orientar, esperar a quien se queda atrás y celebrar con quien llega.</p>

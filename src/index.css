@@ -2663,11 +2663,11 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 
 /* Inductores (administración global): acciones, registro, carga masiva, buscador con filtros y la lista con su editor de perfil */
 .info-box { padding: 0; }
-.info-box summary { display: flex; align-items: center; gap: .6rem; min-height: 48px; padding: 0 1.1rem; font-weight: 700; cursor: pointer; list-style: none; }
+/* the title is a card heading like the others (the condensed display type), with a small icon in gold instead of a «?» badge */
+.info-box summary { display: flex; align-items: center; gap: .65rem; min-height: 56px; padding: 0 1.1rem; color: var(--text); font-size: 1.45rem; font-stretch: 76%; font-weight: 800; letter-spacing: .005em; line-height: 1.1; cursor: pointer; list-style: none; }
 .info-box summary::-webkit-details-marker { display: none; }
-.info-box summary::before { content: '?'; display: grid; place-items: center; flex: none; width: 24px; height: 24px; color: var(--on-gold); background: var(--gold); border-radius: 50%; font: 800 .8rem/1 ui-monospace, 'SF Mono', Consolas, monospace; }
-.info-box summary::after { content: ''; width: 8px; height: 8px; margin-left: auto; border: solid var(--text-faint); border-width: 0 2px 2px 0; transform: rotate(45deg); transition: transform .15s; }
-.info-box[open] summary::after { transform: rotate(-135deg); }
+.info-box summary > svg { flex: none; color: var(--gold-ink); }
+.info-box summary::after { margin-left: auto; color: var(--text-faint); } /* the chevron is the one every details has */
 
 .inductor-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 0 0 1rem; }
 .action-tab { display: flex; align-items: center; justify-content: flex-start; gap: .8rem; min-height: 64px; padding: .7rem 1rem; text-align: left; color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: var(--shadow); }
@@ -2676,8 +2676,10 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 .action-tab span { display: grid; gap: .1rem; min-width: 0; }
 .action-tab strong { font-weight: 800; }
 .action-tab small { color: var(--text-muted); font-weight: 500; }
-.action-tab.on { border-color: var(--gold); box-shadow: inset 0 3px 0 0 var(--gold), var(--shadow); }
-.action-tab.on > svg { color: var(--text); }
+/* the open one lights up in gold, like the primary buttons */
+.action-tab.on { color: var(--on-gold); background: var(--gold); border-color: var(--gold); }
+.action-tab.on:hover:not(:disabled) { background: var(--gold-hover); border-color: var(--gold-hover); }
+.action-tab.on > svg, .action-tab.on small { color: var(--on-gold); }
 
 .panel-card { padding: 1.25rem; }
 .new-inductor { display: grid; gap: 1.1rem; }
@@ -2844,3 +2846,15 @@ button.filter-clear:hover:not(:disabled) { color: var(--danger); background: col
 .member-grid dt { line-height: 1.25; }
 .member-grid dd.inductions-count { font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; }
 .person-meta .inductions-meta { color: var(--text); font-weight: 700; }
+
+/* Acomodar la foto de perfil: un cuadro que se arrastra y se acerca, con el círculo que mostrará el avatar */
+.crop-dialog { width: min(420px, 100%); }
+.crop-frame { position: relative; width: min(320px, 100%); aspect-ratio: 1; overflow: hidden; background: var(--surface-3); border-radius: var(--radius-sm); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.crop-frame:active { cursor: grabbing; }
+.crop-frame:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+.crop-frame img { position: absolute; top: 50%; left: 50%; max-width: none; pointer-events: none; will-change: transform; }
+.crop-frame::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(circle closest-side, transparent calc(100% - 1px), rgba(5, 8, 16, .6) calc(100% - 1px)); }
+.crop-frame::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .9); }
+.crop-zoom { display: flex; align-items: center; gap: .5rem; width: min(320px, 100%); }
+.crop-zoom input[type='range'] { flex: 1; min-width: 0; min-height: 0; padding: 0; accent-color: var(--gold); }
+.crop-zoom button.icon-only { flex: none; display: grid; place-items: center; width: 40px; min-height: 40px; padding: 0; }

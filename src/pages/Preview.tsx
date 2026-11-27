@@ -3,7 +3,7 @@
 //   /preview/runner  /preview/runner-ruta  /preview/runner-top  /preview/runner-fin
 //   /preview/base    /preview/base-info    /preview/admin    /preview/admin-forms
 import { useEffect, useState, type CSSProperties } from 'react'
-import { BookMarked, BellRing, Camera, ChevronRight, ClipboardCheck, FileSpreadsheet, KeyRound, LocateFixed, Search, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy, UserPlus, Users } from 'lucide-react'
+import { BookMarked, BellRing, HeartHandshake, Camera, ChevronRight, ClipboardCheck, FileSpreadsheet, KeyRound, LocateFixed, Search, Trash2, Flag, MapPin, Stamp as StampIcon, Trophy, UserPlus, Users } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import Avatar from '../components/Avatar'
@@ -337,7 +337,7 @@ export default function Preview() {
           <AdminTopbar user={user} onSignOut={noop} />
           <div className="title-row"><h1>Inductores</h1></div>
           <details className="card info-box" open={query.has('info')}>
-            <summary>¿Qué es un inductor?</summary>
+            <summary><HeartHandshake size={24} aria-hidden="true" /><span>¿Qué es un inductor?</span></summary>
             <blockquote>
               <p>Ser inductor es abrirle la puerta a alguien que llega con ilusión y con susto, y hacer que se sienta en casa desde el primer día.</p>
               <p>No se trata de saber más, sino de acompañar: escuchar, orientar, esperar a quien se queda atrás y celebrar con quien llega.</p>
@@ -366,7 +366,7 @@ export default function Preview() {
             <FilterBar
               groups={[
                 { id: 'career', label: 'Carrera', options: [{ value: 'Sistemas', label: 'Sistemas', count: 2 }, { value: 'Mecatrónica', label: 'Mecatrónica', count: 1 }, { value: 'Civil', label: 'Civil', count: 1 }], selected: query.has('filtro') ? ['Sistemas', 'Civil'] : [], onChange: noop },
-                { id: 'entry', label: 'Inducción', options: [{ value: '2710', label: '2710 · Minichips', count: 2 }, { value: '2630', label: '2630 · Barbies', count: 1 }, { value: '2610', label: '2610 · Peluches', count: 1 }], selected: query.has('filtro') ? ['2630'] : [], onChange: noop },
+                { id: 'generation', label: 'Generación', options: [{ value: 'textiles', label: 'Textiles', count: 0 }, { value: 'minichips', label: 'Minichips', count: 2 }, { value: 'barbies', label: 'Barbies', count: 1 }, { value: 'peluches', label: 'Peluches', count: 1 }], selected: query.has('filtro') ? ['barbies'] : [], onChange: noop },
                 { id: 'state', label: 'Estado', options: [{ value: 'active', label: 'Activos', count: 3 }, { value: 'ancestor', label: 'Ancestros', count: 1 }], selected: [], onChange: noop },
               ]}
               onClear={noop}
