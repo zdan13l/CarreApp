@@ -60,6 +60,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0045 | [`0045_inducciones_previas_y_entrada_automatica.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0045_inducciones_previas_y_entrada_automatica.sql) | 2026-11-26 | Las inducciones que cada persona ya llevaba y la entrada automática de los inductores activos a cada carrera nueva |
 | 0046 | [`0046_enie_en_el_usuario.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0046_enie_en_el_usuario.sql) | 2026-11-26 | La ñ en el usuario (@) |
 | 0047 | [`0047_cumpleanos_del_pasaporte.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0047_cumpleanos_del_pasaporte.sql) | 2026-11-26 | El cumpleaños de cada persona: el código y la edad del pasaporte |
+| 0048 | [`0048_renombrar_carrera.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0048_renombrar_carrera.sql) | 2026-11-26 | Cambiar el nombre de una carrera sin dejar a nadie con el nombre viejo |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
@@ -695,6 +696,16 @@ Quienes tienen que apurarse son los corredores; el coordinador y la base son qui
 **Verificación** `tests/db/cumpleanos-0047.test.ts` (la fecha se guarda y se lee, queda vacía por defecto, se rechazan fechas imposibles, cada quien lee la suya y nadie la cambia en su propio pasaporte) y `tests/unit/birthday.test.ts` (el código, la edad, las fechas que se aceptan). La app abre antes de aplicarla (lee la columna aparte) y avisa que falta.
 
 **Cómo revertir** `alter table public.passports drop column birth_date;`
+
+## 0048 — Cambiar el nombre de una carrera
+
+**Qué cambia** `rename_career(carrera, nombre)` (solo el coordi): cambia el nombre en el catálogo (`careers`, que ya no admite dos iguales) y, en el mismo paso, en todos los lugares donde una persona lo guarda como texto: su carrera (`passports.career`), su otra carrera (`passports.second_career`) y la carrera de cada inducción en que participó (`passport_records.career`). El nombre debe tener de 2 a 60 letras.
+
+**Por qué** La pantalla de Carreras y temáticas permite editar el nombre de una carrera. Los inductores la guardan por nombre, así que si solo se cambiara el catálogo quedarían con una carrera que ya no existe en la lista.
+
+**Verificación** `tests/db/renombrar-carrera-0048.test.ts` (el nombre cambia en el catálogo, en las personas que la tienen como carrera o como otra carrera y en sus registros, sin tocar a nadie más; un nombre repetido o muy corto se rechaza y no cambia nada; solo el coordi la usa). Sin aplicarla la pantalla avisa y las demás acciones siguen funcionando.
+
+**Cómo revertir** `drop function public.rename_career(uuid, text);` (los nombres ya cambiados se quedan como están).
 
 ## Plantilla para nuevos registros
 
