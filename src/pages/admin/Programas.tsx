@@ -1,26 +1,25 @@
-import { ArrowRightLeft, Compass, GraduationCap, Palette, Pencil, Plus, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { ArrowRightLeft, Check, GraduationCap, Palette, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { loadCatalog, type CareerRow, type GroupRow } from '../../lib/catalog'
 import { useCatalogVersion } from '../../lib/catalogStore'
 import { confirmDialog } from '../../lib/dialog'
 import { supabase } from '../../lib/supabase'
+import { loadTemplates, type TemplateUse } from '../../lib/themeUse'
 import { errMsg } from './AdminContext'
 import PageTitle from './PageTitle'
 
-export interface ThemeItem {
-  key: string
-  name: string
-  uses: number // how many carreras were created with it
-}
+export type ThemeItem = TemplateUse
 
 const slugTheme = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+/** Each group and each theme has its own ink (the same five of the stamps), in order, so the lists are told apart at a glance. */
+const accent = (i: number): CSSProperties => ({ ['--accent' as string]: `var(--ink-${(i % 5) + 1})` })
 
 // «Carreras y temáticas»: the two lists the rest of the app takes from.
 //  * Carreras: the engineerings of the university, in groups (today five). A career belongs to ONE group; it can be moved, renamed or added.
-//  * Temáticas: only the NAMES of the themes. When a carrera is created one of them is chosen; the subthemes of each group and their seals are
-//    made inside that carrera (Preparación → Temática).
+//  * Temáticas: only the NAMES of the themes. When a carrera is created one of them is chosen, and a theme belongs to ONE carrera (0049); the
+//    subthemes of each group and their seals are made inside that carrera (Preparación → Temática).
 export default function Programas() {
   useCatalogVersion()
   const [groups, setGroups] = useState<GroupRow[]>([])
@@ -33,18 +32,15 @@ export default function Programas() {
 
   const load = useCallback(async () => {
     if (!supabase) return
-    const [g, c, t, used] = await Promise.all([
+    const [g, c, t] = await Promise.all([
       supabase.from('career_groups').select('id, name, sort_order').order('sort_order'),
       supabase.from('careers').select('id, name, group_id').order('name'),
-      supabase.from('themes').select('key, name').is('term_id', null).eq('is_global', false).order('name'),
-      supabase.from('themes').select('template_of').not('template_of', 'is', null),
+      loadTemplates(),
     ])
     if (g.error) return setError('Falta aplicar la migración 0035.')
     setGroups((g.data ?? []) as GroupRow[])
     setCareers((c.data ?? []) as CareerRow[])
-    const count = new Map<string, number>()
-    for (const u of (used.data ?? []) as { template_of: string }[]) count.set(u.template_of, (count.get(u.template_of) ?? 0) + 1)
-    setThemes(((t.data ?? []) as { key: string; name: string }[]).map((x) => ({ ...x, uses: count.get(x.key) ?? 0 })))
+    setThemes(t ?? [])
     await loadCatalog()
   }, [])
   useEffect(() => {
@@ -108,7 +104,7 @@ export default function Programas() {
       onRenameTheme={(t, name) => supabase && void run(() => must(supabase!.from('themes').update({ name }).eq('key', t.key), 'No se pudo cambiar el nombre de la temática.', 'Ya existe una temática con ese nombre.'))}
       onRemoveTheme={async (t) => {
         if (!supabase) return
-        if (!(await confirmDialog({ title: `¿Borrar la temática ${t.name}?`, message: 'Las carreras que ya se crearon con ella conservan su propia temática.', confirmLabel: 'Borrar temática', tone: 'danger', icon: 'trash' }))) return
+        if (!(await confirmDialog({ title: `¿Borrar la temática ${t.name}?`, message: t.usedBy ? `La ${t.usedBy} conserva su propia temática.` : undefined, confirmLabel: 'Borrar temática', tone: 'danger', icon: 'trash' }))) return
         void run(() => must(supabase!.from('themes').delete().eq('key', t.key), 'No se pudo borrar la temática.'))
       }}
     />
@@ -136,6 +132,7 @@ interface ViewProps {
 }
 
 export function ProgramasView(p: ViewProps) {
+  const free = p.themes.filter((t) => !t.usedBy).length
   return (
     <>
       <PageTitle>Carreras y temáticas</PageTitle>
@@ -148,7 +145,7 @@ export function ProgramasView(p: ViewProps) {
         </button>
         <button type="button" role="tab" aria-selected={p.tab === 'themes'} className={`action-tab${p.tab === 'themes' ? ' on' : ''}`} onClick={() => p.onTab('themes')}>
           <Palette size={20} aria-hidden="true" />
-          <span><strong>Temáticas</strong><small>{plural(p.themes.length, 'temática', 'temáticas')}</small></span>
+          <span><strong>Temáticas</strong><small>{plural(p.themes.length, 'temática', 'temáticas')} · {plural(free, 'libre', 'libres')}</small></span>
         </button>
       </div>
 
@@ -157,12 +154,13 @@ export function ProgramasView(p: ViewProps) {
   )
 }
 
-function Hint({ children }: { children: string }) {
+/** The two small controls that end every inline edit: a gold check to save and a red cross to cancel. */
+function EditButtons({ busy, disabled, save, cancel, onCancel }: { busy: boolean; disabled?: boolean; save: string; cancel: string; onCancel: () => void }) {
   return (
-    <p className="catalog-hint">
-      <Compass size={16} aria-hidden="true" />
-      <span>{children}</span>
-    </p>
+    <span className="edit-buttons">
+      <button className="mini" disabled={busy || disabled} aria-label={save} title={save}><Check size={17} aria-hidden="true" /></button>
+      <button type="button" className="mini btn-danger" onClick={onCancel} aria-label={cancel} title={cancel}><X size={17} aria-hidden="true" /></button>
+    </span>
   )
 }
 
@@ -178,19 +176,14 @@ function CareersTab({ groups, careers, busy, onAddGroup, onRenameGroup, onRemove
   }
   return (
     <>
-      <Hint>Cada carrera de ingeniería está en un solo grupo. Puedes mover una carrera a otro grupo, cambiarle el nombre o agregar una nueva si llega alguna. Los grupos reciben su subtemática dentro de cada carrera (la competencia).</Hint>
+      <form className="card catalog-add" onSubmit={submitGroup}>
+        <input value={newGroup} maxLength={40} onChange={(e) => setNewGroup(e.target.value)} placeholder="Un grupo nuevo" aria-label="Nombre del grupo nuevo" disabled={busy} />
+        <button disabled={busy || !newGroup.trim()}><Plus size={18} aria-hidden="true" /> Agregar grupo</button>
+      </form>
       <div className="catalog-groups">
-        {groups.map((g) => (
-          <GroupCard key={g.id} g={g} groups={groups} mine={careers.filter((c) => c.group_id === g.id)} busy={busy} onRename={onRenameGroup} onRemove={onRemoveGroup} onAddCareer={onAddCareer} onRenameCareer={onRenameCareer} onMoveCareer={onMoveCareer} onRemoveCareer={onRemoveCareer} />
+        {groups.map((g, i) => (
+          <GroupCard key={g.id} index={i} g={g} groups={groups} mine={careers.filter((c) => c.group_id === g.id)} busy={busy} onRename={onRenameGroup} onRemove={onRemoveGroup} onAddCareer={onAddCareer} onRenameCareer={onRenameCareer} onMoveCareer={onMoveCareer} onRemoveCareer={onRemoveCareer} />
         ))}
-        <form className="card group-add" onSubmit={submitGroup}>
-          <h2>Un grupo nuevo</h2>
-          <label className="inline-field">
-            <span>Nombre</span>
-            <input value={newGroup} maxLength={40} onChange={(e) => setNewGroup(e.target.value)} placeholder="Arquitectura" disabled={busy} />
-          </label>
-          <button disabled={busy || !newGroup.trim()}><Plus size={18} aria-hidden="true" /> Agregar grupo</button>
-        </form>
       </div>
     </>
   )
@@ -199,6 +192,7 @@ function CareersTab({ groups, careers, busy, onAddGroup, onRenameGroup, onRemove
 type Editing = { id: string; mode: 'rename' | 'move' } | null
 
 interface CardProps {
+  index: number
   g: GroupRow
   groups: GroupRow[]
   mine: CareerRow[]
@@ -211,7 +205,7 @@ interface CardProps {
   onRemoveCareer: ViewProps['onRemoveCareer']
 }
 
-function GroupCard({ g, groups, mine, busy, onRename, onRemove, onAddCareer, onRenameCareer, onMoveCareer, onRemoveCareer }: CardProps) {
+function GroupCard({ index, g, groups, mine, busy, onRename, onRemove, onAddCareer, onRenameCareer, onMoveCareer, onRemoveCareer }: CardProps) {
   const [renaming, setRenaming] = useState(false)
   const [name, setName] = useState(g.name)
   const [editing, setEditing] = useState<Editing>(null)
@@ -247,13 +241,13 @@ function GroupCard({ g, groups, mine, busy, onRename, onRemove, onAddCareer, onR
   }
 
   return (
-    <section className="card group-card">
+    <section className="card group-card" style={accent(index)}>
       <header className="group-card-head">
+        <span className="ink-seal" aria-hidden="true">{g.name.trim().charAt(0).toUpperCase()}</span>
         {renaming ? (
           <form className="row-edit grow" onSubmit={saveGroup}>
             <input value={name} maxLength={40} autoFocus onChange={(e) => setName(e.target.value)} aria-label={`Nombre del grupo ${g.name}`} />
-            <button disabled={busy || !name.trim()}>Guardar</button>
-            <button type="button" className="btn-danger" onClick={() => { setRenaming(false); setName(g.name) }}>Cancelar</button>
+            <EditButtons busy={busy} disabled={!name.trim()} save="Guardar" cancel="Cancelar" onCancel={() => { setRenaming(false); setName(g.name) }} />
           </form>
         ) : (
           <>
@@ -262,7 +256,7 @@ function GroupCard({ g, groups, mine, busy, onRename, onRemove, onAddCareer, onR
               <span className="badge">{plural(mine.length, 'carrera', 'carreras')}</span>
             </div>
             <span className="row-actions">
-              <button type="button" className="ghost icon-btn" disabled={busy} onClick={() => setRenaming(true)} aria-label={`Cambiar el nombre del grupo ${g.name}`} title="Cambiar el nombre"><Pencil size={18} /></button>
+              <button type="button" className="ghost icon-btn" disabled={busy} onClick={() => setRenaming(true)} aria-label={`Cambiar el nombre del grupo ${g.name}`} title="Editar"><Pencil size={18} /></button>
               <button type="button" className="ghost danger icon-btn" disabled={busy || mine.length > 0} onClick={() => onRemove(g)} aria-label={`Borrar el grupo ${g.name}`} title={mine.length > 0 ? 'Primero pasa sus carreras a otro grupo' : 'Borrar el grupo'}><Trash2 size={18} /></button>
             </span>
           </>
@@ -278,22 +272,21 @@ function GroupCard({ g, groups, mine, busy, onRename, onRemove, onAddCareer, onR
                   <input value={draft} maxLength={60} autoFocus onChange={(e) => setDraft(e.target.value)} aria-label={`Nombre de la carrera ${c.name}`} />
                 ) : (
                   <>
-                    <span className="career-name">{c.name} <small className="muted">pasa a…</small></span>
+                    <span className="career-name">{c.name} <small className="muted">pasa a</small></span>
                     <select value={target} onChange={(e) => setTarget(e.target.value)} aria-label={`Nuevo grupo de ${c.name}`}>
                       {others.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
                     </select>
                   </>
                 )}
-                <button disabled={busy || (editing.mode === 'rename' ? !draft.trim() : !target)}>{editing.mode === 'rename' ? 'Guardar' : 'Mover'}</button>
-                <button type="button" className="btn-danger" onClick={() => setEditing(null)}>Cancelar</button>
+                <EditButtons busy={busy} disabled={editing.mode === 'rename' ? !draft.trim() : !target} save={editing.mode === 'rename' ? 'Guardar' : 'Mover'} cancel="Cancelar" onCancel={() => setEditing(null)} />
               </form>
             ) : (
               <>
                 <span className="career-name">{c.name}</span>
                 <span className="row-actions">
-                  <button type="button" className="ghost icon-btn" disabled={busy} onClick={() => startRename(c)} aria-label={`Cambiar el nombre de ${c.name}`} title="Cambiar el nombre"><Pencil size={18} /></button>
-                  <button type="button" className="ghost icon-btn" disabled={busy || others.length === 0} onClick={() => startMove(c)} aria-label={`Mover ${c.name} a otro grupo`} title="Mover a otro grupo"><ArrowRightLeft size={18} /></button>
-                  <button type="button" className="ghost danger icon-btn" disabled={busy} onClick={() => onRemoveCareer(c)} aria-label={`Quitar ${c.name}`} title="Quitar la carrera"><Trash2 size={18} /></button>
+                  <button type="button" className="ghost icon-btn" disabled={busy} onClick={() => startRename(c)} aria-label={`Cambiar el nombre de ${c.name}`} title="Editar"><Pencil size={17} /></button>
+                  <button type="button" className="ghost icon-btn" disabled={busy || others.length === 0} onClick={() => startMove(c)} aria-label={`Mover ${c.name} a otro grupo`} title="Mover"><ArrowRightLeft size={17} /></button>
+                  <button type="button" className="ghost danger icon-btn" disabled={busy} onClick={() => onRemoveCareer(c)} aria-label={`Quitar ${c.name}`} title="Eliminar"><Trash2 size={17} /></button>
                 </span>
               </>
             )}
@@ -304,7 +297,7 @@ function GroupCard({ g, groups, mine, busy, onRename, onRemove, onAddCareer, onR
 
       <form className="row-edit career-add" onSubmit={addCareer}>
         <input value={adding} maxLength={60} onChange={(e) => setAdding(e.target.value)} placeholder="Nueva carrera" aria-label={`Agregar una carrera a ${g.name}`} disabled={busy} />
-        <button disabled={busy || !adding.trim()}><Plus size={18} aria-hidden="true" /> Agregar</button>
+        <button className="mini add" disabled={busy || !adding.trim()} aria-label={`Agregar la carrera a ${g.name}`} title="Agregar"><Plus size={17} aria-hidden="true" /></button>
       </form>
     </section>
   )
@@ -324,36 +317,35 @@ function ThemesTab({ themes, busy, onAddTheme, onRenameTheme, onRemoveTheme }: V
   }
   return (
     <>
-      <Hint>Aquí solo van los nombres de las temáticas, sin sellos ni nada más. Al crear una carrera eliges una de esta lista; sus subtemáticas (una por cada grupo de carreras) y sus sellos se arman dentro de esa carrera, en Preparación → Temática.</Hint>
-      <section className="card theme-card">
-        <form className="row-edit theme-add" onSubmit={submit}>
-          <input value={newTheme} maxLength={40} onChange={(e) => setNewTheme(e.target.value)} placeholder="Una temática nueva, por ejemplo: Casas de Harry Potter" aria-label="Nombre de la temática nueva" disabled={busy} />
-          <button disabled={busy || !newTheme.trim()}><Plus size={18} aria-hidden="true" /> Agregar temática</button>
-        </form>
-        <ul className="career-list theme-list">
-          {themes.map((t) => (
-            <li key={t.key} className={editing === t.key ? 'is-editing' : undefined}>
-              {editing === t.key ? (
-                <form className="row-edit" onSubmit={(e) => { e.preventDefault(); if (draft.trim() && draft.trim() !== t.name) onRenameTheme(t, draft.trim()); setEditing(null) }}>
-                  <input value={draft} maxLength={40} autoFocus onChange={(e) => setDraft(e.target.value)} aria-label={`Nombre de la temática ${t.name}`} />
-                  <button disabled={busy || !draft.trim()}>Guardar</button>
-                  <button type="button" className="btn-danger" onClick={() => setEditing(null)}>Cancelar</button>
-                </form>
-              ) : (
-                <>
-                  <span className="career-name theme-name">{t.name}</span>
-                  <span className="badge">{t.uses === 0 ? 'Sin usar' : `En ${plural(t.uses, 'carrera', 'carreras')}`}</span>
-                  <span className="row-actions">
-                    <button type="button" className="ghost icon-btn" disabled={busy} onClick={() => { setEditing(t.key); setDraft(t.name) }} aria-label={`Cambiar el nombre de ${t.name}`} title="Cambiar el nombre"><Pencil size={18} /></button>
-                    <button type="button" className="ghost danger icon-btn" disabled={busy} onClick={() => onRemoveTheme(t)} aria-label={`Borrar ${t.name}`} title="Borrar la temática"><Trash2 size={18} /></button>
-                  </span>
-                </>
-              )}
-            </li>
-          ))}
-          {themes.length === 0 && <li className="career-empty">Todavía no hay temáticas: agrega la primera para poder crear una carrera.</li>}
-        </ul>
-      </section>
+      <form className="card catalog-add" onSubmit={submit}>
+        <input value={newTheme} maxLength={40} onChange={(e) => setNewTheme(e.target.value)} placeholder="Una temática nueva" aria-label="Nombre de la temática nueva" disabled={busy} />
+        <button disabled={busy || !newTheme.trim()}><Plus size={18} aria-hidden="true" /> Agregar temática</button>
+      </form>
+      <ul className="theme-grid">
+        {themes.map((t, i) => (
+          <li key={t.key} className={`card theme-item${editing === t.key ? ' is-editing' : ''}${t.usedBy ? ' taken' : ''}`} style={accent(i)}>
+            <span className="ink-seal" aria-hidden="true"><Palette size={20} /></span>
+            {editing === t.key ? (
+              <form className="row-edit grow" onSubmit={(e) => { e.preventDefault(); if (draft.trim() && draft.trim() !== t.name) onRenameTheme(t, draft.trim()); setEditing(null) }}>
+                <input value={draft} maxLength={40} autoFocus onChange={(e) => setDraft(e.target.value)} aria-label={`Nombre de la temática ${t.name}`} />
+                <EditButtons busy={busy} disabled={!draft.trim()} save="Guardar" cancel="Cancelar" onCancel={() => setEditing(null)} />
+              </form>
+            ) : (
+              <>
+                <div className="theme-main grow">
+                  <h2>{t.name}</h2>
+                  <span className={`badge${t.usedBy ? ' warn-tone' : ' ok'}`}>{t.usedBy ? `En uso · ${t.usedBy}` : 'Libre'}</span>
+                </div>
+                <span className="row-actions">
+                  <button type="button" className="ghost icon-btn" disabled={busy} onClick={() => { setEditing(t.key); setDraft(t.name) }} aria-label={`Cambiar el nombre de ${t.name}`} title="Editar"><Pencil size={18} /></button>
+                  <button type="button" className="ghost danger icon-btn" disabled={busy} onClick={() => onRemoveTheme(t)} aria-label={`Borrar ${t.name}`} title="Eliminar"><Trash2 size={18} /></button>
+                </span>
+              </>
+            )}
+          </li>
+        ))}
+        {themes.length === 0 && <li className="card theme-empty">Todavía no hay temáticas: agrega la primera para poder crear una carrera.</li>}
+      </ul>
     </>
   )
 }

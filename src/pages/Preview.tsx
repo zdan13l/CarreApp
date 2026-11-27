@@ -762,7 +762,7 @@ export default function Preview() {
           <ProgramasView
             groups={groups}
             careers={careers}
-            themes={[{ key: 'mitologias', name: 'Mitologías', uses: 2 }, { key: 'harry', name: 'Casas de Harry Potter', uses: 0 }]}
+            themes={[{ key: 'mitologias', name: 'Mitologías', usedBy: 'Carrera 2710' }, { key: 'harry', name: 'Casas de Harry Potter', usedBy: null }, { key: 'zodiaco', name: 'Zodiaco', usedBy: null }]}
             busy={false}
             error={null}
             tab={query.get('vista') === 'tematicas' ? 'themes' : 'careers'}
