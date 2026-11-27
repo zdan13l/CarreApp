@@ -1,6 +1,7 @@
 import { Plus, Upload } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import Insignia from '../../components/Insignia'
+import { GROUP_MEDAL_CAREER } from '../../lib/careers'
 import { confirmDialog } from '../../lib/dialog'
 import { deletePhoto, photoUrl } from '../../lib/storage'
 import { supabase } from '../../lib/supabase'
@@ -18,8 +19,7 @@ interface Badge {
 }
 interface Group { id: string; name: string }
 
-// the drawings the app already has for the groups of careers (the key is the one of the group): used until an image is uploaded
-const BUILT_IN: Record<string, string> = { sistemas: 'Sistemas', tronicas: 'Electrónica', industrial: 'Industrial', biomec: 'Bioingeniería', civil: 'Civil' }
+const BUILT_IN = GROUP_MEDAL_CAREER // the drawings the app already has for the groups of careers: used until an image is uploaded
 const slug = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)
 
 async function uploadBadge(file: File): Promise<string> {

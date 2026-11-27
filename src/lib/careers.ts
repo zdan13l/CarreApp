@@ -22,3 +22,6 @@ export function medalsOf(career: string | null | undefined, secondCareer?: strin
   if (first && key !== 'general' && key === careerKey(first)) return medals
   return [...medals, { career: second, other: true }]
 }
+
+/** The drawing the app already has for each group of careers (the key is the one of its insignia: the name of the group in lower case), used until an image is uploaded. */
+export const GROUP_MEDAL_CAREER: Record<string, string> = { sistemas: 'Sistemas', tronicas: 'Electrónica', industrial: 'Industrial', biomec: 'Bioingeniería', civil: 'Civil' }
