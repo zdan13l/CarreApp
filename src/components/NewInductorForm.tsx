@@ -1,10 +1,12 @@
 import { CalendarCheck, Music, UserPlus } from 'lucide-react'
 import { useState } from 'react'
+import { birthdayProblem } from '../lib/birthday'
 import { createInductor, entryOf, secondCareerProblem } from '../lib/inductors'
 import { nameKey, passportUsername, type PassportPerson } from '../lib/passports'
 import type { PassportSong } from '../lib/songs'
 import { USERNAME_PATTERN } from '../lib/username'
 import AddLink from './AddLink'
+import BirthdayField from './BirthdayField'
 import GenerationPicker from './GenerationPicker'
 import SecondCareerField from './SecondCareerField'
 import SongCell from './SongCell'
@@ -39,6 +41,7 @@ export default function NewInductorForm({
   const [username, setUsername] = useState('')
   const [typedUsername, setTypedUsername] = useState(false) // once the coordi writes the @, it stops following the name
   const [generation, setGeneration] = useState('')
+  const [birth, setBirth] = useState('') // the birthday: the code and the age of the passport come from it
   const [secondCareer, setSecondCareer] = useState('') // the other career of a double program: one of the list or any written
   const [song, setSong] = useState<PassportSong | null>(null)
   const entry = entryOf(generation)
@@ -60,15 +63,18 @@ export default function NewInductorForm({
     if (secondProblem) return onError(secondProblem)
     if (!nickname) return onError('Escribe el apodo.')
     if (!generation) return onError('Elige la generación: toda persona entra en una.')
+    const birthIssue = birthdayProblem(birth)
+    if (birthIssue) return onError(birthIssue)
     const known = people.find((x) => nameKey(x.full_name) === nameKey(fullName))
     if (known) return onError(`${known.full_name} ya existe (@${known.username}). Agrégala a una carrera desde la pestaña Inductores de esa carrera.`)
     await run(async () => {
-      const made = await createInductor({ fullName, career, secondCareer: second || null, generation, nickname, song, username: handle }, usernames)
+      const made = await createInductor({ fullName, career, secondCareer: second || null, birthDate: birth || null, generation, nickname, song, username: handle }, usernames)
       setRound((n) => n + 1)
       setName('')
       setUsername('')
       setTypedUsername(false)
       setGeneration('')
+      setBirth('')
       setSecondCareer('')
       setSong(null)
       onCreated({ username: made.username, password: made.password, label: `Usuario nuevo de ${fullName}` })
@@ -80,7 +86,15 @@ export default function NewInductorForm({
       <div className="form-block">
         <h3>Quién es</h3>
         <div className="grid2">
-          <label className="inline-field wide"><span>Nombre completo</span><input value={name} onChange={(e) => setName(e.target.value)} required minLength={3} maxLength={80} placeholder="Nombre Apellido" autoComplete="off" /></label>
+          <div className="identity-row">
+            <label className="inline-field"><span>Nombre completo</span><input value={name} onChange={(e) => setName(e.target.value)} required minLength={3} maxLength={80} placeholder="Nombre Apellido" autoComplete="off" /></label>
+            <div className="inline-field">
+              <div className="field-head"><span>Generación</span><AddLink to="/admin/generaciones">Crear generación</AddLink></div>
+              <GenerationPicker value="" name="generation" label="Generación" disabled={busy} required onChange={setGeneration} />
+              {entry && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry}</strong></span>}
+            </div>
+            <BirthdayField value={birth} onChange={setBirth} disabled={busy} label="Código (cumple)" />
+          </div>
           <label className="inline-field">
             <span>Usuario (@)</span>
             <input value={handle} onChange={(e) => { setTypedUsername(true); setUsername(e.target.value.normalize('NFC').toLowerCase().replace(/^@/, '')) }} required maxLength={30} placeholder="nombre.apellido" autoComplete="off" autoCapitalize="none" spellCheck={false} aria-invalid={Boolean(handleProblem)} />
@@ -101,11 +115,6 @@ export default function NewInductorForm({
           <div className="inline-field">
             <div className="field-head"><label htmlFor="new-second-career">Otra carrera <small className="muted">(doble programa)</small></label></div>
             <SecondCareerField id="new-second-career" careers={careers} value={secondCareer} label="Otra carrera" onChange={setSecondCareer} />
-          </div>
-          <div className="inline-field wide">
-            <div className="field-head"><span>Generación</span><AddLink to="/admin/generaciones">Crear generación</AddLink></div>
-            <GenerationPicker value="" name="generation" label="Generación" disabled={busy} required onChange={setGeneration} />
-            {entry && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry}</strong></span>}
           </div>
         </div>
       </div>

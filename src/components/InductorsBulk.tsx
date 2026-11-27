@@ -112,7 +112,7 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
             if (err) throw new Error(/song|migraci/i.test(err.message) ? 'Falta aplicar la migración 0042.' : 'No se pudo guardar la canción.')
             out.songs++
           } else {
-            const made = await createInductor({ fullName: r.fullName, career: r.career!, secondCareer: r.secondCareer, priorInductions: r.prior, generation: r.generation, nickname: r.nickname, song, username: r.username }, usernames)
+            const made = await createInductor({ fullName: r.fullName, career: r.career!, secondCareer: r.secondCareer, priorInductions: r.prior, birthDate: r.birth || null, generation: r.generation, nickname: r.nickname, song, username: r.username }, usernames)
             out.created++
             if (song) out.songs++
             credentials.push({ fullName: r.fullName, career: r.career!, secondCareer: r.secondCareer ?? undefined, generation: r.generation, username: made.username, password: made.password })
@@ -204,6 +204,10 @@ export default function InductorsBulk({ careers, people, usernames, onDone, star
                       <label className="prior-field">
                         <small className="muted">Inducciones que ya lleva</small>
                         <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={r.prior} aria-label={`Inducciones que ya lleva ${r.fullName}`} onChange={(e) => patch(r.line, { prior: priorOf(e.target.value) ?? r.prior, errors: r.errors.filter((x) => !/inducciones previas/i.test(x)) })} />
+                      </label>
+                      <label className="prior-field">
+                        <small className="muted">Código (cumple)</small>
+                        <input type="date" value={r.birth} min="1940-01-01" max={new Date().toISOString().slice(0, 10)} aria-label={`Cumpleaños de ${r.fullName}`} onChange={(e) => patch(r.line, { birth: e.target.value, errors: r.errors.filter((x) => !/cumplea|edad/i.test(x)) })} />
                       </label>
                       <GenerationPicker key={`${r.line}-${r.generation}`} value={r.generation} label={`Generación de ${r.fullName}`} onChange={(g) => patch(r.line, { generation: g, errors: r.errors.filter((x) => !/generación/i.test(x)) })} />
                     </span>

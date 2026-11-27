@@ -1,10 +1,12 @@
 import { Camera, CalendarCheck } from 'lucide-react'
 import { useState } from 'react'
+import { birthdayProblem } from '../lib/birthday'
 import { MAX_PRIOR_INDUCTIONS, entryOf, priorOf, profileChanges, secondCareerProblem, type IdentityPatch } from '../lib/inductors'
 import type { PassportPerson } from '../lib/passports'
 import type { PassportSong } from '../lib/songs'
 import { USERNAME_PATTERN } from '../lib/username'
 import AddLink from './AddLink'
+import BirthdayField from './BirthdayField'
 import Avatar from './Avatar'
 import GenerationPicker from './GenerationPicker'
 import PhotoCropDialog from './PhotoCropDialog'
@@ -40,11 +42,12 @@ export default function PersonEditor({
   const [secondDraft, setSecondDraft] = useState(person.second_career ?? '')
   const [priorDraft, setPriorDraft] = useState(String(person.prior_inductions ?? 0))
   const [generation, setGeneration] = useState(person.generation ?? '')
+  const [birth, setBirth] = useState(person.birth_date ?? '')
   const [nickname, setNickname] = useState(person.nickname ?? '')
   const [song, setSong] = useState<PassportSong | null>(person.song ?? null)
   const [problem, setProblem] = useState<string | null>(null)
   const [cropping, setCropping] = useState<File | null>(null) // the picture just chosen, being framed before it is uploaded
-  const changes = profileChanges(person, career, { fullName, username, career: careerDraft, secondCareer: secondDraft, priorInductions: priorOf(priorDraft) ?? undefined, generation, nickname, song })
+  const changes = profileChanges(person, career, { fullName, username, career: careerDraft, secondCareer: secondDraft, priorInductions: priorOf(priorDraft) ?? undefined, birthDate: birth, generation, nickname, song })
   const entry = entryOf(generation)
   const options = careers.includes(careerDraft) || !careerDraft ? careers : [careerDraft, ...careers]
   const handle = username.trim().normalize('NFC').toLowerCase().replace(/^@/, '')
@@ -59,6 +62,8 @@ export default function PersonEditor({
     const secondProblem = secondCareerProblem(secondDraft)
     if (secondProblem) return setProblem(secondProblem)
     if (!generation) return setProblem('Toda persona pertenece a una generación: elige una.')
+    const birthIssue = birthdayProblem(birth)
+    if (birthIssue) return setProblem(birthIssue)
     if (priorOf(priorDraft) === null) return setProblem(`Las inducciones que ya llevaba son un número de 0 a ${MAX_PRIOR_INDUCTIONS}.`)
     setProblem(null)
     onSave(changes)
@@ -80,18 +85,17 @@ export default function PersonEditor({
         </label>
       </div>
       <div className="grid2">
-        <div className="identity-row">
-          <label className="inline-field"><span>Nombre completo</span><input value={fullName} onChange={(e) => setFullName(e.target.value)} minLength={3} maxLength={80} required disabled={busy} /></label>
-          <div className="inline-field">
-            <div className="field-head"><span>Generación</span><AddLink to="/admin/generaciones">Crear generación</AddLink></div>
-            <GenerationPicker key={person.generation ?? ''} value={person.generation} label={`Generación de ${person.full_name}`} disabled={busy} required onChange={setGeneration} />
-            {(entry || person.joined_term) && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry ?? person.joined_term}</strong></span>}
-          </div>
-          <label className="inline-field">
-            <span>Inducciones que ya llevaba</span>
-            <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={priorDraft} onChange={(e) => setPriorDraft(e.target.value)} disabled={busy} aria-invalid={priorOf(priorDraft) === null} />
-          </label>
+        <label className="inline-field"><span>Nombre completo</span><input value={fullName} onChange={(e) => setFullName(e.target.value)} minLength={3} maxLength={80} required disabled={busy} /></label>
+        <label className="inline-field">
+          <span>Inducciones que ya llevaba</span>
+          <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={priorDraft} onChange={(e) => setPriorDraft(e.target.value)} disabled={busy} aria-invalid={priorOf(priorDraft) === null} />
+        </label>
+        <div className="inline-field">
+          <div className="field-head"><span>Generación</span><AddLink to="/admin/generaciones">Crear generación</AddLink></div>
+          <GenerationPicker key={person.generation ?? ''} value={person.generation} label={`Generación de ${person.full_name}`} disabled={busy} required onChange={setGeneration} />
+          {(entry || person.joined_term) && <span className="gen-hint"><CalendarCheck size={15} aria-hidden="true" /> Ingresó en <strong>{entry ?? person.joined_term}</strong></span>}
         </div>
+        <BirthdayField value={birth} onChange={setBirth} disabled={busy} label="Código (cumple)" />
         <label className="inline-field">
           <span>Usuario (@)</span>
           <input value={username} onChange={(e) => setUsername(e.target.value.normalize('NFC').toLowerCase())} maxLength={31} required disabled={busy} autoCapitalize="none" spellCheck={false} aria-invalid={Boolean(handleProblem)} />

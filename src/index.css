@@ -2690,8 +2690,10 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 .new-inductor .grid2, .person-editor .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1rem; }
 .new-inductor .inline-field, .person-editor .inline-field { margin: 0; align-content: start; }
 .inline-field.wide { grid-column: 1 / -1; }
-/* in the profile editor the full name, the generation and the inductions they already had share one line */
-.person-editor .identity-row { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr) minmax(0, .8fr); gap: .75rem 1rem; align-items: start; }
+/* registering one: the full name, the generation and the birthday code share the first line (the editor has them in two lines of two) */
+.new-inductor .identity-row { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.3fr) minmax(0, 1fr); gap: .75rem 1rem; align-items: start; }
+.birthday-field input[type='date'] { min-width: 0; }
+.birthday-field .gen-hint { letter-spacing: .04em; }
 .inline-field small { font-weight: 500; }
 .gen-picker { display: flex; flex-wrap: wrap; gap: .5rem; }
 .gen-picker select { flex: 1 1 13rem; width: auto; }
@@ -2722,7 +2724,7 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 /* la fila de un inductor: quién es, lo que lo identifica y las acciones; el editor ocupa todo el ancho debajo */
 .list.people > li.person { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: .35rem .8rem; padding: .9rem 0; }
 .list.people > li.person > .person-main { gap: .3rem; }
-.person-main > strong { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem .5rem; }
+.person-main > strong { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .8rem; }
 .person-main .nick { color: var(--text-muted); font-weight: 500; }
 .person-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem .9rem; }
 .person-song { display: flex; align-items: center; gap: .4rem; width: fit-content; max-width: 100%; min-width: 0; padding: .15rem .2rem .15rem .55rem; color: var(--text-muted); background: var(--surface-2); border-radius: 999px; font-size: .8125rem; }
@@ -2739,10 +2741,12 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 .list.people > li.person.is-disabled { opacity: .78; }
 /* an ancestor: someone who already left the induction; a soft goodbye instead of a form (gold thread, a feather, a gold ring on the picture) */
 .list.people > li.person.is-ancestor > .avatar { filter: grayscale(.55); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--gold); }
-.farewell { display: flex; align-items: center; gap: .5rem; width: fit-content; max-width: 100%; margin-top: .15rem; padding: .4rem .75rem .4rem .6rem; color: var(--text); background: color-mix(in srgb, var(--gold) 13%, transparent); border-left: 3px solid var(--gold); border-radius: 4px var(--radius-sm) var(--radius-sm) 4px; font-size: .8125rem; font-weight: 600; line-height: 1.35; }
-.farewell > svg { flex: none; color: var(--gold-ink); }
-.farewell.off { color: var(--text-muted); background: var(--surface-2); border-left-color: var(--text-faint); }
-.farewell.off > svg { color: var(--text-faint); }
+.farewell { display: flex; align-items: center; gap: .65rem; width: fit-content; max-width: 100%; margin-top: .4rem; padding: .5rem .9rem .5rem .55rem; color: var(--text); background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 17%, transparent), color-mix(in srgb, var(--gold) 4%, transparent)); border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); border-radius: var(--radius-sm); font-size: .8125rem; font-weight: 600; line-height: 1.4; }
+.farewell > svg { flex: none; box-sizing: content-box; padding: 5px; color: var(--gold-ink); border: 1.5px solid var(--gold); border-radius: 50%; }
+.farewell::after { content: ''; flex: none; width: 7px; height: 7px; margin-left: .15rem; background: var(--gold); transform: rotate(45deg); } /* the small gold diamond of the other ornaments */
+.farewell.off { color: var(--text-muted); background: var(--surface-2); border-color: var(--border-strong); border-style: dashed; }
+.farewell.off > svg { color: var(--text-faint); border-color: var(--text-faint); }
+.farewell.off::after { content: none; }
 .person-editor-slot { grid-column: 1 / -1; margin-top: .4rem; }
 .person-editor { display: grid; gap: 1rem; padding: 1.1rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); }
 .editor-head { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
@@ -2775,7 +2779,7 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 
 @media (max-width: 700px) {
   .inductor-actions { grid-template-columns: 1fr; }
-  .new-inductor .grid2, .person-editor .grid2, .person-editor .identity-row { grid-template-columns: 1fr; }
+  .new-inductor .grid2, .person-editor .grid2, .new-inductor .identity-row { grid-template-columns: 1fr; }
   .list.people > li.person { grid-template-columns: auto minmax(0, 1fr); }
   .person-actions { grid-column: 1 / -1; flex-wrap: wrap; justify-content: flex-start; }
   .bulk-row { grid-template-columns: 1fr; }

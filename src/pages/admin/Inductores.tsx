@@ -164,7 +164,7 @@ export function PersonItem({
         {view === 'global' && status === 'ancestor' && (
           <span className="farewell">
             <Feather size={15} aria-hidden="true" />
-            <span>Gracias por todo lo que dio a la inducción. Su perfil queda solo para verse.</span>
+            <span>Gracias por todo lo que diste a la inducción, este perfil queda solo para visualizarse.</span>
           </span>
         )}
         {view === 'global' && status === 'disabled' && (
@@ -300,6 +300,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
   const [missing0027, setMissing0027] = useState(false) // the extra committees need migration 0027
   const [missing0043, setMissing0043] = useState(false) // the career of each person needs migration 0043
   const [missing0045, setMissing0045] = useState(false) // the inductions a person already had and the automatic entry need migration 0045
+  const [missing0047, setMissing0047] = useState(false) // the birthday needs migration 0047
   const [missing0044, setMissing0044] = useState(false) // the other career, the count of inductions and the disabled profiles need migration 0044
   const [welcome, setWelcome] = useState('')
   const [committeeWords, setCommitteeWords] = useState<Record<string, string>>({})
@@ -366,13 +367,16 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     const priors = await supabase.from('passports').select('id, prior_inductions')
     setMissing0045(Boolean(priors.error))
     const priorOfId = new Map(((priors.error ? [] : priors.data) ?? []).map((x) => [x.id as string, Number(x.prior_inductions) || 0]))
+    const births = await supabase.from('passports').select('id, birth_date')
+    setMissing0047(Boolean(births.error))
+    const birthOfId = new Map(((births.error ? [] : births.data) ?? []).map((x) => [x.id as string, (x.birth_date as string | null) ?? null]))
     const [counted, flagged] = await Promise.all([
       supabase.from('passport_inductions').select('passport_id, inductions'),
       current ? supabase.from('passport_records').select('id, disabled').eq('term_id', current) : Promise.resolve({ data: [], error: null }),
     ])
     const counts = counted.error ? null : inductionCounts((counted.data ?? []) as { passport_id: string; inductions: number }[])
     const disabledIds = new Set(flagged.error ? [] : ((flagged.data ?? []) as { id: string; disabled: boolean }[]).filter((x) => x.disabled).map((x) => x.id))
-    setPassports(((p.data ?? []) as unknown as PassportPerson[]).map((x) => ({ ...x, song: extras.get(x.id)?.song ?? null, career: extras.get(x.id)?.career ?? null, second_career: extras.get(x.id)?.second_career ?? null, prior_inductions: priors.error ? null : priorOfId.get(x.id) ?? 0, inductions: counts ? (counts.get(x.id) ?? 0) : null })))
+    setPassports(((p.data ?? []) as unknown as PassportPerson[]).map((x) => ({ ...x, song: extras.get(x.id)?.song ?? null, career: extras.get(x.id)?.career ?? null, second_career: extras.get(x.id)?.second_career ?? null, prior_inductions: priors.error ? null : priorOfId.get(x.id) ?? 0, birth_date: births.error ? null : birthOfId.get(x.id) ?? null, inductions: counts ? (counts.get(x.id) ?? 0) : null })))
     setRecords(((r.data ?? []) as unknown as PassportRecordRow[]).map((x) => ({ ...x, disabled: disabledIds.has(x.id) })))
     type Ev = { id: string; name: string; teams: { id: string; name: string; sort_order: number }[]; bases: { id: string; name: string; sort_order: number }[] }
     const events = (ev.data ?? []) as unknown as Ev[]
@@ -464,7 +468,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
         return null
       }
       const { error: err } = await supabase.from('passports').update(rest).eq('id', person.passport.id)
-      if (err) return /prior_inductions/i.test(err.message) ? 'Falta aplicar la migración 0045 (las inducciones previas).' : /second_career/i.test(err.message) ? 'Falta aplicar la migración 0044 (la otra carrera).' : /career/i.test(err.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /song/i.test(err.message) && missingColumn(err) ? 'Falta aplicar la migración 0042 (la canción).' : /generaci/i.test(err.message) ? err.message : 'No se pudo guardar el cambio.'
+      if (err) return /birth_date/i.test(err.message) ? 'Falta aplicar la migración 0047 (el cumpleaños).' : /prior_inductions/i.test(err.message) ? 'Falta aplicar la migración 0045 (las inducciones previas).' : /second_career/i.test(err.message) ? 'Falta aplicar la migración 0044 (la otra carrera).' : /career/i.test(err.message) ? 'Falta aplicar la migración 0043 (la carrera de cada persona).' : /song/i.test(err.message) && missingColumn(err) ? 'Falta aplicar la migración 0042 (la canción).' : /generaci/i.test(err.message) ? err.message : 'No se pudo guardar el cambio.'
       await load()
       return null
     } finally {
@@ -618,6 +622,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
       {missing0025 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0025_passport_pages.sql</span> para las palabras de la inducción y de los comités.</p>}
       {missing0027 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0027_more_committees.sql</span> para que una persona esté en más de un comité.</p>}
       {missing0024 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0024_passport_identity.sql</span> para guardar el comité, la generación y el ingreso.</p>}
+      {missing0047 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0047_cumpleanos_del_pasaporte.sql</span> para guardar el cumpleaños y armar con él el código del pasaporte.</p>}
       {missing0045 && !missing0043 && !missing0044 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0045_inducciones_previas_y_entrada_automatica.sql</span> para fijar las inducciones que ya lleva cada inductor y para que los inductores activos entren solos a cada carrera nueva.</p>}
       {missing0044 && !missing0043 && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0044_inducciones_y_doble_programa.sql</span> para guardar la otra carrera, contar las inducciones y deshabilitar a alguien en una carrera.</p>}
       {missing0043 && !isCarrera && <p className="warn" role="status">Falta aplicar la migración <span className="mono">0043_carrera_de_la_persona.sql</span> para guardar la carrera de cada inductor.</p>}
