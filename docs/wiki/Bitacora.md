@@ -2,6 +2,11 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Ancestros y deshabilitados solo para verse, editor más compacto y barra lateral estable (2026-11-26, sin migración)
+- **Ancestros y deshabilitados:** ya no se pueden editar (no hay «Editar perfil»; se reactivan primero). El ancestro lleva un detalle suave: foto con aro dorado y en gris, y una nota con hilo dorado y una pluma («Gracias por todo lo que dio a la inducción»). El deshabilitado, una nota gris con candado.
+- **Editar perfil:** el nombre completo, la generación y las inducciones que ya llevaba comparten una sola línea (en el celular van una debajo de otra).
+- **Barra lateral al abrir una ventana:** al bloquear el scroll también se bloqueaba el `<body>`, que dejaba de ser el scroll de la ventana y la barra lateral fija (sticky) se iba hacia arriba con la página; además la barra de scroll desaparecía y el contenido se ensanchaba. Ahora en computador solo se bloquea el `<html>` y se conserva el lugar de la barra de scroll (`scrollbar-gutter`); el `<body>` se bloquea solo en el celular.
+
 ## Retoques de Inductores en el celular (2026-11-26, sin migración)
 - **Celular:** la canción larga ya no desborda la tarjeta (se corta con «…»); no se puede alejar con los dedos (el zoom hacia afuera desacomodaba las pantallas).
 - **Textos:** pistas de los botones «Ancestro», «Nueva contraseña» y «Deshabilitar»; mensajes más cortos al marcar ancestro (con el apodo y la fecha), deshabilitar, retirar y sin mensaje al cambiar la contraseña; el recuadro de la foto sin la explicación.
