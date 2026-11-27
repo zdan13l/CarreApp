@@ -2,6 +2,11 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## Retoques del cumpleaños y de las etiquetas (2026-11-26, sin migración)
+- **Plantilla:** ya no trae la columna «Inducciones previas» (el Excel sigue leyéndola si alguien la agrega). El campo del editor y el de la carga masiva se llaman solo «Inducciones».
+- **Etiquetas de ancestro y deshabilitado:** estaban pegadas al apodo porque una regla antigua de `.list li > .grow > strong` (`display: block`) le ganaba a la del renglón y el espacio nunca se aplicaba. Ahora el nombre con su apodo va en un grupo y la etiqueta queda separada. El texto del deshabilitado es «Perfil deshabilitado: solo se puede ver.»
+- **Código (cumple):** en el registro ya no se muestra el `PUJ-DDMMAAAA` bajo la caja (en Editar perfil sí). En el celular el cuadro de fecha se ajusta al ancho de su columna.
+
 ## El cumpleaños del pasaporte y los ajustes de formularios (2026-11-26, migración 0047, pendiente de aplicar)
 - **Cumpleaños:** `passports.birth_date`. El número del pasaporte pasa a ser `PUJ-DDMMAAAA` con esa fecha (sin fecha conserva el de antes) y la página de identidad (en pantalla y en el PDF) muestra la **Edad**; en Inductores no se muestra la edad. Se escribe en un campo «Código (cumple)» del registro, de Editar perfil y de la carga masiva (columna «Cumpleaños», acepta 15/03/2005, 2005-03-15 y celdas de fecha de Excel).
 - **Editar perfil**, en cuatro filas: nombre | inducciones que ya llevaba; generación | código (cumple); usuario | apodo; carrera | otra carrera. **Registrar inductor**, en tres: nombre | generación | código (cumple); usuario | apodo; carrera | otra carrera.
