@@ -1,6 +1,6 @@
 import { Camera, CalendarCheck } from 'lucide-react'
 import { useState } from 'react'
-import { MAX_PRIOR_INDUCTIONS, entryOf, inductionsLabel, priorOf, profileChanges, secondCareerProblem, type IdentityPatch } from '../lib/inductors'
+import { MAX_PRIOR_INDUCTIONS, entryOf, priorOf, profileChanges, secondCareerProblem, type IdentityPatch } from '../lib/inductors'
 import type { PassportPerson } from '../lib/passports'
 import type { PassportSong } from '../lib/songs'
 import { USERNAME_PATTERN } from '../lib/username'
@@ -80,7 +80,7 @@ export default function PersonEditor({
         <label className="inline-field">
           <span>Usuario (@)</span>
           <input value={username} onChange={(e) => setUsername(e.target.value.normalize('NFC').toLowerCase())} maxLength={31} required disabled={busy} autoCapitalize="none" spellCheck={false} aria-invalid={Boolean(handleProblem)} />
-          {handleProblem ? <small className="error-note">{handleProblem}</small> : handle !== person.username && <small className="muted">Es con lo que entra: avísale el cambio.</small>}
+          {handleProblem && <small className="error-note">{handleProblem}</small>}
         </label>
         <label className="inline-field"><span>Apodo</span><input value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={24} required disabled={busy} /></label>
         <div className="inline-field">
@@ -102,7 +102,6 @@ export default function PersonEditor({
         <label className="inline-field wide">
           <span>Inducciones que ya llevaba</span>
           <input type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} value={priorDraft} onChange={(e) => setPriorDraft(e.target.value)} disabled={busy} aria-invalid={priorOf(priorDraft) === null} />
-          <small className="muted">Las de antes de CarreApp; queda fija y cada carrera en que participa suma una.{person.inductions != null && <> Hoy lleva <strong>{inductionsLabel(person.inductions)}</strong> en total.</>}</small>
         </label>
       </div>
       <div className="form-block">

@@ -112,7 +112,6 @@ export default function NewInductorForm({
           <label className="inline-field wide">
             <span>Inducciones que ya lleva</span>
             <input name="prior" type="number" inputMode="numeric" min={0} max={MAX_PRIOR_INDUCTIONS} step={1} defaultValue={0} autoComplete="off" />
-            <small className="muted">Sin contar las carreras que haga desde ahora: cada una suma una sola. Un inductor nuevo empieza en 0; uno veterano, con las que ya cumplió.</small>
           </label>
         </div>
       </div>
