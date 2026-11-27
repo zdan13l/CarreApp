@@ -2,6 +2,11 @@
 
 Registro cronológico de lo que se hizo, por bloque. Los más recientes arriba.
 
+## El sello de cada grupo de carreras (2026-11-27, sin migración)
+- **En lugar de la medalla**, cada grupo muestra su **sello**: el dibujo del centro de su insignia (la laptop de Sistemas, el puente de Civil, el chip de Tronicas, el brazo robótico de Industrial, la plantita de Biomec) impreso en UNA tinta, la del grupo, dentro de un doble anillo (`GroupSeal`; el dibujo se vuelve tinta con una máscara de luminosidad). Si la insignia del grupo tiene una imagen subida, se ve esa dentro del anillo; un grupo sin insignia conserva su inicial.
+- **Sellos → Grupos de carreras:** un apartado nuevo en el taller (global, vale para todas las inducciones) muestra el sello de cada grupo; sale de la insignia (Insignias) y del color del grupo (Carreras y temáticas), por eso aquí solo se ve.
+- **Colores corregidos** (muy parecidos entre sí el rojo, el naranja y el amarillo): ahora son vivos y bien separados, en claro y en oscuro: Tronicas rojo, Sistemas naranja, Industrial amarillo, Biomec verde y Civil azul (`lib/groupTone.ts`, tokens `--tone-*`).
+
 ## Carreras y temáticas: medalla, colores y sello de la temática (2026-11-27, sin migración)
 - **Cada grupo de carreras** muestra su insignia (la cruz de San Pedro Claver, solo el disco, sin la cinta; la imagen subida en Insignias si la hay) en lugar de la inicial. Un grupo nuevo conserva su inicial hasta que se hace su insignia.
 - **Colores fijos:** Sistemas naranja, Biomec verde, Tronicas rojo, Industrial amarillo y Civil azul (hilo de la tarjeta, borde de cada carrera); los grupos que lleguen toman morado, turquesa y rosa por turnos. Los colores son tokens (`--tone-*`) definidos en claro y oscuro.
