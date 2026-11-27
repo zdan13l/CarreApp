@@ -98,7 +98,7 @@ describe('what each screen holds in each moment', () => {
 
 describe('the seal workshop: seals are made in one place, for something, and (except generations) for one inducción', () => {
   it('the sections a seal can be for, and which ones belong to a carrera', () => {
-    expect(SECTIONS.map((s) => s.kind)).toEqual(['generation', 'theme', 'subtheme', 'base', 'committee'])
+    expect(SECTIONS.map((s) => s.kind)).toEqual(['generation', 'group', 'theme', 'subtheme', 'base', 'committee'])
     expect(sectionOf('generation')?.perCarrera).toBe(false) // permanent: valid in every inducción
     for (const kind of ['theme', 'subtheme', 'base', 'committee']) expect(sectionOf(kind)?.perCarrera, kind).toBe(true)
     expect(sectionOf('team')).toBeUndefined() // the groups are represented by their insignia, never by a seal

@@ -17,10 +17,11 @@ export interface SealEvent {
   coordinator_id?: string | null
 }
 
-/** The sections a seal can be made for, with the words the screens use. `kind` 'generation' is global (no carrera); the rest belong to ONE carrera. */
-export type SealSection = SealKind | 'generation'
+/** The sections a seal can be made for, with the words the screens use. `kind` 'generation' and 'group' are global (no carrera); the rest belong to ONE carrera. */
+export type SealSection = SealKind | 'generation' | 'group'
 export const SECTIONS: { kind: SealSection; title: string; one: string; rule: string; perCarrera: boolean }[] = [
   { kind: 'generation', title: 'Generaciones', one: 'generación', rule: 'Las generaciones son permanentes: su sello vale para todas las inducciones.', perCarrera: false },
+  { kind: 'group', title: 'Grupos de carreras', one: 'grupo de carreras', rule: 'El sello de cada grupo de carreras es el icono central de su insignia, en el color del grupo, y vale para todas las inducciones.', perCarrera: false },
   { kind: 'theme', title: 'Temática', one: 'temática', rule: 'Cada carrera tiene su temática y su sello único.', perCarrera: true },
   { kind: 'subtheme', title: 'Subtemáticas', one: 'subtemática', rule: 'Cada subtemática de la carrera tiene su sello, distinto al de las demás.', perCarrera: true },
   { kind: 'base', title: 'Bases', one: 'base', rule: 'Cada base de la carrera tiene su sello: el de siempre (los 15 de la app) o uno editado solo para esa carrera.', perCarrera: true },
