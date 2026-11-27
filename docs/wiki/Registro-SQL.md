@@ -58,7 +58,7 @@ Historial de **todos los scripts SQL aplicados** en el proyecto de Supabase. Cad
 | 0043 | [`0043_carrera_de_la_persona.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0043_carrera_de_la_persona.sql) | 2026-11-26 | La carrera universitaria de cada persona y el ingreso que sale solo de su generación |
 | 0044 | [`0044_inducciones_y_doble_programa.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0044_inducciones_y_doble_programa.sql) | 2026-11-26 | Cuántas inducciones lleva cada persona, el perfil deshabilitado en una inducción y el doble programa |
 | 0045 | [`0045_inducciones_previas_y_entrada_automatica.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0045_inducciones_previas_y_entrada_automatica.sql) | 2026-11-26 | Las inducciones que cada persona ya llevaba y la entrada automática de los inductores activos a cada carrera nueva |
-| 0046 | [`0046_enie_en_el_usuario.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0046_enie_en_el_usuario.sql) | pendiente | La ñ en el usuario (@) |
+| 0046 | [`0046_enie_en_el_usuario.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/migrations/0046_enie_en_el_usuario.sql) | 2026-11-26 | La ñ en el usuario (@) |
 | — | [`push_setup.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/push_setup.sql) | _pendiente_ | Guarda la clave del envío y programa la revisión cada 10 s (se corre una vez, con tu clave) |
 | — | [`seed_admin.sql`](https://github.com/zdan13l/CarreApp/blob/main/supabase/seed_admin.sql) | 2026-11-15 | Crea el primer administrador y la Carrera inicial (no es una migración; se corre una vez) |
 
