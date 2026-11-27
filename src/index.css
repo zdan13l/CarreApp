@@ -2877,3 +2877,37 @@ button.filter-clear:hover:not(:disabled) { color: var(--danger); background: col
 input[type='date'] { display: block; width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none; text-align: left; }
 input[type='date']::-webkit-date-and-time-value { min-width: 0; text-align: left; }
 .birthday-field, .prior-field { min-width: 0; }
+
+/* Carreras y temáticas: dos listas (las carreras en sus grupos y los nombres de las temáticas), con el mismo lenguaje que Inductores */
+.catalog-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0; }
+.catalog-hint { display: flex; align-items: flex-start; gap: .65rem; margin: 0 0 1rem; padding: .7rem .95rem; color: var(--text-muted); background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 14%, transparent), color-mix(in srgb, var(--gold) 3%, transparent)); border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent); border-radius: var(--radius-sm); font-size: .875rem; line-height: 1.5; }
+.catalog-hint > svg { flex: none; margin-top: .1rem; color: var(--gold-ink); }
+.catalog-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr)); gap: 1rem; align-items: start; }
+.catalog-groups > .card { margin-top: 0; }
+.group-card { display: grid; gap: .8rem; border-top: 3px solid var(--gold); }
+.group-card > * { margin-top: 0; margin-bottom: 0; }
+.group-card-head { display: flex; align-items: center; gap: .5rem; min-height: 44px; padding-bottom: .7rem; border-bottom: 1px dashed var(--border-strong); }
+.group-title { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .65rem; min-width: 0; }
+.group-title h2 { margin: 0; overflow-wrap: anywhere; }
+.row-actions { display: flex; flex: none; align-items: center; gap: .15rem; }
+.row-actions .icon-btn { width: 40px; min-width: 40px; min-height: 40px; border-color: transparent; }
+.row-actions .icon-btn:hover:not(:disabled) { border-color: var(--border-strong); }
+.career-list { list-style: none; display: grid; gap: .4rem; margin: 0; padding: 0; }
+.career-list li { display: flex; align-items: center; gap: .5rem; min-height: 48px; padding: .2rem .3rem .2rem .8rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.career-list li.is-editing { padding: .45rem; background: var(--surface); border-color: var(--gold); }
+.career-list li.career-empty { justify-content: center; color: var(--text-faint); background: transparent; border-style: dashed; font-size: .875rem; }
+.career-name { flex: 1 1 0; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.row-edit { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; width: 100%; }
+.row-edit input, .row-edit select { flex: 1 1 9rem; min-width: 0; }
+.row-edit .career-name { flex: 1 1 100%; } /* moving a career: its name on one line, the choice and the buttons on the next */
+.row-edit select { flex: 1 1 8rem; }
+.career-add { padding-top: .2rem; }
+.group-add { display: grid; gap: .8rem; align-content: start; background: transparent; border-style: dashed; border-color: var(--border-strong); box-shadow: none; }
+.group-add > * { margin-top: 0; margin-bottom: 0; }
+.theme-card { display: grid; gap: 1rem; }
+.theme-card > * { margin-top: 0; margin-bottom: 0; }
+.theme-name { font-size: 1.3rem; font-stretch: 76%; font-weight: 800; }
+.theme-list li .badge { flex: none; }
+@media (max-width: 700px) {
+  .catalog-tabs { grid-template-columns: 1fr; }
+}

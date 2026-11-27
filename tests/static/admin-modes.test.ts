@@ -79,7 +79,7 @@ describe('what is particular of each carrera (phase B, 0037)', () => {
   })
   it('the theme page edits the carrera\'s own theme (by its semester), never a template', () => {
     expect(read('src/pages/admin/CarreraTematica.tsx')).toMatch(/from\('themes'\)\.select\('key, name'\)\.eq\('term_id', termId\)/)
-    expect(read('src/pages/admin/Programas.tsx')).toMatch(/filter\(\(t\) => !t\.termId\)/) // the global page lists templates only
+    expect(read('src/pages/admin/Programas.tsx')).toMatch(/\.is\('term_id', null\)\.eq\('is_global', false\)/) // the global page lists templates only, as names
   })
   it('the seal editor offers shape, colour and picture with a preview, and the coordi seal is golden', () => {
     const p = read('src/components/SealEditor.tsx')
@@ -144,7 +144,7 @@ describe('nothing is entered twice in the panel', () => {
     const nav = read('src/pages/admin/AdminNav.tsx')
     expect(nav.match(/\/admin\/historial/g)?.length).toBeLessThanOrEqual(3) // the link, the mobile link, the active check
     expect(nav).toMatch(/label: 'Grupos participantes'/)
-    expect(nav).toMatch(/label: 'Grupos organizativos'/)
+    expect(nav).toMatch(/label: 'Carreras y temáticas'/)
     expect(nav).toMatch(/label: 'Puntajes'/) // not «Pasaportes»: that name belongs to the personal passports
   })
 })

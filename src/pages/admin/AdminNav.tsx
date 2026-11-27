@@ -41,7 +41,7 @@ export const CARRERA_TABS: { path: string; label: string; icon: ReactNode; group
 /** Shared by every carrera (only shown outside a carrera). */
 export const GLOBAL_TABS: NavItem[] = [
   { to: '/admin/inductores', label: 'Inductores', icon: <Contact {...ICON} /> },
-  { to: '/admin/programas', label: 'Grupos organizativos', icon: <GraduationCap {...ICON} /> },
+  { to: '/admin/programas', label: 'Carreras y temáticas', icon: <GraduationCap {...ICON} /> },
   { to: '/admin/comites', label: 'Comités', icon: <Network {...ICON} /> },
   { to: '/admin/generaciones', label: 'Generaciones', icon: <Baby {...ICON} /> },
   { to: '/admin/insignias', label: 'Insignias', icon: <Medal {...ICON} /> },

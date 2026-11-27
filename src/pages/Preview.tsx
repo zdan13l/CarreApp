@@ -39,6 +39,7 @@ import PhaseControl from './admin/PhaseControl'
 import Sellos from './admin/Sellos'
 import Comites from './admin/Comites'
 import Carreras from './admin/Carreras'
+import { ProgramasView } from './admin/Programas'
 import Insignias from './admin/Insignias'
 import EventSealView from '../components/EventSealView'
 import { SHAPES } from '../lib/eventSeals'
@@ -744,6 +745,39 @@ export default function Preview() {
             </div>
           </header>
           <PassportMatrix teams={towerTeams} matches={towerMatches} baseName={towerBases} codes={towerCodes} />
+        </main>
+      </div>
+    )
+  }
+
+  if (screen === 'programas') {
+    const query = new URLSearchParams(window.location.search)
+    const groups = [{ id: 'g1', name: 'Tronicas', sort_order: 1 }, { id: 'g2', name: 'Sistemas', sort_order: 2 }, { id: 'g3', name: 'Industrial', sort_order: 3 }, { id: 'g4', name: 'Biomec', sort_order: 4 }, { id: 'g5', name: 'Civil', sort_order: 5 }]
+    const careers = [['Electrónica', 'g1'], ['Mecatrónica', 'g1'], ['Redes', 'g1'], ['Sistemas', 'g2'], ['Industrial', 'g3'], ['Bioingeniería', 'g4'], ['Mecánica', 'g4'], ['Civil', 'g5']].map(([name, group_id], i) => ({ id: `c${i}`, name, group_id }))
+    return (
+      <div className="admin tower">
+        <AdminNav event={null} user={user} onSignOut={noop} />
+        <main className="admin-main">
+          <AdminTopbar user={user} onSignOut={noop} />
+          <ProgramasView
+            groups={groups}
+            careers={careers}
+            themes={[{ key: 'mitologias', name: 'Mitologías', uses: 2 }, { key: 'harry', name: 'Casas de Harry Potter', uses: 0 }]}
+            busy={false}
+            error={null}
+            tab={query.get('vista') === 'tematicas' ? 'themes' : 'careers'}
+            onTab={noop}
+            onAddGroup={noop}
+            onRenameGroup={noop}
+            onRemoveGroup={noop}
+            onAddCareer={noop}
+            onRenameCareer={noop}
+            onMoveCareer={noop}
+            onRemoveCareer={noop}
+            onAddTheme={noop}
+            onRenameTheme={noop}
+            onRemoveTheme={noop}
+          />
         </main>
       </div>
     )

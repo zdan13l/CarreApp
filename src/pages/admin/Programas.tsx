@@ -1,54 +1,55 @@
-import { Plus, Trash2 } from 'lucide-react'
+import { ArrowRightLeft, Compass, GraduationCap, Palette, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { CultureSeal } from '../../components/Seals'
+import { useSearchParams } from 'react-router-dom'
 import { loadCatalog, type CareerRow, type GroupRow } from '../../lib/catalog'
 import { useCatalogVersion } from '../../lib/catalogStore'
 import { confirmDialog } from '../../lib/dialog'
 import { supabase } from '../../lib/supabase'
-import { THEMES, themeOf, type Ornament } from '../../lib/themes'
 import { errMsg } from './AdminContext'
+import PageTitle from './PageTitle'
 
-interface GroupCulture { theme_key: string; group_id: string; culture_key: string }
-const ORNAMENTS: Ornament[] = ['plain', 'runes', 'meander', 'steps', 'clouds', 'lotus']
-const slugKey = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '').slice(0, 20)
+export interface ThemeItem {
+  key: string
+  name: string
+  uses: number // how many carreras were created with it
+}
+
 const slugTheme = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
-// The careers and how they are grouped, and the themes with the cultures each group takes in them. Careers are grouped (Tronicas, Sistemas…);
-// every theme gives each group a culture (in "Mitologías": griega, nórdica…). There is always one global theme, which has no culture of its own.
+// «Carreras y temáticas»: the two lists the rest of the app takes from.
+//  * Carreras: the engineerings of the university, in groups (today five). A career belongs to ONE group; it can be moved, renamed or added.
+//  * Temáticas: only the NAMES of the themes. When a carrera is created one of them is chosen; the subthemes of each group and their seals are
+//    made inside that carrera (Preparación → Temática).
 export default function Programas() {
   useCatalogVersion()
   const [groups, setGroups] = useState<GroupRow[]>([])
   const [careers, setCareers] = useState<CareerRow[]>([])
-  const [gcs, setGcs] = useState<GroupCulture[]>([])
-  const [themeKey, setThemeKey] = useState<string>('')
-  const [currentTheme, setCurrentTheme] = useState<string>('mitologias')
+  const [themes, setThemes] = useState<ThemeItem[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [newGroup, setNewGroup] = useState('')
-  const [newTheme, setNewTheme] = useState('')
+  const [params, setParams] = useSearchParams()
+  const tab = params.get('vista') === 'tematicas' ? 'themes' : 'careers'
 
   const load = useCallback(async () => {
     if (!supabase) return
-    const [g, c, gc, t] = await Promise.all([
+    const [g, c, t, used] = await Promise.all([
       supabase.from('career_groups').select('id, name, sort_order').order('sort_order'),
       supabase.from('careers').select('id, name, group_id').order('name'),
-      supabase.from('group_cultures').select('theme_key, group_id, culture_key'),
-      supabase.from('terms').select('theme').eq('is_current', true).maybeSingle(),
+      supabase.from('themes').select('key, name').is('term_id', null).eq('is_global', false).order('name'),
+      supabase.from('themes').select('template_of').not('template_of', 'is', null),
     ])
     if (g.error) return setError('Falta aplicar la migración 0035.')
     setGroups((g.data ?? []) as GroupRow[])
     setCareers((c.data ?? []) as CareerRow[])
-    setGcs((gc.data ?? []) as GroupCulture[])
-    if (t.data?.theme) setCurrentTheme(t.data.theme)
+    const count = new Map<string, number>()
+    for (const u of (used.data ?? []) as { template_of: string }[]) count.set(u.template_of, (count.get(u.template_of) ?? 0) + 1)
+    setThemes(((t.data ?? []) as { key: string; name: string }[]).map((x) => ({ ...x, uses: count.get(x.key) ?? 0 })))
     await loadCatalog()
   }, [])
   useEffect(() => {
     void load()
   }, [load])
-  useEffect(() => {
-    // the themes listed here are the TEMPLATES (the ones a new carrera is copied from); each carrera's own theme is edited inside the carrera
-    if (!themeKey) setThemeKey(Object.values(THEMES).find((t) => !t.termId && t.key !== 'global')?.key ?? currentTheme)
-  }, [currentTheme, themeKey])
 
   async function run(action: () => Promise<void>) {
     setBusy(true)
@@ -62,225 +63,297 @@ export default function Programas() {
       setBusy(false)
     }
   }
-  const must = async (p: PromiseLike<{ error: { message: string } | null }>, msg: string) => {
+  const must = async (p: PromiseLike<{ error: { message: string } | null }>, msg: string, repeated = 'Ya existe uno con ese nombre.') => {
     const { error: err } = await p
-    if (err) throw new Error(/duplicate|unique/i.test(err.message) ? 'Ya existe uno con ese nombre.' : msg)
+    if (err) throw new Error(/duplicate|unique/i.test(err.message) ? repeated : msg)
   }
 
-  const theme = themeOf(themeKey || currentTheme)
-  const cultureOfGroup = (groupId: string) => gcs.find((x) => x.theme_key === theme.key && x.group_id === groupId)?.culture_key ?? null
+  return (
+    <ProgramasView
+      groups={groups}
+      careers={careers}
+      themes={themes}
+      busy={busy}
+      error={error}
+      tab={tab}
+      onTab={(next) => setParams(next === 'themes' ? { vista: 'tematicas' } : {}, { replace: true })}
+      onAddGroup={(name) => supabase && void run(() => must(supabase!.from('career_groups').insert({ name, sort_order: groups.length + 1 }), 'No se pudo crear el grupo.', 'Ya existe un grupo con ese nombre.'))}
+      onRenameGroup={(g, name) => supabase && void run(() => must(supabase!.from('career_groups').update({ name }).eq('id', g.id), 'No se pudo cambiar el nombre del grupo.', 'Ya existe un grupo con ese nombre.'))}
+      onRemoveGroup={async (g) => {
+        if (!supabase) return
+        if (careers.some((c) => c.group_id === g.id)) return setError('Primero pasa sus carreras a otro grupo.')
+        if (!(await confirmDialog({ title: `¿Borrar el grupo ${g.name}?`, confirmLabel: 'Borrar grupo', tone: 'danger', icon: 'trash' }))) return
+        void run(() => must(supabase!.from('career_groups').delete().eq('id', g.id), 'No se pudo borrar el grupo.'))
+      }}
+      onAddCareer={(g, name) => supabase && void run(() => must(supabase!.from('careers').insert({ name, group_id: g.id }), 'No se pudo agregar la carrera.', 'Ya existe una carrera con ese nombre.'))}
+      onRenameCareer={(c, name) =>
+        supabase && void run(async () => {
+          const { error: err } = await supabase!.rpc('rename_career', { p_id: c.id, p_name: name })
+          if (!err) return
+          if (/rename_career|schema cache/i.test(err.message)) throw new Error('Falta aplicar la migración 0048 (cambiar el nombre de una carrera).')
+          throw new Error(/duplicate|unique/i.test(err.message) ? 'Ya existe una carrera con ese nombre.' : err.message || 'No se pudo cambiar el nombre.')
+        })
+      }
+      onMoveCareer={(c, groupId) => supabase && void run(() => must(supabase!.from('careers').update({ group_id: groupId }).eq('id', c.id), 'No se pudo mover la carrera.'))}
+      onRemoveCareer={async (c) => {
+        if (!supabase) return
+        if (!(await confirmDialog({ title: `¿Quitar la carrera ${c.name}?`, message: 'Los inductores ya registrados la conservan.', confirmLabel: 'Quitar carrera', tone: 'danger', icon: 'trash' }))) return
+        void run(() => must(supabase!.from('careers').delete().eq('id', c.id), 'No se pudo quitar la carrera.'))
+      }}
+      onAddTheme={(name) => {
+        const key = slugTheme(name)
+        if (!supabase || key.length < 2) return setError('El nombre necesita al menos 2 letras.')
+        void run(() => must(supabase!.from('themes').insert({ key, name }), 'No se pudo crear la temática.', 'Ya existe una temática con ese nombre.'))
+      }}
+      onRenameTheme={(t, name) => supabase && void run(() => must(supabase!.from('themes').update({ name }).eq('key', t.key), 'No se pudo cambiar el nombre de la temática.', 'Ya existe una temática con ese nombre.'))}
+      onRemoveTheme={async (t) => {
+        if (!supabase) return
+        if (!(await confirmDialog({ title: `¿Borrar la temática ${t.name}?`, message: 'Las carreras que ya se crearon con ella conservan su propia temática.', confirmLabel: 'Borrar temática', tone: 'danger', icon: 'trash' }))) return
+        void run(() => must(supabase!.from('themes').delete().eq('key', t.key), 'No se pudo borrar la temática.'))
+      }}
+    />
+  )
+}
 
-  const addGroup = (e: FormEvent) => {
-    e.preventDefault()
-    if (!supabase || !newGroup.trim()) return
-    void run(async () => {
-      await must(supabase!.from('career_groups').insert({ name: newGroup.trim(), sort_order: groups.length + 1 }), 'No se pudo crear el grupo.')
-      setNewGroup('')
-    })
-  }
-  const renameGroup = (g: GroupRow, name: string) => supabase && name.trim() && name.trim() !== g.name && void run(() => must(supabase!.from('career_groups').update({ name: name.trim() }).eq('id', g.id), 'No se pudo renombrar el grupo.'))
-  const setCulture = (g: GroupRow, culture: string) =>
-    supabase && void run(async () => {
-      if (!culture) await must(supabase!.from('group_cultures').delete().eq('theme_key', theme.key).eq('group_id', g.id), 'No se pudo cambiar la cultura.')
-      else await must(supabase!.from('group_cultures').upsert({ theme_key: theme.key, group_id: g.id, culture_key: culture }, { onConflict: 'theme_key,group_id' }), 'No se pudo cambiar la cultura.')
-    })
-  async function removeGroup(g: GroupRow) {
-    if (!supabase) return
-    if (careers.some((c) => c.group_id === g.id)) return setError('Primero pasa sus carreras a otro grupo.')
-    if (!(await confirmDialog({ title: `¿Borrar el grupo ${g.name}?`, confirmLabel: 'Borrar grupo', tone: 'danger', icon: 'trash' }))) return
-    void run(() => must(supabase!.from('career_groups').delete().eq('id', g.id), 'No se pudo borrar el grupo.'))
-  }
-  const addCareer = (g: GroupRow, name: string) => supabase && name.trim() && void run(() => must(supabase!.from('careers').insert({ name: name.trim(), group_id: g.id }), 'No se pudo agregar la carrera.'))
-  const moveCareer = (c: CareerRow, groupId: string) => supabase && void run(() => must(supabase!.from('careers').update({ group_id: groupId }).eq('id', c.id), 'No se pudo mover la carrera.'))
-  async function removeCareer(c: CareerRow) {
-    if (!supabase) return
-    if (!(await confirmDialog({ title: `¿Quitar la carrera ${c.name}?`, message: 'Los inductores ya registrados la conservan.', confirmLabel: 'Quitar carrera', tone: 'danger', icon: 'trash' }))) return
-    void run(() => must(supabase!.from('careers').delete().eq('id', c.id), 'No se pudo quitar la carrera.'))
-  }
+interface ViewProps {
+  groups: GroupRow[]
+  careers: CareerRow[]
+  themes: ThemeItem[]
+  busy: boolean
+  error: string | null
+  tab: 'careers' | 'themes'
+  onTab: (tab: 'careers' | 'themes') => void
+  onAddGroup: (name: string) => void
+  onRenameGroup: (g: GroupRow, name: string) => void
+  onRemoveGroup: (g: GroupRow) => void
+  onAddCareer: (g: GroupRow, name: string) => void
+  onRenameCareer: (c: CareerRow, name: string) => void
+  onMoveCareer: (c: CareerRow, groupId: string) => void
+  onRemoveCareer: (c: CareerRow) => void
+  onAddTheme: (name: string) => void
+  onRenameTheme: (t: ThemeItem, name: string) => void
+  onRemoveTheme: (t: ThemeItem) => void
+}
 
-  const addTheme = (e: FormEvent) => {
-    e.preventDefault()
-    const key = slugTheme(newTheme)
-    if (!supabase || key.length < 2) return setError('El nombre necesita al menos 2 letras.')
-    void run(async () => {
-      await must(supabase!.from('themes').insert({ key, name: newTheme.trim() }), 'No se pudo crear la temática.')
-      setNewTheme('')
-      setThemeKey(key)
-    })
-  }
-  const renameTheme = (key: string, name: string) => supabase && name.trim() && void run(() => must(supabase!.from('themes').update({ name: name.trim() }).eq('key', key), 'No se pudo renombrar la temática.'))
-  async function removeTheme(key: string, name: string) {
-    if (!supabase) return
-    if (!(await confirmDialog({ title: `¿Borrar la temática ${name}?`, message: 'Se borran sus culturas. Los semestres que la usan muestran una temática neutra.', confirmLabel: 'Borrar temática', tone: 'danger', icon: 'trash' }))) return
-    void run(async () => {
-      await must(supabase!.from('themes').delete().eq('key', key), 'No se pudo borrar la temática (la global no se borra).')
-      setThemeKey(currentTheme)
-    })
-  }
-  const addCulture = (form: HTMLFormElement) => {
-    const f = new FormData(form)
-    const name = String(f.get('name') ?? '').trim()
-    const key = slugKey(name)
-    if (!supabase || key.length < 2) return setError('El nombre de la cultura necesita al menos 2 letras.')
-    void run(async () => {
-      await must(
-        supabase!.from('theme_cultures').insert({ theme_key: theme.key, key, name, myth: String(f.get('myth') ?? '').trim() || null, ink: Number(f.get('ink')), ornament: String(f.get('ornament')), emblem: 'Estrella', sort_order: theme.cultures.length + 1 }),
-        'No se pudo agregar la cultura.',
-      )
-      form.reset()
-    })
-  }
-  const saveCulture = (key: string, name: string, myth: string) => supabase && name.trim() && void run(() => must(supabase!.from('theme_cultures').update({ name: name.trim(), myth: myth.trim() || null }).eq('theme_key', theme.key).eq('key', key), 'No se pudo guardar la cultura.'))
-  async function removeCulture(key: string, name: string) {
-    if (!supabase) return
-    if (!(await confirmDialog({ title: `¿Quitar la cultura ${name}?`, message: 'Los grupos que la tenían quedan sin cultura en esta temática.', confirmLabel: 'Quitar cultura', tone: 'danger', icon: 'trash' }))) return
-    void run(() => must(supabase!.from('theme_cultures').delete().eq('theme_key', theme.key).eq('key', key), 'No se pudo quitar la cultura.'))
-  }
-
-  const isGlobal = theme.key === 'global'
+export function ProgramasView(p: ViewProps) {
   return (
     <>
-      <header className="page-head">
-        <div>
-          <h1>Programas y temáticas</h1>
-        </div>
-        <p className="head-meta">Las carreras van en grupos (Tronicas, Sistemas…). Cada temática le da una cultura a cada grupo. Siempre existe una temática global.</p>
-      </header>
-      {error && <p className="error">{error}</p>}
+      <PageTitle>Carreras y temáticas</PageTitle>
+      {p.error && <p className="error" role="alert">{p.error}</p>}
 
-      <section className="card">
-        <label className="inline-field">
-          Temática que estás viendo
-          <select value={theme.key} onChange={(e) => setThemeKey(e.target.value)}>
-            {Object.values(THEMES).filter((t) => !t.termId).map((t) => (
-              <option key={t.key} value={t.key}>{t.name}{t.key === 'global' ? ' (global)' : ''}{t.key === currentTheme ? ' · semestre vigente' : ''}</option>
-            ))}
-          </select>
-        </label>
-        <ThemeName key={theme.key} name={theme.name} locked={busy} onSave={(n) => renameTheme(theme.key, n)} />
-        <h3>Culturas de {theme.name}</h3>
-        <div className="culture-grid">
-          {theme.cultures.map((c) => (
-            <CultureEditor key={`${theme.key}-${c.key}`} theme={theme.key} c={c} busy={busy} locked={isGlobal} onSave={saveCulture} onRemove={removeCulture} />
-          ))}
-        </div>
-        {!isGlobal && (
-          <form className="culture-add" onSubmit={(e) => { e.preventDefault(); addCulture(e.currentTarget) }}>
-            <input name="name" placeholder="Nueva cultura" maxLength={30} required />
-            <input name="myth" placeholder="Una línea sobre ella" maxLength={160} />
-            <select name="ink" defaultValue="1" aria-label="Color">{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>Tinta {n}</option>)}</select>
-            <select name="ornament" defaultValue="plain" aria-label="Borde">{ORNAMENTS.map((o) => <option key={o} value={o}>{o}</option>)}</select>
-            <button disabled={busy}><Plus size={18} aria-hidden="true" /> Agregar cultura</button>
-          </form>
-        )}
-        {!isGlobal && theme.key !== currentTheme && (
-          <div className="row">
-            <button type="button" className="ghost danger" disabled={busy} onClick={() => void removeTheme(theme.key, theme.name)}>Borrar esta temática</button>
-          </div>
-        )}
-      </section>
-
-      <h2 className="section-title">Grupos de carreras</h2>
-      <div className="group-list">
-        {groups.map((g) => {
-          const culture = cultureOfGroup(g.id)
-          const mine = careers.filter((c) => c.group_id === g.id)
-          return (
-            <section key={g.id} className="card group-card">
-              <div className="group-head">
-                <CultureSeal culture={culture ?? theme.cultures[0]?.key ?? 'general'} theme={theme.key} top={g.name.toUpperCase()} bottom={theme.name.toUpperCase()} size={84} />
-                <div className="group-main">
-                  <GroupName g={g} busy={busy} onSave={renameGroup} />
-                  {!isGlobal && (
-                    <label className="inline-field">
-                      Cultura en {theme.name}
-                      <select value={culture ?? ''} disabled={busy} onChange={(e) => setCulture(g, e.target.value)}>
-                        <option value="">Sin cultura</option>
-                        {theme.cultures.map((c) => <option key={c.key} value={c.key}>{c.name}</option>)}
-                      </select>
-                    </label>
-                  )}
-                </div>
-              </div>
-              <ul className="career-chips">
-                {mine.map((c) => (
-                  <li key={c.id}>
-                    <span>{c.name}</span>
-                    <select value={g.id} disabled={busy} onChange={(e) => moveCareer(c, e.target.value)} aria-label={`Grupo de ${c.name}`}>
-                      {groups.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-                    </select>
-                    <button type="button" className="ghost icon-btn" onClick={() => void removeCareer(c)} aria-label={`Quitar ${c.name}`} title="Quitar"><Trash2 size={16} /></button>
-                  </li>
-                ))}
-                {mine.length === 0 && <li className="muted">Sin carreras</li>}
-              </ul>
-              <AddCareer g={g} busy={busy} onAdd={addCareer} />
-              <button type="button" className="ghost danger" disabled={busy || mine.length > 0} onClick={() => void removeGroup(g)}>Borrar grupo</button>
-            </section>
-          )
-        })}
+      <div className="catalog-tabs" role="tablist" aria-label="Qué quieres ver">
+        <button type="button" role="tab" aria-selected={p.tab === 'careers'} className={`action-tab${p.tab === 'careers' ? ' on' : ''}`} onClick={() => p.onTab('careers')}>
+          <GraduationCap size={20} aria-hidden="true" />
+          <span><strong>Carreras</strong><small>{plural(p.careers.length, 'carrera', 'carreras')} en {plural(p.groups.length, 'grupo', 'grupos')}</small></span>
+        </button>
+        <button type="button" role="tab" aria-selected={p.tab === 'themes'} className={`action-tab${p.tab === 'themes' ? ' on' : ''}`} onClick={() => p.onTab('themes')}>
+          <Palette size={20} aria-hidden="true" />
+          <span><strong>Temáticas</strong><small>{plural(p.themes.length, 'temática', 'temáticas')}</small></span>
+        </button>
       </div>
-      <form className="card" onSubmit={addGroup}>
-        <h2>Agregar un grupo de carreras</h2>
-        <label className="inline-field">
-          Nombre
-          <input value={newGroup} maxLength={40} onChange={(e) => setNewGroup(e.target.value)} placeholder="Arquitectura" />
-        </label>
-        <div className="row"><button disabled={busy || !newGroup.trim()}><Plus size={18} aria-hidden="true" /> Agregar grupo</button></div>
-      </form>
 
-      <form className="card" onSubmit={addTheme}>
-        <h2>Agregar una temática</h2>
-        <p className="muted">Por ejemplo «Casas de Harry Potter». Después le agregas sus culturas y eliges la cultura de cada grupo.</p>
-        <label className="inline-field">
-          Nombre
-          <input value={newTheme} maxLength={40} onChange={(e) => setNewTheme(e.target.value)} />
-        </label>
-        <div className="row"><button disabled={busy || !newTheme.trim()}><Plus size={18} aria-hidden="true" /> Agregar temática</button></div>
-      </form>
+      {p.tab === 'careers' ? <CareersTab {...p} /> : <ThemesTab {...p} />}
     </>
   )
 }
 
-function ThemeName({ name, locked, onSave }: { name: string; locked: boolean; onSave: (n: string) => void }) {
-  const [v, setV] = useState(name)
+function Hint({ children }: { children: string }) {
   return (
-    <div className="inline-edit">
-      <input value={v} maxLength={40} onChange={(e) => setV(e.target.value)} aria-label="Nombre de la temática" />
-      {v.trim() !== name && <button type="button" disabled={locked} onClick={() => onSave(v)}>Guardar</button>}
-    </div>
+    <p className="catalog-hint">
+      <Compass size={16} aria-hidden="true" />
+      <span>{children}</span>
+    </p>
   )
 }
-function GroupName({ g, busy, onSave }: { g: GroupRow; busy: boolean; onSave: (g: GroupRow, n: string) => void }) {
-  const [v, setV] = useState(g.name)
+
+// ---------- carreras ----------
+
+function CareersTab({ groups, careers, busy, onAddGroup, onRenameGroup, onRemoveGroup, onAddCareer, onRenameCareer, onMoveCareer, onRemoveCareer }: ViewProps) {
+  const [newGroup, setNewGroup] = useState('')
+  const submitGroup = (e: FormEvent) => {
+    e.preventDefault()
+    if (!newGroup.trim()) return
+    onAddGroup(newGroup.trim())
+    setNewGroup('')
+  }
   return (
-    <div className="inline-edit">
-      <input value={v} maxLength={40} onChange={(e) => setV(e.target.value)} aria-label={`Nombre del grupo ${g.name}`} />
-      {v.trim() !== g.name && <button type="button" disabled={busy} onClick={() => onSave(g, v)}>Guardar</button>}
-    </div>
-  )
-}
-function AddCareer({ g, busy, onAdd }: { g: GroupRow; busy: boolean; onAdd: (g: GroupRow, n: string) => void }) {
-  const [v, setV] = useState('')
-  return (
-    <form className="inline-edit" onSubmit={(e) => { e.preventDefault(); onAdd(g, v); setV('') }}>
-      <input value={v} maxLength={60} onChange={(e) => setV(e.target.value)} placeholder="Agregar una carrera" aria-label={`Agregar una carrera a ${g.name}`} />
-      <button disabled={busy || !v.trim()}><Plus size={16} aria-hidden="true" /> Agregar</button>
-    </form>
-  )
-}
-function CultureEditor({ theme, c, busy, locked, onSave, onRemove }: { theme: string; c: { key: string; name: string; myth: string }; busy: boolean; locked: boolean; onSave: (key: string, name: string, myth: string) => void; onRemove: (key: string, name: string) => void }) {
-  const [name, setName] = useState(c.name)
-  const [myth, setMyth] = useState(c.myth)
-  return (
-    <div className="culture-edit">
-      <CultureSeal culture={c.key} theme={theme} top={c.name.toUpperCase()} bottom={theme.toUpperCase()} size={64} />
-      <div>
-        <input value={name} maxLength={30} onChange={(e) => setName(e.target.value)} aria-label={`Nombre de la cultura ${c.name}`} disabled={locked} />
-        <input value={myth} maxLength={160} onChange={(e) => setMyth(e.target.value)} aria-label={`Descripción de ${c.name}`} disabled={locked} />
-        {!locked && (name.trim() !== c.name || myth.trim() !== c.myth) && <button type="button" disabled={busy} onClick={() => onSave(c.key, name, myth)}>Guardar</button>}
-        {!locked && <button type="button" className="ghost danger" disabled={busy} onClick={() => onRemove(c.key, c.name)}>Quitar</button>}
+    <>
+      <Hint>Cada carrera de ingeniería está en un solo grupo. Puedes mover una carrera a otro grupo, cambiarle el nombre o agregar una nueva si llega alguna. Los grupos reciben su subtemática dentro de cada carrera (la competencia).</Hint>
+      <div className="catalog-groups">
+        {groups.map((g) => (
+          <GroupCard key={g.id} g={g} groups={groups} mine={careers.filter((c) => c.group_id === g.id)} busy={busy} onRename={onRenameGroup} onRemove={onRemoveGroup} onAddCareer={onAddCareer} onRenameCareer={onRenameCareer} onMoveCareer={onMoveCareer} onRemoveCareer={onRemoveCareer} />
+        ))}
+        <form className="card group-add" onSubmit={submitGroup}>
+          <h2>Un grupo nuevo</h2>
+          <label className="inline-field">
+            <span>Nombre</span>
+            <input value={newGroup} maxLength={40} onChange={(e) => setNewGroup(e.target.value)} placeholder="Arquitectura" disabled={busy} />
+          </label>
+          <button disabled={busy || !newGroup.trim()}><Plus size={18} aria-hidden="true" /> Agregar grupo</button>
+        </form>
       </div>
-    </div>
+    </>
+  )
+}
+
+type Editing = { id: string; mode: 'rename' | 'move' } | null
+
+interface CardProps {
+  g: GroupRow
+  groups: GroupRow[]
+  mine: CareerRow[]
+  busy: boolean
+  onRename: ViewProps['onRenameGroup']
+  onRemove: ViewProps['onRemoveGroup']
+  onAddCareer: ViewProps['onAddCareer']
+  onRenameCareer: ViewProps['onRenameCareer']
+  onMoveCareer: ViewProps['onMoveCareer']
+  onRemoveCareer: ViewProps['onRemoveCareer']
+}
+
+function GroupCard({ g, groups, mine, busy, onRename, onRemove, onAddCareer, onRenameCareer, onMoveCareer, onRemoveCareer }: CardProps) {
+  const [renaming, setRenaming] = useState(false)
+  const [name, setName] = useState(g.name)
+  const [editing, setEditing] = useState<Editing>(null)
+  const [draft, setDraft] = useState('')
+  const [target, setTarget] = useState('')
+  const [adding, setAdding] = useState('')
+  const others = groups.filter((x) => x.id !== g.id)
+
+  const saveGroup = (e: FormEvent) => {
+    e.preventDefault()
+    if (name.trim() && name.trim() !== g.name) onRename(g, name.trim())
+    setRenaming(false)
+  }
+  const startRename = (c: CareerRow) => {
+    setEditing({ id: c.id, mode: 'rename' })
+    setDraft(c.name)
+  }
+  const startMove = (c: CareerRow) => {
+    setEditing({ id: c.id, mode: 'move' })
+    setTarget(others[0]?.id ?? '')
+  }
+  const saveCareer = (e: FormEvent, c: CareerRow) => {
+    e.preventDefault()
+    if (editing?.mode === 'rename' && draft.trim() && draft.trim() !== c.name) onRenameCareer(c, draft.trim())
+    if (editing?.mode === 'move' && target) onMoveCareer(c, target)
+    setEditing(null)
+  }
+  const addCareer = (e: FormEvent) => {
+    e.preventDefault()
+    if (!adding.trim()) return
+    onAddCareer(g, adding.trim())
+    setAdding('')
+  }
+
+  return (
+    <section className="card group-card">
+      <header className="group-card-head">
+        {renaming ? (
+          <form className="row-edit grow" onSubmit={saveGroup}>
+            <input value={name} maxLength={40} autoFocus onChange={(e) => setName(e.target.value)} aria-label={`Nombre del grupo ${g.name}`} />
+            <button disabled={busy || !name.trim()}>Guardar</button>
+            <button type="button" className="btn-danger" onClick={() => { setRenaming(false); setName(g.name) }}>Cancelar</button>
+          </form>
+        ) : (
+          <>
+            <div className="group-title grow">
+              <h2>{g.name}</h2>
+              <span className="badge">{plural(mine.length, 'carrera', 'carreras')}</span>
+            </div>
+            <span className="row-actions">
+              <button type="button" className="ghost icon-btn" disabled={busy} onClick={() => setRenaming(true)} aria-label={`Cambiar el nombre del grupo ${g.name}`} title="Cambiar el nombre"><Pencil size={18} /></button>
+              <button type="button" className="ghost danger icon-btn" disabled={busy || mine.length > 0} onClick={() => onRemove(g)} aria-label={`Borrar el grupo ${g.name}`} title={mine.length > 0 ? 'Primero pasa sus carreras a otro grupo' : 'Borrar el grupo'}><Trash2 size={18} /></button>
+            </span>
+          </>
+        )}
+      </header>
+
+      <ul className="career-list">
+        {mine.map((c) => (
+          <li key={c.id} className={editing?.id === c.id ? 'is-editing' : undefined}>
+            {editing?.id === c.id ? (
+              <form className="row-edit" onSubmit={(e) => saveCareer(e, c)}>
+                {editing.mode === 'rename' ? (
+                  <input value={draft} maxLength={60} autoFocus onChange={(e) => setDraft(e.target.value)} aria-label={`Nombre de la carrera ${c.name}`} />
+                ) : (
+                  <>
+                    <span className="career-name">{c.name} <small className="muted">pasa a…</small></span>
+                    <select value={target} onChange={(e) => setTarget(e.target.value)} aria-label={`Nuevo grupo de ${c.name}`}>
+                      {others.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                    </select>
+                  </>
+                )}
+                <button disabled={busy || (editing.mode === 'rename' ? !draft.trim() : !target)}>{editing.mode === 'rename' ? 'Guardar' : 'Mover'}</button>
+                <button type="button" className="btn-danger" onClick={() => setEditing(null)}>Cancelar</button>
+              </form>
+            ) : (
+              <>
+                <span className="career-name">{c.name}</span>
+                <span className="row-actions">
+                  <button type="button" className="ghost icon-btn" disabled={busy} onClick={() => startRename(c)} aria-label={`Cambiar el nombre de ${c.name}`} title="Cambiar el nombre"><Pencil size={18} /></button>
+                  <button type="button" className="ghost icon-btn" disabled={busy || others.length === 0} onClick={() => startMove(c)} aria-label={`Mover ${c.name} a otro grupo`} title="Mover a otro grupo"><ArrowRightLeft size={18} /></button>
+                  <button type="button" className="ghost danger icon-btn" disabled={busy} onClick={() => onRemoveCareer(c)} aria-label={`Quitar ${c.name}`} title="Quitar la carrera"><Trash2 size={18} /></button>
+                </span>
+              </>
+            )}
+          </li>
+        ))}
+        {mine.length === 0 && <li className="career-empty">Sin carreras todavía</li>}
+      </ul>
+
+      <form className="row-edit career-add" onSubmit={addCareer}>
+        <input value={adding} maxLength={60} onChange={(e) => setAdding(e.target.value)} placeholder="Nueva carrera" aria-label={`Agregar una carrera a ${g.name}`} disabled={busy} />
+        <button disabled={busy || !adding.trim()}><Plus size={18} aria-hidden="true" /> Agregar</button>
+      </form>
+    </section>
+  )
+}
+
+// ---------- temáticas ----------
+
+function ThemesTab({ themes, busy, onAddTheme, onRenameTheme, onRemoveTheme }: ViewProps) {
+  const [newTheme, setNewTheme] = useState('')
+  const [editing, setEditing] = useState<string | null>(null)
+  const [draft, setDraft] = useState('')
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    if (!newTheme.trim()) return
+    onAddTheme(newTheme.trim())
+    setNewTheme('')
+  }
+  return (
+    <>
+      <Hint>Aquí solo van los nombres de las temáticas, sin sellos ni nada más. Al crear una carrera eliges una de esta lista; sus subtemáticas (una por cada grupo de carreras) y sus sellos se arman dentro de esa carrera, en Preparación → Temática.</Hint>
+      <section className="card theme-card">
+        <form className="row-edit theme-add" onSubmit={submit}>
+          <input value={newTheme} maxLength={40} onChange={(e) => setNewTheme(e.target.value)} placeholder="Una temática nueva, por ejemplo: Casas de Harry Potter" aria-label="Nombre de la temática nueva" disabled={busy} />
+          <button disabled={busy || !newTheme.trim()}><Plus size={18} aria-hidden="true" /> Agregar temática</button>
+        </form>
+        <ul className="career-list theme-list">
+          {themes.map((t) => (
+            <li key={t.key} className={editing === t.key ? 'is-editing' : undefined}>
+              {editing === t.key ? (
+                <form className="row-edit" onSubmit={(e) => { e.preventDefault(); if (draft.trim() && draft.trim() !== t.name) onRenameTheme(t, draft.trim()); setEditing(null) }}>
+                  <input value={draft} maxLength={40} autoFocus onChange={(e) => setDraft(e.target.value)} aria-label={`Nombre de la temática ${t.name}`} />
+                  <button disabled={busy || !draft.trim()}>Guardar</button>
+                  <button type="button" className="btn-danger" onClick={() => setEditing(null)}>Cancelar</button>
+                </form>
+              ) : (
+                <>
+                  <span className="career-name theme-name">{t.name}</span>
+                  <span className="badge">{t.uses === 0 ? 'Sin usar' : `En ${plural(t.uses, 'carrera', 'carreras')}`}</span>
+                  <span className="row-actions">
+                    <button type="button" className="ghost icon-btn" disabled={busy} onClick={() => { setEditing(t.key); setDraft(t.name) }} aria-label={`Cambiar el nombre de ${t.name}`} title="Cambiar el nombre"><Pencil size={18} /></button>
+                    <button type="button" className="ghost danger icon-btn" disabled={busy} onClick={() => onRemoveTheme(t)} aria-label={`Borrar ${t.name}`} title="Borrar la temática"><Trash2 size={18} /></button>
+                  </span>
+                </>
+              )}
+            </li>
+          ))}
+          {themes.length === 0 && <li className="career-empty">Todavía no hay temáticas: agrega la primera para poder crear una carrera.</li>}
+        </ul>
+      </section>
+    </>
   )
 }
