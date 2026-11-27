@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { confirmDialog } from '../../lib/dialog'
 import { PHASE_LABEL } from '../../lib/phase'
+import { loadTemplates, type TemplateUse } from '../../lib/themeUse'
 import { supabase } from '../../lib/supabase'
 import type { EventRow } from '../../types'
 import { useAdmin } from './AdminContext'
@@ -17,21 +18,21 @@ export default function Carreras() {
   const navigate = useNavigate()
   const [counts, setCounts] = useState<Record<string, Counts>>({})
   const [next, setNext] = useState<string | null>(null)
-  const [templates, setTemplates] = useState<{ key: string; name: string }[]>([])
-  const [template, setTemplate] = useState('mitologias')
+  const [templates, setTemplates] = useState<TemplateUse[]>([])
+  const [template, setTemplate] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!supabase) return
-    const [t, b, m, n, tp] = await Promise.all([
+    const [t, b, m, n] = await Promise.all([
       supabase.from('teams').select('event_id'),
       supabase.from('bases').select('event_id'),
       supabase.from('matches').select('event_id'),
       supabase.rpc('next_event_code'),
-      supabase.from('themes').select('key, name').is('term_id', null).eq('is_global', false).order('name'),
     ])
-    if (!tp.error) setTemplates((tp.data ?? []) as { key: string; name: string }[])
+    const tpl = await loadTemplates()
+    if (tpl) setTemplates(tpl)
     const by: Record<string, Counts> = {}
     const add = (rows: { event_id: string }[] | null, k: keyof Counts) => {
       for (const r of rows ?? []) (by[r.event_id] ??= { teams: 0, bases: 0, matches: 0 })[k] += 1
@@ -46,9 +47,15 @@ export default function Carreras() {
     void load()
   }, [load, events.length])
 
+  // a theme belongs to ONE carrera (0049): only the free ones can be chosen
+  const free = templates.filter((t) => !t.usedBy)
+  useEffect(() => {
+    setTemplate((current) => (free.some((t) => t.key === current) ? current : free[0]?.key ?? ''))
+  }, [templates])
+
   async function create() {
     if (!supabase) return
-    if (!(await confirmDialog({ title: `¿Crear la carrera ${next ?? ''} con la temática ${templates.find((t) => t.key === template)?.name ?? ''}?`, message: 'Empieza sin grupos, bases, cruces ni usuarios. Sus subtemáticas y sellos los armas dentro de la carrera (Temática) y son solo suyos. Todos los inductores activos entran solos como corredores; luego les das rol, comité, grupo o base.', confirmLabel: 'Crear carrera', icon: 'check' }))) return
+    if (!(await confirmDialog({ title: `¿Crear la carrera ${next ?? ''} con la temática ${free.find((t) => t.key === template)?.name ?? ''}?`, message: 'Empieza sin grupos, bases, cruces ni usuarios. Sus subtemáticas y sellos los armas dentro de la carrera (Temática) y son solo suyos. Todos los inductores activos entran solos como corredores; luego les das rol, comité, grupo o base.', confirmLabel: 'Crear carrera', icon: 'check' }))) return
     setBusy(true)
     setError(null)
     let { data, error: err } = await supabase.rpc('create_event', { p_theme: template })
@@ -71,18 +78,18 @@ export default function Carreras() {
           <h1>Todas las carreras</h1>
         </div>
         <div className="head-meta">
-          {templates.length > 0 && (
+          {free.length > 0 && (
             <select value={template} onChange={(e) => setTemplate(e.target.value)} aria-label="Temática de la nueva carrera">
-              {templates.map((t) => <option key={t.key} value={t.key}>Temática: {t.name}</option>)}
+              {free.map((t) => <option key={t.key} value={t.key}>Temática: {t.name}</option>)}
             </select>
           )}
-          <button onClick={() => void create()} disabled={busy || templates.length === 0}>
+          <button onClick={() => void create()} disabled={busy || free.length === 0}>
             <Plus size={18} aria-hidden="true" /> Nueva carrera{next ? ` (${next})` : ''}
           </button>
         </div>
       </header>
       {error && <p className="error">{error}</p>}
-      {templates.length === 0 && <p className="warn" role="status">Para crear una carrera primero agrega una temática en <Link to="/admin/programas?vista=tematicas">Carreras y temáticas</Link>.</p>}
+      {free.length === 0 && <p className="warn" role="status">{templates.length === 0 ? 'Para crear una carrera primero agrega una temática' : 'Todas las temáticas ya las usa una carrera: cada carrera tiene la suya. Agrega una temática nueva'} en <Link to="/admin/programas?vista=tematicas">Carreras y temáticas</Link>.</p>}
       <p className="muted">Cada carrera es una edición con su propia configuración: grupos, bases, cruces, usuarios y todo lo suyo. Lo compartido (inductores, comités, insignias, sellos) está en <strong>Administración global</strong>.</p>
 
       <div className="carrera-grid">
