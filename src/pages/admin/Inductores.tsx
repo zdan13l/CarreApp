@@ -219,11 +219,11 @@ export function PersonItem({
       </span>
       {view === 'global' && (
         <span className="person-actions">
-          <button type="button" className={`ghost${editing ? ' pressed' : ''}`} disabled={busy} aria-expanded={editing} onClick={() => { setEditing(!editing); setEditError(null) }}>
+          <button type="button" className={`ghost${editing ? ' danger' : ''}`} disabled={busy} aria-expanded={editing} onClick={() => { setEditing(!editing); setEditError(null) }}>
             <Pencil size={16} aria-hidden="true" /> {editing ? 'Cerrar' : 'Editar perfil'}
           </button>
           {status === 'active' && onAncestor && (
-            <button className="ghost icon-btn" disabled={busy} onClick={onAncestor} aria-label={`Marcar a ${p.full_name} como ancestro`} title="Ancestro: ya no está en la inducción">
+            <button className="ghost icon-btn" disabled={busy} onClick={onAncestor} aria-label={`Marcar a ${p.full_name} como ancestro`} title="Ancestro">
               <GraduationCap size={18} />
             </button>
           )}
@@ -233,11 +233,11 @@ export function PersonItem({
             </button>
           )}
           {status === 'ancestor' && onDisable && (
-            <button className="ghost danger icon-btn" disabled={busy} onClick={onDisable} aria-label={`Deshabilitar ya a ${p.full_name}`} title="Deshabilitar su perfil ya">
+            <button className="ghost danger icon-btn" disabled={busy} onClick={onDisable} aria-label={`Deshabilitar a ${p.full_name}`} title="Deshabilitar">
               <UserX size={18} />
             </button>
           )}
-          <button className="ghost icon-btn" disabled={busy} onClick={onReset} aria-label={`Nueva contraseña de ${p.full_name}`} title="Generar una contraseña nueva">
+          <button className="ghost icon-btn" disabled={busy} onClick={onReset} aria-label={`Nueva contraseña de ${p.full_name}`} title="Nueva contraseña">
             <KeyRound size={18} />
           </button>
           <button className="ghost danger icon-btn" disabled={busy} onClick={onDelete} aria-label={`Eliminar a ${p.full_name}`} title="Eliminar el pasaporte">
@@ -473,7 +473,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     })
   }
   async function onReset(p: PassportPerson) {
-    if (!(await confirmDialog({ title: `¿Cambiar la contraseña de ${p.full_name}?`, message: 'Se genera una nueva y se muestra una sola vez.', confirmLabel: 'Generar nueva', icon: 'question' }))) return
+    if (!(await confirmDialog({ title: `¿Cambiar la contraseña de ${p.full_name}?`, confirmLabel: 'Generar nueva', icon: 'question' }))) return
     const next = newPassword()
     void run(async () => {
       await resetPassword(p.id, next)
@@ -481,7 +481,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     })
   }
   async function onDelete(p: PassportPerson) {
-    if (!(await confirmDialog({ title: `¿Retirar a ${p.full_name} de la inducción?`, message: `@${p.username}. Antes pídele que descargue su pasaporte en PDF (Mi perfil): al retirarla se borran su usuario, su foto y sus sellos de todos los semestres para liberar espacio. No se puede deshacer.`, confirmLabel: 'Retirar', tone: 'danger', icon: 'trash' }))) return
+    if (!(await confirmDialog({ title: `¿Retirar a ${p.full_name} de la inducción?`, message: 'Antes pídele que descargue su pasaporte en PDF, al retirarlo se borran su usuario, su foto y sus sellos de todos los semestres para liberar espacio. No se puede deshacer.', confirmLabel: 'Retirar', tone: 'danger', icon: 'trash' }))) return
     void run(async () => {
       await deleteUser(p.id)
       await deletePhoto(p.photo_path)
@@ -534,12 +534,12 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
   async function onAncestor(p: PassportPerson) {
     const until = new Date()
     until.setMonth(until.getMonth() + 6)
-    if (!(await confirmDialog({ title: `¿${p.full_name} es ahora ancestro?`, message: `Ya no está en la inducción. Su perfil sigue activo hasta el ${until.toLocaleDateString('es-CO')} y después queda deshabilitado. Puedes reactivarlo o deshabilitarlo antes.`, confirmLabel: 'Marcar ancestro', icon: 'question' }))) return
+    if (!(await confirmDialog({ title: `¿${p.full_name} es ahora ancestro?`, message: `Ahora ${p.nickname?.trim() || p.full_name.split(' ')[0]} pasará a ser ancestro, su perfil sigue activo hasta el ${until.toLocaleDateString('es-CO')} y después queda deshabilitado.`, confirmLabel: 'Marcar ancestro', icon: 'question' }))) return
     updateIdentity({ passport: p, record: null }, { status: 'ancestor', ancestor_at: new Date().toISOString(), disable_at: until.toISOString() })
   }
   const onReactivate = (p: PassportPerson) => updateIdentity({ passport: p, record: null }, { status: 'active', ancestor_at: null, disable_at: null })
   async function onDisableNow(p: PassportPerson) {
-    if (!(await confirmDialog({ title: `¿Deshabilitar a ${p.full_name} ya?`, message: 'Su perfil deja de abrir el pasaporte ahora mismo. Puedes reactivarlo después.', confirmLabel: 'Deshabilitar', tone: 'danger', icon: 'warning' }))) return
+    if (!(await confirmDialog({ title: `¿Deshabilitar a ${p.full_name}?`, message: 'Su perfil deja de abrir el pasaporte ahora mismo, puedes reactivarlo después.', confirmLabel: 'Deshabilitar', tone: 'danger', icon: 'warning' }))) return
     updateIdentity({ passport: p, record: null }, { status: 'disabled', disable_at: new Date().toISOString() })
   }
 
@@ -617,7 +617,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
               <Copy size={18} aria-hidden="true" />
               Copiar
             </button>
-            <button className="ghost" onClick={() => setCreds(null)}>Cerrar</button>
+            <button className="btn-danger" onClick={() => setCreds(null)}>Cerrar</button>
           </div>
         </section>
       )}
