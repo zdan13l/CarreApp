@@ -8,6 +8,7 @@ import { createElement, type ReactElement } from 'react'
 import { airportCode } from './flight'
 import { committeeOf, committeesOfRecord } from './committees'
 import { embedSealAssets, generationPicture, generationsOf, sealedGenerationsOf, sealForSeed, sealInkVar, type GenerationSeal } from './seals'
+import { ageOf } from './birthday'
 import { personNumber, PASSPORT_ROLE_LONG } from './passports'
 import { jpegPdf } from './pdf'
 import { mrzText, stampLook, stampTime } from './stamp'
@@ -234,12 +235,13 @@ function identity(ctx: PageContext, no: number, total: number): string {
   const inductions = person.inductions ?? null // migration 0044: how many inductions they have taken part in
   const generation = person.generation?.trim()
   const joined = person.joined_term?.trim()
+  const age = ageOf(person.birth_date)
   const rows: [string, string][] = [
     ['CARRERA', secondCareer ? `${career} + ${secondCareer}` : career || '—'],
     ['INGRESÓ A INDUCCIÓN', joined || 'Por definir'],
     ['GENERACIÓN', generation || 'Por definir'],
     ['USUARIO', `@${person.username}`],
-    ['NÚMERO', personNumber(person.id)],
+    ['NÚMERO', personNumber(person.id, person.birth_date)],
   ]
   const grid = rows
     .map(([k, v], i) => {
@@ -268,8 +270,9 @@ function identity(ctx: PageContext, no: number, total: number): string {
     ${person.song ? `${text(242, 266, 'CANCIÓN', { size: 10, mono: true, spacing: 2.4, fill: FAINT })}${lines(242, 292, wrap(person.song.title, 24).slice(0, 2), 21, { size: 17, weight: 800, fill: INK })}${text(242, 336, person.song.artist.slice(0, 40), { size: 13, fill: MUTED })}` : text(242, 290, 'Sin canción', { size: 15, fill: FAINT })}
     ${grid}
     ${inductions !== null ? `${text(400, 408, 'INDUCCIONES', { size: 9.5, mono: true, spacing: 2, fill: FAINT })}${text(400, 436, String(inductions), { size: 26, weight: 800, fill: ink, stretch: true })}` : ''}
+    ${age !== null ? `${text(494, 408, 'EDAD', { size: 9.5, mono: true, spacing: 2, fill: FAINT })}${text(494, 436, String(age), { size: 26, weight: 800, fill: ink, stretch: true })}` : ''}
     ${genSeal ? piece(createElement(GenerationSeals, { generation: genSeal.name, size: 150 }), 86, 566, 150, 150, -3, ink, PAPER) + text(161, 740, 'GENERACIÓN', { size: 9.5, mono: true, spacing: 2, fill: FAINT, anchor: 'middle' }) : slot(86, 'Generación', generation, 'Generación', 'Inducción Javeriana', -3)}${slot(364, 'Ingresó a inducción', joined, 'Ingresó a inducción', 'Pontificia Universidad Javeriana', 4)}`
-  return page(ctx, { culture: 'general', mrz: mrzOf(person.full_name, `PUJ<<${careerKey(career).toUpperCase()}<<${personNumber(person.id).slice(4)}`) }, body, no, total, ink)
+  return page(ctx, { culture: 'general', mrz: mrzOf(person.full_name, `PUJ<<${careerKey(career).toUpperCase()}<<${personNumber(person.id, person.birth_date).slice(4)}`) }, body, no, total, ink)
 }
 
 function look(ctx: PageContext, record: MemberRecord): PageLook & { ink: string } {

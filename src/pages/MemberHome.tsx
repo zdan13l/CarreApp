@@ -76,8 +76,8 @@ export default function MemberHome() {
     }
     // what the later migrations added is read apart, so the passport opens before they are applied: the song (0042), the career (0043) and the
     // other career of a double program (0044), how many inductions they have (0044, a view) and the inductions where their profile is disabled (0044)
-    let apart: { song?: PassportPerson['song']; career?: string | null; second_career?: string | null } = {}
-    for (const columns of ['song, career, second_career', 'song, career', 'song']) {
+    let apart: { song?: PassportPerson['song']; career?: string | null; second_career?: string | null; birth_date?: string | null } = {}
+    for (const columns of ['song, career, second_career, birth_date', 'song, career, second_career', 'song, career', 'song']) {
       const read1 = await sb.from('passports').select(columns).eq('id', userId).maybeSingle()
       if (!read1.error) {
         apart = (read1.data ?? {}) as typeof apart
@@ -87,6 +87,7 @@ export default function MemberHome() {
     person.song = apart.song ?? null
     person.career = apart.career ?? null
     person.second_career = apart.second_career ?? null
+    person.birth_date = apart.birth_date ?? null // migration 0047: the code and the age of the identity page
     const [counted, flags] = await Promise.all([
       sb.from('passport_inductions').select('inductions').eq('passport_id', userId).maybeSingle(),
       sb.from('passport_records').select('id, disabled').eq('passport_id', userId),

@@ -1,6 +1,7 @@
 import { Star } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { ageOf } from '../lib/birthday'
 import { airportCode } from '../lib/flight'
 import { committeeOf, committeesOfRecord } from '../lib/committees'
 import { sealedGenerationsOf } from '../lib/seals'
@@ -173,12 +174,13 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
   let articleStyle: CSSProperties = NEUTRAL
   let articleClass = ''
   let ornament: CultureKey = 'general'
-  let footer: [string, string] = [`P<PUJ<<${mrzText(person.full_name, 23)}`, `PUJ<<${careerKey(career).toUpperCase()}<<${personNumber(person.id).slice(4)}`.padEnd(30, '<').slice(0, 30)]
+  let footer: [string, string] = [`P<PUJ<<${mrzText(person.full_name, 23)}`, `PUJ<<${careerKey(career).toUpperCase()}<<${personNumber(person.id, person.birth_date).slice(4)}`.padEnd(30, '<').slice(0, 30)]
 
   if (spec.kind === 'dni') {
     const generation = person.generation?.trim()
     const medals = medalsOf(career, secondCareer)
     const joined = person.joined_term?.trim()
+    const age = ageOf(person.birth_date)
     content = (
       <>
         <header className="leaf-head member-head">
@@ -206,8 +208,9 @@ export default function MemberPassport({ data, startOpen = false, startPage = 0 
             <div><dt>Ingresó a inducción</dt><dd>{joined || 'Por definir'}</dd></div>
             <div><dt>Generación</dt><dd>{generation || 'Por definir'}</dd></div>
             {inductions !== null && <div><dt>Inducciones</dt><dd className="inductions-count">{inductions}</dd></div>}
+            <div><dt>Edad</dt><dd>{age === null ? 'Por definir' : `${age} años`}</dd></div>
             <div><dt>Usuario</dt><dd className="mono">@{person.username}</dd></div>
-            <div className={inductions !== null ? 'wide' : undefined}><dt>Número</dt><dd className="mono">{personNumber(person.id)}</dd></div>
+            <div className={inductions === null ? 'wide' : undefined}><dt>Número</dt><dd className="mono">{personNumber(person.id, person.birth_date)}</dd></div>
           </dl>
           <ul className="slots identity-slots dni-slots">
             {(medals.length ? medals : [{ career, other: false }]).map((m) => (

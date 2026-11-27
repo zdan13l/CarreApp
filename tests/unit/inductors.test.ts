@@ -317,6 +317,31 @@ describe('the inductions a person already had (0045)', () => {
   })
 })
 
+describe('the birthday of the passport (0047)', () => {
+  const head = ['Nombre', 'Carrera', 'Generación', 'Apodo', 'Cumpleaños (opcional)']
+  const load = (...rows: string[][]) => parseInductors([[head, ...rows]], { careers: CAREERS, usernames: new Set(), known: new Map(), defaultGeneration: '' })
+  it('the Excel brings it in a column of its own, written the way people write dates; empty is none', () => {
+    const [a, b, c, d] = load(['Ana Gómez', 'Civil', 'Barbies', 'Anita', '15/03/2005'], ['Luis Ruiz', 'Civil', 'Barbies', 'Lucho', '2004-11-02'], ['Eva Mora', 'Civil', 'Barbies', 'Eva', ''], ['Pedro Gil', 'Civil', 'Barbies', 'Pedro', '5-3-2003'])
+    expect([a.birth, b.birth, c.birth, d.birth]).toEqual(['2005-03-15', '2004-11-02', '', '2003-03-05'])
+    expect([a, b, c, d].map(rowProblem)).toEqual([null, null, null, null])
+  })
+  it('a date that does not exist, or an age that makes no sense, is a problem of the row', () => {
+    for (const bad of ['mañana', '31/02/2005', '15/03/2020', '01/01/1900']) {
+      const [a] = load(['Ana Gómez', 'Civil', 'Barbies', 'Anita', bad])
+      expect(rowProblem(a), bad).toMatch(/cumplea|edad|año/i)
+    }
+  })
+  it('the template has the column and the changes of a profile include it', () => {
+    const rows = templateData(CAREERS, ['Minichips', 'Barbies']).map((r) => r.map((c) => (typeof c === 'string' ? c : c.value)))
+    expect(rows[0]).toContain('Cumpleaños (opcional)')
+    const person = { id: 'p', username: 'ana', full_name: 'Ana Gómez', photo_path: null, nickname: 'Anita', generation: 'Barbies', birth_date: null } as PassportPerson
+    const draft = { fullName: 'Ana Gómez', username: 'ana', career: 'Ingeniería Civil', generation: 'Barbies', nickname: 'Anita', song: null }
+    expect(profileChanges(person, 'Ingeniería Civil', { ...draft, birthDate: '2005-03-15' })).toEqual({ birth_date: '2005-03-15' })
+    expect(profileChanges({ ...person, birth_date: '2005-03-15' }, 'Ingeniería Civil', { ...draft, birthDate: '' })).toEqual({ birth_date: null })
+    expect(profileChanges({ ...person, birth_date: '2005-03-15' }, 'Ingeniería Civil', { ...draft, birthDate: '2005-03-15' })).toEqual({})
+  })
+})
+
 describe('how many inductions', () => {
   it('is said in Spanish, singular and plural, and read from the rows of the view', () => {
     expect(inductionsLabel(0)).toBe('0 inducciones')

@@ -1,6 +1,7 @@
 // The personal passport of each inductor: types, the Excel the coordinator uploads (names and careers) and the Excel the app returns
 // (the @ and the password of every person). Pure functions where possible: the screen shows a preview before anything is created.
 import type { PassportSong } from './songs'
+import { birthdayCode } from './birthday'
 import { generatePassword } from './password'
 import { cultureOf } from './themes'
 import { foldKeepingEnye, USERNAME_PATTERN } from './username'
@@ -38,6 +39,7 @@ export interface PassportPerson {
   career?: string | null // migration 0043: the career of the person (one for their whole life in the induction), read apart so the list opens without it
   second_career?: string | null // migration 0044: the other career of a double program (read apart, like the first)
   inductions?: number | null // migration 0044 (view passport_inductions): how many inductions they have taken part in; null while the view does not exist
+  birth_date?: string | null // migration 0047: the birthday (AAAA-MM-DD); the code and the age of the passport come from it, read apart
   prior_inductions?: number | null // migration 0045: the inductions they already had before CarreApp (fixed; the carreras they join add to it), read apart
   // migration 0035: an ancestor (left the induction) keeps their passport until `disable_at`, then it is disabled
   status?: 'active' | 'ancestor' | 'disabled'
@@ -106,8 +108,10 @@ function hash(text: string): number {
   return h >>> 0
 }
 
-/** "PUJ-483920": the number of the identity page of a person, the same for their whole life in the induction (decorative, from the id). */
-export function personNumber(personId: string): string {
+/** The number of the identity page of a person, the same for their whole life in the induction: PUJ-DDMMAAAA from their birthday (0047) and, until the coordi writes it, PUJ-483920 made from their id. */
+export function personNumber(personId: string, birthDate?: string | null): string {
+  const fromBirthday = birthdayCode(birthDate)
+  if (fromBirthday) return fromBirthday
   return `PUJ-${String(hash(personId) % 1000000).padStart(6, '0')}`
 }
 
@@ -179,16 +183,16 @@ export function templateData(careers: string[], generations: string[]) {
   const career = (i: number) => careers[i] ?? careers[0] ?? 'Ingeniería de Sistemas'
   const generation = generations[0] ?? 'Minichips'
   return [
-    ['Nombre', 'Usuario (@)', 'Carrera', 'Otra carrera (opcional)', 'Generación', 'Inducciones previas (opcional)', 'Apodo', SONG_COLUMN].map(head),
-    ['Ana María Pérez Gómez', 'ana.perez', career(0), '', generation, '0', 'Anita', 'Mujeriego - Ryan Castro'],
-    ['Luis Fernando Ruiz', 'luis.ruiz', career(1), '', generation, '3', 'Lucho', 'https://music.apple.com/us/song/comernos/1804988448'],
-    ['Camila Torres Vega', 'camila.torres', career(2), careers[3] ?? '', generations[1] ?? generation, '8', 'Cami', ''],
+    ['Nombre', 'Usuario (@)', 'Carrera', 'Otra carrera (opcional)', 'Generación', 'Inducciones previas (opcional)', 'Cumpleaños (opcional)', 'Apodo', SONG_COLUMN].map(head),
+    ['Ana María Pérez Gómez', 'ana.perez', career(0), '', generation, '0', '15/03/2005', 'Anita', 'Mujeriego - Ryan Castro'],
+    ['Luis Fernando Ruiz', 'luis.ruiz', career(1), '', generation, '3', '02/11/2004', 'Lucho', 'https://music.apple.com/us/song/comernos/1804988448'],
+    ['Camila Torres Vega', 'camila.torres', career(2), careers[3] ?? '', generations[1] ?? generation, '8', '', 'Cami', ''],
   ]
 }
 
 export async function templateWorkbook(careers: string[], generations: string[]): Promise<Blob> {
   const { default: writeXlsxFile } = await import('write-excel-file/browser')
-  return writeXlsxFile(templateData(careers, generations), { sheet: 'Inductores', columns: [{ width: 36 }, { width: 22 }, { width: 30 }, { width: 30 }, { width: 18 }, { width: 24 }, { width: 18 }, { width: 52 }], stickyRowsCount: 1 }).toBlob()
+  return writeXlsxFile(templateData(careers, generations), { sheet: 'Inductores', columns: [{ width: 36 }, { width: 22 }, { width: 30 }, { width: 30 }, { width: 18 }, { width: 24 }, { width: 22 }, { width: 18 }, { width: 52 }], stickyRowsCount: 1 }).toBlob()
 }
 
 export function downloadBlob(blob: Blob, fileName: string) {

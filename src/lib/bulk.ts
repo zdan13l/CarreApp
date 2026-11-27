@@ -490,7 +490,7 @@ export async function readTablesFromFile(file: File): Promise<string[][][]> {
   if (name.endsWith('.xlsx')) {
     const { default: readXlsx } = await import('read-excel-file/browser')
     const sheets = (await readXlsx(file)).filter((s) => !/^instruccion/i.test(s.sheet)) // every other sheet is a section
-    return sheets.map((s) => s.data.map((r) => r.map((c) => (c === null || c === undefined ? '' : String(c)))))
+    return sheets.map((s) => s.data.map((r) => r.map((c) => (c === null || c === undefined ? '' : c instanceof Date ? c.toISOString().slice(0, 10) : String(c))))) // a date cell (a birthday) comes as AAAA-MM-DD
   }
   if (name.endsWith('.csv') || name.endsWith('.txt')) return [tableFromCsv(await file.text())]
   throw new Error('Formato no admitido. Usa un archivo .docx (Word), .xlsx (Excel) o .csv.')
