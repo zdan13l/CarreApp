@@ -522,7 +522,7 @@ export default function Inductores({ fixedTermId }: { fixedTermId?: string | nul
     const committee = String(f.get('committee') ?? '') || null
     if (!id || !career) return setError('Elige a la persona y su carrera.')
     const culture = themeOf(term.theme).cultureOf(career)
-    if (!culture) return setError(`La carrera «${career}» no tiene grupo ni subtemática en la temática de esta carrera. Agrégala en Grupos organizativos o asígnale una subtemática en Temática.`)
+    if (!culture) return setError(`La carrera «${career}» no tiene grupo ni subtemática en la temática de esta carrera. Agrégala en Carreras y temáticas o asígnale una subtemática en Temática.`)
     await run(async () => {
       const { error: err } = await supabase!.from('passport_records').insert({ passport_id: id, term_id: term.id, role, career, culture, ...(committee ? { committee } : {}) })
       if (err) throw new Error('No se pudo agregar a esta carrera.')

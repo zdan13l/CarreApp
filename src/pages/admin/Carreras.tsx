@@ -48,7 +48,7 @@ export default function Carreras() {
 
   async function create() {
     if (!supabase) return
-    if (!(await confirmDialog({ title: `¿Crear la carrera ${next ?? ''}?`, message: 'Empieza sin grupos, bases, cruces ni usuarios. Su temática se copia de la plantilla que elegiste y es solo suya. Todos los inductores activos entran solos como corredores; luego les das rol, comité, grupo o base.', confirmLabel: 'Crear carrera', icon: 'check' }))) return
+    if (!(await confirmDialog({ title: `¿Crear la carrera ${next ?? ''} con la temática ${templates.find((t) => t.key === template)?.name ?? ''}?`, message: 'Empieza sin grupos, bases, cruces ni usuarios. Sus subtemáticas y sellos los armas dentro de la carrera (Temática) y son solo suyos. Todos los inductores activos entran solos como corredores; luego les das rol, comité, grupo o base.', confirmLabel: 'Crear carrera', icon: 'check' }))) return
     setBusy(true)
     setError(null)
     let { data, error: err } = await supabase.rpc('create_event', { p_theme: template })
@@ -71,17 +71,18 @@ export default function Carreras() {
           <h1>Todas las carreras</h1>
         </div>
         <div className="head-meta">
-          {templates.length > 1 && (
+          {templates.length > 0 && (
             <select value={template} onChange={(e) => setTemplate(e.target.value)} aria-label="Temática de la nueva carrera">
               {templates.map((t) => <option key={t.key} value={t.key}>Temática: {t.name}</option>)}
             </select>
           )}
-          <button onClick={() => void create()} disabled={busy}>
+          <button onClick={() => void create()} disabled={busy || templates.length === 0}>
             <Plus size={18} aria-hidden="true" /> Nueva carrera{next ? ` (${next})` : ''}
           </button>
         </div>
       </header>
       {error && <p className="error">{error}</p>}
+      {templates.length === 0 && <p className="warn" role="status">Para crear una carrera primero agrega una temática en <Link to="/admin/programas?vista=tematicas">Carreras y temáticas</Link>.</p>}
       <p className="muted">Cada carrera es una edición con su propia configuración: grupos, bases, cruces, usuarios y todo lo suyo. Lo compartido (inductores, comités, insignias, sellos) está en <strong>Administración global</strong>.</p>
 
       <div className="carrera-grid">

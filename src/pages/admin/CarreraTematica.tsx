@@ -108,7 +108,7 @@ export default function CarreraTematica() {
                     <h1>Temática</h1>
                     <StepTag n={2} />
         </div>
-        <p className="head-meta">La temática y las subtemáticas son solo de esta edición: se copiaron de una plantilla al crearla y cambiarlas no afecta a otras carreras.</p>
+        <p className="head-meta">La temática se eligió al crear la carrera. Aquí armas sus subtemáticas, una por cada grupo de carreras, y sus sellos: son solo de esta edición y no afectan a otras carreras.</p>
       </header>
       {error && <p className="error">{error}</p>}
 
@@ -116,7 +116,8 @@ export default function CarreraTematica() {
         <h2>Temática principal</h2>
         <ThemeName key={th.key} name={th.name} busy={busy} onSave={renameTheme} />
         <p className="muted">{groups.length} grupos de carreras · {subs.length} subtemáticas.</p>
-        {without.length > 0 && <p className="warn">Sin subtemática: {without.map((g) => g.name).join(', ')}.</p>}
+        {subs.length === 0 && <p className="warn">Esta temática empezó sin subtemáticas. Agrega una por cada grupo de carreras y asígnalas abajo. Cuando estén asignadas, en Inductores pulsa «Sumar a los activos que faltan» para que entren con la de su carrera.</p>}
+        {subs.length > 0 && without.length > 0 && <p className="warn">Sin subtemática: {without.map((g) => g.name).join(', ')}.</p>}
         {repeated.length > 0 && <p className="warn">Dos grupos comparten la subtemática {repeated.map((s) => s.name).join(', ')}: cada grupo debería tener la suya.</p>}
       </section>
 
@@ -147,7 +148,7 @@ export default function CarreraTematica() {
             </li>
           ))}
         </ul>
-        <p className="muted">Los grupos de carreras se administran en Administración global → Grupos de carreras.</p>
+        <p className="muted">Los grupos y sus carreras se administran en Administración global → Carreras y temáticas.</p>
       </section>
       <SectionSeals event={event} kinds={SEAL_KINDS} title="Sellos de la temática y las subtemáticas" />
     </>
