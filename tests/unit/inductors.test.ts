@@ -234,7 +234,8 @@ describe('the Excel that goes out and the template', () => {
     expect(parsed.map((r) => [r.username, r.nickname])).toEqual([['ana.perez', 'Anita'], ['luis.ruiz', 'Lucho'], ['camila.torres', 'Cami']])
     expect(parsed[0].songWritten).toBe('Mujeriego - Ryan Castro')
     expect(parsed.map((r) => r.secondCareer)).toEqual([null, null, 'Mecatrónica']) // the third example is a double program
-    expect(parsed.map((r) => r.prior)).toEqual([0, 3, 8]) // and the examples show the inductions already had
+    expect(parsed.map((r) => r.prior)).toEqual([0, 0, 0]) // the template has no column of inductions: everybody starts at 0
+    expect(parsed.map((r) => r.birth)).toEqual(['2005-03-15', '2004-11-02', '']) // and the examples show the birthday
   })
 })
 
@@ -313,7 +314,7 @@ describe('the inductions a person already had (0045)', () => {
   })
   it('the template of the Excel has the column and its examples load as they are', () => {
     const rows = templateData(CAREERS, ['Minichips', 'Barbies']).map((r) => r.map((c) => (typeof c === 'string' ? c : c.value)))
-    expect(rows[0]).toContain('Inducciones previas (opcional)')
+    expect(rows[0]).not.toContain('Inducciones previas (opcional)') // the template no longer asks for them (the Excel still reads the column if it comes)
   })
 })
 

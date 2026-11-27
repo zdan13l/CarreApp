@@ -183,16 +183,16 @@ export function templateData(careers: string[], generations: string[]) {
   const career = (i: number) => careers[i] ?? careers[0] ?? 'Ingeniería de Sistemas'
   const generation = generations[0] ?? 'Minichips'
   return [
-    ['Nombre', 'Usuario (@)', 'Carrera', 'Otra carrera (opcional)', 'Generación', 'Inducciones previas (opcional)', 'Cumpleaños (opcional)', 'Apodo', SONG_COLUMN].map(head),
-    ['Ana María Pérez Gómez', 'ana.perez', career(0), '', generation, '0', '15/03/2005', 'Anita', 'Mujeriego - Ryan Castro'],
-    ['Luis Fernando Ruiz', 'luis.ruiz', career(1), '', generation, '3', '02/11/2004', 'Lucho', 'https://music.apple.com/us/song/comernos/1804988448'],
-    ['Camila Torres Vega', 'camila.torres', career(2), careers[3] ?? '', generations[1] ?? generation, '8', '', 'Cami', ''],
+    ['Nombre', 'Usuario (@)', 'Carrera', 'Otra carrera (opcional)', 'Generación', 'Cumpleaños (opcional)', 'Apodo', SONG_COLUMN].map(head),
+    ['Ana María Pérez Gómez', 'ana.perez', career(0), '', generation, '15/03/2005', 'Anita', 'Mujeriego - Ryan Castro'],
+    ['Luis Fernando Ruiz', 'luis.ruiz', career(1), '', generation, '02/11/2004', 'Lucho', 'https://music.apple.com/us/song/comernos/1804988448'],
+    ['Camila Torres Vega', 'camila.torres', career(2), careers[3] ?? '', generations[1] ?? generation, '', 'Cami', ''],
   ]
 }
 
 export async function templateWorkbook(careers: string[], generations: string[]): Promise<Blob> {
   const { default: writeXlsxFile } = await import('write-excel-file/browser')
-  return writeXlsxFile(templateData(careers, generations), { sheet: 'Inductores', columns: [{ width: 36 }, { width: 22 }, { width: 30 }, { width: 30 }, { width: 18 }, { width: 24 }, { width: 22 }, { width: 18 }, { width: 52 }], stickyRowsCount: 1 }).toBlob()
+  return writeXlsxFile(templateData(careers, generations), { sheet: 'Inductores', columns: [{ width: 36 }, { width: 22 }, { width: 30 }, { width: 30 }, { width: 18 }, { width: 22 }, { width: 18 }, { width: 52 }], stickyRowsCount: 1 }).toBlob()
 }
 
 export function downloadBlob(blob: Blob, fileName: string) {
