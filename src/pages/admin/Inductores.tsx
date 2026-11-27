@@ -141,8 +141,10 @@ export function PersonItem({
       <Avatar name={p.full_name} photoPath={p.photo_path} size={46} />
       <span className="grow person-main">
         <strong>
-          {p.full_name}
-          {p.nickname && <span className="nick"> «{p.nickname}»</span>}
+          <span className="person-name">
+            {p.full_name}
+            {p.nickname && <span className="nick"> «{p.nickname}»</span>}
+          </span>
           {status === 'ancestor' && <span className="badge ancestor"> Ancestro{p.disable_at ? ` · hasta ${new Date(p.disable_at).toLocaleDateString('es-CO')}` : ''}</span>}
           {status === 'disabled' && <span className="badge off"> Deshabilitado</span>}
           {view === 'carrera' && r?.disabled && <span className="badge off"> Deshabilitado en esta carrera</span>}
@@ -170,7 +172,7 @@ export function PersonItem({
         {view === 'global' && status === 'disabled' && (
           <span className="farewell off">
             <Lock size={14} aria-hidden="true" />
-            <span>Perfil deshabilitado: solo se puede ver. Reactívalo para editarlo.</span>
+            <span>Perfil deshabilitado: solo se puede ver.</span>
           </span>
         )}
         {view === 'carrera' &&

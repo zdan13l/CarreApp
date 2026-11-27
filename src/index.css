@@ -2724,7 +2724,8 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 /* la fila de un inductor: quién es, lo que lo identifica y las acciones; el editor ocupa todo el ancho debajo */
 .list.people > li.person { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: .35rem .8rem; padding: .9rem 0; }
 .list.people > li.person > .person-main { gap: .3rem; }
-.person-main > strong { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .8rem; }
+/* the name with its nickname, and apart from it (not glued) the label of an ancestor or a disabled profile; the selector must beat `.list li > .grow > strong` */
+.list.people > li.person > .person-main > strong { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .85rem; }
 .person-main .nick { color: var(--text-muted); font-weight: 500; }
 .person-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem .9rem; }
 .person-song { display: flex; align-items: center; gap: .4rem; width: fit-content; max-width: 100%; min-width: 0; padding: .15rem .2rem .15rem .55rem; color: var(--text-muted); background: var(--surface-2); border-radius: 999px; font-size: .8125rem; }
@@ -2738,6 +2739,7 @@ button.song-play:hover:not(:disabled) { background: var(--pass-navy-2); }
 .person-actions .icon-btn:hover:not(:disabled) { border-color: var(--border-strong); }
 .person-actions .pressed { background: var(--surface-3); border-color: var(--text-faint); }
 .list.people > li.person.is-ancestor > .person-main > strong { color: var(--text-muted); }
+.person-main > strong .badge { flex: none; }
 .list.people > li.person.is-disabled { opacity: .78; }
 /* an ancestor: someone who already left the induction; a soft goodbye instead of a form (gold thread, a feather, a gold ring on the picture) */
 .list.people > li.person.is-ancestor > .avatar { filter: grayscale(.55); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--gold); }
@@ -2870,3 +2872,8 @@ button.filter-clear:hover:not(:disabled) { color: var(--danger); background: col
 .crop-zoom { display: flex; align-items: center; gap: .5rem; width: min(320px, 100%); }
 .crop-zoom input[type='range'] { flex: 1; min-width: 0; min-height: 0; padding: 0; accent-color: var(--gold); }
 .crop-zoom button.icon-only { flex: none; display: grid; place-items: center; width: 40px; min-height: 40px; padding: 0; }
+
+/* the date boxes (birthday): a phone draws them with a minimum width of their own, so they are forced into the room of their column */
+input[type='date'] { display: block; width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; -webkit-appearance: none; appearance: none; text-align: left; }
+input[type='date']::-webkit-date-and-time-value { min-width: 0; text-align: left; }
+.birthday-field, .prior-field { min-width: 0; }
