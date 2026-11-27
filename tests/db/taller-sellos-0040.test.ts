@@ -1,7 +1,7 @@
 // Migration 0040: a seal belongs to ONE carrera and can only be put on an element of THAT carrera; it goes away with its element.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createDb, type TestDb } from './harness'
-import { getAdmin } from './seed'
+import { getAdmin, newTemplate } from './seed'
 
 let db: TestDb
 beforeAll(async () => {
@@ -13,7 +13,7 @@ afterAll(async () => {
 
 const create = async () => {
   const admin = await getAdmin(db)
-  const [r] = await db.asUser(admin).sql<{ create_event: string }>(`select public.create_event()`)
+  const [r] = await db.asUser(admin).sql<{ create_event: string }>(`select public.create_event($1)`, [await newTemplate(db)])
   const [e] = await db.sql<{ id: string; term_id: string }>(`select id, term_id from public.events where id = $1`, [r.create_event])
   return e
 }

@@ -1,7 +1,7 @@
 // Migration 0037: each carrera has its own theme and subthemes, its committees, its coordi and its seals.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createDb, type TestDb } from './harness'
-import { getAdmin } from './seed'
+import { getAdmin, newTemplate } from './seed'
 
 let db: TestDb
 beforeAll(async () => {
@@ -11,8 +11,9 @@ afterAll(async () => {
   await db.close()
 })
 
-const create = async (theme = 'mitologias') => {
+const create = async (theme?: string) => {
   const admin = await getAdmin(db)
+  theme ??= await newTemplate(db) // a theme is used by ONE carrera only (0049)
   const [r] = await db.asUser(admin).sql<{ create_event: string }>(`select public.create_event($1)`, [theme])
   const [e] = await db.sql<{ id: string; term_id: string; code: string }>(`select id, term_id, code from public.events where id = $1`, [r.create_event])
   return e
@@ -20,9 +21,10 @@ const create = async (theme = 'mitologias') => {
 
 describe('its own theme (0037)', () => {
   it('a new carrera gets a COPY of the template: own theme, own subthemes, own group mapping', async () => {
-    const e = await create()
+    const template = await newTemplate(db)
+    const e = await create(template)
     const [th] = await db.sql<{ key: string; template_of: string }>(`select key, template_of from public.themes where term_id = $1`, [e.term_id])
-    expect(th.template_of).toBe('mitologias')
+    expect(th.template_of).toBe(template)
     expect((await db.sql(`select 1 from public.theme_cultures where theme_key = $1`, [th.key])).length).toBe(5)
     expect((await db.sql(`select 1 from public.group_cultures where theme_key = $1`, [th.key])).length).toBe(5)
     const [t] = await db.sql<{ theme: string }>(`select theme from public.terms where id = $1`, [e.term_id])

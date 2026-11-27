@@ -19,6 +19,17 @@ export async function addUser(db: TestDb, username: string, role: Role): Promise
   return user.id
 }
 
+let templates = 0
+/** A new theme template (as the coordi adds one in Carreras y temáticas): a theme can be used by ONE carrera only (0049), so every carrera a test creates
+ *  needs its own. It starts as a copy of «Mitologías» (its five cultures and the culture of each group of careers) so what depends on them keeps working. */
+export async function newTemplate(db: TestDb): Promise<string> {
+  const key = `plantilla-${++templates}`
+  await db.sql(`insert into public.themes (key, name) values ($1, $2)`, [key, `Plantilla ${templates}`])
+  await db.sql(`insert into public.theme_cultures (theme_key, key, name, myth, ink, ornament, emblem, sort_order) select $1, key, name, myth, ink, ornament, emblem, sort_order from public.theme_cultures where theme_key = 'mitologias'`, [key])
+  await db.sql(`insert into public.group_cultures (theme_key, group_id, culture_key) select $1, group_id, culture_key from public.group_cultures where theme_key = 'mitologias'`, [key])
+  return key
+}
+
 const admins = new WeakMap<TestDb, string>()
 export async function getAdmin(db: TestDb): Promise<string> {
   let id = admins.get(db)

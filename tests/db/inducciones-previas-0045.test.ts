@@ -1,7 +1,7 @@
 // Migration 0045: the inductions a person already had, and every active inductor entering each new carrera by themselves.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createDb, type TestDb } from './harness'
-import { addUser, getAdmin } from './seed'
+import { addUser, getAdmin, newTemplate } from './seed'
 
 let db: TestDb
 beforeAll(async () => {
@@ -28,7 +28,7 @@ const person = async (extra: { career?: string | null; status?: string; prior?: 
 const count = async (id: string) => (await db.sql<{ inductions: number }>(`select inductions from public.passport_inductions where passport_id = $1`, [id]))[0]?.inductions
 const newCarrera = async () => {
   const admin = await getAdmin(db)
-  const [r] = await db.asUser(admin).sql<{ create_event: string }>(`select public.create_event()`)
+  const [r] = await db.asUser(admin).sql<{ create_event: string }>(`select public.create_event($1)`, [await newTemplate(db)])
   const [e] = await db.sql<{ id: string; term_id: string }>(`select id, term_id from public.events where id = $1`, [r.create_event])
   return { admin, eventId: e.id, termId: e.term_id }
 }

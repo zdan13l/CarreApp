@@ -1,7 +1,7 @@
 // Migration 0036: codes 2710, 2730, 2810…, the permanent test Carrera, Finalizada (archived) and no deletion.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createDb, type TestDb } from './harness'
-import { addUser, getAdmin, insertMatch, seedCarrera } from './seed'
+import { addUser, getAdmin, insertMatch, newTemplate, seedCarrera } from './seed'
 
 let db: TestDb
 beforeAll(async () => {
@@ -13,7 +13,7 @@ afterAll(async () => {
 
 const create = async () => {
   const admin = await getAdmin(db)
-  const [r] = await db.asUser(admin).sql<{ create_event: string }>(`select public.create_event()`)
+  const [r] = await db.asUser(admin).sql<{ create_event: string }>(`select public.create_event($1)`, [await newTemplate(db)])
   const [e] = await db.sql<{ code: string; name: string; term_id: string | null }>(`select code, name, term_id from public.events where id = $1`, [r.create_event])
   return { id: r.create_event, ...e }
 }
